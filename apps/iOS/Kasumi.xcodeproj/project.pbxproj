@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		A10000000000000000000011 /* KasumiMarkdown in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000012 /* KasumiMarkdown */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		A10000000000000000000001 /* Kasumi.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Kasumi.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -19,6 +23,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A10000000000000000000011 /* KasumiMarkdown in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -61,6 +66,7 @@
 			);
 			name = Kasumi;
 			packageProductDependencies = (
+				A10000000000000000000012 /* KasumiMarkdown */,
 			);
 			productName = Kasumi;
 			productReference = A10000000000000000000001 /* Kasumi.app */;
@@ -247,6 +253,14 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A10000000000000000000012 /* KasumiMarkdown */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A10000000000000000000010;
+			productName = KasumiMarkdown;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCLocalSwiftPackageReference section */
 		A10000000000000000000010 /* XCLocalSwiftPackageReference "../.." */ = {
