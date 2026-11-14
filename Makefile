@@ -38,9 +38,11 @@ build: native ## Build the Swift package
 test: native ## Run swift test (optionally FILTER=<name>)
 	swift test $(if $(FILTER),--filter '$(FILTER)')
 
+# Xcode suite identifiers omit (), while function identifiers include it.
+# Selecting both forms lets FILTER accept either kind of name.
 test-ios: native ## Run package tests on iOS Simulator (optionally FILTER=<name>)
 	xcodebuild -scheme KasumiMarkdown-Package -destination 'platform=iOS Simulator,name=$(SIMULATOR)' \
-		-derivedDataPath build/iOSTests $(if $(FILTER),'-only-testing:KasumiMarkdownTests/$(FILTER)()') test
+		-derivedDataPath build/iOSTests $(if $(FILTER),'-only-testing:KasumiMarkdownTests/$(FILTER)' '-only-testing:KasumiMarkdownTests/$(FILTER)()') test
 
 app: native ## Build the iOS app for the simulator
 	xcodebuild -project apps/iOS/Kasumi.xcodeproj -scheme Kasumi \
