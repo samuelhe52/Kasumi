@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import KasumiMarkdown
 
-private let readingFixtureDirectory = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("fixtures")
+private let readingFixtureDirectory = testRepositoryURL.appendingPathComponent("fixtures")
 
 private func readingLayout(_ source: String, width: CGFloat = 360, size: Double = 16) -> DocumentLayout {
     var style = Typography(); style.size = size

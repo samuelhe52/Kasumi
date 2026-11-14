@@ -1,4 +1,8 @@
+#if canImport(AppKit)
 import AppKit
+#else
+import UIKit
+#endif
 import Foundation
 import Testing
 @testable import KasumiMarkdown
@@ -53,7 +57,7 @@ private func entityContour(_ rows: [[Double]]) -> [CGPoint] {
 }
 
 @Test func nativeEntityClassAndERGeometry() throws {
-    let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+    let root = testRepositoryURL
     for filename in ["MermaidClass.core.json", "MermaidER.core.json"] {
         let reference = try JSONDecoder().decode(EntityReference.self,
             from: Data(contentsOf: root.appendingPathComponent("fixtures/reference/" + filename)))

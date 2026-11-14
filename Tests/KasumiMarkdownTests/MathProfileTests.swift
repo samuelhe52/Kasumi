@@ -1,4 +1,8 @@
+#if canImport(AppKit)
 import AppKit
+#else
+import UIKit
+#endif
 import CoreText
 import CryptoKit
 import Foundation
@@ -91,11 +95,11 @@ private struct ProfileMathCase: Decodable {
     #expect(missing.result.box.drawings.isEmpty)
     #expect(missing.result.box.width == 0)
     #expect(missing.source == "A⫋B")
-    let fallbackFont = NSFont.monospacedSystemFont(ofSize: 13, weight: .regular)
+    let fallbackFont = PlatformFont.monospacedSystemFont(ofSize: 13, weight: .regular)
     let fallback = missing.attributed(color: .black, fallbackFont: fallbackFont)
     #expect(fallback.string == missing.source)
     #expect(fallback.attribute(.kasumiMath, at: 0, effectiveRange: nil) == nil)
-    #expect((fallback.attribute(.font, at: 0, effectiveRange: nil) as? NSFont) == fallbackFont)
+    #expect((fallback.attribute(.font, at: 0, effectiveRange: nil) as? PlatformFont) == fallbackFont)
     let map = DocumentTextMap(fallback)
     #expect(map.substring(in: NSRange(location: 0, length: 1)) == "A")
     #expect(map.matches("B") == [NSRange(location: 2, length: 1)])

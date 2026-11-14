@@ -1,4 +1,5 @@
-import AppKit
+import Foundation
+import CoreGraphics
 import Markdown
 
 /// Indented native mindmap and directory tree layouts. Geometry is checked
@@ -121,7 +122,7 @@ enum MermaidTree {
         return text.components(separatedBy: "\n")
     }
 
-    private static func line(_ a: CGPoint, _ b: CGPoint, color: NSColor, width: CGFloat = 1) -> MermaidCommand {
+    private static func line(_ a: CGPoint, _ b: CGPoint, color: CGColor, width: CGFloat = 1) -> MermaidCommand {
         let path = CGMutablePath(); path.move(to: a); path.addLine(to: b)
         return .path(path, fill: nil, stroke: color, width: width, dash: [])
     }

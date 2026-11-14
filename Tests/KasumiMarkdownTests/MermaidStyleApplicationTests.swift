@@ -1,4 +1,8 @@
+#if canImport(AppKit)
 import AppKit
+#else
+import UIKit
+#endif
 import Testing
 @testable import KasumiMarkdown
 
@@ -16,7 +20,7 @@ private struct StyleApplicationReference: Decodable {
     }
 }
 private func styleApplicationFixture() throws -> StyleApplicationReference {
-    let root=URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+    let root=testRepositoryURL
     return try JSONDecoder().decode(StyleApplicationReference.self,from:Data(contentsOf:root.appendingPathComponent("fixtures/reference/StyleApplications.core.json")))
 }
 private func styleApplicationDifferences(_ scene: MermaidScene, _ native: StyleApplicationReference.Result, dark: Bool) -> [String] {
@@ -25,15 +29,15 @@ private func styleApplicationDifferences(_ scene: MermaidScene, _ native: StyleA
         if a.count != b.count || zip(a,b).contains(where:{abs($0-$1)>0.003}) { differences.append("\(context): \(a) vs \(b)") }
     }
     func rect(_ r:CGRect)->[Double] {[r.minX,r.minY,r.width,r.height]}
-    func expectedColor(_ command:StyleApplicationReference.Command,stroke:Bool)->NSColor? {
+    func expectedColor(_ command:StyleApplicationReference.Command,stroke:Bool)->CGColor? {
         let slot=stroke ? command.stroke:command.fill, tint=stroke ? command.stroke_tint:command.fill_tint
         if slot==0 { return nil };if tint != 0 { return MermaidPalette.color(tint:tint,dark:dark) }
         if slot==2 || [20,21,26].contains(command.role) { return MermaidPalette.text(dark:dark) }
         if stroke { return MermaidPalette.nodeStroke(dark:dark) }
         switch command.role {case 22:return MermaidPalette.labelBackground(dark:dark);case 8:return MermaidPalette.noteFill(dark:dark);case 27:return MermaidPalette.blockFill(dark:dark);default:return MermaidPalette.nodeFill(dark:dark)}
     }
-    func color(_ actual:NSColor?,_ expected:NSColor?,_ context:String) {
-        guard let a=actual?.usingColorSpace(.sRGB),let b=expected?.usingColorSpace(.sRGB) else {if (actual==nil) != (expected==nil) {differences.append("\(context): paint presence")};return}
+    func color(_ actual:CGColor?,_ expected:CGColor?,_ context:String) {
+        guard let a=actual?.kasumiSRGB,let b=expected?.kasumiSRGB else {if (actual==nil) != (expected==nil) {differences.append("\(context): paint presence")};return}
         close([a.redComponent,a.greenComponent,a.blueComponent,a.alphaComponent],[b.redComponent,b.greenComponent,b.blueComponent,b.alphaComponent],context)
     }
     close([scene.bounds.minX,scene.bounds.minY,scene.bounds.maxX,scene.bounds.maxY],native.bounds,"bounds")

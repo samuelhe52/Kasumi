@@ -1,7 +1,12 @@
+#if canImport(AppKit)
 import AppKit
+#else
+import UIKit
+#endif
 import CoreText
 import Foundation
 import PDFKit
+import ImageIO
 import Testing
 @testable import KasumiMarkdown
 
@@ -42,7 +47,7 @@ import Testing
     let document = DocumentParser.parse("Printed words")
     let style = Typography().applying(ProfileValues([.baseSize: .number(30), .printBodySize: .number(9)]))
     let reader = DocumentTypesetter.layout(document, width: 500, style: style)
-    #expect((reader.text.attribute(.font, at: 0, effectiveRange: nil) as? NSFont)?.pointSize == 30)
+    #expect((reader.text.attribute(.font, at: 0, effectiveRange: nil) as? PlatformFont)?.pointSize == 30)
     let url = directory.appendingPathComponent("printed.pdf")
     var options = PDFExportOptions(); options.pageNumbers = false
     try DocumentExporter.writePDF(document, style: style, options: options, to: url)
@@ -50,10 +55,11 @@ import Testing
     let printed = try #require(page.attributedString)
     let position = (printed.string as NSString).range(of: "Printed").location
     #expect(position != NSNotFound)
-    let font = try #require(printed.attribute(.font, at: position, effectiveRange: nil) as? NSFont)
+    let font = try #require(printed.attribute(.font, at: position, effectiveRange: nil) as? PlatformFont)
     #expect(abs(font.pointSize - 9) < 0.01)
     let png = directory.appendingPathComponent("reading.png")
     try DocumentExporter.writeImage(document, style: style, width: 500, scale: 1, to: png)
-    let image = try #require(NSImage(contentsOf: png))
-    #expect(image.size.height == ceil(reader.height))
+    let source = try #require(CGImageSourceCreateWithURL(png as CFURL, nil))
+    let image = try #require(CGImageSourceCreateImageAtIndex(source, 0, nil))
+    #expect(CGFloat(image.height) == ceil(reader.height))
 }

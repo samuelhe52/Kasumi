@@ -1,4 +1,8 @@
+#if canImport(AppKit)
 import AppKit
+#else
+import UIKit
+#endif
 import PDFKit
 import Testing
 @testable import KasumiMarkdown

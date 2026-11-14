@@ -1,4 +1,8 @@
+#if canImport(AppKit)
 import AppKit
+#else
+import UIKit
+#endif
 import CoreText
 
 /// Font classification for CJK text. This is distinct from the core's
@@ -17,7 +21,7 @@ enum CJKFontRole {
     /// classification is nonzero.
     static let punctuationScalars = Set("、。〈〉《》「」『』【】〔〕〖〗〘〙〚〛〝〞〟！（），．：；？［］｛｝～｟｠".unicodeScalars.map(\.value))
 
-    static func punctuationFont(for character: Character, family: String, hanFont: NSFont, enabled: Bool) -> NSFont? {
+    static func punctuationFont(for character: Character, family: String, hanFont: PlatformFont, enabled: Bool) -> PlatformFont? {
         guard enabled, family == "Songti SC", let scalar = character.unicodeScalars.first,
               punctuationScalars.contains(scalar.value) else { return nil }
         let name: String
@@ -26,7 +30,7 @@ enum CJKFontRole {
         case "STSongti-SC-Bold": name = "SimSong-Bold"
         default: return nil
         }
-        guard let font = NSFont(name: name, size: hanFont.pointSize), font.fontName == name else { return nil }
+        guard let font = PlatformFonts.named(name, size: hanFont.pointSize), font.fontName == name else { return nil }
         let units = Array(String(scalar).utf16)
         var glyphs = [CGGlyph](repeating: 0, count: units.count)
         guard CTFontGetGlyphsForCharacters(font as CTFont, units, &glyphs, units.count), glyphs.allSatisfy({ $0 != 0 }) else { return nil }

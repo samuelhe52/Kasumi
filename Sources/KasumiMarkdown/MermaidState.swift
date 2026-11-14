@@ -1,4 +1,5 @@
-import AppKit
+import Foundation
+import CoreGraphics
 
 /// The reference's supported state subset uses a vertical graph, with an
 /// independently laid-out compound graph for every nested state body.
@@ -223,7 +224,7 @@ enum MermaidState {
         let fill = palette.nodeFill, stroke = palette.nodeStroke, edgeColor = palette.edge, ink = palette.text
         var commands: [MermaidCommand] = [], bounds = CGRect.null
         func include(_ rect: CGRect) { bounds = bounds.union(rect) }
-        func text(_ label: String, center: CGFloat, top: CGFloat, role: Int, color: NSColor? = nil) {
+        func text(_ label: String, center: CGFloat, top: CGFloat, role: Int, color: CGColor? = nil) {
             var y = top
             for line in lines(label) {
                 let s = textMetrics.measure(line,role:role), r = CGRect(x: center - s.width / 2, y: y, width: s.width, height: s.height)

@@ -1,4 +1,8 @@
+#if canImport(AppKit)
 import AppKit
+#else
+import UIKit
+#endif
 import CoreText
 import CryptoKit
 import Foundation
@@ -27,7 +31,7 @@ private struct MathSnapshot: Decodable {
 }
 
 @Test func nativeMathGeometry() throws {
-    let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+    let root = testRepositoryURL
     let snapshot = try JSONDecoder().decode(MathSnapshot.self, from: Data(contentsOf: root.appendingPathComponent("fixtures/reference/Math.core.json")))
     let font = try Data(contentsOf: MathFont.resourceURL)
     #expect(SHA256.hash(data: font).map { String(format: "%02x", $0) }.joined() == snapshot.font_sha256)

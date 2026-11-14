@@ -1,5 +1,9 @@
 import Foundation
+#if canImport(AppKit)
 import AppKit
+#else
+import UIKit
+#endif
 import CoreText
 
 public struct Typography: Codable, Equatable, Sendable {
@@ -46,11 +50,11 @@ public struct Typography: Codable, Equatable, Sendable {
         darkThemeID = try values.decodeIfPresent(String.self, forKey: .darkThemeID) ?? darkThemeID
     }
     public var documentTheme: DocumentTheme { DocumentThemeCatalog.resolved(id: dark ? darkThemeID : lightThemeID, dark: dark) }
-    public var textColor: NSColor { documentTheme.color("text")! }
-    public var headingColor: NSColor { documentTheme.color("heading") ?? textColor }
-    public var paperColor: NSColor { documentTheme.color("paper")! }
-    public var secondaryColor: NSColor { documentTheme.color("secondary_text")! }
-    public var ruleColor: NSColor { documentTheme.color("rule")! }
+    public var textColor: PlatformColor { documentTheme.color("text")! }
+    public var headingColor: PlatformColor { documentTheme.color("heading") ?? textColor }
+    public var paperColor: PlatformColor { documentTheme.color("paper")! }
+    public var secondaryColor: PlatformColor { documentTheme.color("secondary_text")! }
+    public var ruleColor: PlatformColor { documentTheme.color("rule")! }
     public var hanScale: Double { profileValues.resolved(.hanScale).number! }
     public var latinScale: Double { profileValues.resolved(.latinScale).number! }
     public var codeScale: Double { profileValues.resolved(.codeScale).number! }
@@ -82,7 +86,7 @@ public struct Typography: Codable, Equatable, Sendable {
         }
         return [1.6,1.5,1.4,1.3,1.2,1.1][min(5,max(0,level-1))]
     }
-    public func headingWeight(_ level: Int) -> NSFont.Weight {
+    public func headingWeight(_ level: Int) -> PlatformFont.Weight {
         guard case .strings(let weights)=profileValues.resolved(.headingWeight), weights.count==6,
               weights.allSatisfy({["regular","medium","semibold","bold"].contains($0)}) else { return .semibold }
         switch weights[min(5,max(0,level-1))] {case "regular":return .regular;case "medium":return .medium;case "bold":return .bold;default:return .semibold}
@@ -104,37 +108,41 @@ public struct Typography: Codable, Equatable, Sendable {
         return result
     }
 
-    public func font(size: Double? = nil, strong: Bool = false, emphasis: Bool = false, code: Bool = false, cjk: Bool = false, weight: NSFont.Weight? = nil, heading: Bool = false) -> NSFont {
+    public func font(size: Double? = nil, strong: Bool = false, emphasis: Bool = false, code: Bool = false, cjk: Bool = false, weight: PlatformFont.Weight? = nil, heading: Bool = false) -> PlatformFont {
         _ = try? DocumentFonts.registerBundledFonts()
         let requestedSize = (size ?? self.size) * (code ? codeScale : cjk ? hanScale : latinScale)
         // Code font sizes round to nearest, ties away from zero, after scaling.
         let pointSize = code ? requestedSize.rounded(.toNearestOrAwayFromZero) : requestedSize
-        let desiredWeight = weight ?? (strong ? NSFont.Weight.bold : .regular)
+        let desiredWeight = weight ?? (strong ? PlatformFont.Weight.bold : .regular)
         if cjk,let face=CJKFontFace.resolve(family:hanFamily,strong:strong,emphasis:emphasis,heading:heading,
             italic:profileValues.resolved(.cjkItalicFace).string!,heavy:profileValues.resolved(.cjkStrongFace).string!),
-            let font=NSFont(name:face.name,size:pointSize) { return font }
-        let base: NSFont
-        if code { base = NSFont(name: codeFamily, size: pointSize) ?? .monospacedSystemFont(ofSize: pointSize, weight: .regular) }
-        else if cjk { base = NSFont(name: hanFamily, size: pointSize) ?? .systemFont(ofSize: pointSize) }
+            let font=PlatformFonts.named(face.name,size:pointSize) { return font }
+        let base: PlatformFont
+        if code { base = PlatformFonts.named( codeFamily, size: pointSize) ?? .monospacedSystemFont(ofSize: pointSize, weight: .regular) }
+        else if cjk { base = PlatformFonts.named( hanFamily, size: pointSize) ?? .systemFont(ofSize: pointSize) }
         else if latinFamily == "New York" {
-            let descriptor = NSFont.systemFont(ofSize: pointSize, weight: desiredWeight).fontDescriptor.withDesign(.serif) ?? NSFont.systemFont(ofSize: pointSize, weight: desiredWeight).fontDescriptor
-            base = NSFont(descriptor: descriptor, size: pointSize) ?? .systemFont(ofSize: pointSize)
+            let descriptor = PlatformFont.systemFont(ofSize: pointSize, weight: desiredWeight).fontDescriptor.withDesign(.serif) ?? PlatformFont.systemFont(ofSize: pointSize, weight: desiredWeight).fontDescriptor
+            #if canImport(AppKit)
+            base = PlatformFont(descriptor: descriptor, size: pointSize) ?? .systemFont(ofSize: pointSize)
+            #else
+            base = PlatformFont(descriptor: descriptor, size: pointSize)
+            #endif
         } else if ["SF Pro", "SF Pro Text"].contains(latinFamily) { base = .systemFont(ofSize: pointSize, weight: desiredWeight) }
         else {
-            // The native custom-family path uses regular below bold and manager
-            // weight9 plus the bold trait at/above bold; it has no semibold face.
-            let heavier = desiredWeight >= .bold ? NSFontManager.shared.font(withFamily: latinFamily, traits: .boldFontMask, weight: 9, size: pointSize) : nil
-            base = heavier ?? NSFont(name: latinFamily, size: pointSize) ?? NSFontManager.shared.font(withFamily: latinFamily, traits: [], weight: 5, size: pointSize) ?? .systemFont(ofSize: pointSize)
+            // Custom families select regular below bold; traits choose real
+            // bold/italic faces through Core Text rather than a font manager.
+            let regular = PlatformFonts.named(latinFamily, size: pointSize) ?? .systemFont(ofSize: pointSize)
+            base = desiredWeight >= .bold ? PlatformFonts.applying(.traitBold, to: regular) : regular
         }
-        var traits: NSFontTraitMask = []
-        if strong { traits.insert(.boldFontMask) }
-        if emphasis && !cjk { traits.insert(.italicFontMask) }
-        return traits.isEmpty ? base : NSFontManager.shared.convert(base, toHaveTrait: traits)
+        var traits: CTFontSymbolicTraits = []
+        if strong { traits.insert(.traitBold) }
+        if emphasis && !cjk { traits.insert(.traitItalic) }
+        return PlatformFonts.applying(traits, to: base)
     }
 
     public func attributed(_ runs: [InlineRun], size: Double? = nil, heading: Bool = false, code: Bool = false, headingLevel: Int? = nil, baseURL: URL? = nil, imageMaxWidth: CGFloat = 960) -> NSAttributedString {
         let output = NSMutableAttributedString(string: "")
-        func append(_ text: NSAttributedString, base: NSFont, han: NSFont? = nil, punctuation: NSFont? = nil, run: InlineRun, isCode: Bool) {
+        func append(_ text: NSAttributedString, base: PlatformFont, han: PlatformFont? = nil, punctuation: PlatformFont? = nil, run: InlineRun, isCode: Bool) {
             let piece = NSMutableAttributedString(attributedString: text)
             let metadata = ParagraphRunStyle(baseFont: base, hanFont: han, punctuationFont: punctuation,
                                              flags: run.paragraphFlags | (isCode ? 4 : 0), isCode: isCode)
@@ -176,15 +184,15 @@ public struct Typography: Codable, Equatable, Sendable {
                 .font: base, .foregroundColor: run.traits.contains(.link) ? (theme.color("link") ?? foreground) : isCode ? (theme.color("inline_code") ?? foreground) : foreground
             ]
             if run.traits.contains(.strikethrough) { attributes[.strikethroughStyle] = NSUnderlineStyle.single.rawValue }
-            if run.traits.contains(.highlight) { attributes[.backgroundColor] = theme.color("mark_background") ?? NSColor.systemYellow.withAlphaComponent(0.45) }
+            if run.traits.contains(.highlight) { attributes[.backgroundColor] = theme.color("mark_background") ?? DocumentColor(red: 1, green: 0.8, blue: 0, alpha: 0.45).nsColor }
             if let destination = run.destination { attributes[.link] = destination }
             if isFootnote { attributes[.baselineOffset] = pointSize * superscriptShift }
             let displayed = run.footnoteDisplay ?? run.text
             let piece = NSMutableAttributedString(string: displayed, attributes: attributes)
-            var selectedHan: NSFont?, selectedPunctuation: NSFont?
+            var selectedHan: PlatformFont?, selectedPunctuation: PlatformFont?
             if !isCode {
                 var offset = 0
-                var resolvedHan: (font: NSFont, trim: Double)?
+                var resolvedHan: (font: PlatformFont, trim: Double)?
                 for character in displayed {
                     let length = String(character).utf16.count
                     if CJKFontRole.usesHanFont(character) {

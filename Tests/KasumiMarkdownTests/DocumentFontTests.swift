@@ -1,4 +1,8 @@
+#if canImport(AppKit)
 import AppKit
+#else
+import UIKit
+#endif
 import CoreText
 import CryptoKit
 import Foundation
@@ -18,7 +22,7 @@ import Testing
         let (style, checksum, bold, italic) = specification
         let bytes = try Data(contentsOf: face.resourceURL)
         #expect(SHA256.hash(data: bytes).map { String(format: "%02x", $0) }.joined() == checksum)
-        let font = try #require(NSFont(name: "TeXGyrePagella-" + style, size: 16))
+        let font = try #require(PlatformFont(name: "TeXGyrePagella-" + style, size: 16))
         #expect(font.fontName == face.postScriptName)
         #expect(font.familyName == "TeX Gyre Pagella")
         let ctFont = CTFontCreateWithName(font.fontName as CFString, 16, nil)
@@ -31,7 +35,7 @@ import Testing
     }
     // Family selection used by the serif preset must choose the real regular
     // face, independently of the font being requested by PostScript name.
-    let regular = try #require(NSFont(name: "TeX Gyre Pagella", size: 16))
+    let regular = try #require(PlatformFont(name: "TeX Gyre Pagella", size: 16))
     #expect(regular.fontName == "TeXGyrePagella-Regular")
 }
 

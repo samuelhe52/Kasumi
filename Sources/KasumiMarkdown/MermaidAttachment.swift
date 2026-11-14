@@ -1,4 +1,8 @@
+#if canImport(AppKit)
 import AppKit
+#else
+import UIKit
+#endif
 import CoreText
 
 extension NSAttributedString.Key {
@@ -35,7 +39,7 @@ final class MermaidAttachment: NSObject {
         }
         return NSAttributedString(string: "\u{FFFC}", attributes: [
             NSAttributedString.Key(kCTRunDelegateAttributeName as String): delegate,
-            .kasumiDiagram: self, .kasumiSemanticText: source, .foregroundColor: NSColor.clear
+            .kasumiDiagram: self, .kasumiSemanticText: source, .foregroundColor: PlatformColor.clear
         ])
     }
     /// Called in the upward-positive baseline coordinates used by CTLine.

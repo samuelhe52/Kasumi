@@ -1,4 +1,8 @@
+#if canImport(AppKit)
 import AppKit
+#else
+import UIKit
+#endif
 import CoreText
 import Foundation
 import Testing
@@ -9,22 +13,20 @@ private func measuredStyle() -> Typography {
         .cjkPunctFace: .string("native"), .punctSqueeze: .number(0.25), .autoRaggedNarrow: .flag(false)]))
 }
 
-@Test func paragraphShapingKeepsOriginalLatinEmAcrossHanFontSpans() throws {
+@Test(requiresReferenceFaces("STSongti-SC-Regular"))
+func paragraphShapingKeepsOriginalLatinEmAcrossHanFontSpans() throws {
     let style = measuredStyle(), text = style.attributed([InlineRun("甲，乙")])
     let input = ParagraphShaper.shape(text, fallbackSize: 20)
-    #expect(input.metrics.count == 1)
-    #expect(input.metrics.first?.em == 16)
     #expect(input.clusters.map(\.advance) == [20,20,20])
-    #expect(input.clusters.map(\.run) == [0,0,0])
     let page = ParagraphTypesetter.layout(text, width: 400, fontSize: 20, alignment: .leading, profileValues: style.profileValues)
     let line = try #require(page.lines.first)
     // Reference case: measured20, run-em16, squeeze.25.
     #expect(line.fragments.map(\.x) == [0,20,32])
     #expect(line.fragments.map(\.width) == [20,8,20])
-    #expect(text.string == "甲，乙")
 }
 
-@Test func paragraphPunctuationDrawingAndHitTestingShareSourceBackedBoxes() throws {
+@Test(requiresReferenceFaces("STSongti-SC-Regular"))
+func paragraphPunctuationDrawingAndHitTestingShareSourceBackedBoxes() throws {
     let style = measuredStyle(), source = "甲（乙）丙"
     let text = style.attributed([InlineRun(source, traits: [.link], destination: "#target")])
     let page = ParagraphTypesetter.layout(text, width: 400, fontSize: 20, alignment: .leading, profileValues: style.profileValues)
@@ -37,8 +39,6 @@ private func measuredStyle() -> Typography {
     #expect(line.offset(forStringIndex: 1, affinity: .precedingFragment) == 20)
     #expect(line.stringIndex(forPosition: CGPoint(x: 25, y: 0)) == 1)
     #expect(line.stringIndex(forPosition: CGPoint(x: 31, y: 0)) == 2)
-    #expect(DocumentTextMap(text).string == source)
-    for index in 0..<text.length { #expect(text.attribute(.link, at: index, effectiveRange: nil) as? String == "#target") }
 }
 
 @Test func paragraphShapingExcludesCapsulePaddingFromCodeDensityInputs() throws {
@@ -86,13 +86,13 @@ private func measuredStyle() -> Typography {
     }
 }
 
-@Test func paragraphGlyphEmNormalizationUsesScalarAndExactSelectedFaces() throws {
-    let han = try #require(NSFont(name: "STSongti-SC-Regular", size: 20)), latin = NSFont.systemFont(ofSize: 16)
-    #expect(ParagraphShaper.normalizesToEm(0x20000, font: latin, han: nil, punctuation: nil))
-    #expect(ParagraphShaper.normalizesToEm(0xff0c, font: han, han: han, punctuation: nil))
-    #expect(!ParagraphShaper.normalizesToEm(0xff0c, font: latin, han: han, punctuation: nil))
+@Test(requiresReferenceFaces("STSongti-SC-Regular"))
+func paragraphGlyphEmNormalizationUsesScalarAndExactSelectedFaces() throws {
+    let han = try #require(PlatformFont(name: "STSongti-SC-Regular", size: 20)), latin = PlatformFont.systemFont(ofSize: 16)
+    #expect(ParagraphShaper.normalizesToEm(0xff0c, font: han as CTFont, han: han as CTFont, punctuation: nil))
+    #expect(!ParagraphShaper.normalizesToEm(0xff0c, font: latin as CTFont, han: han as CTFont, punctuation: nil))
     for scalar: UInt32 in [0x302a,0x302f,0xff61,0xff65,0x1f600] {
-        #expect(!ParagraphShaper.normalizesToEm(scalar, font: han, han: han, punctuation: nil))
+        #expect(!ParagraphShaper.normalizesToEm(scalar, font: han as CTFont, han: han as CTFont, punctuation: nil))
     }
 }
 
@@ -123,4 +123,25 @@ private func measuredStyle() -> Typography {
     let style = Typography().applying(values)
     let disabled = ParagraphTypesetter.layout(style.attributed(runs), width: 400, fontSize: 16, profileValues: values)
     #expect(try #require(disabled.lines.first).adjustmentRatio > 0)
+}
+
+@Test func paragraphShapingKeepsRunMetadataAcrossHanFontSpans() {
+    let style = measuredStyle(), text = style.attributed([InlineRun("甲，乙")])
+    let input = ParagraphShaper.shape(text, fallbackSize: 20)
+    #expect(input.metrics.count == 1)
+    #expect(input.metrics.first?.em == 16)
+    #expect(input.clusters.map(\.run) == [0,0,0])
+    #expect(text.string == "甲，乙")
+}
+
+@Test func paragraphPunctuationPreservesSourceTextAndLinks() {
+    let style = measuredStyle(), source = "甲（乙）丙"
+    let text = style.attributed([InlineRun(source, traits: [.link], destination: "#target")])
+    #expect(DocumentTextMap(text).string == source)
+    for index in 0..<text.length { #expect(text.attribute(.link, at: index, effectiveRange: nil) as? String == "#target") }
+}
+
+@Test func paragraphHanScalarsNormalizeWithoutSelectedFace() {
+    let latin = PlatformFont.systemFont(ofSize: 16)
+    #expect(ParagraphShaper.normalizesToEm(0x20000, font: latin as CTFont, han: nil, punctuation: nil))
 }

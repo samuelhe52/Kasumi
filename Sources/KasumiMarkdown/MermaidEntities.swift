@@ -1,4 +1,5 @@
-import AppKit
+import Foundation
+import CoreGraphics
 
 /// Class and ER diagrams share native graph placement, but retain distinct
 /// compartment metrics, relationship markers, and parser constraints.
@@ -262,7 +263,7 @@ enum MermaidEntities {
         path.closeSubpath(); return path
     }
 
-    private static func erMarker(_ marker: String, tip: CGPoint, toward: CGPoint, start: Bool, stroke: NSColor, background: NSColor) -> [MermaidCommand] {
+    private static func erMarker(_ marker: String, tip: CGPoint, toward: CGPoint, start: Bool, stroke: CGColor, background: CGColor) -> [MermaidCommand] {
         let distance = max(0.001, hypot(toward.x - tip.x, toward.y - tip.y))
         let u = CGPoint(x: (toward.x - tip.x) / distance, y: (toward.y - tip.y) / distance)
         func p(_ along: CGFloat, _ side: CGFloat) -> CGPoint { CGPoint(x: tip.x + u.x * along - u.y * side, y: tip.y + u.y * along + u.x * side) }

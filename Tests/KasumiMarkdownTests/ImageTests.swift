@@ -1,4 +1,8 @@
+#if canImport(AppKit)
 import AppKit
+#else
+import UIKit
+#endif
 import CoreGraphics
 import CryptoKit
 import Foundation
@@ -7,7 +11,7 @@ import Testing
 import UniformTypeIdentifiers
 @testable import KasumiMarkdown
 
-private let imageFixtureDirectory = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("fixtures")
+private let imageFixtureDirectory = testRepositoryURL.appendingPathComponent("fixtures")
 
 @Test func imageParserPreservesSourcesLinksAndNativeBlockKinds() throws {
     let source = try String(contentsOf: imageFixtureDirectory.appendingPathComponent("Images.md"), encoding: .utf8)

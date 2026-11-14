@@ -1,4 +1,5 @@
-import AppKit
+import Foundation
+import CoreGraphics
 import CoreText
 
 public enum MermaidError: Error, Equatable {
@@ -17,12 +18,12 @@ public enum MermaidError: Error, Equatable {
 }
 
 enum MermaidCommand {
-    case path(CGPath, fill: NSColor?, stroke: NSColor?, width: CGFloat, dash: [CGFloat])
-    case roundRect(CGRect, radius: CGFloat, fill: NSColor?, stroke: NSColor?, width: CGFloat, dash: [CGFloat] = [])
-    case ellipse(CGRect, fill: NSColor?, stroke: NSColor?, width: CGFloat)
+    case path(CGPath, fill: CGColor?, stroke: CGColor?, width: CGFloat, dash: [CGFloat])
+    case roundRect(CGRect, radius: CGFloat, fill: CGColor?, stroke: CGColor?, width: CGFloat, dash: [CGFloat] = [])
+    case ellipse(CGRect, fill: CGColor?, stroke: CGColor?, width: CGFloat)
     /// `role` is the font role from a native measurement request (0...16).
     case text(String, CGRect, role: Int)
-    case coloredText(String, CGRect, role: Int, color: NSColor)
+    case coloredText(String, CGRect, role: Int, color: CGColor)
 }
 
 /// Vector commands in a top-left, downward-positive space.
@@ -34,11 +35,11 @@ struct MermaidScene {
 
     func draw(in context: CGContext, size: CGFloat, fontFamily: String, dark: Bool) {
         let textMetrics = textStyle ?? .uniform(size: size, fontFamily: fontFamily)
-        func paint(_ path: CGPath, fill: NSColor?, stroke: NSColor?, width: CGFloat, dash: [CGFloat] = []) {
+        func paint(_ path: CGPath, fill: CGColor?, stroke: CGColor?, width: CGFloat, dash: [CGFloat] = []) {
             context.saveGState()
             context.addPath(path)
-            if let fill { context.setFillColor(fill.cgColor) }
-            if let stroke { context.setStrokeColor(stroke.cgColor) }
+            if let fill { context.setFillColor(fill) }
+            if let stroke { context.setStrokeColor(stroke) }
             context.setLineWidth(width)
             context.setLineDash(phase: 0, lengths: dash)
             context.setLineJoin(.round)
@@ -75,16 +76,16 @@ struct MermaidPalette {
     let dark: Bool
     var theme: DocumentTheme? = nil
 
-    private func color(_ key: String, fallback: NSColor) -> NSColor { theme?.color(key) ?? fallback }
-    var text: NSColor { color("text", fallback: Self.text(dark: dark)) }
-    var edge: NSColor { text }
-    var nodeFill: NSColor { color("diagram_node_fill", fallback: Self.nodeFill(dark: dark)) }
-    var nodeStroke: NSColor { color("diagram_node_stroke", fallback: Self.nodeStroke(dark: dark)) }
-    var badgeText: NSColor { color("diagram_badge_text", fallback: Self.badgeText(dark: dark)) }
-    var labelBackground: NSColor { color("diagram_edge_label_background", fallback: Self.labelBackground(dark: dark)) }
-    var noteFill: NSColor { color("diagram_note_fill", fallback: Self.noteFill(dark: dark)) }
-    var blockFill: NSColor { color("diagram_block_fill", fallback: Self.blockFill(dark: dark)) }
-    func color(tint: Int) -> NSColor {
+    private func color(_ key: String, fallback: CGColor) -> CGColor { theme?.color(key)?.cgColor ?? fallback }
+    var text: CGColor { color("text", fallback: Self.text(dark: dark)) }
+    var edge: CGColor { text }
+    var nodeFill: CGColor { color("diagram_node_fill", fallback: Self.nodeFill(dark: dark)) }
+    var nodeStroke: CGColor { color("diagram_node_stroke", fallback: Self.nodeStroke(dark: dark)) }
+    var badgeText: CGColor { color("diagram_badge_text", fallback: Self.badgeText(dark: dark)) }
+    var labelBackground: CGColor { color("diagram_edge_label_background", fallback: Self.labelBackground(dark: dark)) }
+    var noteFill: CGColor { color("diagram_note_fill", fallback: Self.noteFill(dark: dark)) }
+    var blockFill: CGColor { color("diagram_block_fill", fallback: Self.blockFill(dark: dark)) }
+    func color(tint: Int) -> CGColor {
         let key: String
         switch tint {
         case 1...24:
@@ -101,19 +102,19 @@ struct MermaidPalette {
         }
         return color(key, fallback: Self.color(tint: tint, dark: dark))
     }
-    static func hex(_ value: String) -> NSColor {
+    static func hex(_ value: String) -> CGColor {
         let rgb = UInt32(value.replacingOccurrences(of: "#", with: ""), radix: 16) ?? 0
-        return NSColor(srgbRed: CGFloat((rgb >> 16) & 255) / 255, green: CGFloat((rgb >> 8) & 255) / 255, blue: CGFloat(rgb & 255) / 255, alpha: 1)
+        return CGColor(srgbRed: CGFloat((rgb >> 16) & 255) / 255, green: CGFloat((rgb >> 8) & 255) / 255, blue: CGFloat(rgb & 255) / 255, alpha: 1)
     }
-    static func text(dark: Bool) -> NSColor { hex(dark ? "C7C7C7" : "313131") }
-    static func nodeFill(dark: Bool) -> NSColor { hex(dark ? "1D1D1D" : "EDEDEB") }
-    static func nodeStroke(dark: Bool) -> NSColor { hex(dark ? "8B8B8B" : "7C7C7C") }
-    static func edge(dark: Bool) -> NSColor { text(dark: dark) }
-    static func badgeText(dark: Bool) -> NSColor { hex(dark ? "262626" : "FAFAF8") }
-    static func labelBackground(dark: Bool) -> NSColor { hex(dark ? "262626" : "FAFAF8") }
-    static func noteFill(dark: Bool) -> NSColor { hex(dark ? "3C3C3C" : "DDDDDB") }
-    static func blockFill(dark: Bool) -> NSColor { hex(dark ? "2C2C2C" : "F1F1EF") }
-    static func color(tint: Int, dark: Bool) -> NSColor {
+    static func text(dark: Bool) -> CGColor { hex(dark ? "C7C7C7" : "313131") }
+    static func nodeFill(dark: Bool) -> CGColor { hex(dark ? "1D1D1D" : "EDEDEB") }
+    static func nodeStroke(dark: Bool) -> CGColor { hex(dark ? "8B8B8B" : "7C7C7C") }
+    static func edge(dark: Bool) -> CGColor { text(dark: dark) }
+    static func badgeText(dark: Bool) -> CGColor { hex(dark ? "262626" : "FAFAF8") }
+    static func labelBackground(dark: Bool) -> CGColor { hex(dark ? "262626" : "FAFAF8") }
+    static func noteFill(dark: Bool) -> CGColor { hex(dark ? "3C3C3C" : "DDDDDB") }
+    static func blockFill(dark: Bool) -> CGColor { hex(dark ? "2C2C2C" : "F1F1EF") }
+    static func color(tint: Int, dark: Bool) -> CGColor {
         let light = ["F9C6C0","FFADA6","C14E49", "F1CAAB","F9B47A","AD5F00", "F2EBBD","D6C770","837400", "D4F7D4","ABEDAC","00711B", "BBF7F6","60DCDC","008181", "DCEBFF","9FC9FF","2C74CA", "D5C7F1","BBA0EC","744CAD", "FFE1F1","FDADDA","B44E8D", "C5C5C5","313131","FAFAF8"]
         let night = ["4D2523","742725","DF6862", "482A0F","653500","D1760D", "3A3307","584D00","A08D00", "2C4A2D","1E5E25","5AB660", "003B3B","005959","009D9E", "2B4361","1C4D87","468EE5", "372A4C","482D6F","B58FF6", "5B374B","79335E","D169A7", "4D4D4D","C7C7C7","262626"]
         if (28...43).contains(tint) {
@@ -121,7 +122,7 @@ struct MermaidPalette {
             let seriesDark = ["508CD7","CB6C4A","1DA273","C38523","C96686","468C41","8F86DF","D8706E", "85BAFF","FF9874","5CD1A0","EEA83F","FF8FB2","7BCF74","B2ACFF","FF9592"]
             return hex((dark ? seriesDark : seriesLight)[tint - 28])
         }
-        if tint == 44 { return .black }
+        if tint == 44 { return CGColor(gray: 0, alpha: 1) }
         guard (1...27).contains(tint) else { return text(dark: dark) }
         return hex((dark ? night : light)[tint - 1])
     }

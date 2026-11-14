@@ -19,7 +19,7 @@ NATIVE_INPUTS := scripts/build-native \
 		-not -path '*/target/*' 2>/dev/null)
 
 .DEFAULT_GOAL := help
-.PHONY: help native build test app run-sim launch-sim check clean
+.PHONY: help native build test test-ios app run-sim launch-sim check clean
 
 help: ## List available targets
 	@awk 'BEGIN { FS = ":.*## " } /^[a-z-]+:.*## / { printf "  %-8s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
@@ -36,7 +36,11 @@ build: native ## Build the Swift package
 	swift build
 
 test: native ## Run swift test (optionally FILTER=<name>)
-	swift test $(if $(FILTER),--filter $(FILTER))
+	swift test $(if $(FILTER),--filter '$(FILTER)')
+
+test-ios: native ## Run package tests on iOS Simulator (optionally FILTER=<name>)
+	xcodebuild -scheme KasumiMarkdown-Package -destination 'platform=iOS Simulator,name=$(SIMULATOR)' \
+		-derivedDataPath build/iOSTests $(if $(FILTER),'-only-testing:KasumiMarkdownTests/$(FILTER)()') test
 
 app: native ## Build the iOS app for the simulator
 	xcodebuild -project apps/iOS/Kasumi.xcodeproj -scheme Kasumi \

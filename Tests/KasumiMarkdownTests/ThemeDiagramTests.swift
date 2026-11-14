@@ -1,4 +1,8 @@
+#if canImport(AppKit)
 import AppKit
+#else
+import UIKit
+#endif
 import Foundation
 import Testing
 @testable import KasumiMarkdown
@@ -46,13 +50,13 @@ private func themeTintKey(_ tint: Int) -> String {
     }
 }
 
-private func themeRGBA(_ color: NSColor?) -> [Double]? {
-    guard let color = color?.usingColorSpace(.sRGB) else { return nil }
+private func themeRGBA(_ color: CGColor?) -> [Double]? {
+    guard let color = color?.kasumiSRGB else { return nil }
     return [color.redComponent, color.greenComponent, color.blueComponent, color.alphaComponent]
 }
 
 @Test func themeDiagramsUseNativePaintSlotsAcrossAllEightThemes() throws {
-    let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+    let root = testRepositoryURL
     let fixtureNames = ["MermaidFrontend", "MermaidSequenceFrontend", "MermaidFlow", "MermaidState", "MermaidClass", "MermaidER", "MermaidPie", "MermaidTree"]
     let cases = try fixtureNames.flatMap { name -> [(ThemeDiagramReference.Item, String)] in
         let reference = try JSONDecoder().decode(ThemeDiagramReference.self,
@@ -81,16 +85,16 @@ private func themeRGBA(_ color: NSColor?) -> [Double]? {
             #expect(scene.commands.count == item.result.commands.count)
             for (index, pair) in zip(scene.commands, item.result.commands).enumerated() {
                 let (command, native) = pair
-                func expected(_ slot: Int, tint: Int, stroke: Bool) -> NSColor? {
+                func expected(_ slot: Int, tint: Int, stroke: Bool) -> CGColor? {
                     guard slot != 0 else { return nil }
-                    if tint != 0 { return theme.color(themeTintKey(tint)) }
+                    if tint != 0 { return theme.color(themeTintKey(tint))?.cgColor }
                     let channel = slot == 2 ? 2 : stroke ? 1 : 0
-                    return themeNativeSlots[native.role][channel].flatMap { theme.color($0) }
+                    return themeNativeSlots[native.role][channel].flatMap { theme.color($0)?.cgColor }
                 }
-                let fill: NSColor?, stroke: NSColor?
+                let fill: CGColor?, stroke: CGColor?
                 switch command {
                 case let .path(_, a, b, _, _), let .roundRect(_, _, a, b, _, _), let .ellipse(_, a, b, _): fill = a; stroke = b
-                case .text: fill = theme.color("text"); stroke = nil
+                case .text: fill = theme.color("text")?.cgColor; stroke = nil
                 case let .coloredText(_, _, _, color): fill = color; stroke = nil
                 }
                 #expect(themeRGBA(fill) == themeRGBA(expected(native.fill, tint: native.fill_tint, stroke: false)), "\(theme.id) \(item.name) command\(index) role\(native.role) fill")
@@ -101,7 +105,7 @@ private func themeRGBA(_ color: NSColor?) -> [Double]? {
 }
 
 private func themeGeometry(_ scene: MermaidScene) -> [String] {
-    var result = [NSStringFromRect(scene.bounds)]
+    var result = [String(describing: scene.bounds)]
     for command in scene.commands {
         switch command {
         case let .path(path, _, _, width, dash):
@@ -109,7 +113,7 @@ private func themeGeometry(_ scene: MermaidScene) -> [String] {
             path.applyWithBlock { pointer in
                 let element = pointer.pointee
                 let count = element.type == .addCurveToPoint ? 3 : element.type == .addQuadCurveToPoint ? 2 : element.type == .closeSubpath ? 0 : 1
-                points.append("\(element.type.rawValue):" + (0..<count).map { NSStringFromPoint(element.points[$0]) }.joined(separator: ","))
+                points.append("\(element.type.rawValue):" + (0..<count).map { String(describing: element.points[$0]) }.joined(separator: ","))
             }
             result.append("path \(width) \(dash) \(points)")
         case let .roundRect(rect, radius, _, _, width, dash): result.append("rect \(rect) \(radius) \(width) \(dash)")
@@ -135,11 +139,11 @@ private func themeGeometry(_ scene: MermaidScene) -> [String] {
             let scene = try MermaidTypesetter.layout(source, size: 16, fontFamily: "Helvetica", dark: theme.dark, theme: theme)
             #expect(themeGeometry(scene) == themeGeometry(original), "\(theme.id): \(source)")
             let palette = MermaidPalette(dark: theme.dark, theme: theme)
-            for tint in 1...44 { #expect(themeRGBA(palette.color(tint: tint)) == themeRGBA(theme.color(themeTintKey(tint)))) }
+            for tint in 1...44 { #expect(themeRGBA(palette.color(tint: tint)) == themeRGBA(theme.color(themeTintKey(tint))?.cgColor)) }
             if source.hasPrefix("graph") || source.hasPrefix("state") {
                 #expect(scene.commands.contains { command in
                     if case let .coloredText(text, _, _, color) = command, text == (source.hasPrefix("graph") ? "Start" : "A") {
-                        return themeRGBA(color) == themeRGBA(theme.color("diagram_accent_red_deep"))
+                        return themeRGBA(color) == themeRGBA(theme.color("diagram_accent_red_deep")?.cgColor)
                     }
                     return false
                 })

@@ -1,4 +1,5 @@
-import AppKit
+import Foundation
+import CoreGraphics
 
 /// The core cascades declarations before interpreting them. Keeping raw values
 /// is important: an invalid later value resets a property to its native default.
@@ -87,16 +88,16 @@ struct MermaidStyle {
     private func selection(_ key: String, channel: MermaidStyleColor.Channel) -> MermaidStyleColor.Selection? {
         declarations[key].map { MermaidStyleColor.parse($0,channel:channel) }
     }
-    private func resolve(_ selected: MermaidStyleColor.Selection?, dark: Bool, fallback: NSColor?, palette: MermaidPalette) -> NSColor? {
+    private func resolve(_ selected: MermaidStyleColor.Selection?, dark: Bool, fallback: CGColor?, palette: MermaidPalette) -> CGColor? {
         switch selected {
         case nil,.themeDefault:return fallback
         case .transparent:return nil
         case .tint(let value):return palette.color(tint:value)
         }
     }
-    func fill(dark: Bool, fallback: NSColor?, palette: MermaidPalette? = nil) -> NSColor? { resolve(selection("fill",channel:.fill),dark:dark,fallback:fallback,palette:palette ?? MermaidPalette(dark:dark)) }
-    func stroke(dark: Bool, fallback: NSColor, palette: MermaidPalette? = nil) -> NSColor? { resolve(selection("stroke",channel:.stroke),dark:dark,fallback:fallback,palette:palette ?? MermaidPalette(dark:dark)) }
-    func text(dark: Bool, node: Bool = true, palette: MermaidPalette? = nil) -> NSColor? {
+    func fill(dark: Bool, fallback: CGColor?, palette: MermaidPalette? = nil) -> CGColor? { resolve(selection("fill",channel:.fill),dark:dark,fallback:fallback,palette:palette ?? MermaidPalette(dark:dark)) }
+    func stroke(dark: Bool, fallback: CGColor, palette: MermaidPalette? = nil) -> CGColor? { resolve(selection("stroke",channel:.stroke),dark:dark,fallback:fallback,palette:palette ?? MermaidPalette(dark:dark)) }
+    func text(dark: Bool, node: Bool = true, palette: MermaidPalette? = nil) -> CGColor? {
         let palette = palette ?? MermaidPalette(dark:dark)
         if node,case let .tint(tint)=selection("fill",channel:.fill), (tint<=24 && tint%3==0) || tint==26 { return palette.color(tint:27) }
         return resolve(selection("color",channel:.text),dark:dark,fallback:nil,palette:palette)

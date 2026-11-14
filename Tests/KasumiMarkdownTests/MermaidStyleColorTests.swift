@@ -18,7 +18,7 @@ private struct StyleColorReference: Decodable {
 }
 
 @Test func styleColorsMatchNativeKeywordHueShadeAlphaAndChannelObservations() throws {
-    let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+    let root = testRepositoryURL
     let reference = try JSONDecoder().decode(StyleColorReference.self,
         from: Data(contentsOf: root.appendingPathComponent("fixtures/reference/MermaidStyleColor.core.json")))
     #expect(reference.items.count > 700)

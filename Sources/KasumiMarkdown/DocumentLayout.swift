@@ -1,5 +1,9 @@
 import Foundation
+#if canImport(AppKit)
 import AppKit
+#else
+import UIKit
+#endif
 import CoreText
 
 public struct PlacedText {
@@ -8,8 +12,8 @@ public struct PlacedText {
     public let textOffset: Int
     public var bounds: CGRect { CGRect(x: origin.x, y: origin.y, width: paragraph.lines.map { $0.origin.x + $0.width }.max() ?? 0, height: paragraph.height) }
 }
-public struct PaintedRect { public let rect: CGRect; public let color: NSColor; public var radius: CGFloat = 0 }
-public struct PaintedRule { public let start: CGPoint; public let end: CGPoint; public let color: NSColor; public var width: CGFloat = 1 }
+public struct PaintedRect { public let rect: CGRect; public let color: PlatformColor; public var radius: CGFloat = 0 }
+public struct PaintedRule { public let start: CGPoint; public let end: CGPoint; public let color: PlatformColor; public var width: CGFloat = 1 }
 public struct DocumentInsets: Sendable {
     public var top: CGFloat
     public var left: CGFloat
@@ -189,7 +193,7 @@ public enum DocumentTypesetter {
                     let x = left + inset - markerGap - slot
                     let marker = NSMutableAttributedString(attributedString: attributed([InlineRun(block.prefix)]))
                     if block.prefix == "•" {
-                        marker.addAttribute(.foregroundColor, value: NSColor.clear, range: NSRange(location: 0, length: marker.length))
+                        marker.addAttribute(.foregroundColor, value: PlatformColor.clear, range: NSRange(location: 0, length: marker.length))
                         let baseline = max(style.font().ascender, style.size)
                         backgrounds.append(PaintedRect(rect: CGRect(x: x + (slot - bulletDiameter) / 2, y: y + baseline - style.font().xHeight / 2 - bulletDiameter / 2, width: bulletDiameter, height: bulletDiameter), color: style.textColor, radius: bulletDiameter / 2))
                     }
@@ -211,7 +215,8 @@ public enum DocumentTypesetter {
                 let alignment: ParagraphAlignment = isCode ? .leading : style.alignment
                 let bodyParagraph=block.kind == .paragraph && block.level == 0 && block.prefix.isEmpty && block.footnoteLabel == nil
                 if bodyParagraph { y += style.size * style.paraSpaceBefore }
-                let firstRunEm = (attr.length > 0 ? attr.attribute(.kasumiParagraphRun, at: 0, effectiveRange: nil) as? ParagraphRunStyle : nil)?.baseFont.pointSize ?? style.font().pointSize
+                let firstRun = attr.length > 0 ? attr.attribute(.kasumiParagraphRun, at: 0, effectiveRange: nil) as? ParagraphRunStyle : nil
+                let firstRunEm = firstRun.map { CTFontGetSize($0.baseFont) } ?? style.font().pointSize
                 let indent=bodyParagraph && (style.indentFirstParagraph || !firstBodyParagraph) ? firstRunEm * style.firstLineIndent : 0
                 y += place(attr, x: left + inset, y: y, width: contentWidth, size: style.size * (isCode ? 0.88 : 1), alignment: alignment, indent: indent, verbatim: isCode)
                 if block.kind == .quote {
@@ -274,10 +279,10 @@ public enum DocumentTypesetter {
                     return CGRect(x: min(start, end), y: -descent - 1, width: abs(end - start), height: ascent + descent + 2)
                 }
                 attributes.enumerateAttribute(.backgroundColor, in: line.range) { value, range, _ in
-                    guard let color = value as? NSColor else { return }
+                    guard let color = value as? PlatformColor else { return }
                     var ascent: CGFloat = 0, descent: CGFloat = 0
                     attributes.enumerateAttributes(in: range) { values, _, _ in
-                        guard let font = values[.font] as? NSFont else { return }
+                        guard let font = values[.font] as? PlatformFont else { return }
                         let baseline = values[.baselineOffset] as? CGFloat ?? 0
                         ascent = max(ascent, font.ascender + baseline)
                         descent = max(descent, -font.descender - baseline)
@@ -312,7 +317,7 @@ public enum DocumentTypesetter {
                     context.saveGState()
                     context.translateBy(x: x, y: 0)
                     // Formula glyphs inherit the current document foreground.
-                    let color = attributes.attribute(.kasumiMathColor, at: range.location, effectiveRange: nil) as? NSColor ?? .textColor
+                    let color = attributes.attribute(.kasumiMathColor, at: range.location, effectiveRange: nil) as? PlatformColor ?? .black
                     math.result.box.draw(in: context, color: color.cgColor)
                     context.restoreGState()
                 }

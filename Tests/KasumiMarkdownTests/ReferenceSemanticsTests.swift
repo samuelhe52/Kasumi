@@ -19,7 +19,7 @@ private struct CoreSnapshot: Decodable {
 
 @Test(arguments: ["Rendering", "ExtensionSemantics"])
 func parserSemanticsMatchNativeReference(fixture: String) throws {
-    let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+    let root = testRepositoryURL
     let input = try Data(contentsOf: root.appendingPathComponent("fixtures/\(fixture).md"))
     let snapshot = try JSONDecoder().decode(CoreSnapshot.self, from: Data(contentsOf: root.appendingPathComponent("fixtures/reference/\(fixture).core.json")))
     #expect(SHA256.hash(data: input).map { String(format: "%02x", $0) }.joined() == snapshot.fixture_sha256)

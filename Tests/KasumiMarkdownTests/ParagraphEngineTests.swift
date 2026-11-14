@@ -47,7 +47,7 @@ private struct ParagraphNativeFixture: Decodable {
 }
 
 private func paragraphFixture() throws -> ParagraphNativeFixture {
-    let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+    let root = testRepositoryURL
     return try JSONDecoder().decode(ParagraphNativeFixture.self, from: Data(contentsOf: root.appendingPathComponent("fixtures/reference/Paragraph.core.json")))
 }
 private func closeParagraphFloat(_ a: Float, _ b: Float) -> Bool { abs(b) == 10_000 ? a == b : abs(a - b) <= max(0.00005, abs(b) * 0.000005) }

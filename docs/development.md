@@ -14,7 +14,8 @@ rustup target add aarch64-apple-ios aarch64-apple-ios-sim
 `make help` lists the targets. The common ones:
 
 ```sh
-make test                     # library tests; FILTER=<name> narrows the run
+make test                     # library tests on macOS; FILTER=<name> narrows the run
+make test-ios                 # library tests on the iOS simulator (SIMULATOR=, FILTER=)
 make app                      # build the iOS app for the simulator
 make run-sim                  # build, install and launch on the booted simulator
 ```
@@ -34,7 +35,9 @@ XCFrameworks under `.build/native/` only when a native package changed. Without
 - `apps/iOS/` — the app. Its folder-synchronized group picks up new files under
   `apps/iOS/Kasumi/` without project edits.
 - `fixtures/` — authored test documents; `fixtures/reference/` holds frozen
-  measurements the tests compare against.
+  measurements the tests compare against. The test target bundles it through
+  the `Tests/KasumiMarkdownTests/fixtures` symlink so tests also run on the
+  simulator.
 
 ## Rendering a document
 

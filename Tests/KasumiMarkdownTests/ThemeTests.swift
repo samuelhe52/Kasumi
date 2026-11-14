@@ -1,4 +1,8 @@
+#if canImport(AppKit)
 import AppKit
+#else
+import UIKit
+#endif
 import CryptoKit
 import Foundation
 import Testing
@@ -37,7 +41,7 @@ import Testing
             let values = try #require(row[section] as? [String: String])
             for (key, hex) in values {
                 let expectedColor = try #require(DocumentColor(hex: hex))
-                let color = try #require(theme.color(key)?.usingColorSpace(.sRGB))
+                let color = try #require(theme.color(key)?.kasumiSRGB)
                 #expect(abs(color.redComponent - expectedColor.red) < 1e-12)
                 #expect(abs(color.greenComponent - expectedColor.green) < 1e-12)
                 #expect(abs(color.blueComponent - expectedColor.blue) < 1e-12)
@@ -53,13 +57,14 @@ import Testing
         #expect(classic.document.count == 62)
         #expect(classic.syntax.count == 5)
         #expect(classic.chrome.isEmpty)
+        #if canImport(AppKit)
         let appearance = try #require(NSAppearance(named: dark ? .darkAqua : .aqua))
-        let semantic: [String: NSColor] = ["paper": .textBackgroundColor, "text": .textColor,
+        let semantic: [String: PlatformColor] = ["paper": .textBackgroundColor, "text": .textColor,
             "heading": .textColor, "inline_code": .textColor, "link": .linkColor,
             "secondary_text": .secondaryLabelColor, "rule": .separatorColor]
         for (key, native) in semantic {
-            var expected: NSColor?
-            appearance.performAsCurrentDrawingAppearance { expected = native.usingColorSpace(.sRGB) }
+            var expected: PlatformColor?
+            appearance.performAsCurrentDrawingAppearance { expected = native.kasumiSRGB }
             let expectedColor = try #require(expected)
             let actual = try #require(classic.color(key))
             #expect(abs(actual.redComponent - expectedColor.redComponent) < 1e-12)
@@ -67,21 +72,36 @@ import Testing
             #expect(abs(actual.blueComponent - expectedColor.blueComponent) < 1e-12)
             #expect(actual.alphaComponent == expectedColor.alphaComponent)
         }
+        #else
+        let traits = UITraitCollection(userInterfaceStyle: dark ? .dark : .light)
+        let semantic: [String: UIColor] = ["paper": .systemBackground, "text": .label,
+            "heading": .label, "inline_code": .label, "link": .link,
+            "secondary_text": .secondaryLabel, "rule": .separator]
+        for (key, native) in semantic {
+            let expected = PlatformColors.srgb(native.resolvedColor(with: traits).cgColor)
+            #expect(classic.document[key] == expected)
+        }
+        #endif
         let codeBackground = try #require(classic.document["code_block_background"])
         #expect(codeBackground == (dark
             ? DocumentColor(red: 0.145, green: 0.15, blue: 0.165)
             : DocumentColor(red: 0.958, green: 0.961, blue: 0.969)))
         // The table initializer explicitly uses Generic RGB, unlike code blocks.
         let component: CGFloat = dark ? 0.1259303879737854 : 0.96
-        let components: [CGFloat] = [component, component, component, 1]
-        let generic = components.withUnsafeBufferPointer {
-            NSColor(colorSpace: .genericRGB, components: $0.baseAddress!, count: 4)
-        }
-        let converted = try #require(generic.usingColorSpace(.sRGB))
+        let generic = CGColor(colorSpace: CGColorSpace(name: "kCGColorSpaceGenericRGB" as CFString)!, components: [component, component, component, 1])!
+        let converted = PlatformColors.srgb(generic)
         let table = try #require(classic.color("table_header_background"))
-        #expect(abs(table.redComponent - converted.redComponent) < 1e-12)
-        #expect(abs(table.greenComponent - converted.greenComponent) < 1e-12)
-        #expect(abs(table.blueComponent - converted.blueComponent) < 1e-12)
+        #expect(abs(table.redComponent - converted.red) < 1e-12)
+        #expect(abs(table.greenComponent - converted.green) < 1e-12)
+        #expect(abs(table.blueComponent - converted.blue) < 1e-12)
+        // Generic RGB requires one conversion, then must survive native-color
+        // and sRGB-helper round trips without introducing further drift.
+        var roundTrip = converted
+        for _ in 0..<4 {
+            let native = try #require(roundTrip.nsColor.kasumiSRGB)
+            roundTrip = PlatformColors.srgb(native.cgColor)
+            #expect(roundTrip == converted)
+        }
         #expect(classic.document["diagram_series_ink"] == DocumentColor(red: 0, green: 0, blue: 0))
     }
 }

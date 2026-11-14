@@ -1,4 +1,8 @@
+#if canImport(AppKit)
 import AppKit
+#else
+import UIKit
+#endif
 import Foundation
 
 /// A resolved sRGB color. Codable accepts #RRGGBB/#RRGGBBAA or RGBA components.
@@ -24,8 +28,8 @@ public struct DocumentColor: Codable, Equatable, Sendable {
                   alpha: digits.count == 8 ? Double(value & 255) / 255 : 1)
     }
 
-    public var nsColor: NSColor {
-        NSColor(srgbRed: red, green: green, blue: blue, alpha: alpha)
+    public var nsColor: PlatformColor {
+        PlatformColor(srgbRed: red, green: green, blue: blue, alpha: alpha)
     }
 
     private enum CodingKeys: String, CodingKey { case red, green, blue, alpha }
@@ -67,7 +71,7 @@ public struct DocumentTheme: Identifiable, Equatable, Sendable {
         self.document = document; self.chrome = chrome; self.syntax = syntax
     }
 
-    public func color(_ key: String) -> NSColor? {
+    public func color(_ key: String) -> PlatformColor? {
         (document[key] ?? chrome[key] ?? syntax[key])?.nsColor
     }
 }
@@ -146,15 +150,7 @@ private enum ThemeColorDefinition: Decodable, Sendable {
 
     enum SystemColor: String, Decodable, Sendable {
         case textBackgroundColor, textColor, linkColor, secondaryLabelColor, separatorColor
-        var nsColor: NSColor {
-            switch self {
-            case .textBackgroundColor: .textBackgroundColor
-            case .textColor: .textColor
-            case .linkColor: .linkColor
-            case .secondaryLabelColor: .secondaryLabelColor
-            case .separatorColor: .separatorColor
-            }
-        }
+
     }
     private enum CodingKeys: String, CodingKey { case rgba, space, system }
 
@@ -181,24 +177,10 @@ private enum ThemeColorDefinition: Decodable, Sendable {
         switch self {
         case .srgb(let color): return color
         case .genericRGB(let rgba):
-            let components = rgba.map { CGFloat($0) }
-            let color = components.withUnsafeBufferPointer {
-                NSColor(colorSpace: .genericRGB, components: $0.baseAddress!, count: 4)
-            }
-            return Self.srgb(color, appearance: appearance)
-        case .system(let role): return Self.srgb(role.nsColor, appearance: appearance)
+            let generic = CGColorSpace(name: "kCGColorSpaceGenericRGB" as CFString)!
+            let color = CGColor(colorSpace: generic, components: rgba.map { CGFloat($0) })!
+            return PlatformColors.srgb(color)
+        case .system(let role): return PlatformColors.srgb(PlatformColors.semantic(role.rawValue, dark: appearance == .dark))
         }
-    }
-
-    private static func srgb(_ color: NSColor, appearance: DocumentTheme.Appearance) -> DocumentColor {
-        let nativeAppearance = NSAppearance(named: appearance == .dark ? .darkAqua : .aqua)!
-        var result: DocumentColor?
-        nativeAppearance.performAsCurrentDrawingAppearance {
-            if let rgb = color.usingColorSpace(.sRGB) {
-                result = DocumentColor(red: rgb.redComponent, green: rgb.greenComponent, blue: rgb.blueComponent, alpha: rgb.alphaComponent)
-            }
-        }
-        guard let result else { preconditionFailure("Cannot resolve native theme color to sRGB") }
-        return result
     }
 }

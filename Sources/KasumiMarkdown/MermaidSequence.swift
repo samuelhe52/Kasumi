@@ -1,4 +1,5 @@
-import AppKit
+import Foundation
+import CoreGraphics
 
 /// Sequence parsing and vector geometry, fitted to recorded measurements of
 /// authored diagrams.
@@ -168,13 +169,13 @@ enum MermaidSequence {
         var active: [Int: [(CGFloat, CGFloat)]] = [:]
         var number: Int?, numberStep = 1
         var minX: CGFloat = 0, maxX: CGFloat = zip(centers, widths).map { $0 + $1 / 2 }.max() ?? 0
-        func path(_ points: [CGPoint], close: Bool = false, fill: NSColor? = nil, stroke: NSColor? = nil, width: CGFloat = 1, dash: [CGFloat] = []) -> MermaidCommand {
+        func path(_ points: [CGPoint], close: Bool = false, fill: CGColor? = nil, stroke: CGColor? = nil, width: CGFloat = 1, dash: [CGFloat] = []) -> MermaidCommand {
             let path = CGMutablePath()
             if let first = points.first { path.move(to: first); for p in points.dropFirst() { path.addLine(to: p) } }
             if close { path.closeSubpath() }
             return .path(path, fill: fill, stroke: stroke, width: width, dash: dash)
         }
-        func text(_ value: String, center: CGFloat, top: CGFloat, role: Int, color: NSColor? = nil) -> [MermaidCommand] {
+        func text(_ value: String, center: CGFloat, top: CGFloat, role: Int, color: CGColor? = nil) -> [MermaidCommand] {
             var top = top
             return lines(value).map { line in
                 let m = measured(line, role)
@@ -340,15 +341,15 @@ enum MermaidSequence {
         return MermaidScene(bounds: CGRect(x: minX - 50, y: -10, width: maxX - minX + 100, height: footerY + headerHeight + 21), commands: commands, textStyle:textMetrics, theme: theme)
     }
 
-    private static func backgroundColor(_ value: String, line: Int) throws -> NSColor {
+    private static func backgroundColor(_ value: String, line: Int) throws -> CGColor {
         if let m = match("^rgba?\\(\\s*([0-9.]+)\\s*,\\s*([0-9.]+)\\s*,\\s*([0-9.]+)(?:\\s*,\\s*([0-9.]+))?\\s*\\)$", value),
            let r = Double(m[0]), let g = Double(m[1]), let b = Double(m[2]), let a = Double(m[3].isEmpty ? "1" : m[3]),
            [r,g,b].allSatisfy({ (0...255).contains($0) }), (0...1).contains(a) {
-            return NSColor(srgbRed: r/255, green: g/255, blue: b/255, alpha: a)
+            return CGColor(srgbRed: r/255, green: g/255, blue: b/255, alpha: a)
         }
         if value.range(of: "^#[0-9a-fA-F]{6}$", options: .regularExpression) != nil { return MermaidPalette.hex(value) }
         let named = ["blue":"0000FF", "red":"FF0000", "green":"008000", "yellow":"FFFF00", "white":"FFFFFF", "black":"000000", "gray":"808080", "grey":"808080", "lightblue":"ADD8E6", "transparent":"000000"]
-        if let hex = named[value.lowercased()] { return MermaidPalette.hex(hex).withAlphaComponent(value.lowercased() == "transparent" ? 0 : 1) }
+        if let hex = named[value.lowercased()] { return MermaidPalette.hex(hex).copy(alpha: value.lowercased() == "transparent" ? 0 : 1)! }
         throw MermaidError.unsupported(line: line)
     }
 }

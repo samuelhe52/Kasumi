@@ -18,7 +18,7 @@ private struct TXTSnapshot: Decodable {
 }
 
 @Test func txtParagraphsAndChapterLevelsMatchNativeSnapshot() throws {
-    let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+    let root = testRepositoryURL
     let snapshot = try JSONDecoder().decode(TXTSnapshot.self, from: Data(contentsOf: root.appendingPathComponent("fixtures/reference/TXT.core.json")))
     for item in snapshot.items {
         #expect(SHA256.hash(data: Data(item.source.utf8)).map { String(format: "%02x", $0) }.joined() == item.source_sha256)

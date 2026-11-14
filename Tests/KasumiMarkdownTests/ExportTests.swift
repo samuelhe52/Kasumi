@@ -1,4 +1,8 @@
+#if canImport(AppKit)
 import AppKit
+#else
+import UIKit
+#endif
 import CoreGraphics
 import ImageIO
 import PDFKit
@@ -19,7 +23,7 @@ private struct PaginationSnapshot: Decodable {
 }
 
 @Test func nativePaginationPackingMatchesFrozenAtoms() throws {
-    let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+    let root = testRepositoryURL
     let snapshot = try JSONDecoder().decode(PaginationSnapshot.self, from: Data(contentsOf: root.appendingPathComponent("fixtures/reference/Pagination.core.json")))
     #expect(snapshot.atom_format.range_semantics == "unverified")
     for item in snapshot.items {

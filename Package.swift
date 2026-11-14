@@ -26,6 +26,6 @@ let package = Package(
             resources: [.copy("Bundled")]
         ),
         .executableTarget(name: "KasumiRender", dependencies: ["KasumiMarkdown"]),
-        .testTarget(name: "KasumiMarkdownTests", dependencies: ["KasumiMarkdown"])
+        .testTarget(name: "KasumiMarkdownTests", dependencies: ["KasumiMarkdown"], resources: [.copy("fixtures")])
     ]
 )

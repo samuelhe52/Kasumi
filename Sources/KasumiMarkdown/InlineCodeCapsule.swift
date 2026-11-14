@@ -1,4 +1,8 @@
+#if canImport(AppKit)
 import AppKit
+#else
+import UIKit
+#endif
 import CoreText
 
 extension NSAttributedString.Key {
@@ -8,12 +12,12 @@ extension NSAttributedString.Key {
 /// Padding occupies layout space without appearing in copied/searched text.
 /// The code itself remains ordinary text, including when it wraps across lines.
 final class InlineCodeCapsule: NSObject {
-    let color: NSColor
+    let color: PlatformColor
     let padding: CGFloat
     let radius: CGFloat
     let ascent: CGFloat
     let descent: CGFloat
-    init(color: NSColor, font: NSFont, padding: Double) {
+    init(color: PlatformColor, font: PlatformFont, padding: Double) {
         self.color = color; self.padding = font.pointSize * padding
         radius = font.pointSize * 0.2
         ascent = font.ascender; descent = -font.descender
@@ -37,7 +41,7 @@ final class InlineCodeCapsule: NSObject {
         }
         return NSAttributedString(string: "\u{FFFC}", attributes: [
             NSAttributedString.Key(kCTRunDelegateAttributeName as String): delegate,
-            .kasumiSemanticText: "", .foregroundColor: NSColor.clear
+            .kasumiSemanticText: "", .foregroundColor: PlatformColor.clear
         ])
     }
 }

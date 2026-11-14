@@ -1,5 +1,9 @@
 import Foundation
+#if canImport(AppKit)
 import AppKit
+#else
+import UIKit
+#endif
 import CoreText
 
 extension NSAttributedString.Key {
@@ -18,9 +22,9 @@ final class MathAttachment: NSObject {
         self.result = MathTypesetter.layout(source, size: size, display: display, options: options)
     }
 
-    func attributed(color: NSColor, fallbackFont: NSFont? = nil) -> NSAttributedString {
+    func attributed(color: PlatformColor, fallbackFont: PlatformFont? = nil) -> NSAttributedString {
         let fallback = NSAttributedString(string: source, attributes: [
-            .font: fallbackFont ?? NSFont.monospacedSystemFont(ofSize: pointSize * 0.88, weight: .regular),
+            .font: fallbackFont ?? PlatformFont.monospacedSystemFont(ofSize: pointSize * 0.88, weight: .regular),
             .foregroundColor: color
         ])
         // An unavailable glyph rejects the complete formula. Ordinary source
@@ -44,7 +48,7 @@ final class MathAttachment: NSObject {
         }
         return NSAttributedString(string: "\u{FFFC}", attributes: [
             NSAttributedString.Key(kCTRunDelegateAttributeName as String): delegate,
-            .kasumiMath: self, .kasumiSemanticText: source, .kasumiMathColor: color, .foregroundColor: NSColor.clear
+            .kasumiMath: self, .kasumiSemanticText: source, .kasumiMathColor: color, .foregroundColor: PlatformColor.clear
         ])
     }
 }

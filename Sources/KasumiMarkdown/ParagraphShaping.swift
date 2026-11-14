@@ -1,4 +1,8 @@
+#if canImport(AppKit)
 import AppKit
+#else
+import UIKit
+#endif
 import CoreText
 import Foundation
 
@@ -9,13 +13,13 @@ extension NSAttributedString.Key {
 /// One record per original inline run, before Han/SimSong font substitutions.
 /// Core spacing uses this Latin/base font's em, not each glyph's font size.
 final class ParagraphRunStyle: NSObject {
-    let baseFont: NSFont
-    let hanFont: NSFont?
-    let punctuationFont: NSFont?
+    let baseFont: CTFont
+    let hanFont: CTFont?
+    let punctuationFont: CTFont?
     let flags: UInt32
     let isCode: Bool
-    init(baseFont: NSFont, hanFont: NSFont? = nil, punctuationFont: NSFont? = nil, flags: UInt32, isCode: Bool) {
-        self.baseFont = baseFont; self.hanFont = hanFont; self.punctuationFont = punctuationFont
+    init(baseFont: PlatformFont, hanFont: PlatformFont? = nil, punctuationFont: PlatformFont? = nil, flags: UInt32, isCode: Bool) {
+        self.baseFont = baseFont as CTFont; self.hanFont = hanFont.map { $0 as CTFont }; self.punctuationFont = punctuationFont.map { $0 as CTFont }
         self.flags = flags; self.isCode = isCode
     }
 }
@@ -38,7 +42,7 @@ struct ShapedParagraphInput {
     var clusters: [ParagraphInputCluster]
     var ranges: [NSRange]
     var metrics: [ParagraphRunMetrics]
-    var fonts: [NSFont]
+    var fonts: [CTFont]
 }
 
 enum ParagraphShaper {
@@ -48,9 +52,9 @@ enum ParagraphShaper {
         let full = NSRange(location: 0, length: attributed.length)
         attributed.enumerateAttribute(.kasumiParagraphRun, in: full) { value, range, _ in
             let style = value as? ParagraphRunStyle
-            let font = style?.baseFont ?? attributed.attribute(.font, at: range.location, effectiveRange: nil) as? NSFont ?? .systemFont(ofSize: fallbackSize)
+            let font = style?.baseFont ?? ((attributed.attribute(.font, at: range.location, effectiveRange: nil) as? PlatformFont ?? .systemFont(ofSize: fallbackSize)) as CTFont)
             let runIndex = result.metrics.count
-            result.metrics.append(ParagraphRunMetrics(spaceAdvance: Float(advance(" ", font: font)), hyphenAdvance: Float(advance("-", font: font)), em: Float(font.pointSize), isCode: style?.isCode ?? false, flags: style?.flags ?? 0))
+            result.metrics.append(ParagraphRunMetrics(spaceAdvance: Float(advance(" ", font: font)), hyphenAdvance: Float(advance("-", font: font)), em: Float(CTFontGetSize(font)), isCode: style?.isCode ?? false, flags: style?.flags ?? 0))
             result.fonts.append(font)
             let substring = attributed.attributedSubstring(from: range)
             var starts: [Int] = [], clusterIndices: [Int?] = [], offset = 0
@@ -82,7 +86,7 @@ enum ParagraphShaper {
                 CTRunGetAdvances(glyphRun, CFRange(location: 0, length: 0), &advances)
                 CTRunGetStringIndices(glyphRun, CFRange(location: 0, length: 0), &indices)
                 let attributes = CTRunGetAttributes(glyphRun) as NSDictionary
-                let actualFont = attributes[kCTFontAttributeName] as? NSFont ?? font
+                let actualFont = (attributes[kCTFontAttributeName] as! CTFont?) ?? font
                 for glyph in 0..<count {
                     let index = indices[glyph]
                     guard index >= 0, index < substring.length else { continue }
@@ -94,7 +98,7 @@ enum ParagraphShaper {
                     guard lower > 0, let cluster = clusterIndices[lower - 1] else { continue }
                     let scalar = scalarAt[index]
                     let normalized = scalar.map { normalizesToEm($0, font: actualFont, han: style?.hanFont, punctuation: style?.punctuationFont) } ?? false
-                    let width = normalized ? actualFont.pointSize : advances[glyph].width
+                    let width = normalized ? CTFontGetSize(actualFont) : advances[glyph].width
                     accumulated[cluster] += width
                 }
             }
@@ -103,7 +107,7 @@ enum ParagraphShaper {
         return result
     }
 
-    static func normalizesToEm(_ scalar: UInt32, font: NSFont, han: NSFont?, punctuation: NSFont?) -> Bool {
+    static func normalizesToEm(_ scalar: UInt32, font: CTFont, han: CTFont?, punctuation: CTFont?) -> Bool {
         if (0x3400...0x4dbf).contains(scalar) || (0x4e00...0x9fff).contains(scalar) ||
             (0xf900...0xfaff).contains(scalar) || (0x20000...0x3ffff).contains(scalar) { return true }
         guard !(0x302a...0x302f).contains(scalar),
@@ -111,7 +115,7 @@ enum ParagraphShaper {
         return (0x3000...0x303f).contains(scalar) || (0xff01...0xff60).contains(scalar) || (0xffe0...0xffe6).contains(scalar)
     }
 
-    private static func advance(_ string: String, font: NSFont) -> CGFloat {
+    private static func advance(_ string: String, font: CTFont) -> CGFloat {
         let line = CTLineCreateWithAttributedString(NSAttributedString(string: string, attributes: [.font: font]))
         var width: CGFloat = 0
         for run in CTLineGetGlyphRuns(line) as! [CTRun] {

@@ -1,4 +1,8 @@
+#if canImport(AppKit)
 import AppKit
+#else
+import UIKit
+#endif
 import Foundation
 import Testing
 @testable import KasumiMarkdown
@@ -18,7 +22,7 @@ private struct SequenceReferenceResult: Decodable {
     var measurements: [Measurement]; var paths: [[Double]]; var fallback: Fallback
 }
 private func sequenceReference(_ name: String) throws -> SequenceReferenceFile {
-    let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+    let root = testRepositoryURL
     return try JSONDecoder().decode(SequenceReferenceFile.self, from: Data(contentsOf: root.appendingPathComponent("fixtures/reference/\(name).core.json")))
 }
 private func sequencePath(_ path: CGPath) -> [[Double]] {

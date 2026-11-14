@@ -1,4 +1,8 @@
+#if canImport(AppKit)
 import AppKit
+#else
+import UIKit
+#endif
 import CryptoKit
 import Testing
 @testable import KasumiMarkdown
@@ -19,7 +23,7 @@ private struct FrontendReference: Decodable {
     }
 }
 private func frontendFixture() throws -> FrontendReference {
-    let root=URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+    let root=testRepositoryURL
     return try JSONDecoder().decode(FrontendReference.self,from:Data(contentsOf:root.appendingPathComponent("fixtures/reference/MermaidFrontend.core.json")))
 }
 private func frontendPathElements(_ path: CGPath) -> [[Double]] {

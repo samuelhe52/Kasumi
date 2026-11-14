@@ -1,4 +1,8 @@
+#if canImport(AppKit)
 import AppKit
+#else
+import UIKit
+#endif
 import CoreText
 
 /// Draw the existing shaped glyphs at the paragraph engine's positions. Keeping
@@ -104,7 +108,7 @@ enum ParagraphGlyphDrawing {
 
     private static func resolvedColor(_ value: Any?) -> CGColor? {
         guard let value else { return nil }
-        if let color = value as? NSColor { return color.cgColor }
+        if let color = value as? PlatformColor { return color.cgColor }
         guard CFGetTypeID(value as CFTypeRef) == CGColor.typeID else { return nil }
         return (value as! CGColor)
     }
@@ -115,7 +119,7 @@ enum ParagraphGlyphDrawing {
         let keys: [NSAttributedString.Key] = [
             .underlineStyle, .underlineColor, .strikethroughStyle, .strikethroughColor,
             .strokeWidth, .strokeColor, .shadow, .obliqueness, .expansion,
-            .verticalGlyphForm, .superscript, .textEffect
+            .verticalGlyphForm, NSAttributedString.Key("NSSuperscript"), .textEffect
         ]
         if keys.contains(where: { source[$0] != nil || values[$0.rawValue] != nil }) { return true }
         return [kCTStrokeWidthAttributeName, kCTStrokeColorAttributeName, kCTUnderlineStyleAttributeName,

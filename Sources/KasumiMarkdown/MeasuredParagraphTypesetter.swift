@@ -1,4 +1,8 @@
+#if canImport(AppKit)
 import AppKit
+#else
+import UIKit
+#endif
 import CoreText
 import Foundation
 
@@ -38,7 +42,7 @@ enum MeasuredParagraphTypesetter {
             var hyphen: ShapedHyphen?
             if let x = selected.hyphenX, let run = selected.hyphenRun, input.fonts.indices.contains(run) {
                 let source = input.clusters.firstIndex(where: { $0.run == run }).flatMap { input.ranges[safe: $0]?.location }
-                let color = source.flatMap { attributed.attribute(.foregroundColor, at: $0, effectiveRange: nil) as? NSColor } ?? .textColor
+                let color = source.flatMap { attributed.attribute(.foregroundColor, at: $0, effectiveRange: nil) as? PlatformColor } ?? .black
                 let line = CTLineCreateWithAttributedString(NSAttributedString(string: "-", attributes: [.font: input.fonts[run], .foregroundColor: color]))
                 hyphen = ShapedHyphen(line: line, x: CGFloat(x), width: CGFloat(CTLineGetTypographicBounds(line, nil, nil, nil)))
             }

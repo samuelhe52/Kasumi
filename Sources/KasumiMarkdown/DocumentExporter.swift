@@ -1,4 +1,8 @@
+#if canImport(AppKit)
 import AppKit
+#else
+import UIKit
+#endif
 import ImageIO
 import UniformTypeIdentifiers
 import CoreText
@@ -92,7 +96,7 @@ public enum DocumentExporter {
             formatter.locale = Locale(identifier: "en_US_POSIX"); formatter.dateFormat = "yyyy-MM-dd"
             func drawTemplate(_ template: String, y: CGFloat) {
                 let value = template.replacingOccurrences(of: "{page}", with: String(index + 1)).replacingOccurrences(of: "{pages}", with: String(pages.count)).replacingOccurrences(of: "{file}", with: options.title).replacingOccurrences(of: "{date}", with: formatter.string(from: options.date))
-                let attributed = NSAttributedString(string: value, attributes: [.font: NSFont.systemFont(ofSize: 10), .foregroundColor: style.secondaryColor])
+                let attributed = NSAttributedString(string: value, attributes: [.font: PlatformFont.systemFont(ofSize: 10), .foregroundColor: style.secondaryColor])
                 let line = CTLineCreateWithAttributedString(attributed)
                 let width = CGFloat(CTLineGetTypographicBounds(line, nil, nil, nil))
                 context.saveGState()

@@ -1,4 +1,5 @@
-import AppKit
+import Foundation
+import CoreGraphics
 
 /// Native vector pie layout fitted to recorded reference cases.
 /// Its fixed chart geometry is independent of the caller's text measurements.

@@ -1,4 +1,8 @@
+#if canImport(AppKit)
 import AppKit
+#else
+import UIKit
+#endif
 import CoreText
 import Foundation
 import ImageIO
@@ -186,7 +190,7 @@ final class ImageAttachment: NSObject {
         }
         var attributes: [NSAttributedString.Key: Any] = [
             NSAttributedString.Key(kCTRunDelegateAttributeName as String): delegate,
-            .kasumiImage: self, .kasumiSemanticText: altText, .foregroundColor: NSColor.clear
+            .kasumiImage: self, .kasumiSemanticText: altText, .foregroundColor: PlatformColor.clear
         ]
         if let link { attributes[.link] = link }
         return NSAttributedString(string: "\u{FFFC}", attributes: attributes)

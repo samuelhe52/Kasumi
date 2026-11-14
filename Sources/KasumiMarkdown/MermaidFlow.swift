@@ -1,4 +1,5 @@
-import AppKit
+import Foundation
+import CoreGraphics
 
 /// Mermaid's graph syntax is parsed here; Dagre only orders and positions the
 /// resulting native graph. Labels never pass through HTML or a web renderer.

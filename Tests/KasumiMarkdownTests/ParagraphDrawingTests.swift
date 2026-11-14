@@ -1,4 +1,8 @@
+#if canImport(AppKit)
 import AppKit
+#else
+import UIKit
+#endif
 import CoreGraphics
 import CoreText
 import Foundation
@@ -87,7 +91,38 @@ private func paragraphPDF(_ paragraph: ParagraphLayout) throws -> Data {
     return try Data(contentsOf: url)
 }
 
+private func mixedFontDrawingText() -> NSMutableAttributedString {
+    var values = BuiltinProfiles.all[0].effective
+    values[.baseSize] = .number(22)
+    values[.hanScale] = .number(1.15)
+    values[.hanBaseline] = .number(0.12)
+    let style = Typography().applying(values)
+    let text = NSMutableAttributedString(attributedString: style.attributed([
+        InlineRun("Latin office "), InlineRun("汉，字。（"),
+        InlineRun("Link_20", traits: [.link], destination: "https://example.invalid/authored"),
+        InlineRun("） raised"), InlineRun(" tail", traits: [.emphasis]),
+        InlineRun(" 🙂 👩‍👩‍👧‍👦 emoji")
+    ]))
+    let source = text.string as NSString
+    text.addAttributes([.foregroundColor: PlatformColor(srgbRed: 0.85, green: 0.05, blue: 0.1, alpha: 1),
+                        .baselineOffset: 4.25], range: source.range(of: "Latin office"))
+    text.addAttributes([.foregroundColor: PlatformColor(srgbRed: 0.05, green: 0.15, blue: 0.85, alpha: 1),
+                        .baselineOffset: -2.5], range: source.range(of: "raised"))
+    return text
+}
+
 @Suite struct ParagraphDrawingTests {
+    @Test(requiresReferenceFaces("STSongti-SC-Regular", "SimSong-Regular"))
+    func mixedFontsUseReferenceSongtiAndSimSongFaces() {
+        let text = mixedFontDrawingText()
+        var fonts = Set<String>()
+        text.enumerateAttribute(.font, in: NSRange(location: 0, length: text.length)) { font, _, _ in
+            if let font = font as? PlatformFont { fonts.insert(font.fontName) }
+        }
+        #expect(fonts.contains(where: { $0.hasPrefix("SimSong") }))
+        #expect(fonts.contains(where: { $0.hasPrefix("STSongti") }))
+    }
+
     @Test func trackedCompoundHasIdenticalInkAndOneSearchablePDFIdentifier() throws {
         let source = "Paragraph_10"
         let text = Typography().attributed([InlineRun(source)], size: 22)
@@ -109,28 +144,8 @@ private func paragraphPDF(_ paragraph: ParagraphLayout) throws -> Data {
     }
 
     @Test func mixedFontsBaselinesColorsAndLinksRetainEveryPaintedPixel() throws {
-        var values = BuiltinProfiles.all[0].effective
-        values[.baseSize] = .number(22)
-        values[.hanScale] = .number(1.15)
-        values[.hanBaseline] = .number(0.12)
-        let style = Typography().applying(values)
-        let text = NSMutableAttributedString(attributedString: style.attributed([
-            InlineRun("Latin office "), InlineRun("汉，字。（"),
-            InlineRun("Link_20", traits: [.link], destination: "https://example.invalid/authored"),
-            InlineRun("） raised"), InlineRun(" tail", traits: [.emphasis]),
-            InlineRun(" 🙂 👩‍👩‍👧‍👦 emoji")
-        ]))
+        let text = mixedFontDrawingText()
         let source = text.string as NSString
-        text.addAttributes([.foregroundColor: NSColor(srgbRed: 0.85, green: 0.05, blue: 0.1, alpha: 1),
-                            .baselineOffset: 4.25], range: source.range(of: "Latin office"))
-        text.addAttributes([.foregroundColor: NSColor(srgbRed: 0.05, green: 0.15, blue: 0.85, alpha: 1),
-                            .baselineOffset: -2.5], range: source.range(of: "raised"))
-        var fonts = Set<String>()
-        text.enumerateAttribute(.font, in: NSRange(location: 0, length: text.length)) { font, _, _ in
-            if let font = font as? NSFont { fonts.insert(font.fontName) }
-        }
-        #expect(fonts.contains(where: { $0.hasPrefix("SimSong") }))
-        #expect(fonts.contains(where: { $0.hasPrefix("STSongti") }))
         #expect(text.attribute(.link, at: source.range(of: "Link_20").location, effectiveRange: nil) != nil)
         let emojiRange = source.range(of: "👩‍👩‍👧‍👦")
         text.addAttribute(.baselineOffset, value: 3.5, range: emojiRange)
@@ -139,7 +154,7 @@ private func paragraphPDF(_ paragraph: ParagraphLayout) throws -> Data {
         for line in paragraph.lines {
             for fragment in line.fragments {
                 for run in CTLineGetGlyphRuns(fragment.line) as! [CTRun] {
-                    if let font = (CTRunGetAttributes(run) as NSDictionary)[kCTFontAttributeName] as? NSFont {
+                    if let font = (CTRunGetAttributes(run) as NSDictionary)[kCTFontAttributeName] as? PlatformFont {
                         shapedFonts.insert(font.fontName)
                     }
                 }
@@ -155,13 +170,13 @@ private func paragraphPDF(_ paragraph: ParagraphLayout) throws -> Data {
     }
 
     @Test func decoratedMiddleFragmentFlushesAndPreservesFollowingGlyphPositions() throws {
-        let font = NSFont.systemFont(ofSize: 22)
-        let base = NSAttributedString(string: "before underlined after", attributes: [.font: font, .foregroundColor: NSColor.black])
+        let font = PlatformFont.systemFont(ofSize: 22)
+        let base = NSAttributedString(string: "before underlined after", attributes: [.font: font, .foregroundColor: PlatformColor.black])
         let range = (base.string as NSString).range(of: "underlined")
         let decorations: [[NSAttributedString.Key: Any]] = [
-            [.underlineStyle: NSUnderlineStyle.single.rawValue, .underlineColor: NSColor.red],
-            [.strikethroughStyle: NSUnderlineStyle.single.rawValue, .strikethroughColor: NSColor.blue],
-            [.strokeWidth: -3, .strokeColor: NSColor.red]
+            [.underlineStyle: NSUnderlineStyle.single.rawValue, .underlineColor: PlatformColor.red],
+            [.strikethroughStyle: NSUnderlineStyle.single.rawValue, .strikethroughColor: PlatformColor.blue],
+            [.strokeWidth: -3, .strokeColor: PlatformColor.red]
         ]
         let plain = try paragraphBitmap(drawingParagraph(base), batched: false)
         for (index, paint) in decorations.enumerated() {
@@ -181,7 +196,7 @@ private func paragraphPDF(_ paragraph: ParagraphLayout) throws -> Data {
         #expect(math.result.diagnostics.isEmpty)
         let bitmap = try #require(CGContext(data: nil, width: 8, height: 6, bitsPerComponent: 8, bytesPerRow: 32,
                                            space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
-        bitmap.setFillColor(NSColor.red.cgColor); bitmap.fill(CGRect(x: 0, y: 0, width: 8, height: 6))
+        bitmap.setFillColor(PlatformColor.red.cgColor); bitmap.fill(CGRect(x: 0, y: 0, width: 8, height: 6))
         let image = DocumentImage(bitmap: try #require(bitmap.makeImage()), size: CGSize(width: 8, height: 6))
         let objects = [math.attributed(color: .black), ImageAttachment(image: image, maximumWidth: 100, altText: "Authored image").attributed()]
         for object in objects {
@@ -190,7 +205,7 @@ private func paragraphPDF(_ paragraph: ParagraphLayout) throws -> Data {
             let visible = NSMutableAttributedString(attributedString: object)
             // Make an accidental placeholder visible; skipping cannot pass only
             // because the attachment's usual foreground color is transparent.
-            visible.addAttributes([.font: NSFont.systemFont(ofSize: 32), .foregroundColor: NSColor.magenta], range: NSRange(location: 0, length: 1))
+            visible.addAttributes([.font: PlatformFont.systemFont(ofSize: 32), .foregroundColor: PlatformColor.magenta], range: NSRange(location: 0, length: 1))
             let paragraph = drawingParagraph(visible)
             #expect(!paragraph.lines.isEmpty && !paragraph.lines[0].fragments.isEmpty)
             #expect(inkParagraphPixels(try paragraphBitmap(paragraph, batched: true)) == 0)

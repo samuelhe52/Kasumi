@@ -1,4 +1,8 @@
+#if canImport(AppKit)
 import AppKit
+#else
+import UIKit
+#endif
 import CryptoKit
 import Testing
 @testable import KasumiMarkdown
@@ -19,7 +23,7 @@ private struct FlowReference: Decodable {
     }
 }
 private func flowFixture() throws -> FlowReference {
-    let root=URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+    let root=testRepositoryURL
     var reference = try JSONDecoder().decode(FlowReference.self,from:Data(contentsOf:root.appendingPathComponent("fixtures/reference/Diagrams.core.json")))
     reference.items += try JSONDecoder().decode(FlowReference.self,from:Data(contentsOf:root.appendingPathComponent("fixtures/reference/MermaidFlow.core.json"))).items
     return reference

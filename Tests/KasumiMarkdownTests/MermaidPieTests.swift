@@ -1,4 +1,8 @@
+#if canImport(AppKit)
 import AppKit
+#else
+import UIKit
+#endif
 import Foundation
 import Testing
 @testable import KasumiMarkdown
@@ -31,7 +35,7 @@ private struct PieReference: Decodable {
 }
 
 @Test func nativePieGeometryAndParserDiagnostics() throws {
-    let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+    let root = testRepositoryURL
     let reference = try JSONDecoder().decode(PieReference.self,
         from: Data(contentsOf: root.appendingPathComponent("fixtures/reference/MermaidPie.core.json")))
     func close(_ actual: CGFloat, _ expected: Double, _ message: String) {
@@ -104,7 +108,7 @@ private struct PieReference: Decodable {
     let small = try MermaidPie.layout(source: source, size: 12, fontFamily: "Helvetica", dark: false)
     let large = try MermaidPie.layout(source: source, size: 24, fontFamily: "Helvetica", dark: true)
     #expect(large.bounds.width > small.bounds.width)
-    let firstFill: (MermaidScene) -> NSColor? = { scene in
+    let firstFill: (MermaidScene) -> CGColor? = { scene in
         for command in scene.commands {
             if case let .path(_, fill, _, _, _) = command { return fill }
         }

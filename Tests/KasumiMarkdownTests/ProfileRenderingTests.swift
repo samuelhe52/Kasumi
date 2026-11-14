@@ -1,4 +1,8 @@
+#if canImport(AppKit)
 import AppKit
+#else
+import UIKit
+#endif
 import CoreText
 import Foundation
 import Testing
@@ -9,21 +13,37 @@ import Testing
     for (size, scale, expected) in [(16.0, 1.0, 14.0), (17.0, 1.0, 15.0), (16.0, 1.25, 18.0)] {
         let style = Typography().applying(ProfileValues([.baseSize: .number(size), .codeScale: .number(scale)]))
         let text = style.attributed([InlineRun("code", traits: [.code])])
-        #expect((text.attribute(.font, at: 0, effectiveRange: nil) as? NSFont)?.pointSize == CGFloat(expected))
+        #expect((text.attribute(.font, at: 0, effectiveRange: nil) as? PlatformFont)?.pointSize == CGFloat(expected))
     }
     let style = Typography().applying(ProfileValues([.baseSize: .number(15), .latinScale: .number(0.97),
         .scriptScale: .number(0.5), .headingScale: .numbers([1.6,1.5,1.4,1.3,1.2,1.1])]))
     let page = DocumentTypesetter.layout(DocumentParser.parse("## Heading\n\nBody"), width: 500, style: style)
     let heading = try #require(page.paragraphs.first)
     let body = try #require(page.paragraphs.last)
-    let headingFont = try #require(heading.paragraph.attributed.attribute(.font, at: 0, effectiveRange: nil) as? NSFont)
-    let bodyFont = try #require(body.paragraph.attributed.attribute(.font, at: 0, effectiveRange: nil) as? NSFont)
+    let headingFont = try #require(heading.paragraph.attributed.attribute(.font, at: 0, effectiveRange: nil) as? PlatformFont)
+    let bodyFont = try #require(body.paragraph.attributed.attribute(.font, at: 0, effectiveRange: nil) as? PlatformFont)
     #expect(abs(headingFont.pointSize - 22.31) < 1e-8) // round(15×1.5)×.97
     #expect(abs(bodyFont.pointSize - 14.55) < 1e-8) // ordinary body stays unrounded
     #expect(style.font(size: 14.5, code: true).pointSize == 15)
 }
 
-@Test func profileFontsUseReferenceSCFacesAndLatinRelativeBaselines() throws {
+private func checkProfileEmphasisFaces(_ emphasis: [(String, String, Bool, String, Double)]) throws {
+    for (family, italic, strong, postScript, trim) in emphasis {
+        let values = ProfileValues([.hanFamily: .string(family), .cjkItalicFace: .string(italic),
+                                    .hanBaseline: .number(0.04), .latinScale: .number(0.97), .hanScale: .number(1.2)])
+        let style = Typography().applying(values)
+        let traits: Set<InlineRun.Trait> = strong ? [.emphasis, .strong] : [.emphasis]
+        let text = style.attributed([InlineRun("汉", traits: traits)])
+        let font = try #require(text.attribute(.font, at: 0, effectiveRange: nil) as? PlatformFont)
+        #expect(font.fontName == postScript, "\(family) \(italic) strong=\(strong)")
+        #expect(abs(font.pointSize - 19.2) < 1e-10)
+        let baseline = try #require(text.attribute(.baselineOffset, at: 0, effectiveRange: nil) as? Double)
+        #expect(abs(baseline - (0.04 + trim) * 15.52) < 1e-10)
+    }
+}
+
+@Test(requiresReferenceFaces("STKaitiSC-Regular", "STKaitiSC-Bold", "STFangsong", "STXihei", "STHeiti", "STSongti-SC-Regular", "STSongti-SC-Black"))
+func profileFontsUseReferenceSCFacesAndLatinRelativeBaselines() throws {
     // Independent native FaceSpec observations, including the nil trim on
     // PingFang Fangsong/Xihei and Songti's negative Fangsong correction.
     let emphasis: [(String, String, Bool, String, Double)] = [
@@ -40,22 +60,12 @@ import Testing
         ("PingFang SC", "fangsong", false, "STFangsong", 0),
         ("PingFang SC", "fangsong", true, "STFangsong", 0),
         ("PingFang SC", "xihei", false, "STXihei", 0),
-        ("PingFang SC", "xihei", true, "STHeiti", 0),
-        ("PingFang SC", "none", false, "PingFangSC-Regular", 0),
-        ("PingFang SC", "none", true, "PingFangSC-Semibold", 0)
+        ("PingFang SC", "xihei", true, "STHeiti", 0)
     ]
-    for (family, italic, strong, postScript, trim) in emphasis {
-        let values = ProfileValues([.hanFamily: .string(family), .cjkItalicFace: .string(italic),
-                                    .hanBaseline: .number(0.04), .latinScale: .number(0.97), .hanScale: .number(1.2)])
-        let style = Typography().applying(values)
-        let traits: Set<InlineRun.Trait> = strong ? [.emphasis, .strong] : [.emphasis]
-        let text = style.attributed([InlineRun("汉", traits: traits)])
-        let font = try #require(text.attribute(.font, at: 0, effectiveRange: nil) as? NSFont)
-        #expect(font.fontName == postScript, "\(family) \(italic) strong=\(strong)")
-        #expect(abs(font.pointSize - 19.2) < 1e-10)
-        let baseline = try #require(text.attribute(.baselineOffset, at: 0, effectiveRange: nil) as? Double)
-        #expect(abs(baseline - (0.04 + trim) * 15.52) < 1e-10)
-    }
+    try checkProfileEmphasisFaces(emphasis)
+}
+
+@Test func profileLatinFacesAndEmptyFamiliesResolveWithoutCJKFonts() throws {
     let pagella = Typography().applying(BuiltinProfiles.all[1].effective)
     #expect(pagella.font().fontName == "TeXGyrePagella-Regular")
     #expect(pagella.font(strong: true).fontName == "TeXGyrePagella-Bold")
@@ -71,16 +81,12 @@ import Testing
     #expect(empty.latinFamily == "New York" && empty.hanFamily == "Songti SC")
 }
 
-@Test func profileHeadingAndTraditionalFacesStaySeparateFromBodySubstitution() throws {
-    var style = Typography().applying(ProfileValues([.hanFamily: .string("Songti SC"), .cjkStrongFace: .string("hei"), .headingHanBaseline: .number(0.06)]))
+@Test(requiresReferenceFaces("STSongti-SC-Bold"))
+func profileHeadingAndTraditionalFacesStaySeparateFromBodySubstitution() throws {
+    let style = Typography().applying(ProfileValues([.hanFamily: .string("Songti SC"), .cjkStrongFace: .string("hei"), .headingHanBaseline: .number(0.06)]))
     let heading = style.attributed([InlineRun("汉")], size: 24, heading: true, headingLevel: 2)
-    #expect((heading.attribute(.font, at: 0, effectiveRange: nil) as? NSFont)?.fontName == "STSongti-SC-Bold")
+    #expect((heading.attribute(.font, at: 0, effectiveRange: nil) as? PlatformFont)?.fontName == "STSongti-SC-Bold")
     #expect(abs((heading.attribute(.baselineOffset, at: 0, effectiveRange: nil) as? Double ?? 0) - 1.44) < 1e-10)
-    style.hanFamily = "Songti TC"
-    let normal = style.attributed([InlineRun("漢")])
-    let italic = style.attributed([InlineRun("漢", traits: [.emphasis])])
-    #expect((italic.attribute(.font, at: 0, effectiveRange: nil) as? NSFont)?.fontName == (normal.attribute(.font, at: 0, effectiveRange: nil) as? NSFont)?.fontName)
-    #expect((italic.attribute(.baselineOffset, at: 0, effectiveRange: nil) as? Double) == 0)
 }
 
 @Test func profileInlineCapsulesReservePaddingAndKeepTextSearchable() throws {
@@ -137,7 +143,7 @@ import Testing
     DocumentTypesetter.draw(layout, in: context)
     let data = try #require(context.data).assumingMemoryBound(to: UInt8.self)
     for key in ["mark_background", "code_capsule_background"] {
-        let color = try #require(style.documentTheme.color(key)?.usingColorSpace(.sRGB))
+        let color = try #require(style.documentTheme.color(key)?.kasumiSRGB)
         let rgb = [color.redComponent, color.greenComponent, color.blueComponent].map { Int(round($0 * 255)) }
         let count = stride(from: 0, to: width * height * 4, by: 4).filter { offset in
             (0..<3).allSatisfy { abs(Int(data[offset + $0]) - rgb[$0]) <= 2 }
@@ -147,4 +153,21 @@ import Testing
     let mono = DocumentTypesetter.layout(document, width: 400, style: Typography().applying(style.profileValues))
     #expect(layout.height == mono.height)
     #expect(layout.paragraphs.map { $0.paragraph.lines.map(\.width) } == mono.paragraphs.map { $0.paragraph.lines.map(\.width) })
+}
+
+@Test(requiresReferenceFaces("PingFangSC-Regular", "PingFangSC-Semibold"))
+func profilePingFangFacesKeepLatinRelativeBaselines() throws {
+    try checkProfileEmphasisFaces([
+        ("PingFang SC", "none", false, "PingFangSC-Regular", 0),
+        ("PingFang SC", "none", true, "PingFangSC-Semibold", 0)
+    ])
+}
+
+@Test func profileTraditionalFacesStaySeparateFromBodySubstitution() throws {
+    var style = Typography().applying(ProfileValues([.hanFamily: .string("Songti SC"), .cjkStrongFace: .string("hei"), .headingHanBaseline: .number(0.06)]))
+    style.hanFamily = "Songti TC"
+    let normal = style.attributed([InlineRun("漢")])
+    let italic = style.attributed([InlineRun("漢", traits: [.emphasis])])
+    #expect((italic.attribute(.font, at: 0, effectiveRange: nil) as? PlatformFont)?.fontName == (normal.attribute(.font, at: 0, effectiveRange: nil) as? PlatformFont)?.fontName)
+    #expect((italic.attribute(.baselineOffset, at: 0, effectiveRange: nil) as? Double) == 0)
 }

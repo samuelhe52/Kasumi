@@ -1,4 +1,5 @@
-import AppKit
+import Foundation
+import CoreGraphics
 import CoreText
 
 /// Font roles belong to text measurement requests, independently of display
@@ -31,13 +32,13 @@ struct MermaidTextStyle {
         default: return 14
         }
     }
-    private func attributed(_ text: String, role: Int, color: NSColor) -> NSAttributedString {
+    private func attributed(_ text: String, role: Int, color: CGColor) -> NSAttributedString {
         var typography = Typography()
         typography.latinFamily = family.isEmpty ? "New York" : family
         if typography.latinFamily == "SF Pro Text" { typography.latinFamily = "SF Pro" }
         let pointSize = pointSize(role)
         let bold = native && (role == 8 || role == 9)
-        let string = NSMutableAttributedString(string: text, attributes: [.font: typography.font(size: pointSize, strong: bold), .foregroundColor: color])
+        let string = NSMutableAttributedString(string: text, attributes: [.font: typography.font(size: pointSize, strong: bold), NSAttributedString.Key(kCTForegroundColorAttributeName as String): color])
         if native && !hanFamily.isEmpty {
             typography.hanFamily = hanFamily
             var offset = 0
@@ -52,7 +53,7 @@ struct MermaidTextStyle {
         return string
     }
     func measure(_ text: String, role: Int) -> CGSize {
-        let line = CTLineCreateWithAttributedString(attributed(text, role: role, color: .black))
+        let line = CTLineCreateWithAttributedString(attributed(text, role: role, color: CGColor(gray: 0, alpha: 1)))
         var ascent: CGFloat = 0, descent: CGFloat = 0, leading: CGFloat = 0
         var width = CTLineGetTypographicBounds(line, &ascent, &descent, &leading)
         if native { width -= CTLineGetTrailingWhitespaceWidth(line) }
@@ -60,7 +61,7 @@ struct MermaidTextStyle {
         let minimum: CGFloat = native ? ((role == 7 || role == 9 || role == 16) ? 21 : 0) : size
         return CGSize(width: max(0, width), height: max(minimum, natural))
     }
-    func draw(_ text: String, in rect: CGRect, role: Int, color: NSColor, context: CGContext) {
+    func draw(_ text: String, in rect: CGRect, role: Int, color: CGColor, context: CGContext) {
         let line = CTLineCreateWithAttributedString(attributed(text, role: role, color: color))
         var ascent: CGFloat = 0, descent: CGFloat = 0, leading: CGFloat = 0
         _ = CTLineGetTypographicBounds(line, &ascent, &descent, &leading)
