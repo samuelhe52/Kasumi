@@ -1,0 +1,692 @@
+[
+  {
+    "id": "base_size",
+    "label": "Base size",
+    "kind": "number",
+    "defaultValue": 16,
+    "choices": [],
+    "parserRange": [
+      8.0,
+      48.0
+    ],
+    "guiRange": [
+      8.0,
+      48.0
+    ],
+    "step": 1.0
+  },
+  {
+    "id": "line_spacing",
+    "label": "Line spacing",
+    "kind": "number",
+    "defaultValue": 1.6,
+    "choices": [],
+    "parserRange": [
+      1.0,
+      3.0
+    ],
+    "guiRange": [
+      1.0,
+      3.0
+    ],
+    "step": null
+  },
+  {
+    "id": "para_space_before",
+    "label": "Space before paragraphs",
+    "kind": "number",
+    "defaultValue": 0.0,
+    "choices": [],
+    "parserRange": [
+      0.0,
+      4.0
+    ],
+    "guiRange": [
+      0.0,
+      4.0
+    ],
+    "step": null
+  },
+  {
+    "id": "para_space_after",
+    "label": "Space after paragraphs",
+    "kind": "number",
+    "defaultValue": 0.75,
+    "choices": [],
+    "parserRange": [
+      0.0,
+      4.0
+    ],
+    "guiRange": [
+      0.0,
+      4.0
+    ],
+    "step": null
+  },
+  {
+    "id": "heading_space_before",
+    "label": "Heading space before",
+    "kind": "number",
+    "defaultValue": 0.8,
+    "choices": [],
+    "parserRange": [
+      0.0,
+      4.0
+    ],
+    "guiRange": [
+      0.0,
+      4.0
+    ],
+    "step": null
+  },
+  {
+    "id": "heading_space_after",
+    "label": "Heading space after",
+    "kind": "number",
+    "defaultValue": 0.4,
+    "choices": [],
+    "parserRange": [
+      0.0,
+      4.0
+    ],
+    "guiRange": [
+      0.0,
+      4.0
+    ],
+    "step": null
+  },
+  {
+    "id": "heading_scale",
+    "label": "Heading scale",
+    "kind": "numbers",
+    "defaultValue": [
+      1.6,
+      1.5,
+      1.4,
+      1.3,
+      1.2,
+      1.1
+    ],
+    "choices": [],
+    "parserRange": null,
+    "guiRange": null,
+    "step": null
+  },
+  {
+    "id": "heading_weight",
+    "label": "Heading weight",
+    "kind": "strings",
+    "defaultValue": [
+      "semibold",
+      "semibold",
+      "semibold",
+      "semibold",
+      "semibold",
+      "semibold"
+    ],
+    "choices": [],
+    "parserRange": null,
+    "guiRange": null,
+    "step": null
+  },
+  {
+    "id": "compactness",
+    "label": "Compactness",
+    "kind": "number",
+    "defaultValue": 0.5,
+    "choices": [],
+    "parserRange": [
+      0.0,
+      1.0
+    ],
+    "guiRange": [
+      0.0,
+      1.0
+    ],
+    "step": null
+  },
+  {
+    "id": "punct_squeeze",
+    "label": "Punct squeeze",
+    "kind": "number",
+    "defaultValue": 0.5,
+    "choices": [],
+    "parserRange": [
+      0.0,
+      1.0
+    ],
+    "guiRange": [
+      0.0,
+      1.0
+    ],
+    "step": null
+  },
+  {
+    "id": "cjk_latin_gap",
+    "label": "CJK–Latin gap",
+    "kind": "number",
+    "defaultValue": 0.25,
+    "choices": [],
+    "parserRange": [
+      0.0,
+      1.0
+    ],
+    "guiRange": [
+      0.0,
+      1.0
+    ],
+    "step": null
+  },
+  {
+    "id": "inter_cjk_stretch",
+    "label": "Inter cjk stretch",
+    "kind": "number",
+    "defaultValue": 0.05,
+    "choices": [],
+    "parserRange": [
+      0.0,
+      1.0
+    ],
+    "guiRange": [
+      0.0,
+      1.0
+    ],
+    "step": null
+  },
+  {
+    "id": "inter_cjk_shrink",
+    "label": "Inter cjk shrink",
+    "kind": "number",
+    "defaultValue": 0.04,
+    "choices": [],
+    "parserRange": [
+      0.0,
+      1.0
+    ],
+    "guiRange": [
+      0.0,
+      1.0
+    ],
+    "step": null
+  },
+  {
+    "id": "inter_cjk_natural",
+    "label": "Inter cjk natural",
+    "kind": "number",
+    "defaultValue": 0,
+    "choices": [],
+    "parserRange": [
+      0.0,
+      0.5
+    ],
+    "guiRange": [
+      0.0,
+      0.2
+    ],
+    "step": null
+  },
+  {
+    "id": "script_scale",
+    "label": "Script scale",
+    "kind": "number",
+    "defaultValue": 0.699999988079071,
+    "choices": [],
+    "parserRange": [
+      0.4,
+      1.0
+    ],
+    "guiRange": null,
+    "step": null
+  },
+  {
+    "id": "superscript_shift",
+    "label": "Superscript shift",
+    "kind": "number",
+    "defaultValue": 0.3630000054836273,
+    "choices": [],
+    "parserRange": [
+      0.0,
+      1.0
+    ],
+    "guiRange": null,
+    "step": null
+  },
+  {
+    "id": "subscript_shift",
+    "label": "Subscript shift",
+    "kind": "number",
+    "defaultValue": 0.24699999392032623,
+    "choices": [],
+    "parserRange": [
+      0.0,
+      1.0
+    ],
+    "guiRange": null,
+    "step": null
+  },
+  {
+    "id": "han_scale",
+    "label": "Han scale",
+    "kind": "number",
+    "defaultValue": 1.0,
+    "choices": [],
+    "parserRange": [
+      0.5,
+      2.0
+    ],
+    "guiRange": [
+      0.5,
+      2.0
+    ],
+    "step": 0.01
+  },
+  {
+    "id": "latin_scale",
+    "label": "Latin scale",
+    "kind": "number",
+    "defaultValue": 1.0,
+    "choices": [],
+    "parserRange": [
+      0.5,
+      2.0
+    ],
+    "guiRange": [
+      0.5,
+      2.0
+    ],
+    "step": 0.01
+  },
+  {
+    "id": "code_scale",
+    "label": "Code scale",
+    "kind": "number",
+    "defaultValue": 1.0,
+    "choices": [],
+    "parserRange": [
+      0.5,
+      2.0
+    ],
+    "guiRange": [
+      0.5,
+      2.0
+    ],
+    "step": 0.01
+  },
+  {
+    "id": "code_capsule_pad",
+    "label": "Code capsule pad",
+    "kind": "number",
+    "defaultValue": 0.2,
+    "choices": [],
+    "parserRange": [
+      0.0,
+      0.5
+    ],
+    "guiRange": null,
+    "step": null
+  },
+  {
+    "id": "code_capsule",
+    "label": "Code capsule",
+    "kind": "flag",
+    "defaultValue": false,
+    "choices": [],
+    "parserRange": null,
+    "guiRange": null,
+    "step": null
+  },
+  {
+    "id": "table_style",
+    "label": "Table style",
+    "kind": "choice",
+    "defaultValue": "booktabs",
+    "choices": [
+      "booktabs",
+      "grid"
+    ],
+    "parserRange": null,
+    "guiRange": null,
+    "step": null
+  },
+  {
+    "id": "ragged_code_fraction",
+    "label": "Ragged code fraction",
+    "kind": "number",
+    "defaultValue": 0.45,
+    "choices": [],
+    "parserRange": [
+      0.0,
+      1.0
+    ],
+    "guiRange": [
+      0.0,
+      1.0
+    ],
+    "step": null
+  },
+  {
+    "id": "han_baseline",
+    "label": "Han baseline",
+    "kind": "number",
+    "defaultValue": 0.0,
+    "choices": [],
+    "parserRange": [
+      -0.2,
+      0.2
+    ],
+    "guiRange": [
+      -0.2,
+      0.2
+    ],
+    "step": 0.01
+  },
+  {
+    "id": "heading_han_baseline",
+    "label": "Heading Han baseline",
+    "kind": "number",
+    "defaultValue": 0.0,
+    "choices": [],
+    "parserRange": [
+      -0.2,
+      0.2
+    ],
+    "guiRange": [
+      -0.2,
+      0.2
+    ],
+    "step": 0.01
+  },
+  {
+    "id": "latin_family",
+    "label": "Latin font",
+    "kind": "text",
+    "defaultValue": "",
+    "choices": [],
+    "parserRange": null,
+    "guiRange": null,
+    "step": null
+  },
+  {
+    "id": "han_family",
+    "label": "Han font",
+    "kind": "text",
+    "defaultValue": "",
+    "choices": [],
+    "parserRange": null,
+    "guiRange": null,
+    "step": null
+  },
+  {
+    "id": "code_family",
+    "label": "Code font",
+    "kind": "text",
+    "defaultValue": "",
+    "choices": [],
+    "parserRange": null,
+    "guiRange": null,
+    "step": null
+  },
+  {
+    "id": "para_separation",
+    "label": "Paragraph separation",
+    "kind": "choice",
+    "defaultValue": "space",
+    "choices": [
+      "space",
+      "indent"
+    ],
+    "parserRange": null,
+    "guiRange": null,
+    "step": null
+  },
+  {
+    "id": "first_line_indent",
+    "label": "First line indent",
+    "kind": "number",
+    "defaultValue": 0.0,
+    "choices": [],
+    "parserRange": [
+      0.0,
+      4.0
+    ],
+    "guiRange": null,
+    "step": null
+  },
+  {
+    "id": "para_space_between",
+    "label": "Space between paragraphs",
+    "kind": "number",
+    "defaultValue": 0.75,
+    "choices": [],
+    "parserRange": [
+      0.0,
+      4.0
+    ],
+    "guiRange": null,
+    "step": null
+  },
+  {
+    "id": "body_align",
+    "label": "Body alignment",
+    "kind": "choice",
+    "defaultValue": "justify",
+    "choices": [
+      "justify",
+      "left",
+      "center"
+    ],
+    "parserRange": null,
+    "guiRange": null,
+    "step": null
+  },
+  {
+    "id": "hanging_punctuation",
+    "label": "Hanging punctuation",
+    "kind": "flag",
+    "defaultValue": true,
+    "choices": [],
+    "parserRange": null,
+    "guiRange": null,
+    "step": null
+  },
+  {
+    "id": "auto_ragged_narrow",
+    "label": "Left align narrow columns",
+    "kind": "flag",
+    "defaultValue": true,
+    "choices": [],
+    "parserRange": null,
+    "guiRange": null,
+    "step": null
+  },
+  {
+    "id": "auto_ragged_measure_em",
+    "label": "Narrow column threshold",
+    "kind": "number",
+    "defaultValue": 20,
+    "choices": [],
+    "parserRange": [
+      4.0,
+      60.0
+    ],
+    "guiRange": [
+      4.0,
+      60.0
+    ],
+    "step": 1.0
+  },
+  {
+    "id": "punct_strategy",
+    "label": "Punct strategy",
+    "kind": "choice",
+    "defaultValue": "faithful",
+    "choices": [
+      "faithful",
+      "spacing",
+      "fold"
+    ],
+    "parserRange": null,
+    "guiRange": null,
+    "step": null
+  },
+  {
+    "id": "cjk_italic_face",
+    "label": "Cjk italic face",
+    "kind": "choice",
+    "defaultValue": "kai",
+    "choices": [
+      "kai",
+      "fangsong",
+      "xihei",
+      "none"
+    ],
+    "parserRange": null,
+    "guiRange": null,
+    "step": null
+  },
+  {
+    "id": "cjk_strong_face",
+    "label": "Cjk strong face",
+    "kind": "choice",
+    "defaultValue": "black",
+    "choices": [
+      "black",
+      "bold",
+      "hei"
+    ],
+    "parserRange": null,
+    "guiRange": null,
+    "step": null
+  },
+  {
+    "id": "cjk_punct_face",
+    "label": "Cjk punct face",
+    "kind": "choice",
+    "defaultValue": "simsong",
+    "choices": [
+      "simsong",
+      "native"
+    ],
+    "parserRange": null,
+    "guiRange": null,
+    "step": null
+  },
+  {
+    "id": "math_font",
+    "label": "Math font",
+    "kind": "choice",
+    "defaultValue": "newcm-regular",
+    "choices": [
+      "newcm-regular",
+      "newcm-book",
+      "pagella-math"
+    ],
+    "parserRange": null,
+    "guiRange": null,
+    "step": null
+  },
+  {
+    "id": "math_radical_gap",
+    "label": "Math radical gap",
+    "kind": "number",
+    "defaultValue": 1.0,
+    "choices": [],
+    "parserRange": [
+      0.0,
+      4.0
+    ],
+    "guiRange": null,
+    "step": null
+  },
+  {
+    "id": "math_frac_bar_overhang",
+    "label": "Fraction bar overhang",
+    "kind": "number",
+    "defaultValue": 0.0,
+    "choices": [],
+    "parserRange": [
+      0.0,
+      0.5
+    ],
+    "guiRange": null,
+    "step": null
+  },
+  {
+    "id": "footnote_mark_sep",
+    "label": "Footnote mark sep",
+    "kind": "number",
+    "defaultValue": 0.3,
+    "choices": [],
+    "parserRange": [
+      0.0,
+      1.0
+    ],
+    "guiRange": null,
+    "step": null
+  },
+  {
+    "id": "print_body_size",
+    "label": "Print body size",
+    "kind": "number",
+    "defaultValue": 10.5,
+    "choices": [],
+    "parserRange": [
+      6.0,
+      24.0
+    ],
+    "guiRange": null,
+    "step": null
+  },
+  {
+    "id": "marker_inset",
+    "label": "Marker inset",
+    "kind": "number",
+    "defaultValue": 0.5,
+    "choices": [],
+    "parserRange": [
+      0.0,
+      2.0
+    ],
+    "guiRange": null,
+    "step": null
+  },
+  {
+    "id": "list_marker_gap",
+    "label": "List marker gap",
+    "kind": "number",
+    "defaultValue": 8,
+    "choices": [],
+    "parserRange": [
+      0.0,
+      64.0
+    ],
+    "guiRange": null,
+    "step": null
+  },
+  {
+    "id": "list_bullet_size",
+    "label": "List bullet size",
+    "kind": "number",
+    "defaultValue": 0.3,
+    "choices": [],
+    "parserRange": [
+      0.1,
+      1.0
+    ],
+    "guiRange": null,
+    "step": null
+  },
+  {
+    "id": "quote_bar_gap",
+    "label": "Quote bar gap",
+    "kind": "number",
+    "defaultValue": 17,
+    "choices": [],
+    "parserRange": [
+      0.0,
+      64.0
+    ],
+    "guiRange": null,
+    "step": null
+  }
+]

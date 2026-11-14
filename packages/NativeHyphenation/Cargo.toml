@@ -1,0 +1,15 @@
+[package]
+name = "kasumi-hyphenation"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[lib]
+crate-type = ["staticlib"]
+
+[dependencies]
+hyphenation = { version = "=0.8.4", default-features = false }
+
+[profile.release]
+lto = true
+codegen-units = 1

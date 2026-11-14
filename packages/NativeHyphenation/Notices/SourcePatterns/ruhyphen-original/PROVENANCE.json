@@ -1,0 +1,17 @@
+{
+  "url": "https://mirrors.ctan.org/language/hyphenation/ruhyphen.zip",
+  "version": "1.6; original default files version2003/03/10",
+  "archiveSHA256": "60655d6dce99d11a9fbcf2e59510043276125019463146100387f767557b137e",
+  "sourceEncoding": "KOI8-R, preserved unmodified",
+  "masterPatternUnionExact": false,
+  "originalPatterns": 4787,
+  "masterPatterns": 7037,
+  "files": {
+    "ruhyphal.tex": "348e778b9f887a77cb72a60c85027a31979d8076eaad983f8db8720f277adf3c",
+    "cyryoal.tex": "e00bd3d31af2bb91473aea40c4e66eafcf595ccad752cc5179c989463451222d",
+    "README.ruhyphal": "1d171056218f73702d3f331d9c52831b63f9271544b39ddbd9d93c8a5e745322",
+    "hyphen.rules": "dc719b9b49bf68d0f6b604272d3717442b120582c4f600d4516ea495bc4ac8ee",
+    "README": "ab0b860acd367436d33cff339f91cb2c740235457d4c4e64ace10acfcbe3dc7d",
+    "mkcyryo": "6f34fb17de2e3ac444635044859aa83fda7faca27e10ec34c28b4cdf88a7b444"
+  }
+}

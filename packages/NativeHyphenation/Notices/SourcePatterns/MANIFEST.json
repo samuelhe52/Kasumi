@@ -1,0 +1,292 @@
+[
+  {
+    "path": "hyphenex-2016/ushyphex.tex",
+    "bytes": 21756,
+    "sha256": "d81973158b2c8a12a470d4991a29bab8bde057f373d0975e94f08fc79e732c7f"
+  },
+  {
+    "path": "hyphenex-current-documentation/README",
+    "bytes": 1125,
+    "sha256": "547ceae8d0a683eaae07bdd12d18f3343b444b78cf85f5a9e6302fe4ef87c0e2"
+  },
+  {
+    "path": "hyphenex-current-documentation/hyphenex.pl",
+    "bytes": 2145,
+    "sha256": "4b5cfc34af5b62e247d623b66d6c1953e7143db056f217785f14c14622e0d5c2"
+  },
+  {
+    "path": "hyphenex-current-documentation/hyphenex.sh",
+    "bytes": 3248,
+    "sha256": "904e7fba08f7b11673191b783a3261279c304e98149a28a0c9e5565dd5f8b6f4"
+  },
+  {
+    "path": "hyphenex-current-documentation/tb0hyf.tex",
+    "bytes": 69903,
+    "sha256": "206c3c2c428f8e83a9b5e4e68c7a7f450933bdd6b5fcae89e3225686cc9ce6a4"
+  },
+  {
+    "path": "licenses/GPL-2.0.txt",
+    "bytes": 17984,
+    "sha256": "edaef632cbb643e4e7a221717a6c441a4c1a7c918e6e4d56debc3d8739b233f6"
+  },
+  {
+    "path": "licenses/LPPL-1.3c.txt",
+    "bytes": 19036,
+    "sha256": "c1ae6e179a6d28bbd5c483fbacc744acc75e922d598281dc3390aab26126e163"
+  },
+  {
+    "path": "licenses/hyphenation-LICENSE-APACHE",
+    "bytes": 10255,
+    "sha256": "9cf5de169b595cdae317551ef69a794b59fa3d1e151db4190d337fe08d13d5f8"
+  },
+  {
+    "path": "licenses/hyphenation-LICENSE-MIT",
+    "bytes": 1078,
+    "sha256": "e121e0a4f603838d744a4be885c7807d35571a7f107880b6b7c23b00b466e7b1"
+  },
+  {
+    "path": "masters/hyph-cs.tex",
+    "bytes": 22983,
+    "sha256": "37b16173109c9c1a34d04c87eeb4ea8206d55e636c380dbcd72e912b4ca5033a"
+  },
+  {
+    "path": "masters/hyph-da.tex",
+    "bytes": 8454,
+    "sha256": "23e0a50f0c20d632be06f973e700323463961eac737bb14f6c3787675a4f5575"
+  },
+  {
+    "path": "masters/hyph-de-1996.tex",
+    "bytes": 261255,
+    "sha256": "162ae879d2e61112bf7ab37b2bf47027e3df409f2641fb9b8cd6e6388c6d547d"
+  },
+  {
+    "path": "masters/hyph-en-gb.tex",
+    "bytes": 58474,
+    "sha256": "e95bb4ab350f620c41c231c4785d7bdb4f91949d3e631b30e08b3ead3c340a52"
+  },
+  {
+    "path": "masters/hyph-en-us.tex",
+    "bytes": 34128,
+    "sha256": "f4ffcd96c5cbc886bdad23f95dcae8edc3cd3620eae62f7946eceda97c4e68f8"
+  },
+  {
+    "path": "masters/hyph-es.tex",
+    "bytes": 42602,
+    "sha256": "6a2e5f39a991a23d1cd8a23dbd0f6fe96a9f07561a6695f4f3320f47030e236c"
+  },
+  {
+    "path": "masters/hyph-fi.tex",
+    "bytes": 4820,
+    "sha256": "cf68be5eb003d299f85f2b7185f31d8ff5799c19dfad3f0300eaf9843e9cc8d3"
+  },
+  {
+    "path": "masters/hyph-fr.tex",
+    "bytes": 30353,
+    "sha256": "526cad6fe8f52fcd3caa3fcaf667cb1740cfc14bca198680e00dc343a84594de"
+  },
+  {
+    "path": "masters/hyph-it.tex",
+    "bytes": 5011,
+    "sha256": "6ce56ed6ed2ca7c0688838e366e6595e0429f984f4fc6e96ec045cebb1e76a47"
+  },
+  {
+    "path": "masters/hyph-nb.tex",
+    "bytes": 1664,
+    "sha256": "b111264f46d59089d4cf96691c66b637166f5aae5b86719a5b9fe32737cc0169"
+  },
+  {
+    "path": "masters/hyph-nl.tex",
+    "bytes": 87546,
+    "sha256": "c3749c79c435edc8273b701148462dc3751f38f4d4e4381f7850ae4432a0a5f4"
+  },
+  {
+    "path": "masters/hyph-no.tex",
+    "bytes": 196495,
+    "sha256": "05a2ac5fbf88bdc78c580e5cb8a158e6aa760d13756604f9523aa99feec3ec65"
+  },
+  {
+    "path": "masters/hyph-pl.tex",
+    "bytes": 34118,
+    "sha256": "83ddbbd21bc06a44bc4f4a4c49c38782e809cff5f026b764c044daa29e818843"
+  },
+  {
+    "path": "masters/hyph-pt.tex",
+    "bytes": 4547,
+    "sha256": "59fe5ef9929d5f82fb6fff2df4119ba30fcbb9c6a119953f8561679193e3c53d"
+  },
+  {
+    "path": "masters/hyph-ru.tex",
+    "bytes": 68421,
+    "sha256": "ce988fcc66e5e29d7474df5ab5b489d3f52a50ebccf570997f992d84221b922a"
+  },
+  {
+    "path": "masters/hyph-sv.tex",
+    "bytes": 31706,
+    "sha256": "102253382bd91cdb7535de5c20744254c9ac9aaa4ca12ed420eb835e5004c0b3"
+  },
+  {
+    "path": "ruhyphen-original/PROVENANCE.json",
+    "bytes": 901,
+    "sha256": "6281ec56a268e208600406e494e70a8b513d928bb8ff64045b974a6251015fe7"
+  },
+  {
+    "path": "ruhyphen-original/README",
+    "bytes": 15429,
+    "sha256": "ab0b860acd367436d33cff339f91cb2c740235457d4c4e64ace10acfcbe3dc7d"
+  },
+  {
+    "path": "ruhyphen-original/README.ruhyphal",
+    "bytes": 6825,
+    "sha256": "1d171056218f73702d3f331d9c52831b63f9271544b39ddbd9d93c8a5e745322"
+  },
+  {
+    "path": "ruhyphen-original/cyryoal.tex",
+    "bytes": 1819,
+    "sha256": "e00bd3d31af2bb91473aea40c4e66eafcf595ccad752cc5179c989463451222d"
+  },
+  {
+    "path": "ruhyphen-original/hyphen.rules",
+    "bytes": 5683,
+    "sha256": "dc719b9b49bf68d0f6b604272d3717442b120582c4f600d4516ea495bc4ac8ee"
+  },
+  {
+    "path": "ruhyphen-original/mkcyryo",
+    "bytes": 651,
+    "sha256": "6f34fb17de2e3ac444635044859aa83fda7faca27e10ec34c28b4cdf88a7b444"
+  },
+  {
+    "path": "ruhyphen-original/ruhyphal.tex",
+    "bytes": 29012,
+    "sha256": "348e778b9f887a77cb72a60c85027a31979d8076eaad983f8db8720f277adf3c"
+  },
+  {
+    "path": "sources/hyph-cs.hyp.txt",
+    "bytes": 78,
+    "sha256": "a31b19189676f5d31d1fa75042a43a16eacfa80bc42a9d02c2bda9d37c91e2b7"
+  },
+  {
+    "path": "sources/hyph-cs.pat.txt",
+    "bytes": 21737,
+    "sha256": "6d868b0196c049cb834640902068857617e6697748b039941feee4402a3508ac"
+  },
+  {
+    "path": "sources/hyph-da.pat.txt",
+    "bytes": 6153,
+    "sha256": "a093ef99375717fe34d261b05d2fdc8e64f8a9f741578c020204374f4c39a20c"
+  },
+  {
+    "path": "sources/hyph-de-1996.pat.txt",
+    "bytes": 258337,
+    "sha256": "3534fe7edb6cf20e085865b069f22013dc532e93959a49fc1f97567a8be6b3ef"
+  },
+  {
+    "path": "sources/hyph-en-gb.hyp.txt",
+    "bytes": 103,
+    "sha256": "947b7b8e76f6a0d8ebe296178ff92ad624e4912ffbaaf59b26f81a395124e366"
+  },
+  {
+    "path": "sources/hyph-en-gb.pat.txt",
+    "bytes": 54769,
+    "sha256": "651b89b4a0d4051995db8586e81ab109a4c7395d7706c06483893ebab5af013b"
+  },
+  {
+    "path": "sources/hyph-en-us.hyp.txt",
+    "bytes": 18504,
+    "sha256": "7b62f3eab4bfcab0b85d6a5d6797100239721ba06ce9874c1657fe4b8cad95ed"
+  },
+  {
+    "path": "sources/hyph-en-us.pat.txt",
+    "bytes": 31489,
+    "sha256": "0f57318b878b132547ae92db39a6e1d1cf2a05d9008874955d6ecb910007a463"
+  },
+  {
+    "path": "sources/hyph-es.pat.txt",
+    "bytes": 39989,
+    "sha256": "7ae8fa8d6a61ea4111c4a0412d019b62e7c07a62673121d0b711c5bc08d8e00c"
+  },
+  {
+    "path": "sources/hyph-fi.pat.txt",
+    "bytes": 1547,
+    "sha256": "ccabb0b3f403eca9999c0cd73b75d16b0220f2052d8f6aad2f98b5f1854dc027"
+  },
+  {
+    "path": "sources/hyph-fr.pat.txt",
+    "bytes": 9674,
+    "sha256": "fd40a89e9e8eb0784a0919e50378814843e44afa41c5beaf0a85f6562820f6c2"
+  },
+  {
+    "path": "sources/hyph-it.pat.txt",
+    "bytes": 1840,
+    "sha256": "ce650cffad4e81ecaf04591f3274a8ed909e82c587698c55e33b00e2aa7746de"
+  },
+  {
+    "path": "sources/hyph-nb.hyp.txt",
+    "bytes": 17,
+    "sha256": "6484bbd793e20a206a2f0d7abfc499a5f8688c54ea7e91ee7af87fba53959d00"
+  },
+  {
+    "path": "sources/hyph-nb.pat.txt",
+    "bytes": 192730,
+    "sha256": "e080c77da3d0f8de7e464f69082f5e2485e43ed349a2a7018b84e0adef785806"
+  },
+  {
+    "path": "sources/hyph-nl.hyp.txt",
+    "bytes": 676,
+    "sha256": "5902ba4d760815a51a972b6d05f514dde1842c16fa2859b907e2d299edbb3299"
+  },
+  {
+    "path": "sources/hyph-nl.pat.txt",
+    "bytes": 83149,
+    "sha256": "ac5795c1d6cd7027e6ec3a9e58e173789f999669e40ffd81755a4db7d3214165"
+  },
+  {
+    "path": "sources/hyph-pl.hyp.txt",
+    "bytes": 202,
+    "sha256": "0e3fd28ea45ec144f5f1438a7bbfb5b55c14dd0cccfefe4ddfbe95fee14d82cf"
+  },
+  {
+    "path": "sources/hyph-pl.pat.txt",
+    "bytes": 30339,
+    "sha256": "4b9c3583f176efb76dccee7e630ac7516567abd96dcbc3ebaa2388e795774b48"
+  },
+  {
+    "path": "sources/hyph-pt.hyp.txt",
+    "bytes": 20,
+    "sha256": "5c093a9e48dc8f87624693f31b8da7d090ed1e6eeb07fce7bcfd5689d7f941a8"
+  },
+  {
+    "path": "sources/hyph-pt.pat.txt",
+    "bytes": 1445,
+    "sha256": "6b50256e72d5448cec1801866e9027491f66552c8957f72b6e0ec315159e7931"
+  },
+  {
+    "path": "sources/hyph-ru.hyp.txt",
+    "bytes": 3192,
+    "sha256": "11b1c36c26bab4770505c2331eb85fb3e13f0c0841a7fa80142aee3be332facb"
+  },
+  {
+    "path": "sources/hyph-ru.pat.txt",
+    "bytes": 63271,
+    "sha256": "12fa91c83d56ffefa589cf022d9f24ec5a5f4035b4c09484cf4270128c2c162a"
+  },
+  {
+    "path": "sources/hyph-sv.pat.txt",
+    "bytes": 29398,
+    "sha256": "1fbf98f5d316712fd4e86f564643ad7341184f9ce8b30e0e18d06eceb4f52a79"
+  },
+  {
+    "path": "upstream-build/Cargo.toml.orig",
+    "bytes": 1794,
+    "sha256": "4fe15cc12355d40137ff4d620033360bda355a0518e1523a32932082866d3ae1"
+  },
+  {
+    "path": "upstream-build/build.rs",
+    "bytes": 12270,
+    "sha256": "441bc9623c9b0791e4bb4e9b8d0a3a5e07c5848f690b26be83b7d01b5fa2cdb7"
+  },
+  {
+    "path": "upstream-build/hyphenation_commons-Cargo.toml.orig",
+    "bytes": 445,
+    "sha256": "b9d05017fecced0bd6eafc06fa7783bbb5d8864fcfd4b5f3417e2755fefc9555"
+  }
+]

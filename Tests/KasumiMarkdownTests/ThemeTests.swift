@@ -1,0 +1,129 @@
+import AppKit
+import CryptoKit
+import Foundation
+import Testing
+@testable import KasumiMarkdown
+
+@Test func themeResourcePreservesEveryBundledColor() throws {
+    let expected = [
+        "mono-dark": "7e6be3ed3d446039fe0d85378aa03ae3a46c21e6866f20289c1fcaed27064327",
+        "mono-light": "e0fc4333dac4bbc11de31e597eef6430ba5f8210fbd84cdf6b88837cc319d416",
+        "one-dark": "c9f7b36788025ee9fe6eb6e92b6a35a2f266778612b643693ae385305377881c",
+        "one-light": "984c7fd8814ab31c5e9fe17c4b834c01ecfdf8d76ec62163ebb155d1a9dfdae6",
+        "solarized-dark": "09a21ad00752094348f76fdd3ec6159f373a6a2c2b12a5f1827eff75131a05d7",
+        "solarized-light": "b22967146a158c189c67125f5215db28df19aa91d9f5da8c88aa150cf159c5cc"
+    ]
+    let object = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: DocumentThemeCatalog.resourceURL)) as? [String: Any])
+    let rows = try #require(object["themes"] as? [[String: Any]])
+    #expect(rows.count == 8)
+    #expect(Set(DocumentThemeCatalog.themes.map(\.id)).count == 8)
+    for row in rows {
+        let id = try #require(row["id"] as? String)
+        guard let colorHash = expected[id] else { continue }
+        var facts: [String] = []
+        for section in ["document", "chrome", "syntax"] {
+            let values = try #require(row[section] as? [String: String])
+            facts += values.keys.sorted().map { "\(section).\($0)=\(values[$0]!)" }
+        }
+        let hash = SHA256.hash(data: Data(facts.joined(separator: "\n").utf8)).map { String(format: "%02x", $0) }.joined()
+        #expect(hash == colorHash, "All authored color facts for \(id)")
+        let theme = DocumentThemeCatalog.theme(id: id, dark: false)
+        #expect(theme.document.count == (id.hasPrefix("mono-") ? 46 : 45))
+        #expect(theme.syntax.count == 5)
+        #expect(theme.chrome.count == 3)
+        #expect(theme.dark == id.hasSuffix("-dark"))
+        // Decoded model colors must preserve the original sRGB byte values.
+        for section in ["document", "chrome", "syntax"] {
+            let values = try #require(row[section] as? [String: String])
+            for (key, hex) in values {
+                let expectedColor = try #require(DocumentColor(hex: hex))
+                let color = try #require(theme.color(key)?.usingColorSpace(.sRGB))
+                #expect(abs(color.redComponent - expectedColor.red) < 1e-12)
+                #expect(abs(color.greenComponent - expectedColor.green) < 1e-12)
+                #expect(abs(color.blueComponent - expectedColor.blue) < 1e-12)
+                #expect(color.alphaComponent == 1)
+            }
+        }
+    }
+}
+
+@Test func themeClassicPreservesSemanticRolesAndNativeLiteralSpaces() throws {
+    for dark in [false, true] {
+        let classic = DocumentThemeCatalog.theme(id: "default-" + (dark ? "dark" : "light"), dark: !dark)
+        #expect(classic.document.count == 62)
+        #expect(classic.syntax.count == 5)
+        #expect(classic.chrome.isEmpty)
+        let appearance = try #require(NSAppearance(named: dark ? .darkAqua : .aqua))
+        let semantic: [String: NSColor] = ["paper": .textBackgroundColor, "text": .textColor,
+            "heading": .textColor, "inline_code": .textColor, "link": .linkColor,
+            "secondary_text": .secondaryLabelColor, "rule": .separatorColor]
+        for (key, native) in semantic {
+            var expected: NSColor?
+            appearance.performAsCurrentDrawingAppearance { expected = native.usingColorSpace(.sRGB) }
+            let expectedColor = try #require(expected)
+            let actual = try #require(classic.color(key))
+            #expect(abs(actual.redComponent - expectedColor.redComponent) < 1e-12)
+            #expect(abs(actual.greenComponent - expectedColor.greenComponent) < 1e-12)
+            #expect(abs(actual.blueComponent - expectedColor.blueComponent) < 1e-12)
+            #expect(actual.alphaComponent == expectedColor.alphaComponent)
+        }
+        let codeBackground = try #require(classic.document["code_block_background"])
+        #expect(codeBackground == (dark
+            ? DocumentColor(red: 0.145, green: 0.15, blue: 0.165)
+            : DocumentColor(red: 0.958, green: 0.961, blue: 0.969)))
+        // The table initializer explicitly uses Generic RGB, unlike code blocks.
+        let component: CGFloat = dark ? 0.1259303879737854 : 0.96
+        let components: [CGFloat] = [component, component, component, 1]
+        let generic = components.withUnsafeBufferPointer {
+            NSColor(colorSpace: .genericRGB, components: $0.baseAddress!, count: 4)
+        }
+        let converted = try #require(generic.usingColorSpace(.sRGB))
+        let table = try #require(classic.color("table_header_background"))
+        #expect(abs(table.redComponent - converted.redComponent) < 1e-12)
+        #expect(abs(table.greenComponent - converted.greenComponent) < 1e-12)
+        #expect(abs(table.blueComponent - converted.blueComponent) < 1e-12)
+        #expect(classic.document["diagram_series_ink"] == DocumentColor(red: 0, green: 0, blue: 0))
+    }
+}
+
+@Test func themeResolutionUsesNativeSparseOverlayAndAppearanceFallback() throws {
+    for dark in [false, true] {
+        let base = DocumentThemeCatalog.theme(id: "unknown", dark: dark)
+        #expect(base.id == (dark ? "default-dark" : "default-light"))
+        #expect(DocumentThemeCatalog.resolved(id: "unknown", dark: dark) == base)
+        for family in ["one", "solarized", "mono"] {
+            let id = family + (dark ? "-dark" : "-light")
+            let raw = DocumentThemeCatalog.theme(id: id, dark: !dark)
+            let effective = DocumentThemeCatalog.resolved(id: id, dark: !dark)
+            #expect(effective.id == id)
+            #expect(effective.dark == dark)
+            #expect(effective.document.count == 62)
+            #expect(effective.chrome == raw.chrome)
+            #expect(effective.syntax == raw.syntax)
+            for (key, color) in raw.document { #expect(effective.document[key] == color) }
+            for index in 1...8 {
+                for kind in ["fill", "edge"] {
+                    let key = "diagram_series_\(index)_\(kind)"
+                    #expect(raw.document[key] == nil)
+                    #expect(effective.document[key] == base.document[key])
+                }
+            }
+            if family != "mono" {
+                #expect(raw.document["inline_code"] == nil)
+                #expect(effective.document["inline_code"] == base.document["text"])
+                #expect(effective.document["inline_code"] != raw.document["text"])
+            }
+            #expect(effective.color("absent") == nil)
+        }
+    }
+}
+
+@Test func themeColorCodableRejectsMalformedDataAndRetainsAlpha() throws {
+    let decoder = JSONDecoder()
+    let color = try decoder.decode(DocumentColor.self, from: Data("\"#12345678\"".utf8))
+    #expect(color == DocumentColor(red: 18.0 / 255, green: 52.0 / 255, blue: 86.0 / 255, alpha: 120.0 / 255))
+    #expect(try decoder.decode(DocumentColor.self, from: JSONEncoder().encode(color)) == color)
+    for invalid in ["\"#xyzxyz\"", "\"#12345\"", "{\"red\":2,\"green\":0,\"blue\":0}"] {
+        #expect(throws: DecodingError.self) { try decoder.decode(DocumentColor.self, from: Data(invalid.utf8)) }
+    }
+}

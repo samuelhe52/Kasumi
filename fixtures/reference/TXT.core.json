@@ -1,0 +1,3009 @@
+{
+  "items": [
+    {
+      "name": "wrapped_mixed_automatic",
+      "source": "Chapter IV\n**literal**\nwrapped line\n\n  indented start\ncontinued line\n\n第二章 测试\n第一行\n第二行\n",
+      "mode": "automatic",
+      "chapters": true,
+      "source_sha256": "2ddf61e30f1343f4f5ec5c4eed487e6adc689c0dcbee9325ef7c2b9ca0334402",
+      "result": {
+        "blocks": 5,
+        "items": [
+          {
+            "kind": 1,
+            "level": 1,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "Chapter IV",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "**literal** wrapped line",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "indented start continued line",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 1,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第二章 测试",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第一行第二行",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "wrapped_mixed_line",
+      "source": "Chapter IV\n**literal**\nwrapped line\n\n  indented start\ncontinued line\n\n第二章 测试\n第一行\n第二行\n",
+      "mode": "line",
+      "chapters": true,
+      "source_sha256": "2ddf61e30f1343f4f5ec5c4eed487e6adc689c0dcbee9325ef7c2b9ca0334402",
+      "result": {
+        "blocks": 8,
+        "items": [
+          {
+            "kind": 1,
+            "level": 1,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "Chapter IV",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "**literal**",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "wrapped line",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "indented start",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "continued line",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 1,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第二章 测试",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第一行",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第二行",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "wrapped_mixed_blank",
+      "source": "Chapter IV\n**literal**\nwrapped line\n\n  indented start\ncontinued line\n\n第二章 测试\n第一行\n第二行\n",
+      "mode": "blank",
+      "chapters": true,
+      "source_sha256": "2ddf61e30f1343f4f5ec5c4eed487e6adc689c0dcbee9325ef7c2b9ca0334402",
+      "result": {
+        "blocks": 5,
+        "items": [
+          {
+            "kind": 1,
+            "level": 1,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "Chapter IV",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "**literal** wrapped line",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "indented start continued line",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 1,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第二章 测试",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第一行第二行",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "wrapped_mixed_indent",
+      "source": "Chapter IV\n**literal**\nwrapped line\n\n  indented start\ncontinued line\n\n第二章 测试\n第一行\n第二行\n",
+      "mode": "indent",
+      "chapters": true,
+      "source_sha256": "2ddf61e30f1343f4f5ec5c4eed487e6adc689c0dcbee9325ef7c2b9ca0334402",
+      "result": {
+        "blocks": 5,
+        "items": [
+          {
+            "kind": 1,
+            "level": 1,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "Chapter IV",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "**literal** wrapped line",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "indented start continued line",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 1,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第二章 测试",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第一行第二行",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "no_blank_automatic",
+      "source": "one\ntwo\nthree\n",
+      "mode": "automatic",
+      "chapters": true,
+      "source_sha256": "b6285c57e8797db5d4c51c80d6f11938afda9b11c6a003549709189e9b4b92a2",
+      "result": {
+        "blocks": 1,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "one two three",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "no_blank_line",
+      "source": "one\ntwo\nthree\n",
+      "mode": "line",
+      "chapters": true,
+      "source_sha256": "b6285c57e8797db5d4c51c80d6f11938afda9b11c6a003549709189e9b4b92a2",
+      "result": {
+        "blocks": 3,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "one",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "two",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "three",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "no_blank_blank",
+      "source": "one\ntwo\nthree\n",
+      "mode": "blank",
+      "chapters": true,
+      "source_sha256": "b6285c57e8797db5d4c51c80d6f11938afda9b11c6a003549709189e9b4b92a2",
+      "result": {
+        "blocks": 1,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "one two three",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "no_blank_indent",
+      "source": "one\ntwo\nthree\n",
+      "mode": "indent",
+      "chapters": true,
+      "source_sha256": "b6285c57e8797db5d4c51c80d6f11938afda9b11c6a003549709189e9b4b92a2",
+      "result": {
+        "blocks": 1,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "one two three",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "blank_automatic",
+      "source": "one\ntwo\n\nthree\nfour\n",
+      "mode": "automatic",
+      "chapters": true,
+      "source_sha256": "aa089fa44dce9f41b69fd77b33091d961f173f725e4900e6e08fd4afae64c5f3",
+      "result": {
+        "blocks": 2,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "one two",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "three four",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "blank_line",
+      "source": "one\ntwo\n\nthree\nfour\n",
+      "mode": "line",
+      "chapters": true,
+      "source_sha256": "aa089fa44dce9f41b69fd77b33091d961f173f725e4900e6e08fd4afae64c5f3",
+      "result": {
+        "blocks": 4,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "one",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "two",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "three",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "four",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "blank_blank",
+      "source": "one\ntwo\n\nthree\nfour\n",
+      "mode": "blank",
+      "chapters": true,
+      "source_sha256": "aa089fa44dce9f41b69fd77b33091d961f173f725e4900e6e08fd4afae64c5f3",
+      "result": {
+        "blocks": 2,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "one two",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "three four",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "blank_indent",
+      "source": "one\ntwo\n\nthree\nfour\n",
+      "mode": "indent",
+      "chapters": true,
+      "source_sha256": "aa089fa44dce9f41b69fd77b33091d961f173f725e4900e6e08fd4afae64c5f3",
+      "result": {
+        "blocks": 2,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "one two",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "three four",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "indent_automatic",
+      "source": "one\ntwo\n  three\nfour\n  five\nsix\n",
+      "mode": "automatic",
+      "chapters": true,
+      "source_sha256": "904d1db6cf8735df1f76fb54d5c2e8af6c8b1e3220a3d3a55105a43e7d755211",
+      "result": {
+        "blocks": 1,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "one two three four five six",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "indent_line",
+      "source": "one\ntwo\n  three\nfour\n  five\nsix\n",
+      "mode": "line",
+      "chapters": true,
+      "source_sha256": "904d1db6cf8735df1f76fb54d5c2e8af6c8b1e3220a3d3a55105a43e7d755211",
+      "result": {
+        "blocks": 6,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "one",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "two",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "three",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "four",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "five",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "six",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "indent_blank",
+      "source": "one\ntwo\n  three\nfour\n  five\nsix\n",
+      "mode": "blank",
+      "chapters": true,
+      "source_sha256": "904d1db6cf8735df1f76fb54d5c2e8af6c8b1e3220a3d3a55105a43e7d755211",
+      "result": {
+        "blocks": 1,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "one two three four five six",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "indent_indent",
+      "source": "one\ntwo\n  three\nfour\n  five\nsix\n",
+      "mode": "indent",
+      "chapters": true,
+      "source_sha256": "904d1db6cf8735df1f76fb54d5c2e8af6c8b1e3220a3d3a55105a43e7d755211",
+      "result": {
+        "blocks": 3,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "one two",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "three four",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "five six",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "whitespace_automatic",
+      "source": "　　a　\r\n\tb\t\r c \n preserved \n",
+      "mode": "automatic",
+      "chapters": true,
+      "source_sha256": "8d3563293744f4cf80d9b1a7c8fbd3abef8684cfe50dec3032ef796e76f86444",
+      "result": {
+        "blocks": 1,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "a b c  preserved ",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "whitespace_line",
+      "source": "　　a　\r\n\tb\t\r c \n preserved \n",
+      "mode": "line",
+      "chapters": true,
+      "source_sha256": "8d3563293744f4cf80d9b1a7c8fbd3abef8684cfe50dec3032ef796e76f86444",
+      "result": {
+        "blocks": 4,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "a",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "b",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "c",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": " preserved ",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "whitespace_blank",
+      "source": "　　a　\r\n\tb\t\r c \n preserved \n",
+      "mode": "blank",
+      "chapters": true,
+      "source_sha256": "8d3563293744f4cf80d9b1a7c8fbd3abef8684cfe50dec3032ef796e76f86444",
+      "result": {
+        "blocks": 1,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "a b c  preserved ",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "whitespace_indent",
+      "source": "　　a　\r\n\tb\t\r c \n preserved \n",
+      "mode": "indent",
+      "chapters": true,
+      "source_sha256": "8d3563293744f4cf80d9b1a7c8fbd3abef8684cfe50dec3032ef796e76f86444",
+      "result": {
+        "blocks": 2,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "a",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "b c  preserved ",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "joins_automatic",
+      "source": "中文，\n中文\n日本語\n한국어\nhello\nworld\né\n😀\n",
+      "mode": "automatic",
+      "chapters": true,
+      "source_sha256": "545a606ff9b09dbe7721808099dde2541987341c49f38188836be770de7aa3bc",
+      "result": {
+        "blocks": 1,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "中文，中文日本語한국어 hello world é 😀",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "joins_line",
+      "source": "中文，\n中文\n日本語\n한국어\nhello\nworld\né\n😀\n",
+      "mode": "line",
+      "chapters": true,
+      "source_sha256": "545a606ff9b09dbe7721808099dde2541987341c49f38188836be770de7aa3bc",
+      "result": {
+        "blocks": 8,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "中文，",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "中文",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "日本語",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "한국어",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "hello",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "world",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "é",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "😀",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "joins_blank",
+      "source": "中文，\n中文\n日本語\n한국어\nhello\nworld\né\n😀\n",
+      "mode": "blank",
+      "chapters": true,
+      "source_sha256": "545a606ff9b09dbe7721808099dde2541987341c49f38188836be770de7aa3bc",
+      "result": {
+        "blocks": 1,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "中文，中文日本語한국어 hello world é 😀",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "joins_indent",
+      "source": "中文，\n中文\n日本語\n한국어\nhello\nworld\né\n😀\n",
+      "mode": "indent",
+      "chapters": true,
+      "source_sha256": "545a606ff9b09dbe7721808099dde2541987341c49f38188836be770de7aa3bc",
+      "result": {
+        "blocks": 1,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "中文，中文日本語한국어 hello world é 😀",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "chapter_automaticTrue",
+      "source": "第1卷\n第2部\n第3篇\n第4集\n第5章\n第6回\n第7节\n第一幕\nChapter abc\nchapter 2\nPart I\nBook One\nVolume II\nPrologue\n序章\n序言\n尾聲\n後記\n番外一\n第一章标题\n第一章:标题\n第 １２ 章：标题\n第123456789章\n",
+      "mode": "automatic",
+      "chapters": true,
+      "source_sha256": "941803fcb9b4693162fbb832f2871707d412cef2c26e6e6842c8600b451a999a",
+      "result": {
+        "blocks": 22,
+        "items": [
+          {
+            "kind": 1,
+            "level": 1,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第1卷",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 1,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第2部",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第3篇",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 1,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第4集",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第5章",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第6回",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第7节",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第一幕",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "Chapter abc",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "chapter 2",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 1,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "Part I",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 1,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "Book One",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "Volume II",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "Prologue",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "序章",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "序言",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "尾聲",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "後記",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "番外一第一章标题",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第一章:标题",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第 １２ 章：标题",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第123456789章",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "chapter_automaticFalse",
+      "source": "第1卷\n第2部\n第3篇\n第4集\n第5章\n第6回\n第7节\n第一幕\nChapter abc\nchapter 2\nPart I\nBook One\nVolume II\nPrologue\n序章\n序言\n尾聲\n後記\n番外一\n第一章标题\n第一章:标题\n第 １２ 章：标题\n第123456789章\n",
+      "mode": "automatic",
+      "chapters": false,
+      "source_sha256": "941803fcb9b4693162fbb832f2871707d412cef2c26e6e6842c8600b451a999a",
+      "result": {
+        "blocks": 1,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第1卷第2部第3篇第4集第5章第6回第7节第一幕 Chapter abc chapter 2 Part I Book One Volume II Prologue 序章序言尾聲後記番外一第一章标题第一章:标题第 １２ 章：标题第123456789章",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "chapter_lineTrue",
+      "source": "第1卷\n第2部\n第3篇\n第4集\n第5章\n第6回\n第7节\n第一幕\nChapter abc\nchapter 2\nPart I\nBook One\nVolume II\nPrologue\n序章\n序言\n尾聲\n後記\n番外一\n第一章标题\n第一章:标题\n第 １２ 章：标题\n第123456789章\n",
+      "mode": "line",
+      "chapters": true,
+      "source_sha256": "941803fcb9b4693162fbb832f2871707d412cef2c26e6e6842c8600b451a999a",
+      "result": {
+        "blocks": 23,
+        "items": [
+          {
+            "kind": 1,
+            "level": 1,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第1卷",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 1,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第2部",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第3篇",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 1,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第4集",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第5章",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第6回",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第7节",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第一幕",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "Chapter abc",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "chapter 2",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 1,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "Part I",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 1,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "Book One",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "Volume II",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "Prologue",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "序章",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "序言",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "尾聲",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "後記",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "番外一",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第一章标题",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第一章:标题",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第 １２ 章：标题",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第123456789章",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "chapter_lineFalse",
+      "source": "第1卷\n第2部\n第3篇\n第4集\n第5章\n第6回\n第7节\n第一幕\nChapter abc\nchapter 2\nPart I\nBook One\nVolume II\nPrologue\n序章\n序言\n尾聲\n後記\n番外一\n第一章标题\n第一章:标题\n第 １２ 章：标题\n第123456789章\n",
+      "mode": "line",
+      "chapters": false,
+      "source_sha256": "941803fcb9b4693162fbb832f2871707d412cef2c26e6e6842c8600b451a999a",
+      "result": {
+        "blocks": 23,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第1卷",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第2部",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第3篇",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第4集",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第5章",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第6回",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第7节",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第一幕",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "Chapter abc",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "chapter 2",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "Part I",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "Book One",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "Volume II",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "Prologue",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "序章",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "序言",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "尾聲",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "後記",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "番外一",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第一章标题",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第一章:标题",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第 １２ 章：标题",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第123456789章",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "chapter_blankTrue",
+      "source": "第1卷\n第2部\n第3篇\n第4集\n第5章\n第6回\n第7节\n第一幕\nChapter abc\nchapter 2\nPart I\nBook One\nVolume II\nPrologue\n序章\n序言\n尾聲\n後記\n番外一\n第一章标题\n第一章:标题\n第 １２ 章：标题\n第123456789章\n",
+      "mode": "blank",
+      "chapters": true,
+      "source_sha256": "941803fcb9b4693162fbb832f2871707d412cef2c26e6e6842c8600b451a999a",
+      "result": {
+        "blocks": 22,
+        "items": [
+          {
+            "kind": 1,
+            "level": 1,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第1卷",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 1,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第2部",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第3篇",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 1,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第4集",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第5章",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第6回",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第7节",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第一幕",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "Chapter abc",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "chapter 2",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 1,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "Part I",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 1,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "Book One",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "Volume II",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "Prologue",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "序章",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "序言",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "尾聲",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "後記",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "番外一第一章标题",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第一章:标题",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第 １２ 章：标题",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第123456789章",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "chapter_blankFalse",
+      "source": "第1卷\n第2部\n第3篇\n第4集\n第5章\n第6回\n第7节\n第一幕\nChapter abc\nchapter 2\nPart I\nBook One\nVolume II\nPrologue\n序章\n序言\n尾聲\n後記\n番外一\n第一章标题\n第一章:标题\n第 １２ 章：标题\n第123456789章\n",
+      "mode": "blank",
+      "chapters": false,
+      "source_sha256": "941803fcb9b4693162fbb832f2871707d412cef2c26e6e6842c8600b451a999a",
+      "result": {
+        "blocks": 1,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第1卷第2部第3篇第4集第5章第6回第7节第一幕 Chapter abc chapter 2 Part I Book One Volume II Prologue 序章序言尾聲後記番外一第一章标题第一章:标题第 １２ 章：标题第123456789章",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "chapter_indentTrue",
+      "source": "第1卷\n第2部\n第3篇\n第4集\n第5章\n第6回\n第7节\n第一幕\nChapter abc\nchapter 2\nPart I\nBook One\nVolume II\nPrologue\n序章\n序言\n尾聲\n後記\n番外一\n第一章标题\n第一章:标题\n第 １２ 章：标题\n第123456789章\n",
+      "mode": "indent",
+      "chapters": true,
+      "source_sha256": "941803fcb9b4693162fbb832f2871707d412cef2c26e6e6842c8600b451a999a",
+      "result": {
+        "blocks": 22,
+        "items": [
+          {
+            "kind": 1,
+            "level": 1,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第1卷",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 1,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第2部",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第3篇",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 1,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第4集",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第5章",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第6回",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第7节",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第一幕",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "Chapter abc",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "chapter 2",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 1,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "Part I",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 1,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "Book One",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "Volume II",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "Prologue",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "序章",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "序言",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "尾聲",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "後記",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "番外一第一章标题",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第一章:标题",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 2,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第 １２ 章：标题",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第123456789章",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "chapter_indentFalse",
+      "source": "第1卷\n第2部\n第3篇\n第4集\n第5章\n第6回\n第7节\n第一幕\nChapter abc\nchapter 2\nPart I\nBook One\nVolume II\nPrologue\n序章\n序言\n尾聲\n後記\n番外一\n第一章标题\n第一章:标题\n第 １２ 章：标题\n第123456789章\n",
+      "mode": "indent",
+      "chapters": false,
+      "source_sha256": "941803fcb9b4693162fbb832f2871707d412cef2c26e6e6842c8600b451a999a",
+      "result": {
+        "blocks": 1,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第1卷第2部第3篇第4集第5章第6回第7节第一幕 Chapter abc chapter 2 Part I Book One Volume II Prologue 序章序言尾聲後記番外一第一章标题第一章:标题第 １２ 章：标题第123456789章",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "auto_sentences",
+      "source": "one.\ntwo.\nthree.\n",
+      "mode": "automatic",
+      "chapters": true,
+      "source_sha256": "341334690eefeec829981868ac759f19768ede11aea17d5e5015a111258f8326",
+      "result": {
+        "blocks": 3,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "one.",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "two.",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "three.",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "auto_cjk_sentences",
+      "source": "第一行。\n第二行。\n第三行。\n",
+      "mode": "automatic",
+      "chapters": true,
+      "source_sha256": "fd3d13efa47d00e4eeb78a42736179f6c1e8c359c7dc0808e2caa1a3dd1046fe",
+      "result": {
+        "blocks": 3,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第一行。",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第二行。",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第三行。",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "auto_indent_60",
+      "source": "  a\n  b\n  c\nd\ne\n",
+      "mode": "automatic",
+      "chapters": true,
+      "source_sha256": "115c9aa93f5e752a42263c1f20029a60b44780c6700358c3adf4c9a14be78fda",
+      "result": {
+        "blocks": 3,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "a",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "b",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "c d e",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "auto_indent_below",
+      "source": "  a\n  b\nc\nd\ne\n",
+      "mode": "automatic",
+      "chapters": true,
+      "source_sha256": "4e41bc3d67fbfbcb2292bfa50212f532d1e91b9630f3be4d3feb29de9cb74bd5",
+      "result": {
+        "blocks": 1,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "a b c d e",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "auto_terminal_70",
+      "source": "a.\nb.\nc.\nd.\ne.\nf.\ng.\nh\ni\nj\n",
+      "mode": "automatic",
+      "chapters": true,
+      "source_sha256": "fb8313dadef93a55f5a96932a8d7707a67166f247c339268122a355306d67f6a",
+      "result": {
+        "blocks": 10,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "a.",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "b.",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "c.",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "d.",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "e.",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "f.",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "g.",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "h",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "i",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "j",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "auto_terminal_below",
+      "source": "a.\nb.\nc.\nd.\ne.\nf.\ng\nh\ni\nj\n",
+      "mode": "automatic",
+      "chapters": true,
+      "source_sha256": "858bfc51b67ef655764f58526864f312ce86a736075b8f1616e2a37a1526f2b8",
+      "result": {
+        "blocks": 1,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "a. b. c. d. e. f. g h i j",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "auto_one_space",
+      "source": " a\n b\nc\n",
+      "mode": "automatic",
+      "chapters": true,
+      "source_sha256": "922ce79af5af6cace1e20b04a998df9e7df21b151c0db397259f5b6f60e44ed4",
+      "result": {
+        "blocks": 1,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "a b c",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "auto_fullwidth_indent",
+      "source": "　a\n　b\nc\n",
+      "mode": "automatic",
+      "chapters": true,
+      "source_sha256": "9de4320c3e7eaacf20ac61a9bf33bf17bcafb1585a8223bd0c8ffe0523e0f5b0",
+      "result": {
+        "blocks": 2,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "a",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "b c",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "auto_indent_precedes_punct",
+      "source": "  a.\n  b.\n  c.\nd.\ne.\n",
+      "mode": "automatic",
+      "chapters": true,
+      "source_sha256": "3b8d080ba85d0044be0ad34a162d0fbfee1cc05d3fa65d2e1965463a9137430a",
+      "result": {
+        "blocks": 3,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "a.",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "b.",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "c. d. e.",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "unicode_separators_literal",
+      "source": "ab c d\n",
+      "mode": "automatic",
+      "chapters": true,
+      "source_sha256": "f3291b7f49e445e68d654227af7e77a1f4981b27ef37125b8e36ac3b83a2618a",
+      "result": {
+        "blocks": 1,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "ab c d",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "empty",
+      "source": "",
+      "mode": "automatic",
+      "chapters": true,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "result": {
+        "blocks": 0,
+        "items": []
+      }
+    },
+    {
+      "name": "only_chapters",
+      "source": "Chapter One\nChapter Two\n",
+      "mode": "automatic",
+      "chapters": true,
+      "source_sha256": "f94dead23597d928a646735c6f16958c3040c4a1a0f84dd62577f24a2213e3b8",
+      "result": {
+        "blocks": 2,
+        "items": [
+          {
+            "kind": 1,
+            "level": 1,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "Chapter One",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 1,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "Chapter Two",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "chinese_chapter_long",
+      "source": "第一章 长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长\n",
+      "mode": "automatic",
+      "chapters": true,
+      "source_sha256": "648128ef1b8fdb0f7015239f346265a74d48e40aedfdc3721dbea59911a5484c",
+      "result": {
+        "blocks": 1,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "第一章 长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "chapter_ascii_boundary",
+      "source": "Chapter: abc\nChapter. abc\nChapter-abc\nChapter_abc\nchapter2\nChapter\n",
+      "mode": "automatic",
+      "chapters": true,
+      "source_sha256": "52001d80b58c70c88c5c2822afba6b17517d93b0382b2c52c580ef82691c2bf5",
+      "result": {
+        "blocks": 2,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "Chapter: abc Chapter. abc Chapter-abc Chapter_abc chapter2",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 1,
+            "level": 1,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "Chapter",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "terminal_closers",
+      "source": "one)\ntwo]\nthree”\nfour！\nfive…\n",
+      "mode": "automatic",
+      "chapters": true,
+      "source_sha256": "78cdc427595fff5b1d658de3465d08da4a4f8e369e03c8fb6eec8d89ee1e6a15",
+      "result": {
+        "blocks": 5,
+        "items": [
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "one)",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "two]",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "three”",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "four！",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          },
+          {
+            "kind": 0,
+            "level": 0,
+            "meta": 0,
+            "flags": 0,
+            "runs": 1,
+            "text": "five…",
+            "footnote_label": "",
+            "display_label": "",
+            "marks": []
+          }
+        ]
+      }
+    }
+  ]
+}

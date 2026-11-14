@@ -1,0 +1,46 @@
+TeX Gyre Pagella — bundled text font notice and packaging manifest
+
+Version: 2.501 (8 May 2018)
+Family: TeX Gyre Pagella
+Authors: Boguslaw Jackowski, Janusz M. Nowacki, Piotr Pianowski,
+and Piotr Strzelczyk.
+
+Original font copyright notice, retained without alteration in every face:
+Copyright 2006-2018 for TeX Gyre extensions by B. Jackowski, J.M. Nowacki,
+et al. (on behalf of TeX USERS GROUPS). Vietnamese characters were added
+by Han The Thanh.
+
+License: GUST Font License, an instance of LPPL 1.3c or later.
+The complete upstream license is TeXGyrePagella-GUST-FONT-LICENSE.txt;
+the later GUST-FONT-LICENSE.txt and full LPPL-1.3c.txt are also bundled.
+The upstream README-TeX-Gyre-Pagella.txt and
+MANIFEST-TeX-Gyre-Pagella.txt are reproduced without alteration.
+
+Packaging change: this application selects the four OpenType text faces from
+the larger TeX Gyre work. No font file, glyph, metric, table, copyright notice,
+internal font name or original font filename has been modified. This is a
+partial distribution of the work, not the complete upstream distribution.
+This notice is the change record for the packaging selection. Original
+maintainers and authors do not provide support for this application.
+
+Information sufficient to obtain the complete unmodified upstream work:
+https://ctan.org/pkg/tex-gyre-pagella
+https://ctan.org/tex-archive/fonts/tex-gyre
+https://mirrors.ctan.org/fonts/tex-gyre.zip
+https://www.gust.org.pl/projects/e-foundry/tex-gyre/pagella
+Use TeX Gyre 2.501; the upstream manifest identifies the complete work.
+Upstream maintainer contact: B_Jackowski@gust.org.pl.
+
+Included files (original name; PostScript name; SHA-256):
+texgyrepagella-regular.otf; TeXGyrePagella-Regular
+44e64260716d8f2bbe412baa1ee99b7c995190ac4573177c24def0b9200438c7
+texgyrepagella-italic.otf; TeXGyrePagella-Italic
+069bb27f48eb98a741715227fc6e4b7baf3639c29fc13925f70d1ed8884ac29a
+texgyrepagella-bold.otf; TeXGyrePagella-Bold
+dd4f9b69f0b24f1fb9be8634abf1fce2009e5c68a30842a3e9f5d6e535900abd
+texgyrepagella-bolditalic.otf; TeXGyrePagella-BoldItalic
+556fd64655a92bd9f5485ae2c03f7b9cdaf745a27a91d7edb3c3abde997206d2
+
+Provenance: the font files are unmodified and match the upstream 2.501
+OpenType files in https://mirrors.ctan.org/fonts/tex-gyre/opentype/ byte for
+byte (verified 2026-11-14).

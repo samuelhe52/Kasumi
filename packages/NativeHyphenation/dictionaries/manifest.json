@@ -1,0 +1,196 @@
+{
+  "source": "https://static.crates.io/crates/hyphenation/hyphenation-0.8.4.crate",
+  "source_sha256": "bcf4dd4c44ae85155502a52c48739c8a48185d1449fff1963cffee63c28a50f0",
+  "dictionaries": [
+    {
+      "name": "cs.standard.bincode",
+      "size": 19867,
+      "sha256": "c4dd5929221d5dca6ae7c11eab0147adaf042cfb2a29ce879e625d26b77e3405",
+      "data_license": "GPL-2.0-or-later",
+      "pattern_sources": [
+        "../Notices/SourcePatterns/sources/hyph-cs.pat.txt",
+        "../Notices/SourcePatterns/sources/hyph-cs.hyp.txt"
+      ],
+      "master_sources": [
+        "../Notices/SourcePatterns/masters/hyph-cs.tex"
+      ]
+    },
+    {
+      "name": "da.standard.bincode",
+      "size": 6573,
+      "sha256": "75bebe81e1dcad630784abb0efc56845c1430d0159947743f1d8ee0e052b07df",
+      "data_license": "MIT",
+      "pattern_sources": [
+        "../Notices/SourcePatterns/sources/hyph-da.pat.txt"
+      ],
+      "master_sources": [
+        "../Notices/SourcePatterns/masters/hyph-da.tex"
+      ]
+    },
+    {
+      "name": "de-1996.standard.bincode",
+      "size": 204040,
+      "sha256": "4481338a3b9d45060e7c218e2bf7fb90045183fce282dcd7dd68994cff1f52ad",
+      "data_license": "MIT",
+      "pattern_sources": [
+        "../Notices/SourcePatterns/sources/hyph-de-1996.pat.txt"
+      ],
+      "master_sources": [
+        "../Notices/SourcePatterns/masters/hyph-de-1996.tex"
+      ]
+    },
+    {
+      "name": "en-gb.standard.bincode",
+      "size": 48093,
+      "sha256": "342d12bb3d4c7b0476063a5e18a85b1a8c1a46cef893b3c1c3ce5ffa86cbddc6",
+      "data_license": "MIT",
+      "pattern_sources": [
+        "../Notices/SourcePatterns/sources/hyph-en-gb.pat.txt",
+        "../Notices/SourcePatterns/sources/hyph-en-gb.hyp.txt"
+      ],
+      "master_sources": [
+        "../Notices/SourcePatterns/masters/hyph-en-gb.tex"
+      ]
+    },
+    {
+      "name": "en-us.standard.bincode",
+      "size": 90932,
+      "sha256": "844d27c6bb153473f836ac173a147211265597be216aaeed6c110b0608ea262a",
+      "data_license": "Kuiken permissive patterns; TUG permissive hyphenex exceptions",
+      "pattern_sources": [
+        "../Notices/SourcePatterns/sources/hyph-en-us.pat.txt",
+        "../Notices/SourcePatterns/sources/hyph-en-us.hyp.txt"
+      ],
+      "master_sources": [
+        "../Notices/SourcePatterns/masters/hyph-en-us.tex",
+        "../Notices/SourcePatterns/hyphenex-2016/ushyphex.tex"
+      ]
+    },
+    {
+      "name": "es.standard.bincode",
+      "size": 13901,
+      "sha256": "f1c41ce4810ca56b6c743b7d6c9876b02bd469706c69ea13ae98ad4cc836f5c2",
+      "data_license": "MIT",
+      "pattern_sources": [
+        "../Notices/SourcePatterns/sources/hyph-es.pat.txt"
+      ],
+      "master_sources": [
+        "../Notices/SourcePatterns/masters/hyph-es.tex"
+      ]
+    },
+    {
+      "name": "fi.standard.bincode",
+      "size": 1584,
+      "sha256": "a87b9c8f442a89a5e0a1ee6c98cae9946507c54dd6194ec8ef92413a77598a64",
+      "data_license": "Freely distributable notice",
+      "pattern_sources": [
+        "../Notices/SourcePatterns/sources/hyph-fi.pat.txt"
+      ],
+      "master_sources": [
+        "../Notices/SourcePatterns/masters/hyph-fi.tex"
+      ]
+    },
+    {
+      "name": "fr.standard.bincode",
+      "size": 7430,
+      "sha256": "a00483daf159438dd31311457ade0b33bd994998738c7f44badd50a6dd2dc9cc",
+      "data_license": "MIT",
+      "pattern_sources": [
+        "../Notices/SourcePatterns/sources/hyph-fr.pat.txt"
+      ],
+      "master_sources": [
+        "../Notices/SourcePatterns/masters/hyph-fr.tex"
+      ]
+    },
+    {
+      "name": "it.standard.bincode",
+      "size": 2093,
+      "sha256": "250e0d5e4eab98f86e6728016734192cc4df932be885b78ee61bb31604784d30",
+      "data_license": "MIT",
+      "pattern_sources": [
+        "../Notices/SourcePatterns/sources/hyph-it.pat.txt"
+      ],
+      "master_sources": [
+        "../Notices/SourcePatterns/masters/hyph-it.tex"
+      ]
+    },
+    {
+      "name": "nb.standard.bincode",
+      "size": 172892,
+      "sha256": "bea1d152d53dcf239b2dee2e00e64023f81a093d5272f381fb2b6e1d39ae7b08",
+      "data_license": "Norwegian permissive notice",
+      "pattern_sources": [
+        "../Notices/SourcePatterns/sources/hyph-nb.pat.txt",
+        "../Notices/SourcePatterns/sources/hyph-nb.hyp.txt"
+      ],
+      "master_sources": [
+        "../Notices/SourcePatterns/masters/hyph-nb.tex",
+        "../Notices/SourcePatterns/masters/hyph-no.tex"
+      ]
+    },
+    {
+      "name": "nl.standard.bincode",
+      "size": 67660,
+      "sha256": "7d3082d46ab733fa1f64fc436390540eb7d9b0c4d77beb631d761307511976a6",
+      "data_license": "LPPL-1.0-or-later (LPPL-1.3c selected)",
+      "pattern_sources": [
+        "../Notices/SourcePatterns/sources/hyph-nl.pat.txt",
+        "../Notices/SourcePatterns/sources/hyph-nl.hyp.txt"
+      ],
+      "master_sources": [
+        "../Notices/SourcePatterns/masters/hyph-nl.tex"
+      ]
+    },
+    {
+      "name": "pl.standard.bincode",
+      "size": 18640,
+      "sha256": "bcde9d6c2feff9963929c089211e775068a1c1f7823cc2250a2f541aa41a0629",
+      "data_license": "MIT",
+      "pattern_sources": [
+        "../Notices/SourcePatterns/sources/hyph-pl.pat.txt",
+        "../Notices/SourcePatterns/sources/hyph-pl.hyp.txt"
+      ],
+      "master_sources": [
+        "../Notices/SourcePatterns/masters/hyph-pl.tex"
+      ]
+    },
+    {
+      "name": "pt.standard.bincode",
+      "size": 529,
+      "sha256": "e787cdd16f65954eda8cf6e0f1fe41a6074733b3c75bf7939fc9eea0d4792bae",
+      "data_license": "BSD-3-Clause",
+      "pattern_sources": [
+        "../Notices/SourcePatterns/sources/hyph-pt.pat.txt",
+        "../Notices/SourcePatterns/sources/hyph-pt.hyp.txt"
+      ],
+      "master_sources": [
+        "../Notices/SourcePatterns/masters/hyph-pt.tex"
+      ]
+    },
+    {
+      "name": "ru.standard.bincode",
+      "size": 42531,
+      "sha256": "5c826d8ec076c49d182d7b5d3dbc912717e77e6bc3905e1c1c4c84af6d4ac065",
+      "data_license": "LPPL-1.2-or-later (LPPL-1.3c selected)",
+      "pattern_sources": [
+        "../Notices/SourcePatterns/sources/hyph-ru.pat.txt",
+        "../Notices/SourcePatterns/sources/hyph-ru.hyp.txt"
+      ],
+      "master_sources": [
+        "../Notices/SourcePatterns/masters/hyph-ru.tex"
+      ]
+    },
+    {
+      "name": "sv.standard.bincode",
+      "size": 26861,
+      "sha256": "ada02a74e010186960a384cffa8c50069bb579e997ba7bc2a0760e31b6c7df54",
+      "data_license": "LPPL-1.2-or-later (LPPL-1.3c selected)",
+      "pattern_sources": [
+        "../Notices/SourcePatterns/sources/hyph-sv.pat.txt"
+      ],
+      "master_sources": [
+        "../Notices/SourcePatterns/masters/hyph-sv.tex"
+      ]
+    }
+  ]
+}

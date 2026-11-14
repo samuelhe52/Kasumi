@@ -1,0 +1,30 @@
+Native hyphenation application dependency
+
+This application links unmodified registry code hyphenation 0.8.4 and
+hyphenation_commons 0.8.4 by Andrew <andrew@banausia.com>, MIT OR Apache-2.0.
+Published source: https://github.com/tapeinosyne/hyphenation
+Exact registry versions and checksums: Cargo.lock and dependencies.json.
+Complete code dependency license notices: CODE-LICENSES.txt.
+
+Our C ABI embeds only 15 selected Standard dictionaries from the official
+hyphenation 0.8.4 registry package. dictionaries/manifest.json records all byte
+hashes and the source archive checksum.
+
+Pattern data has separate terms; it is not all MIT. The relevant original
+copyright notices, license texts, pattern/exception sources, master TeX sources,
+and source provenance are preserved in SourcePatterns/.
+
+en-us: Kuiken permissive patterns plus TUG permissive hyphenex exceptions.
+en-gb, de-1996, fr, es, it, da, pl: MIT (offered MIT alternative selected).
+pt: BSD 3-Clause.
+nl: LPPL 1 or later; sv and ru: LPPL 1.2 or later (LPPL 1.3c selected).
+fi: freely distributable notice; nb/no: permissive notice.
+cs: GPL version 2 or later.
+
+The C bridge is authored application code. It preserves Standard's case folding,
+byte-offset realignment, exceptions and soft-hyphen precedence. Before caching,
+it applies these minima: left 2 for all dictionaries;
+right 3 for en-us/en-gb/pt/cs and right 2 for the others. This changes upstream's
+French right minimum from 3 to 2 without modifying the algorithm or data files.
+Explicit language tags select dictionaries; no language detection or guessed
+reference enum dispatch is implemented by this bridge.

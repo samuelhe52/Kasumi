@@ -1,0 +1,36 @@
+TeX Gyre Pagella Math — bundled font notice and packaging manifest
+
+File: texgyrepagella-math.otf
+Family: TeX Gyre Pagella Math; Regular.
+PostScript name: TeXGyrePagellaMath-Regular
+Version: 1.632 (5 September 2014; documentation update 19 May 2016).
+Copyright 2012--2014 for TeX Gyre math extensions by B. Jackowski,
+P. Strzelczyk and P. Pianowski (on behalf of TeX Users Groups).
+License: GUST Font License, an instance of LPPL 1.3c or later.
+SHA-256: 1f9e010f60e947d0e925910009b2ea85ad54edc7cefb106f8cdefb9ffd1d5f2f
+
+Packaging change: this application selects the Pagella Math face from the
+larger TeX Gyre Math work. No font bytes, glyphs, names, metadata, metrics,
+tables, copyright notices or original font filename have been modified.
+This is a partial distribution. This notice records the packaging selection.
+Original authors/maintainers do not provide support for this application.
+
+The complete unmodified upstream README-TeX-Gyre-Pagella-Math.txt,
+MANIFEST-TeX-Gyre-Pagella-Math.txt and
+TeXGyrePagellaMath-GUST-FONT-LICENSE.txt are bundled, together with the full
+LPPL-1.3c.txt and the upstream DejaVu-component license
+TeXGyreMath-DejaVu-LICENSE.txt. The upstream README identifies the original
+sources of the subsidiary mathematical alphabets.
+
+Information sufficient to obtain the complete unmodified upstream work:
+https://ctan.org/pkg/tex-gyre-math-pagella
+https://ctan.org/tex-archive/fonts/tex-gyre-math
+https://mirrors.ctan.org/fonts/tex-gyre-math.zip
+The archive contains the complete manifest and documentation. Font version
+1.632 is at opentype/texgyrepagella-math.otf within that distribution.
+Archive SHA-256, independently downloaded on 2026-11-14:
+373e47fa823bf1a645edbf772531fb9ff411d26a215dab253054635680bb6107.
+Upstream maintainers: Boguslaw Jackowski, Piotr Pianowski, Piotr Strzelczyk.
+
+Provenance: the font file is unmodified and matches the upstream 1.632
+OpenType file byte for byte.

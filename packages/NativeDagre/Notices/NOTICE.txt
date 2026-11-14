@@ -1,0 +1,28 @@
+Native Dagre application dependency
+
+This application links dagre 0.1.1 by kookyleo, licensed under Apache-2.0.
+Published package: https://crates.io/crates/dagre/0.1.1
+Original repository: https://github.com/kookyleo/dagre-rs
+Current repository: https://github.com/Actrium/supramark
+Published source revision: ad891113d80f5d0305962a0e45e88715e15873f4
+Package SHA-256: 9468ae6a4b98e7102e0e59ba8f9aacd2266cec71817c19b62b2d61ee260524c1
+
+Dagre is a Rust port of dagre.js, Copyright (c) 2012-2014 Chris Pettitt,
+licensed under MIT. The Rust package records its upstream reference as
+dagre.js 3.0.1-pre, revision 4713b59bfa05af56cf58aa01e2027adf5d2dcf88.
+
+The registry dependency is unmodified. Our C ABI and Swift wrapper are authored
+application code.
+
+Dagre 0.1.1 unconditionally compiles its graph/json module even with default
+features disabled. The explicit serde feature is needed for compilation;
+serde_json and the remaining default features are disabled.
+
+Cargo.lock records exact package versions and checksums. Other dependencies:
+log 0.4.35; serde, serde_core, serde_derive 1.0.229; proc-macro2 1.0.107;
+quote 1.0.47; syn 3.0.10; unicode-ident 1.0.27.
+All are MIT OR Apache-2.0; unicode-ident also includes Unicode data under the
+Unicode license. Build-time procedural macro dependencies are included here
+for completeness. Their full notices and license texts, together with Dagre's
+Apache license and the original dagre.js MIT license, appear in
+THIRD-PARTY-LICENSES.txt.

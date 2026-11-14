@@ -1,0 +1,1104 @@
+{
+  "interpretation": "Han font boundaries and the punctuation scalar set, checked over every Unicode scalar.",
+  "scalar_validation": {
+    "count": 1112064,
+    "han_bitmap_sha256": "c0766a9603506c6b15c9b6135c3eda8ac0fc07c8b63ab602b91fce64d8545090"
+  },
+  "han_ranges": [
+    [
+      11904,
+      12255
+    ],
+    [
+      12272,
+      19903
+    ],
+    [
+      19968,
+      40959
+    ],
+    [
+      44032,
+      55215
+    ],
+    [
+      63744,
+      64255
+    ],
+    [
+      65040,
+      65055
+    ],
+    [
+      65072,
+      65135
+    ],
+    [
+      65280,
+      65519
+    ],
+    [
+      131072,
+      262143
+    ]
+  ],
+  "font_boundaries": [
+    {
+      "scalar": 0,
+      "han": false
+    },
+    {
+      "scalar": 32,
+      "han": false
+    },
+    {
+      "scalar": 65,
+      "han": false
+    },
+    {
+      "scalar": 8212,
+      "han": false
+    },
+    {
+      "scalar": 8216,
+      "han": false
+    },
+    {
+      "scalar": 8230,
+      "han": false
+    },
+    {
+      "scalar": 11834,
+      "han": false
+    },
+    {
+      "scalar": 11903,
+      "han": false
+    },
+    {
+      "scalar": 11904,
+      "han": true
+    },
+    {
+      "scalar": 12255,
+      "han": true
+    },
+    {
+      "scalar": 12256,
+      "han": false
+    },
+    {
+      "scalar": 12271,
+      "han": false
+    },
+    {
+      "scalar": 12272,
+      "han": true
+    },
+    {
+      "scalar": 19903,
+      "han": true
+    },
+    {
+      "scalar": 19904,
+      "han": false
+    },
+    {
+      "scalar": 19967,
+      "han": false
+    },
+    {
+      "scalar": 19968,
+      "han": true
+    },
+    {
+      "scalar": 40959,
+      "han": true
+    },
+    {
+      "scalar": 40960,
+      "han": false
+    },
+    {
+      "scalar": 44031,
+      "han": false
+    },
+    {
+      "scalar": 44032,
+      "han": true
+    },
+    {
+      "scalar": 55215,
+      "han": true
+    },
+    {
+      "scalar": 55216,
+      "han": false
+    },
+    {
+      "scalar": 63743,
+      "han": false
+    },
+    {
+      "scalar": 63744,
+      "han": true
+    },
+    {
+      "scalar": 64255,
+      "han": true
+    },
+    {
+      "scalar": 64256,
+      "han": false
+    },
+    {
+      "scalar": 65039,
+      "han": false
+    },
+    {
+      "scalar": 65040,
+      "han": true
+    },
+    {
+      "scalar": 65055,
+      "han": true
+    },
+    {
+      "scalar": 65056,
+      "han": false
+    },
+    {
+      "scalar": 65071,
+      "han": false
+    },
+    {
+      "scalar": 65072,
+      "han": true
+    },
+    {
+      "scalar": 65135,
+      "han": true
+    },
+    {
+      "scalar": 65136,
+      "han": false
+    },
+    {
+      "scalar": 65279,
+      "han": false
+    },
+    {
+      "scalar": 65280,
+      "han": true
+    },
+    {
+      "scalar": 65519,
+      "han": true
+    },
+    {
+      "scalar": 65520,
+      "han": false
+    },
+    {
+      "scalar": 128512,
+      "han": false
+    },
+    {
+      "scalar": 131071,
+      "han": false
+    },
+    {
+      "scalar": 131072,
+      "han": true
+    },
+    {
+      "scalar": 262143,
+      "han": true
+    },
+    {
+      "scalar": 262144,
+      "han": false
+    },
+    {
+      "scalar": 1114111,
+      "han": false
+    }
+  ],
+  "punctuation_candidates": [
+    {
+      "scalar": 12288,
+      "text": "　",
+      "side": 0
+    },
+    {
+      "scalar": 12289,
+      "text": "、",
+      "side": 2
+    },
+    {
+      "scalar": 12290,
+      "text": "。",
+      "side": 2
+    },
+    {
+      "scalar": 12291,
+      "text": "〃",
+      "side": 0
+    },
+    {
+      "scalar": 12292,
+      "text": "〄",
+      "side": 0
+    },
+    {
+      "scalar": 12293,
+      "text": "々",
+      "side": 0
+    },
+    {
+      "scalar": 12294,
+      "text": "〆",
+      "side": 0
+    },
+    {
+      "scalar": 12295,
+      "text": "〇",
+      "side": 0
+    },
+    {
+      "scalar": 12296,
+      "text": "〈",
+      "side": 1
+    },
+    {
+      "scalar": 12297,
+      "text": "〉",
+      "side": 2
+    },
+    {
+      "scalar": 12298,
+      "text": "《",
+      "side": 1
+    },
+    {
+      "scalar": 12299,
+      "text": "》",
+      "side": 2
+    },
+    {
+      "scalar": 12300,
+      "text": "「",
+      "side": 1
+    },
+    {
+      "scalar": 12301,
+      "text": "」",
+      "side": 2
+    },
+    {
+      "scalar": 12302,
+      "text": "『",
+      "side": 1
+    },
+    {
+      "scalar": 12303,
+      "text": "』",
+      "side": 2
+    },
+    {
+      "scalar": 12304,
+      "text": "【",
+      "side": 1
+    },
+    {
+      "scalar": 12305,
+      "text": "】",
+      "side": 2
+    },
+    {
+      "scalar": 12306,
+      "text": "〒",
+      "side": 0
+    },
+    {
+      "scalar": 12307,
+      "text": "〓",
+      "side": 0
+    },
+    {
+      "scalar": 12308,
+      "text": "〔",
+      "side": 1
+    },
+    {
+      "scalar": 12309,
+      "text": "〕",
+      "side": 2
+    },
+    {
+      "scalar": 12310,
+      "text": "〖",
+      "side": 1
+    },
+    {
+      "scalar": 12311,
+      "text": "〗",
+      "side": 2
+    },
+    {
+      "scalar": 12312,
+      "text": "〘",
+      "side": 1
+    },
+    {
+      "scalar": 12313,
+      "text": "〙",
+      "side": 2
+    },
+    {
+      "scalar": 12314,
+      "text": "〚",
+      "side": 1
+    },
+    {
+      "scalar": 12315,
+      "text": "〛",
+      "side": 2
+    },
+    {
+      "scalar": 12316,
+      "text": "〜",
+      "side": 0
+    },
+    {
+      "scalar": 12317,
+      "text": "〝",
+      "side": 1
+    },
+    {
+      "scalar": 12318,
+      "text": "〞",
+      "side": 2
+    },
+    {
+      "scalar": 12319,
+      "text": "〟",
+      "side": 2
+    },
+    {
+      "scalar": 12320,
+      "text": "〠",
+      "side": 0
+    },
+    {
+      "scalar": 12321,
+      "text": "〡",
+      "side": 0
+    },
+    {
+      "scalar": 12322,
+      "text": "〢",
+      "side": 0
+    },
+    {
+      "scalar": 12323,
+      "text": "〣",
+      "side": 0
+    },
+    {
+      "scalar": 12324,
+      "text": "〤",
+      "side": 0
+    },
+    {
+      "scalar": 12325,
+      "text": "〥",
+      "side": 0
+    },
+    {
+      "scalar": 12326,
+      "text": "〦",
+      "side": 0
+    },
+    {
+      "scalar": 12327,
+      "text": "〧",
+      "side": 0
+    },
+    {
+      "scalar": 12328,
+      "text": "〨",
+      "side": 0
+    },
+    {
+      "scalar": 12329,
+      "text": "〩",
+      "side": 0
+    },
+    {
+      "scalar": 12330,
+      "text": "〪",
+      "side": 0
+    },
+    {
+      "scalar": 12331,
+      "text": "〫",
+      "side": 0
+    },
+    {
+      "scalar": 12332,
+      "text": "〬",
+      "side": 0
+    },
+    {
+      "scalar": 12333,
+      "text": "〭",
+      "side": 0
+    },
+    {
+      "scalar": 12334,
+      "text": "〮",
+      "side": 0
+    },
+    {
+      "scalar": 12335,
+      "text": "〯",
+      "side": 0
+    },
+    {
+      "scalar": 12336,
+      "text": "〰",
+      "side": 0
+    },
+    {
+      "scalar": 12337,
+      "text": "〱",
+      "side": 0
+    },
+    {
+      "scalar": 12338,
+      "text": "〲",
+      "side": 0
+    },
+    {
+      "scalar": 12339,
+      "text": "〳",
+      "side": 0
+    },
+    {
+      "scalar": 12340,
+      "text": "〴",
+      "side": 0
+    },
+    {
+      "scalar": 12341,
+      "text": "〵",
+      "side": 0
+    },
+    {
+      "scalar": 12342,
+      "text": "〶",
+      "side": 0
+    },
+    {
+      "scalar": 12343,
+      "text": "〷",
+      "side": 0
+    },
+    {
+      "scalar": 12344,
+      "text": "〸",
+      "side": 0
+    },
+    {
+      "scalar": 12345,
+      "text": "〹",
+      "side": 0
+    },
+    {
+      "scalar": 12346,
+      "text": "〺",
+      "side": 0
+    },
+    {
+      "scalar": 12347,
+      "text": "〻",
+      "side": 0
+    },
+    {
+      "scalar": 12348,
+      "text": "〼",
+      "side": 0
+    },
+    {
+      "scalar": 12349,
+      "text": "〽",
+      "side": 0
+    },
+    {
+      "scalar": 12350,
+      "text": "〾",
+      "side": 0
+    },
+    {
+      "scalar": 12351,
+      "text": "〿",
+      "side": 0
+    },
+    {
+      "scalar": 65281,
+      "text": "！",
+      "side": 2
+    },
+    {
+      "scalar": 65282,
+      "text": "＂",
+      "side": 0
+    },
+    {
+      "scalar": 65283,
+      "text": "＃",
+      "side": 0
+    },
+    {
+      "scalar": 65284,
+      "text": "＄",
+      "side": 0
+    },
+    {
+      "scalar": 65285,
+      "text": "％",
+      "side": 0
+    },
+    {
+      "scalar": 65286,
+      "text": "＆",
+      "side": 0
+    },
+    {
+      "scalar": 65287,
+      "text": "＇",
+      "side": 0
+    },
+    {
+      "scalar": 65288,
+      "text": "（",
+      "side": 1
+    },
+    {
+      "scalar": 65289,
+      "text": "）",
+      "side": 2
+    },
+    {
+      "scalar": 65290,
+      "text": "＊",
+      "side": 0
+    },
+    {
+      "scalar": 65291,
+      "text": "＋",
+      "side": 0
+    },
+    {
+      "scalar": 65292,
+      "text": "，",
+      "side": 2
+    },
+    {
+      "scalar": 65293,
+      "text": "－",
+      "side": 0
+    },
+    {
+      "scalar": 65294,
+      "text": "．",
+      "side": 2
+    },
+    {
+      "scalar": 65295,
+      "text": "／",
+      "side": 0
+    },
+    {
+      "scalar": 65296,
+      "text": "０",
+      "side": 0
+    },
+    {
+      "scalar": 65297,
+      "text": "１",
+      "side": 0
+    },
+    {
+      "scalar": 65298,
+      "text": "２",
+      "side": 0
+    },
+    {
+      "scalar": 65299,
+      "text": "３",
+      "side": 0
+    },
+    {
+      "scalar": 65300,
+      "text": "４",
+      "side": 0
+    },
+    {
+      "scalar": 65301,
+      "text": "５",
+      "side": 0
+    },
+    {
+      "scalar": 65302,
+      "text": "６",
+      "side": 0
+    },
+    {
+      "scalar": 65303,
+      "text": "７",
+      "side": 0
+    },
+    {
+      "scalar": 65304,
+      "text": "８",
+      "side": 0
+    },
+    {
+      "scalar": 65305,
+      "text": "９",
+      "side": 0
+    },
+    {
+      "scalar": 65306,
+      "text": "：",
+      "side": 2
+    },
+    {
+      "scalar": 65307,
+      "text": "；",
+      "side": 2
+    },
+    {
+      "scalar": 65308,
+      "text": "＜",
+      "side": 0
+    },
+    {
+      "scalar": 65309,
+      "text": "＝",
+      "side": 0
+    },
+    {
+      "scalar": 65310,
+      "text": "＞",
+      "side": 0
+    },
+    {
+      "scalar": 65311,
+      "text": "？",
+      "side": 2
+    },
+    {
+      "scalar": 65312,
+      "text": "＠",
+      "side": 0
+    },
+    {
+      "scalar": 65313,
+      "text": "Ａ",
+      "side": 0
+    },
+    {
+      "scalar": 65314,
+      "text": "Ｂ",
+      "side": 0
+    },
+    {
+      "scalar": 65315,
+      "text": "Ｃ",
+      "side": 0
+    },
+    {
+      "scalar": 65316,
+      "text": "Ｄ",
+      "side": 0
+    },
+    {
+      "scalar": 65317,
+      "text": "Ｅ",
+      "side": 0
+    },
+    {
+      "scalar": 65318,
+      "text": "Ｆ",
+      "side": 0
+    },
+    {
+      "scalar": 65319,
+      "text": "Ｇ",
+      "side": 0
+    },
+    {
+      "scalar": 65320,
+      "text": "Ｈ",
+      "side": 0
+    },
+    {
+      "scalar": 65321,
+      "text": "Ｉ",
+      "side": 0
+    },
+    {
+      "scalar": 65322,
+      "text": "Ｊ",
+      "side": 0
+    },
+    {
+      "scalar": 65323,
+      "text": "Ｋ",
+      "side": 0
+    },
+    {
+      "scalar": 65324,
+      "text": "Ｌ",
+      "side": 0
+    },
+    {
+      "scalar": 65325,
+      "text": "Ｍ",
+      "side": 0
+    },
+    {
+      "scalar": 65326,
+      "text": "Ｎ",
+      "side": 0
+    },
+    {
+      "scalar": 65327,
+      "text": "Ｏ",
+      "side": 0
+    },
+    {
+      "scalar": 65328,
+      "text": "Ｐ",
+      "side": 0
+    },
+    {
+      "scalar": 65329,
+      "text": "Ｑ",
+      "side": 0
+    },
+    {
+      "scalar": 65330,
+      "text": "Ｒ",
+      "side": 0
+    },
+    {
+      "scalar": 65331,
+      "text": "Ｓ",
+      "side": 0
+    },
+    {
+      "scalar": 65332,
+      "text": "Ｔ",
+      "side": 0
+    },
+    {
+      "scalar": 65333,
+      "text": "Ｕ",
+      "side": 0
+    },
+    {
+      "scalar": 65334,
+      "text": "Ｖ",
+      "side": 0
+    },
+    {
+      "scalar": 65335,
+      "text": "Ｗ",
+      "side": 0
+    },
+    {
+      "scalar": 65336,
+      "text": "Ｘ",
+      "side": 0
+    },
+    {
+      "scalar": 65337,
+      "text": "Ｙ",
+      "side": 0
+    },
+    {
+      "scalar": 65338,
+      "text": "Ｚ",
+      "side": 0
+    },
+    {
+      "scalar": 65339,
+      "text": "［",
+      "side": 1
+    },
+    {
+      "scalar": 65340,
+      "text": "＼",
+      "side": 0
+    },
+    {
+      "scalar": 65341,
+      "text": "］",
+      "side": 2
+    },
+    {
+      "scalar": 65342,
+      "text": "＾",
+      "side": 0
+    },
+    {
+      "scalar": 65343,
+      "text": "＿",
+      "side": 0
+    },
+    {
+      "scalar": 65344,
+      "text": "｀",
+      "side": 0
+    },
+    {
+      "scalar": 65345,
+      "text": "ａ",
+      "side": 0
+    },
+    {
+      "scalar": 65346,
+      "text": "ｂ",
+      "side": 0
+    },
+    {
+      "scalar": 65347,
+      "text": "ｃ",
+      "side": 0
+    },
+    {
+      "scalar": 65348,
+      "text": "ｄ",
+      "side": 0
+    },
+    {
+      "scalar": 65349,
+      "text": "ｅ",
+      "side": 0
+    },
+    {
+      "scalar": 65350,
+      "text": "ｆ",
+      "side": 0
+    },
+    {
+      "scalar": 65351,
+      "text": "ｇ",
+      "side": 0
+    },
+    {
+      "scalar": 65352,
+      "text": "ｈ",
+      "side": 0
+    },
+    {
+      "scalar": 65353,
+      "text": "ｉ",
+      "side": 0
+    },
+    {
+      "scalar": 65354,
+      "text": "ｊ",
+      "side": 0
+    },
+    {
+      "scalar": 65355,
+      "text": "ｋ",
+      "side": 0
+    },
+    {
+      "scalar": 65356,
+      "text": "ｌ",
+      "side": 0
+    },
+    {
+      "scalar": 65357,
+      "text": "ｍ",
+      "side": 0
+    },
+    {
+      "scalar": 65358,
+      "text": "ｎ",
+      "side": 0
+    },
+    {
+      "scalar": 65359,
+      "text": "ｏ",
+      "side": 0
+    },
+    {
+      "scalar": 65360,
+      "text": "ｐ",
+      "side": 0
+    },
+    {
+      "scalar": 65361,
+      "text": "ｑ",
+      "side": 0
+    },
+    {
+      "scalar": 65362,
+      "text": "ｒ",
+      "side": 0
+    },
+    {
+      "scalar": 65363,
+      "text": "ｓ",
+      "side": 0
+    },
+    {
+      "scalar": 65364,
+      "text": "ｔ",
+      "side": 0
+    },
+    {
+      "scalar": 65365,
+      "text": "ｕ",
+      "side": 0
+    },
+    {
+      "scalar": 65366,
+      "text": "ｖ",
+      "side": 0
+    },
+    {
+      "scalar": 65367,
+      "text": "ｗ",
+      "side": 0
+    },
+    {
+      "scalar": 65368,
+      "text": "ｘ",
+      "side": 0
+    },
+    {
+      "scalar": 65369,
+      "text": "ｙ",
+      "side": 0
+    },
+    {
+      "scalar": 65370,
+      "text": "ｚ",
+      "side": 0
+    },
+    {
+      "scalar": 65371,
+      "text": "｛",
+      "side": 1
+    },
+    {
+      "scalar": 65372,
+      "text": "｜",
+      "side": 0
+    },
+    {
+      "scalar": 65373,
+      "text": "｝",
+      "side": 2
+    },
+    {
+      "scalar": 65374,
+      "text": "～",
+      "side": 0
+    },
+    {
+      "scalar": 65375,
+      "text": "｟",
+      "side": 1
+    },
+    {
+      "scalar": 65376,
+      "text": "｠",
+      "side": 2
+    },
+    {
+      "scalar": 65504,
+      "text": "￠",
+      "side": 0
+    },
+    {
+      "scalar": 65505,
+      "text": "￡",
+      "side": 0
+    },
+    {
+      "scalar": 65506,
+      "text": "￢",
+      "side": 0
+    },
+    {
+      "scalar": 65507,
+      "text": "￣",
+      "side": 0
+    },
+    {
+      "scalar": 65508,
+      "text": "￤",
+      "side": 0
+    },
+    {
+      "scalar": 65509,
+      "text": "￥",
+      "side": 0
+    },
+    {
+      "scalar": 65510,
+      "text": "￦",
+      "side": 0
+    }
+  ],
+  "punctuation_scalars": [
+    12289,
+    12290,
+    12296,
+    12297,
+    12298,
+    12299,
+    12300,
+    12301,
+    12302,
+    12303,
+    12304,
+    12305,
+    12308,
+    12309,
+    12310,
+    12311,
+    12312,
+    12313,
+    12314,
+    12315,
+    12317,
+    12318,
+    12319,
+    65281,
+    65288,
+    65289,
+    65292,
+    65294,
+    65306,
+    65307,
+    65311,
+    65339,
+    65341,
+    65371,
+    65373,
+    65374,
+    65375,
+    65376
+  ]
+}

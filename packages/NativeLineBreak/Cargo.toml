@@ -1,0 +1,15 @@
+[package]
+name = "kasumi-linebreak"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[lib]
+crate-type = ["staticlib"]
+
+[dependencies]
+unicode-linebreak = "=0.1.5"
+
+[profile.release]
+lto = true
+codegen-units = 1

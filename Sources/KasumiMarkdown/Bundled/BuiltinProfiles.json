@@ -1,0 +1,83 @@
+[
+  {
+    "id": "serif",
+    "name": "Serif",
+    "factory": {
+      "latin_family": "New York",
+      "han_family": "Songti SC",
+      "han_baseline": 0.04,
+      "heading_han_baseline": 0.06,
+      "line_spacing": 1.7
+    }
+  },
+  {
+    "id": "serif-pagella",
+    "name": "Pagella Serif",
+    "factory": {
+      "latin_family": "TeX Gyre Pagella",
+      "han_family": "Songti SC",
+      "latin_scale": 0.97,
+      "han_baseline": 0.04,
+      "heading_han_baseline": 0.06,
+      "line_spacing": 1.7
+    }
+  },
+  {
+    "id": "sans",
+    "name": "Sans",
+    "factory": {
+      "latin_family": "SF Pro",
+      "han_family": "PingFang SC",
+      "han_baseline": 0.02,
+      "heading_han_baseline": 0.04,
+      "line_spacing": 1.7
+    }
+  },
+  {
+    "id": "serif-charter",
+    "name": "Charter Serif",
+    "factory": {
+      "latin_family": "Charter",
+      "han_family": "Songti SC",
+      "han_baseline": 0.04,
+      "heading_han_baseline": 0.02,
+      "line_spacing": 1.7
+    }
+  },
+  {
+    "id": "sans-avenir",
+    "name": "Avenir Sans",
+    "factory": {
+      "latin_family": "Avenir Next",
+      "han_family": "PingFang SC",
+      "han_baseline": 0.0,
+      "heading_han_baseline": 0.02,
+      "line_spacing": 1.7
+    }
+  },
+  {
+    "id": "serif-tc",
+    "name": "Traditional Chinese Serif",
+    "factory": {
+      "latin_family": "New York",
+      "han_family": "Songti TC",
+      "han_baseline": 0.04,
+      "heading_han_baseline": 0.06,
+      "line_spacing": 1.7
+    }
+  },
+  {
+    "id": "book",
+    "name": "Book",
+    "factory": {
+      "latin_family": "New York",
+      "han_family": "Songti SC",
+      "han_baseline": 0.04,
+      "heading_han_baseline": 0.06,
+      "line_spacing": 1.7,
+      "para_separation": "indent",
+      "cjk_italic_face": "kai",
+      "hanging_punctuation": true
+    }
+  }
+]

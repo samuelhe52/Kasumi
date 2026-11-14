@@ -1,0 +1,1799 @@
+{
+  "measurement_policy": "CoreText Helvetica 16pt; every role uses typographic width and ascent+descent height",
+  "measurement_limit": "One pass; status 5 and next_request_count expose cases needing additional measurements",
+  "geometry": "Unconstrained core coordinates; bounds are left,top,right,bottom, not width,height. The application may scale to fit.",
+  "command_kinds": {
+    "0": "path",
+    "1": "rounded rectangle",
+    "2": "ellipse",
+    "3": "text"
+  },
+  "path_encoding": "[kind,x,y,c1x,c1y,c2x,c2y]; kind 0 move,1 line,2 cubic,3 close; cubic endpoint is x,y",
+  "paint_slots": {
+    "0": "none",
+    "1": "role fill channel for fill, role stroke channel for stroke",
+    "2": "role text channel"
+  },
+  "text_ref": "Index into measurements; text rectangles use top-left coordinates",
+  "kind_names": {
+    "0": "unknown",
+    "1": "flowchart",
+    "2": "sequence",
+    "3": "state",
+    "4": "ER",
+    "5": "class",
+    "6": "pie",
+    "7": "mindmap",
+    "8": "treeView-beta"
+  },
+  "fallback_reasons": {
+    "0": "none",
+    "1": "unsupported diagram type",
+    "2": "unsupported construct",
+    "3": "syntax",
+    "4": "too large",
+    "5": "unknown",
+    "6": "empty"
+  },
+  "limits": {
+    "source_bytes": 65536,
+    "text_bytes": 2048,
+    "measurement_rows": 4096,
+    "rounds": 16
+  },
+  "items": [
+    {
+      "name": "er",
+      "source": "erDiagram\nCUSTOMER ||--o{ ORDER : places\nCUSTOMER {\nstring name\nint id\n}",
+      "source_sha256": "8f65dcead3646cff2c3232480db83a23b41396a1ca20deabb2dbe7633aad32bc",
+      "result": {
+        "kind": 4,
+        "request_status": 0,
+        "request_source_range": [0, 0],
+        "fallback": {
+          "reason": 0,
+          "subject": 0,
+          "line": 0
+        },
+        "measurements": [
+          {"role": 6, "text": "CUSTOMER", "width": 91.2734375, "height": 16},
+          {"role": 6, "text": "string", "width": 39.125, "height": 16},
+          {"role": 6, "text": "name", "width": 40.0234375, "height": 16},
+          {"role": 6, "text": "int", "width": 16.8984375, "height": 16},
+          {"role": 6, "text": "id", "width": 12.453125, "height": 16},
+          {"role": 6, "text": "ORDER", "width": 57.78125, "height": 16},
+          {"role": 11, "text": "places", "width": 46.25, "height": 16}
+        ],
+        "status": 0,
+        "bounds": [7.3499999, 7.3499999, 149.923447, 284.75],
+        "next_request_count": 0,
+        "commands": [
+          {"kind": 0, "role": 20, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 5], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [5, 4], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [9, 3], "text_ref": 0},
+          {"kind": 2, "role": 29, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [72.6367188, 172.25, 12, 12], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 2, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [72.6367188, 172.25, 12, 12], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 22, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [55.5117188, 152.25, 46.25, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 23, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [55.5117188, 152.25, 46.25, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 6},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 8, 141.273438, 34.75], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 29, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 42.75, 141.273438, 34.75], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 27, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 77.5, 141.273438, 34.75], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 28, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 42.75, 141.273438, 34.75], "radii": [0, 0], "stroke_width": 1.29999995, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 28, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 77.5, 141.273438, 34.75], "radii": [0, 0], "stroke_width": 1.29999995, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 24, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 8, 141.273438, 104.25], "radii": [0, 0], "stroke_width": 1.29999995, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [33, 17.375, 91.2734375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [20.5, 52.125, 39.125, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 1},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [90.6875, 52.125, 40.0234375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 2},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [20.5, 86.875, 16.8984375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 3},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [90.6875, 86.875, 12.453125, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 4},
+          {"kind": 0, "role": 28, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1.29999995, "dash": [0, 0], "path_range": [12, 2], "text_ref": 0},
+          {"kind": 0, "role": 28, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1.29999995, "dash": [0, 0], "path_range": [14, 2], "text_ref": 0},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [28.6367188, 208.25, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [49.7460938, 238.25, 57.78125, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 5}
+        ],
+        "paths": [
+          [0, 78.6367188, 112.25, 0, 0, 0, 0],
+          [1, 78.6367188, 120.25, 0, 0, 0, 0],
+          [2, 78.6367188, 160.25, 78.6367188, 128.25, 78.6367188, 144.25],
+          [2, 78.6367188, 200.25, 78.6367188, 176.25, 78.6367188, 192.25],
+          [1, 78.6367188, 208.25, 0, 0, 0, 0],
+          [0, 87.6367188, 121.25, 0, 0, 0, 0],
+          [1, 69.6367188, 121.25, 0, 0, 0, 0],
+          [0, 87.6367188, 127.25, 0, 0, 0, 0],
+          [1, 69.6367188, 127.25, 0, 0, 0, 0],
+          [0, 78.6367188, 190.25, 0, 0, 0, 0],
+          [2, 78.6367188, 226.25, 90.6367188, 202.25, 90.6367188, 214.25],
+          [2, 78.6367188, 190.25, 66.6367188, 214.25, 66.6367188, 202.25],
+          [0, 8, 42.75, 0, 0, 0, 0],
+          [1, 149.273438, 42.75, 0, 0, 0, 0],
+          [0, 78.1875, 42.75, 0, 0, 0, 0],
+          [1, 78.1875, 112.25, 0, 0, 0, 0]
+        ]
+      }
+    },
+    {
+      "name": "er-bare",
+      "source": "erDiagram\nA",
+      "source_sha256": "25ed938b2503e0ef70b1e70fab3270d96148a499fb0fda8493cea629dadd8db6",
+      "result": {
+        "kind": 4,
+        "request_status": 0,
+        "request_source_range": [0, 0],
+        "fallback": {
+          "reason": 0,
+          "subject": 0,
+          "line": 0
+        },
+        "measurements": [
+          {"role": 6, "text": "A", "width": 10.671875, "height": 16}
+        ],
+        "status": 0,
+        "bounds": [7.5, 7.5, 108.5, 84.5],
+        "next_request_count": 0,
+        "commands": [
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 8, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [52.6640625, 38, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0}
+        ],
+        "paths": []
+      }
+    },
+    {
+      "name": "er-attrs",
+      "source": "erDiagram\nA {\nstring name\nint age\n}",
+      "source_sha256": "ba73770df93dcd04d6277e27a8c0f2977fc42a9694193195d59b240f6fc33492",
+      "result": {
+        "kind": 4,
+        "request_status": 0,
+        "request_source_range": [0, 0],
+        "fallback": {
+          "reason": 0,
+          "subject": 0,
+          "line": 0
+        },
+        "measurements": [
+          {"role": 6, "text": "A", "width": 10.671875, "height": 16},
+          {"role": 6, "text": "string", "width": 39.125, "height": 16},
+          {"role": 6, "text": "name", "width": 40.0234375, "height": 16},
+          {"role": 6, "text": "int", "width": 16.8984375, "height": 16},
+          {"role": 6, "text": "age", "width": 26.6953125, "height": 16}
+        ],
+        "status": 0,
+        "bounds": [7.3499999, 7.3499999, 137.798447, 112.900002],
+        "next_request_count": 0,
+        "commands": [
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 8, 129.148438, 34.75], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 29, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 42.75, 129.148438, 34.75], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 27, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 77.5, 129.148438, 34.75], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 28, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 42.75, 129.148438, 34.75], "radii": [0, 0], "stroke_width": 1.29999995, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 28, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 77.5, 129.148438, 34.75], "radii": [0, 0], "stroke_width": 1.29999995, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 24, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 8, 129.148438, 104.25], "radii": [0, 0], "stroke_width": 1.29999995, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [67.2382812, 17.375, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [20.5, 52.125, 39.125, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 1},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [84.625, 52.125, 40.0234375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 2},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [20.5, 86.875, 16.8984375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 3},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [84.625, 86.875, 26.6953125, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 4},
+          {"kind": 0, "role": 28, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1.29999995, "dash": [0, 0], "path_range": [0, 2], "text_ref": 0},
+          {"kind": 0, "role": 28, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1.29999995, "dash": [0, 0], "path_range": [2, 2], "text_ref": 0}
+        ],
+        "paths": [
+          [0, 8, 42.75, 0, 0, 0, 0],
+          [1, 137.148438, 42.75, 0, 0, 0, 0],
+          [0, 72.125, 42.75, 0, 0, 0, 0],
+          [1, 72.125, 112.25, 0, 0, 0, 0]
+        ]
+      }
+    },
+    {
+      "name": "er-key",
+      "source": "erDiagram\nA {\nint id PK\nint owner FK, UK \"comment\"\n}",
+      "source_sha256": "c343810d8b89bcdd8de3cb5e6970019c5abbbb9341ad614abe9bdabacd576654",
+      "result": {
+        "kind": 4,
+        "request_status": 0,
+        "request_source_range": [0, 0],
+        "fallback": {
+          "reason": 0,
+          "subject": 0,
+          "line": 0
+        },
+        "measurements": [
+          {"role": 6, "text": "A", "width": 10.671875, "height": 16},
+          {"role": 6, "text": "int", "width": 16.8984375, "height": 16},
+          {"role": 6, "text": "id", "width": 12.453125, "height": 16},
+          {"role": 6, "text": "PK", "width": 21.34375, "height": 16},
+          {"role": 6, "text": "owner", "width": 43.578125, "height": 16},
+          {"role": 6, "text": "FK,UK", "width": 47.1171875, "height": 16},
+          {"role": 6, "text": "comment", "width": 65.796875, "height": 16}
+        ],
+        "status": 0,
+        "bounds": [7.3499999, 7.3499999, 282.040649, 112.900002],
+        "next_request_count": 0,
+        "commands": [
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 8, 273.390625, 34.75], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 29, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 42.75, 273.390625, 34.75], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 27, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 77.5, 273.390625, 34.75], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 28, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 42.75, 273.390625, 34.75], "radii": [0, 0], "stroke_width": 1.29999995, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 28, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 77.5, 273.390625, 34.75], "radii": [0, 0], "stroke_width": 1.29999995, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 24, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 8, 273.390625, 104.25], "radii": [0, 0], "stroke_width": 1.29999995, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [139.359375, 17.375, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [20.5, 52.125, 16.8984375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 1},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [62.3984375, 52.125, 12.453125, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 2},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [130.976562, 52.125, 21.34375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 3},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [20.5, 86.875, 16.8984375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 1},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [62.3984375, 86.875, 43.578125, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 4},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [130.976562, 86.875, 47.1171875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 5},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [203.09375, 86.875, 65.796875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 6},
+          {"kind": 0, "role": 28, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1.29999995, "dash": [0, 0], "path_range": [0, 2], "text_ref": 0},
+          {"kind": 0, "role": 28, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1.29999995, "dash": [0, 0], "path_range": [2, 2], "text_ref": 0},
+          {"kind": 0, "role": 28, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1.29999995, "dash": [0, 0], "path_range": [4, 2], "text_ref": 0},
+          {"kind": 0, "role": 28, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1.29999995, "dash": [0, 0], "path_range": [6, 2], "text_ref": 0}
+        ],
+        "paths": [
+          [0, 8, 42.75, 0, 0, 0, 0],
+          [1, 281.390625, 42.75, 0, 0, 0, 0],
+          [0, 49.8984375, 42.75, 0, 0, 0, 0],
+          [1, 49.8984375, 112.25, 0, 0, 0, 0],
+          [0, 118.476562, 42.75, 0, 0, 0, 0],
+          [1, 118.476562, 112.25, 0, 0, 0, 0],
+          [0, 190.59375, 42.75, 0, 0, 0, 0],
+          [1, 190.59375, 112.25, 0, 0, 0, 0]
+        ]
+      }
+    },
+    {
+      "name": "er-alias",
+      "source": "erDiagram\nA[Person] {\nstring name\n}",
+      "source_sha256": "dd33cc4c8353ae1253a4d7395ff86463532d1b49102587987c7c46492df5a999",
+      "result": {
+        "kind": 4,
+        "request_status": 1,
+        "request_source_range": [11, 12],
+        "fallback": {
+          "reason": 2,
+          "subject": 0,
+          "line": 2
+        },
+        "measurements": [],
+        "status": 1,
+        "bounds": [0, 0, 0, 0],
+        "next_request_count": 0,
+        "commands": [],
+        "paths": []
+      }
+    },
+    {
+      "name": "er-quoted",
+      "source": "erDiagram\n\"User Account\" ||--o{ \"Order Item\" : places",
+      "source_sha256": "d6f9c4e50357f29300e61848728442dd108baad0291766c406a3181629c1b141",
+      "result": {
+        "kind": 4,
+        "request_status": 0,
+        "request_source_range": [0, 0],
+        "fallback": {
+          "reason": 0,
+          "subject": 0,
+          "line": 0
+        },
+        "measurements": [
+          {"role": 6, "text": "User Account", "width": 95.1640625, "height": 16},
+          {"role": 6, "text": "Order Item", "width": 76.4609375, "height": 16},
+          {"role": 11, "text": "places", "width": 46.25, "height": 16}
+        ],
+        "status": 0,
+        "bounds": [7.5, 7.5, 143.664062, 256.5],
+        "next_request_count": 0,
+        "commands": [
+          {"kind": 0, "role": 20, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 5], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [5, 4], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [9, 3], "text_ref": 0},
+          {"kind": 2, "role": 29, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [69.5820312, 144, 12, 12], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 2, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [69.5820312, 144, 12, 12], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 22, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [52.4570312, 124, 46.25, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 23, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [52.4570312, 124, 46.25, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 2},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 8, 135.164062, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [28, 38, 95.1640625, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [17.3515625, 180, 116.460938, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [37.3515625, 210, 76.4609375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 1}
+        ],
+        "paths": [
+          [0, 75.5820312, 84, 0, 0, 0, 0],
+          [1, 75.5820312, 92, 0, 0, 0, 0],
+          [2, 75.5820312, 132, 75.5820312, 100, 75.5820312, 116],
+          [2, 75.5820312, 172, 75.5820312, 148, 75.5820312, 164],
+          [1, 75.5820312, 180, 0, 0, 0, 0],
+          [0, 84.5820312, 93, 0, 0, 0, 0],
+          [1, 66.5820312, 93, 0, 0, 0, 0],
+          [0, 84.5820312, 99, 0, 0, 0, 0],
+          [1, 66.5820312, 99, 0, 0, 0, 0],
+          [0, 75.5820312, 162, 0, 0, 0, 0],
+          [2, 75.5820312, 198, 87.5820312, 174, 87.5820312, 186],
+          [2, 75.5820312, 162, 63.5820312, 186, 63.5820312, 174]
+        ]
+      }
+    },
+    {
+      "name": "er-direction",
+      "source": "erDiagram\ndirection LR\nA ||--|| B : relates",
+      "source_sha256": "f484774b204d8732ce2ac34bfab1e11f49a8ec7f14b22f21e36e69a847c03ce9",
+      "result": {
+        "kind": 4,
+        "request_status": 1,
+        "request_source_range": [10, 22],
+        "fallback": {
+          "reason": 2,
+          "subject": 0,
+          "line": 2
+        },
+        "measurements": [],
+        "status": 1,
+        "bounds": [0, 0, 0, 0],
+        "next_request_count": 0,
+        "commands": [],
+        "paths": []
+      }
+    },
+    {
+      "name": "er-branch",
+      "source": "erDiagram\nA ||--|| B : one\nA ||--o{ C : many",
+      "source_sha256": "dd7a93bc8f851f0ae6c6c3e93458b18afa99ff189525d3152a99aad4efdf69a9",
+      "result": {
+        "kind": 4,
+        "request_status": 1,
+        "request_source_range": [23, 26],
+        "fallback": {
+          "reason": 3,
+          "subject": 0,
+          "line": 2
+        },
+        "measurements": [],
+        "status": 1,
+        "bounds": [0, 0, 0, 0],
+        "next_request_count": 0,
+        "commands": [],
+        "paths": []
+      }
+    },
+    {
+      "name": "er-unlabeled",
+      "source": "erDiagram\nA ||--|| B",
+      "source_sha256": "a7fa3e7b457de6cdd1fce2b86a5eccf8eda8842beb555b580028e411b948e2e5",
+      "result": {
+        "kind": 4,
+        "request_status": 1,
+        "request_source_range": [20, 20],
+        "fallback": {
+          "reason": 3,
+          "subject": 0,
+          "line": 2
+        },
+        "measurements": [],
+        "status": 1,
+        "bounds": [0, 0, 0, 0],
+        "next_request_count": 0,
+        "commands": [],
+        "paths": []
+      }
+    },
+    {
+      "name": "er-unknown",
+      "source": "erDiagram\nA --> B",
+      "source_sha256": "b930a73aceb9adb866fe5cca8c15fb228f5a9c43fe2bc0ab72ee5d9afcd67fe7",
+      "result": {
+        "kind": 4,
+        "request_status": 1,
+        "request_source_range": [12, 14],
+        "fallback": {
+          "reason": 3,
+          "subject": 0,
+          "line": 2
+        },
+        "measurements": [],
+        "status": 1,
+        "bounds": [0, 0, 0, 0],
+        "next_request_count": 0,
+        "commands": [],
+        "paths": []
+      }
+    },
+    {
+      "name": "er-empty",
+      "source": "erDiagram",
+      "source_sha256": "bb1724dfac14e06528bc76a84ef1e6645bdb1230ea31b8224fdb42c1e1bb6c58",
+      "result": {
+        "kind": 4,
+        "request_status": 1,
+        "request_source_range": [0, 0],
+        "fallback": {
+          "reason": 6,
+          "subject": 0,
+          "line": 0
+        },
+        "measurements": [],
+        "status": 1,
+        "bounds": [0, 0, 0, 0],
+        "next_request_count": 0,
+        "commands": [],
+        "paths": []
+      }
+    },
+    {
+      "name": "er-style",
+      "source": "erDiagram\nA\nstyle A fill:#ff0000",
+      "source_sha256": "048869734b3e74fcda88e8a3c6ec1fb333989e4341fff088f9fff50e507c5cd2",
+      "result": {
+        "kind": 4,
+        "request_status": 1,
+        "request_source_range": [25, 26],
+        "fallback": {
+          "reason": 2,
+          "subject": 0,
+          "line": 3
+        },
+        "measurements": [],
+        "status": 1,
+        "bounds": [0, 0, 0, 0],
+        "next_request_count": 0,
+        "commands": [],
+        "paths": []
+      }
+    },
+    {
+      "name": "er-types",
+      "source": "erDiagram\nA {\nstring[] tags\nvarchar(255) name\n}",
+      "source_sha256": "d92d5e9abd8345f10b3f6f311a7ee9296d3ed962a336758a5aa84fca80c9b2f0",
+      "result": {
+        "kind": 4,
+        "request_status": 0,
+        "request_source_range": [0, 0],
+        "fallback": {
+          "reason": 0,
+          "subject": 0,
+          "line": 0
+        },
+        "measurements": [
+          {"role": 6, "text": "A", "width": 10.671875, "height": 16},
+          {"role": 6, "text": "string[]", "width": 48.015625, "height": 16},
+          {"role": 6, "text": "tags", "width": 30.2421875, "height": 16},
+          {"role": 6, "text": "varchar(255)", "width": 90.703125, "height": 16},
+          {"role": 6, "text": "name", "width": 40.0234375, "height": 16}
+        ],
+        "status": 0,
+        "bounds": [7.3499999, 7.3499999, 189.376572, 112.900002],
+        "next_request_count": 0,
+        "commands": [
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 8, 180.726562, 34.75], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 29, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 42.75, 180.726562, 34.75], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 27, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 77.5, 180.726562, 34.75], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 28, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 42.75, 180.726562, 34.75], "radii": [0, 0], "stroke_width": 1.29999995, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 28, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 77.5, 180.726562, 34.75], "radii": [0, 0], "stroke_width": 1.29999995, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 24, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 8, 180.726562, 104.25], "radii": [0, 0], "stroke_width": 1.29999995, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [93.0273438, 17.375, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [20.5, 52.125, 48.015625, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 1},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [136.203125, 52.125, 30.2421875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 2},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [20.5, 86.875, 90.703125, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 3},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [136.203125, 86.875, 40.0234375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 4},
+          {"kind": 0, "role": 28, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1.29999995, "dash": [0, 0], "path_range": [0, 2], "text_ref": 0},
+          {"kind": 0, "role": 28, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1.29999995, "dash": [0, 0], "path_range": [2, 2], "text_ref": 0}
+        ],
+        "paths": [
+          [0, 8, 42.75, 0, 0, 0, 0],
+          [1, 188.726562, 42.75, 0, 0, 0, 0],
+          [0, 123.703125, 42.75, 0, 0, 0, 0],
+          [1, 123.703125, 112.25, 0, 0, 0, 0]
+        ]
+      }
+    },
+    {
+      "name": "er-reverse",
+      "source": "erDiagram\nA }o..|| B : relates",
+      "source_sha256": "a9993ee8493faf7ff711914480caee5aa4aeea4c3f922480adc242780659b2af",
+      "result": {
+        "kind": 4,
+        "request_status": 0,
+        "request_source_range": [0, 0],
+        "fallback": {
+          "reason": 0,
+          "subject": 0,
+          "line": 0
+        },
+        "measurements": [
+          {"role": 6, "text": "A", "width": 10.671875, "height": 16},
+          {"role": 6, "text": "B", "width": 10.671875, "height": 16},
+          {"role": 11, "text": "relates", "width": 48.0234375, "height": 16}
+        ],
+        "status": 0,
+        "bounds": [7.5, 7.5, 108.5, 256.5],
+        "next_request_count": 0,
+        "commands": [
+          {"kind": 0, "role": 20, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [8, 8], "path_range": [0, 5], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [5, 3], "text_ref": 0},
+          {"kind": 2, "role": 29, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [52, 108, 12, 12], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 2, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [52, 108, 12, 12], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [8, 4], "text_ref": 0},
+          {"kind": 1, "role": 22, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [33.9882812, 124, 48.0234375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 23, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [33.9882812, 124, 48.0234375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 2},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 8, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [52.6640625, 38, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [8, 180, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [52.6640625, 210, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 1}
+        ],
+        "paths": [
+          [0, 58, 84, 0, 0, 0, 0],
+          [1, 58, 92, 0, 0, 0, 0],
+          [2, 58, 132, 58, 100, 58, 116],
+          [2, 58, 172, 58, 148, 58, 164],
+          [1, 58, 180, 0, 0, 0, 0],
+          [0, 58, 66, 0, 0, 0, 0],
+          [2, 58, 102, 70, 78, 70, 90],
+          [2, 58, 66, 46, 90, 46, 78],
+          [0, 67, 165, 0, 0, 0, 0],
+          [1, 49, 165, 0, 0, 0, 0],
+          [0, 67, 171, 0, 0, 0, 0],
+          [1, 49, 171, 0, 0, 0, 0]
+        ]
+      }
+    },
+    {
+      "name": "er-zero",
+      "source": "erDiagram\nA {\n}",
+      "source_sha256": "5b8961def8608bb57103228883ffdc13793983a16772490dd485c32c4348dd64",
+      "result": {
+        "kind": 4,
+        "request_status": 0,
+        "request_source_range": [0, 0],
+        "fallback": {
+          "reason": 0,
+          "subject": 0,
+          "line": 0
+        },
+        "measurements": [
+          {"role": 6, "text": "A", "width": 10.671875, "height": 16}
+        ],
+        "status": 0,
+        "bounds": [7.5, 7.5, 108.5, 84.5],
+        "next_request_count": 0,
+        "commands": [
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 8, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [52.6640625, 38, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0}
+        ],
+        "paths": []
+      }
+    },
+    {
+      "name": "er-self",
+      "source": "erDiagram\nA ||--o{ A : parent",
+      "source_sha256": "f3cffb983ced9885a86f5ae987f9d9b171c0b7a8d2f1c84284cc2d0f879fefd8",
+      "result": {
+        "kind": 4,
+        "request_status": 0,
+        "request_source_range": [0, 0],
+        "fallback": {
+          "reason": 0,
+          "subject": 0,
+          "line": 0
+        },
+        "measurements": [
+          {"role": 6, "text": "A", "width": 10.671875, "height": 16},
+          {"role": 11, "text": "parent", "width": 45.3671875, "height": 16}
+        ],
+        "status": 0,
+        "bounds": [20.2085934, 7.5, 121.208595, 138.200012],
+        "next_request_count": 0,
+        "commands": [
+          {"kind": 0, "role": 20, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 6], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [6, 4], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [10, 3], "text_ref": 0},
+          {"kind": 2, "role": 29, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [85.6392975, 106.620697, 12, 12], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 2, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [85.6392975, 106.620697, 12, 12], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 22, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [48.0250015, 122.199997, 45.3671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 23, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [48.0250015, 122.199997, 45.3671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 1},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [20.7085934, 8, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [65.3726578, 38, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0}
+        ],
+        "paths": [
+          [0, 58.7698593, 84, 0, 0, 0, 0],
+          [1, 56.9790497, 89.6999969, 0, 0, 0, 0],
+          [2, 57.3770065, 112.5, 55.1882401, 95.4000015, 51.6066208, 106.800003],
+          [2, 84.0401764, 112.5, 63.1473961, 118.199997, 78.2697906, 118.199997],
+          [2, 84.4381409, 89.6999969, 89.8105698, 106.800003, 86.2289505, 95.4000015],
+          [1, 82.6473236, 84, 0, 0, 0, 0],
+          [0, 64.6584778, 95.2837982, 0, 0, 0, 0],
+          [1, 47.4860573, 89.8886185, 0, 0, 0, 0],
+          [0, 62.8600845, 101.007942, 0, 0, 0, 0],
+          [1, 45.687664, 95.6127548, 0, 0, 0, 0],
+          [0, 88.042511, 101.172417, 0, 0, 0, 0],
+          [2, 77.2521439, 66.8275833, 72.9974442, 93.3209305, 69.40065, 81.8726501],
+          [2, 88.042511, 101.172417, 92.2972107, 74.6790695, 95.8940048, 86.1273499]
+        ]
+      }
+    },
+    {
+      "name": "er-rel-||--||",
+      "source": "erDiagram\nA ||--|| B : relates",
+      "source_sha256": "c705942fd1b740a3e6c94575b0ba6192202a5a7862e3872f2180862150238d76",
+      "result": {
+        "kind": 4,
+        "request_status": 0,
+        "request_source_range": [0, 0],
+        "fallback": {
+          "reason": 0,
+          "subject": 0,
+          "line": 0
+        },
+        "measurements": [
+          {"role": 6, "text": "A", "width": 10.671875, "height": 16},
+          {"role": 6, "text": "B", "width": 10.671875, "height": 16},
+          {"role": 11, "text": "relates", "width": 48.0234375, "height": 16}
+        ],
+        "status": 0,
+        "bounds": [7.5, 7.5, 108.5, 256.5],
+        "next_request_count": 0,
+        "commands": [
+          {"kind": 0, "role": 20, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 5], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [5, 4], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [9, 4], "text_ref": 0},
+          {"kind": 1, "role": 22, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [33.9882812, 124, 48.0234375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 23, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [33.9882812, 124, 48.0234375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 2},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 8, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [52.6640625, 38, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [8, 180, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [52.6640625, 210, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 1}
+        ],
+        "paths": [
+          [0, 58, 84, 0, 0, 0, 0],
+          [1, 58, 92, 0, 0, 0, 0],
+          [2, 58, 132, 58, 100, 58, 116],
+          [2, 58, 172, 58, 148, 58, 164],
+          [1, 58, 180, 0, 0, 0, 0],
+          [0, 67, 93, 0, 0, 0, 0],
+          [1, 49, 93, 0, 0, 0, 0],
+          [0, 67, 99, 0, 0, 0, 0],
+          [1, 49, 99, 0, 0, 0, 0],
+          [0, 67, 165, 0, 0, 0, 0],
+          [1, 49, 165, 0, 0, 0, 0],
+          [0, 67, 171, 0, 0, 0, 0],
+          [1, 49, 171, 0, 0, 0, 0]
+        ]
+      }
+    },
+    {
+      "name": "er-rel-|o--o|",
+      "source": "erDiagram\nA |o--o| B : relates",
+      "source_sha256": "e34022dbf2406658824b5b9e228546360574f6172cba0bca89884f3195ef6ca3",
+      "result": {
+        "kind": 4,
+        "request_status": 0,
+        "request_source_range": [0, 0],
+        "fallback": {
+          "reason": 0,
+          "subject": 0,
+          "line": 0
+        },
+        "measurements": [
+          {"role": 6, "text": "A", "width": 10.671875, "height": 16},
+          {"role": 6, "text": "B", "width": 10.671875, "height": 16},
+          {"role": 11, "text": "relates", "width": 48.0234375, "height": 16}
+        ],
+        "status": 0,
+        "bounds": [7.5, 7.5, 108.5, 256.5],
+        "next_request_count": 0,
+        "commands": [
+          {"kind": 0, "role": 20, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 5], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [5, 2], "text_ref": 0},
+          {"kind": 2, "role": 29, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [52, 99, 12, 12], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 2, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [52, 99, 12, 12], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [7, 2], "text_ref": 0},
+          {"kind": 2, "role": 29, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [52, 153, 12, 12], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 2, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [52, 153, 12, 12], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 22, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [33.9882812, 124, 48.0234375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 23, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [33.9882812, 124, 48.0234375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 2},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 8, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [52.6640625, 38, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [8, 180, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [52.6640625, 210, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 1}
+        ],
+        "paths": [
+          [0, 58, 84, 0, 0, 0, 0],
+          [1, 58, 92, 0, 0, 0, 0],
+          [2, 58, 132, 58, 100, 58, 116],
+          [2, 58, 172, 58, 148, 58, 164],
+          [1, 58, 180, 0, 0, 0, 0],
+          [0, 67, 93, 0, 0, 0, 0],
+          [1, 49, 93, 0, 0, 0, 0],
+          [0, 67, 171, 0, 0, 0, 0],
+          [1, 49, 171, 0, 0, 0, 0]
+        ]
+      }
+    },
+    {
+      "name": "er-rel-}o--o{",
+      "source": "erDiagram\nA }o--o{ B : relates",
+      "source_sha256": "722742095129303f2f647b073b644548e0e94bee194124c57746c1a25ac010a7",
+      "result": {
+        "kind": 4,
+        "request_status": 0,
+        "request_source_range": [0, 0],
+        "fallback": {
+          "reason": 0,
+          "subject": 0,
+          "line": 0
+        },
+        "measurements": [
+          {"role": 6, "text": "A", "width": 10.671875, "height": 16},
+          {"role": 6, "text": "B", "width": 10.671875, "height": 16},
+          {"role": 11, "text": "relates", "width": 48.0234375, "height": 16}
+        ],
+        "status": 0,
+        "bounds": [7.5, 7.5, 108.5, 256.5],
+        "next_request_count": 0,
+        "commands": [
+          {"kind": 0, "role": 20, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 5], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [5, 3], "text_ref": 0},
+          {"kind": 2, "role": 29, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [52, 108, 12, 12], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 2, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [52, 108, 12, 12], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [8, 3], "text_ref": 0},
+          {"kind": 2, "role": 29, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [52, 144, 12, 12], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 2, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [52, 144, 12, 12], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 22, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [33.9882812, 124, 48.0234375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 23, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [33.9882812, 124, 48.0234375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 2},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 8, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [52.6640625, 38, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [8, 180, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [52.6640625, 210, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 1}
+        ],
+        "paths": [
+          [0, 58, 84, 0, 0, 0, 0],
+          [1, 58, 92, 0, 0, 0, 0],
+          [2, 58, 132, 58, 100, 58, 116],
+          [2, 58, 172, 58, 148, 58, 164],
+          [1, 58, 180, 0, 0, 0, 0],
+          [0, 58, 66, 0, 0, 0, 0],
+          [2, 58, 102, 70, 78, 70, 90],
+          [2, 58, 66, 46, 90, 46, 78],
+          [0, 58, 162, 0, 0, 0, 0],
+          [2, 58, 198, 70, 174, 70, 186],
+          [2, 58, 162, 46, 186, 46, 174]
+        ]
+      }
+    },
+    {
+      "name": "er-rel-}|--|{",
+      "source": "erDiagram\nA }|--|{ B : relates",
+      "source_sha256": "dce94ce7d9f09c9847fe96c21ea064462010e29f3e3ed228bdca8e1e614de536",
+      "result": {
+        "kind": 4,
+        "request_status": 0,
+        "request_source_range": [0, 0],
+        "fallback": {
+          "reason": 0,
+          "subject": 0,
+          "line": 0
+        },
+        "measurements": [
+          {"role": 6, "text": "A", "width": 10.671875, "height": 16},
+          {"role": 6, "text": "B", "width": 10.671875, "height": 16},
+          {"role": 11, "text": "relates", "width": 48.0234375, "height": 16}
+        ],
+        "status": 0,
+        "bounds": [7.5, 7.5, 108.5, 256.5],
+        "next_request_count": 0,
+        "commands": [
+          {"kind": 0, "role": 20, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 5], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [5, 5], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [10, 5], "text_ref": 0},
+          {"kind": 1, "role": 22, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [33.9882812, 124, 48.0234375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 23, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [33.9882812, 124, 48.0234375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 2},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 8, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [52.6640625, 38, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [8, 180, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [52.6640625, 210, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 1}
+        ],
+        "paths": [
+          [0, 58, 84, 0, 0, 0, 0],
+          [1, 58, 92, 0, 0, 0, 0],
+          [2, 58, 132, 58, 100, 58, 116],
+          [2, 58, 172, 58, 148, 58, 164],
+          [1, 58, 180, 0, 0, 0, 0],
+          [0, 58, 66, 0, 0, 0, 0],
+          [2, 58, 102, 70, 78, 70, 90],
+          [2, 58, 66, 46, 90, 46, 78],
+          [0, 67, 108, 0, 0, 0, 0],
+          [1, 49, 108, 0, 0, 0, 0],
+          [0, 67, 156, 0, 0, 0, 0],
+          [1, 49, 156, 0, 0, 0, 0],
+          [0, 58, 162, 0, 0, 0, 0],
+          [2, 58, 198, 70, 174, 70, 186],
+          [2, 58, 162, 46, 186, 46, 174]
+        ]
+      }
+    },
+    {
+      "name": "er-rel-||..||",
+      "source": "erDiagram\nA ||..|| B : relates",
+      "source_sha256": "3d58b3ed5594cdd7d34257cfff13af107bbde4338f1ddc8871d3ee902e63afec",
+      "result": {
+        "kind": 4,
+        "request_status": 0,
+        "request_source_range": [0, 0],
+        "fallback": {
+          "reason": 0,
+          "subject": 0,
+          "line": 0
+        },
+        "measurements": [
+          {"role": 6, "text": "A", "width": 10.671875, "height": 16},
+          {"role": 6, "text": "B", "width": 10.671875, "height": 16},
+          {"role": 11, "text": "relates", "width": 48.0234375, "height": 16}
+        ],
+        "status": 0,
+        "bounds": [7.5, 7.5, 108.5, 256.5],
+        "next_request_count": 0,
+        "commands": [
+          {"kind": 0, "role": 20, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [8, 8], "path_range": [0, 5], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [5, 4], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [9, 4], "text_ref": 0},
+          {"kind": 1, "role": 22, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [33.9882812, 124, 48.0234375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 23, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [33.9882812, 124, 48.0234375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 2},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 8, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [52.6640625, 38, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [8, 180, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [52.6640625, 210, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 1}
+        ],
+        "paths": [
+          [0, 58, 84, 0, 0, 0, 0],
+          [1, 58, 92, 0, 0, 0, 0],
+          [2, 58, 132, 58, 100, 58, 116],
+          [2, 58, 172, 58, 148, 58, 164],
+          [1, 58, 180, 0, 0, 0, 0],
+          [0, 67, 93, 0, 0, 0, 0],
+          [1, 49, 93, 0, 0, 0, 0],
+          [0, 67, 99, 0, 0, 0, 0],
+          [1, 49, 99, 0, 0, 0, 0],
+          [0, 67, 165, 0, 0, 0, 0],
+          [1, 49, 165, 0, 0, 0, 0],
+          [0, 67, 171, 0, 0, 0, 0],
+          [1, 49, 171, 0, 0, 0, 0]
+        ]
+      }
+    },
+    {
+      "name": "er-rel-||--|{",
+      "source": "erDiagram\nA ||--|{ B : relates",
+      "source_sha256": "0539e3ef593de68a2a6a27796ab47e39e2a68efa78acf60be7010525c0c62363",
+      "result": {
+        "kind": 4,
+        "request_status": 0,
+        "request_source_range": [0, 0],
+        "fallback": {
+          "reason": 0,
+          "subject": 0,
+          "line": 0
+        },
+        "measurements": [
+          {"role": 6, "text": "A", "width": 10.671875, "height": 16},
+          {"role": 6, "text": "B", "width": 10.671875, "height": 16},
+          {"role": 11, "text": "relates", "width": 48.0234375, "height": 16}
+        ],
+        "status": 0,
+        "bounds": [7.5, 7.5, 108.5, 256.5],
+        "next_request_count": 0,
+        "commands": [
+          {"kind": 0, "role": 20, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 5], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [5, 4], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [9, 5], "text_ref": 0},
+          {"kind": 1, "role": 22, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [33.9882812, 124, 48.0234375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 23, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [33.9882812, 124, 48.0234375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 2},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 8, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [52.6640625, 38, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [8, 180, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [52.6640625, 210, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 1}
+        ],
+        "paths": [
+          [0, 58, 84, 0, 0, 0, 0],
+          [1, 58, 92, 0, 0, 0, 0],
+          [2, 58, 132, 58, 100, 58, 116],
+          [2, 58, 172, 58, 148, 58, 164],
+          [1, 58, 180, 0, 0, 0, 0],
+          [0, 67, 93, 0, 0, 0, 0],
+          [1, 49, 93, 0, 0, 0, 0],
+          [0, 67, 99, 0, 0, 0, 0],
+          [1, 49, 99, 0, 0, 0, 0],
+          [0, 67, 156, 0, 0, 0, 0],
+          [1, 49, 156, 0, 0, 0, 0],
+          [0, 58, 162, 0, 0, 0, 0],
+          [2, 58, 198, 70, 174, 70, 186],
+          [2, 58, 162, 46, 186, 46, 174]
+        ]
+      }
+    },
+    {
+      "name": "er-rel-||--o{",
+      "source": "erDiagram\nA ||--o{ B : relates",
+      "source_sha256": "3a51ced6533079e2f8d46126f222cc02102a12153e60592cc74a6d7bc72c5d95",
+      "result": {
+        "kind": 4,
+        "request_status": 0,
+        "request_source_range": [0, 0],
+        "fallback": {
+          "reason": 0,
+          "subject": 0,
+          "line": 0
+        },
+        "measurements": [
+          {"role": 6, "text": "A", "width": 10.671875, "height": 16},
+          {"role": 6, "text": "B", "width": 10.671875, "height": 16},
+          {"role": 11, "text": "relates", "width": 48.0234375, "height": 16}
+        ],
+        "status": 0,
+        "bounds": [7.5, 7.5, 108.5, 256.5],
+        "next_request_count": 0,
+        "commands": [
+          {"kind": 0, "role": 20, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 5], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [5, 4], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [9, 3], "text_ref": 0},
+          {"kind": 2, "role": 29, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [52, 144, 12, 12], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 2, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [52, 144, 12, 12], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 22, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [33.9882812, 124, 48.0234375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 23, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [33.9882812, 124, 48.0234375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 2},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 8, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [52.6640625, 38, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [8, 180, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [52.6640625, 210, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 1}
+        ],
+        "paths": [
+          [0, 58, 84, 0, 0, 0, 0],
+          [1, 58, 92, 0, 0, 0, 0],
+          [2, 58, 132, 58, 100, 58, 116],
+          [2, 58, 172, 58, 148, 58, 164],
+          [1, 58, 180, 0, 0, 0, 0],
+          [0, 67, 93, 0, 0, 0, 0],
+          [1, 49, 93, 0, 0, 0, 0],
+          [0, 67, 99, 0, 0, 0, 0],
+          [1, 49, 99, 0, 0, 0, 0],
+          [0, 58, 162, 0, 0, 0, 0],
+          [2, 58, 198, 70, 174, 70, 186],
+          [2, 58, 162, 46, 186, 46, 174]
+        ]
+      }
+    },
+    {
+      "name": "er-cycle",
+      "source": "erDiagram\nA ||--o{ B : owns\nB ||--o{ C : owns\nC ||--o{ A : owns",
+      "source_sha256": "5c2653a9b6e6a15d1b8b68d39981f3b704f05241916cf8ff8bd1fc7de2533f2d",
+      "result": {
+        "kind": 4,
+        "request_status": 0,
+        "request_source_range": [0, 0],
+        "fallback": {
+          "reason": 0,
+          "subject": 0,
+          "line": 0
+        },
+        "measurements": [
+          {"role": 6, "text": "A", "width": 10.671875, "height": 16},
+          {"role": 6, "text": "B", "width": 10.671875, "height": 16},
+          {"role": 6, "text": "C", "width": 11.5546875, "height": 16},
+          {"role": 11, "text": "owns", "width": 37.3515625, "height": 16}
+        ],
+        "status": 0,
+        "bounds": [7.5, 7.5, 225.351562, 428.5],
+        "next_request_count": 0,
+        "commands": [
+          {"kind": 0, "role": 20, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 5], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [5, 4], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [9, 3], "text_ref": 0},
+          {"kind": 2, "role": 29, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [52, 144, 12, 12], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 2, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [52, 144, 12, 12], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 0, "role": 20, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [12, 5], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [17, 4], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [21, 3], "text_ref": 0},
+          {"kind": 2, "role": 29, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [73.8724747, 323.303833, 12, 12], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 2, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [73.8724747, 323.303833, 12, 12], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 0, "role": 20, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 2, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [24, 7], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 2, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [31, 4], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 2, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [35, 3], "text_ref": 0},
+          {"kind": 2, "role": 29, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 2, "rect": [178.803314, 100.696182, 12, 12], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 2, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 2, "rect": [178.803314, 100.696182, 12, 12], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 22, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [39.3242188, 124, 37.3515625, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 23, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [39.3242188, 124, 37.3515625, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 3},
+          {"kind": 1, "role": 22, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [39.3242188, 296, 37.3515625, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 23, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [39.3242188, 296, 37.3515625, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 3},
+          {"kind": 1, "role": 22, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 2, "rect": [188, 210, 37.3515625, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 23, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 2, "rect": [188, 210, 37.3515625, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 3},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [82.3378906, 8, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [127.001953, 38, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [8, 180, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [52.6640625, 210, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 1},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 2, "rect": [82.3378906, 352, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 2, "rect": [126.560547, 382, 11.5546875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 2}
+        ],
+        "paths": [
+          [0, 99.4909134, 84, 0, 0, 0, 0],
+          [1, 92.5757599, 92, 0, 0, 0, 0],
+          [2, 64.9151535, 132, 85.660614, 100, 71.830307, 116],
+          [2, 58, 172, 58, 148, 58, 164],
+          [1, 58, 180, 0, 0, 0, 0],
+          [0, 100.414238, 96.6943893, 0, 0, 0, 0],
+          [1, 86.7965317, 84.9233246, 0, 0, 0, 0],
+          [0, 96.4905472, 101.233627, 0, 0, 0, 0],
+          [1, 82.8728409, 89.4625549, 0, 0, 0, 0],
+          [0, 58, 162, 0, 0, 0, 0],
+          [2, 58, 198, 70, 174, 70, 186],
+          [2, 58, 162, 46, 186, 46, 174],
+          [0, 58, 256, 0, 0, 0, 0],
+          [1, 58, 264, 0, 0, 0, 0],
+          [2, 64.9151535, 304, 58, 272, 58, 288],
+          [2, 92.5757599, 344, 71.830307, 320, 85.660614, 336],
+          [1, 99.4909134, 352, 0, 0, 0, 0],
+          [0, 67, 265, 0, 0, 0, 0],
+          [1, 49, 265, 0, 0, 0, 0],
+          [0, 67, 271, 0, 0, 0, 0],
+          [1, 49, 271, 0, 0, 0, 0],
+          [0, 87.7198486, 338.382294, 0, 0, 0, 0],
+          [2, 111.261986, 365.617706, 104.645699, 339.613373, 112.49308, 348.691864],
+          [2, 87.7198486, 338.382294, 94.3361359, 364.386627, 86.4887543, 355.308136],
+          [0, 165.18486, 352, 0, 0, 0, 0],
+          [1, 172.100021, 344, 0, 0, 0, 0],
+          [2, 199.760635, 297.666656, 179.015167, 336, 192.845474, 320],
+          [2, 206.675781, 218, 206.675781, 275.333344, 206.675781, 246.666672],
+          [2, 199.760635, 138.333328, 206.675781, 189.333328, 206.675781, 160.666672],
+          [2, 172.100021, 92, 192.845474, 116, 179.015167, 100],
+          [1, 165.18486, 84, 0, 0, 0, 0],
+          [0, 164.261551, 339.305603, 0, 0, 0, 0],
+          [1, 177.879257, 351.076691, 0, 0, 0, 0],
+          [0, 168.185226, 334.766388, 0, 0, 0, 0],
+          [1, 181.802948, 346.537445, 0, 0, 0, 0],
+          [0, 176.955933, 97.6177063, 0, 0, 0, 0],
+          [2, 153.413803, 70.3822937, 160.030075, 96.3866119, 152.182709, 87.3081436],
+          [2, 176.955933, 97.6177063, 170.339645, 71.6133881, 178.187027, 80.6918564]
+        ]
+      }
+    },
+    {
+      "name": "er-branch-valid",
+      "source": "erDiagram\nA ||--|| B : owns\nA ||--o{ C : contains",
+      "source_sha256": "593ff0490c0201a951425211e4aec74d2af9529adfa55211286e87a8777383d3",
+      "result": {
+        "kind": 4,
+        "request_status": 0,
+        "request_source_range": [0, 0],
+        "fallback": {
+          "reason": 0,
+          "subject": 0,
+          "line": 0
+        },
+        "measurements": [
+          {"role": 6, "text": "A", "width": 10.671875, "height": 16},
+          {"role": 6, "text": "B", "width": 10.671875, "height": 16},
+          {"role": 6, "text": "C", "width": 11.5546875, "height": 16},
+          {"role": 11, "text": "owns", "width": 37.3515625, "height": 16},
+          {"role": 11, "text": "contains", "width": 59.59375, "height": 16}
+        ],
+        "status": 0,
+        "bounds": [7.5, 7.5, 348.5, 256.5],
+        "next_request_count": 0,
+        "commands": [
+          {"kind": 0, "role": 20, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 5], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [5, 4], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [9, 4], "text_ref": 0},
+          {"kind": 0, "role": 20, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [13, 5], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [18, 4], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [22, 3], "text_ref": 0},
+          {"kind": 2, "role": 29, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [292, 144, 12, 12], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 2, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [292, 144, 12, 12], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 22, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [39.3242188, 124, 37.3515625, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 23, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [39.3242188, 124, 37.3515625, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 3},
+          {"kind": 1, "role": 22, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [268.203125, 124, 59.59375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 23, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [268.203125, 124, 59.59375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 4},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [128, 8, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [172.664062, 38, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [8, 180, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [52.6640625, 210, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 1},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 2, "rect": [248, 180, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 2, "rect": [292.222656, 210, 11.5546875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 2}
+        ],
+        "paths": [
+          [0, 128, 81.8333359, 0, 0, 0, 0],
+          [1, 116.333336, 90.1944427, 0, 0, 0, 0],
+          [2, 69.6666641, 131.638885, 104.666664, 98.5555573, 81.3333359, 115.277779],
+          [2, 58, 172, 58, 148, 58, 164],
+          [1, 58, 180, 0, 0, 0, 0],
+          [0, 125.927315, 94.3913574, 0, 0, 0, 0],
+          [1, 115.441978, 79.7606506, 0, 0, 0, 0],
+          [0, 121.050415, 97.8864746, 0, 0, 0, 0],
+          [1, 110.565071, 83.2557602, 0, 0, 0, 0],
+          [0, 67, 165, 0, 0, 0, 0],
+          [1, 49, 165, 0, 0, 0, 0],
+          [0, 67, 171, 0, 0, 0, 0],
+          [1, 49, 171, 0, 0, 0, 0],
+          [0, 228, 81.8333359, 0, 0, 0, 0],
+          [1, 239.666672, 90.1944427, 0, 0, 0, 0],
+          [2, 286.333344, 131.638885, 251.333328, 98.5555573, 274.666656, 115.277779],
+          [2, 298, 172, 298, 148, 298, 164],
+          [1, 298, 180, 0, 0, 0, 0],
+          [0, 240.558029, 79.7606506, 0, 0, 0, 0],
+          [1, 230.072678, 94.3913574, 0, 0, 0, 0],
+          [0, 245.434921, 83.2557602, 0, 0, 0, 0],
+          [1, 234.949585, 97.8864746, 0, 0, 0, 0],
+          [0, 298, 162, 0, 0, 0, 0],
+          [2, 298, 198, 310, 174, 310, 186],
+          [2, 298, 162, 286, 186, 286, 174]
+        ]
+      }
+    },
+    {
+      "name": "er-only-label",
+      "source": "erDiagram\nA ||--|| B : only",
+      "source_sha256": "3bd02127987b16da8f703414a66f39e98f0d2f863568ffbbc6fa743945368636",
+      "result": {
+        "kind": 4,
+        "request_status": 0,
+        "request_source_range": [0, 0],
+        "fallback": {
+          "reason": 0,
+          "subject": 0,
+          "line": 0
+        },
+        "measurements": [
+          {"role": 6, "text": "A", "width": 10.671875, "height": 16},
+          {"role": 6, "text": "B", "width": 10.671875, "height": 16},
+          {"role": 11, "text": "only", "width": 29.3515625, "height": 16}
+        ],
+        "status": 0,
+        "bounds": [7.5, 7.5, 108.5, 256.5],
+        "next_request_count": 0,
+        "commands": [
+          {"kind": 0, "role": 20, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 5], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [5, 4], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [9, 4], "text_ref": 0},
+          {"kind": 1, "role": 22, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [43.3242188, 124, 29.3515625, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 23, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [43.3242188, 124, 29.3515625, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 2},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 8, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [52.6640625, 38, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [8, 180, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [52.6640625, 210, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 1}
+        ],
+        "paths": [
+          [0, 58, 84, 0, 0, 0, 0],
+          [1, 58, 92, 0, 0, 0, 0],
+          [2, 58, 132, 58, 100, 58, 116],
+          [2, 58, 172, 58, 148, 58, 164],
+          [1, 58, 180, 0, 0, 0, 0],
+          [0, 67, 93, 0, 0, 0, 0],
+          [1, 49, 93, 0, 0, 0, 0],
+          [0, 67, 99, 0, 0, 0, 0],
+          [1, 49, 99, 0, 0, 0, 0],
+          [0, 67, 165, 0, 0, 0, 0],
+          [1, 49, 165, 0, 0, 0, 0],
+          [0, 67, 171, 0, 0, 0, 0],
+          [1, 49, 171, 0, 0, 0, 0]
+        ]
+      }
+    },
+    {
+      "name": "er-zero-label",
+      "source": "erDiagram\nA ||--|| B : zero",
+      "source_sha256": "5c7e0022c470f7caa9bd228de915f5e33ef0d2fa0785a0cf94f8c3d5dd157ec7",
+      "result": {
+        "kind": 4,
+        "request_status": 0,
+        "request_source_range": [0, 0],
+        "fallback": {
+          "reason": 0,
+          "subject": 0,
+          "line": 0
+        },
+        "measurements": [
+          {"role": 6, "text": "A", "width": 10.671875, "height": 16},
+          {"role": 6, "text": "B", "width": 10.671875, "height": 16},
+          {"role": 11, "text": "zero", "width": 31.125, "height": 16}
+        ],
+        "status": 0,
+        "bounds": [7.5, 7.5, 108.5, 256.5],
+        "next_request_count": 0,
+        "commands": [
+          {"kind": 0, "role": 20, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 5], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [5, 4], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [9, 4], "text_ref": 0},
+          {"kind": 1, "role": 22, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [42.4375, 124, 31.125, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 23, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [42.4375, 124, 31.125, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 2},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 8, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [52.6640625, 38, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [8, 180, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [52.6640625, 210, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 1}
+        ],
+        "paths": [
+          [0, 58, 84, 0, 0, 0, 0],
+          [1, 58, 92, 0, 0, 0, 0],
+          [2, 58, 132, 58, 100, 58, 116],
+          [2, 58, 172, 58, 148, 58, 164],
+          [1, 58, 180, 0, 0, 0, 0],
+          [0, 67, 93, 0, 0, 0, 0],
+          [1, 49, 93, 0, 0, 0, 0],
+          [0, 67, 99, 0, 0, 0, 0],
+          [1, 49, 99, 0, 0, 0, 0],
+          [0, 67, 165, 0, 0, 0, 0],
+          [1, 49, 165, 0, 0, 0, 0],
+          [0, 67, 171, 0, 0, 0, 0],
+          [1, 49, 171, 0, 0, 0, 0]
+        ]
+      }
+    },
+    {
+      "name": "er-word-many",
+      "source": "erDiagram\nA ||--|| B : many",
+      "source_sha256": "7a76a1e607fe9ce9aa7703bb821797dcad3f28674a216da897f349f9a08baea5",
+      "result": {
+        "kind": 4,
+        "request_status": 1,
+        "request_source_range": [23, 27],
+        "fallback": {
+          "reason": 3,
+          "subject": 0,
+          "line": 2
+        },
+        "measurements": [],
+        "status": 1,
+        "bounds": [0, 0, 0, 0],
+        "next_request_count": 0,
+        "commands": [],
+        "paths": []
+      }
+    },
+    {
+      "name": "er-word-to",
+      "source": "erDiagram\nA ||--|| B : to",
+      "source_sha256": "42e293cbe9bf3a5bd5b8ab05fd3311dcb4195ad32a4a70b4a44c17c184f3ceb5",
+      "result": {
+        "kind": 4,
+        "request_status": 1,
+        "request_source_range": [23, 25],
+        "fallback": {
+          "reason": 3,
+          "subject": 0,
+          "line": 2
+        },
+        "measurements": [],
+        "status": 1,
+        "bounds": [0, 0, 0, 0],
+        "next_request_count": 0,
+        "commands": [],
+        "paths": []
+      }
+    },
+    {
+      "name": "er-self-",
+      "source": "erDiagram\nA ||--o{ A : \"\"",
+      "source_sha256": "e5f00ae397c07786c57a2fafc006aba1a685a917088a672f208b91139278e7d9",
+      "result": {
+        "kind": 4,
+        "request_status": 0,
+        "request_source_range": [0, 0],
+        "fallback": {
+          "reason": 0,
+          "subject": 0,
+          "line": 0
+        },
+        "measurements": [
+          {"role": 6, "text": "A", "width": 10.671875, "height": 16}
+        ],
+        "status": 0,
+        "bounds": [7.5, 7.5, 108.5, 119.609016],
+        "next_request_count": 0,
+        "commands": [
+          {"kind": 0, "role": 20, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 6], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [6, 4], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [10, 3], "text_ref": 0},
+          {"kind": 2, "role": 29, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [68.7307816, 107.109009, 12, 12], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 2, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [68.7307816, 107.109009, 12, 12], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 8, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [52.6640625, 38, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0}
+        ],
+        "paths": [
+          [0, 48.5263176, 84, 0, 0, 0, 0],
+          [1, 47.1052628, 89.6999969, 0, 0, 0, 0],
+          [2, 47.421051, 112.5, 45.6842117, 95.4000015, 42.8421059, 106.800003],
+          [2, 68.578949, 112.5, 52, 118.199997, 64, 118.199997],
+          [2, 68.8947372, 89.6999969, 73.1578979, 106.800003, 70.3157883, 95.4000015],
+          [1, 67.4736862, 84, 0, 0, 0, 0],
+          [0, 55.0818901, 94.9098282, 0, 0, 0, 0],
+          [1, 37.6164856, 90.5555725, 0, 0, 0, 0],
+          [0, 53.6304741, 100.731636, 0, 0, 0, 0],
+          [1, 36.1650658, 96.3773804, 0, 0, 0, 0],
+          [0, 71.8279419, 101.465408, 0, 0, 0, 0],
+          [2, 63.1194267, 66.5345917, 57.281498, 92.7246399, 54.3786621, 81.0810318],
+          [2, 71.8279419, 101.465408, 77.6658707, 75.2753601, 80.5687103, 86.9189682]
+        ]
+      }
+    },
+    {
+      "name": "er-self-x",
+      "source": "erDiagram\nA ||--o{ A : \"x\"",
+      "source_sha256": "b4b646ee5561c085da6f85de319e86e54fb126019628176a622c3a2e4b780794",
+      "result": {
+        "kind": 4,
+        "request_status": 0,
+        "request_source_range": [0, 0],
+        "fallback": {
+          "reason": 0,
+          "subject": 0,
+          "line": 0
+        },
+        "measurements": [
+          {"role": 6, "text": "A", "width": 10.671875, "height": 16},
+          {"role": 11, "text": "x", "width": 8, "height": 16}
+        ],
+        "status": 0,
+        "bounds": [7.5, 7.5, 108.5, 138.200012],
+        "next_request_count": 0,
+        "commands": [
+          {"kind": 0, "role": 20, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 6], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [6, 4], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [10, 3], "text_ref": 0},
+          {"kind": 2, "role": 29, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [68.7307816, 107.109009, 12, 12], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 2, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [68.7307816, 107.109009, 12, 12], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 22, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [54, 122.199997, 8, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 23, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [54, 122.199997, 8, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 1},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 8, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [52.6640625, 38, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0}
+        ],
+        "paths": [
+          [0, 48.5263176, 84, 0, 0, 0, 0],
+          [1, 47.1052628, 89.6999969, 0, 0, 0, 0],
+          [2, 47.421051, 112.5, 45.6842117, 95.4000015, 42.8421059, 106.800003],
+          [2, 68.578949, 112.5, 52, 118.199997, 64, 118.199997],
+          [2, 68.8947372, 89.6999969, 73.1578979, 106.800003, 70.3157883, 95.4000015],
+          [1, 67.4736862, 84, 0, 0, 0, 0],
+          [0, 55.0818901, 94.9098282, 0, 0, 0, 0],
+          [1, 37.6164856, 90.5555725, 0, 0, 0, 0],
+          [0, 53.6304741, 100.731636, 0, 0, 0, 0],
+          [1, 36.1650658, 96.3773804, 0, 0, 0, 0],
+          [0, 71.8279419, 101.465408, 0, 0, 0, 0],
+          [2, 63.1194267, 66.5345917, 57.281498, 92.7246399, 54.3786621, 81.0810318],
+          [2, 71.8279419, 101.465408, 77.6658707, 75.2753601, 80.5687103, 86.9189682]
+        ]
+      }
+    },
+    {
+      "name": "er-self-parent",
+      "source": "erDiagram\nA ||--o{ A : \"parent\"",
+      "source_sha256": "230226fe8e4a2e443ddabd764ae047f662ae74272fe3bd10f1b9a1891467d744",
+      "result": {
+        "kind": 4,
+        "request_status": 0,
+        "request_source_range": [0, 0],
+        "fallback": {
+          "reason": 0,
+          "subject": 0,
+          "line": 0
+        },
+        "measurements": [
+          {"role": 6, "text": "A", "width": 10.671875, "height": 16},
+          {"role": 11, "text": "parent", "width": 45.3671875, "height": 16}
+        ],
+        "status": 0,
+        "bounds": [20.2085934, 7.5, 121.208595, 138.200012],
+        "next_request_count": 0,
+        "commands": [
+          {"kind": 0, "role": 20, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 6], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [6, 4], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [10, 3], "text_ref": 0},
+          {"kind": 2, "role": 29, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [85.6392975, 106.620697, 12, 12], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 2, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [85.6392975, 106.620697, 12, 12], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 22, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [48.0250015, 122.199997, 45.3671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 23, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [48.0250015, 122.199997, 45.3671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 1},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [20.7085934, 8, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [65.3726578, 38, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0}
+        ],
+        "paths": [
+          [0, 58.7698593, 84, 0, 0, 0, 0],
+          [1, 56.9790497, 89.6999969, 0, 0, 0, 0],
+          [2, 57.3770065, 112.5, 55.1882401, 95.4000015, 51.6066208, 106.800003],
+          [2, 84.0401764, 112.5, 63.1473961, 118.199997, 78.2697906, 118.199997],
+          [2, 84.4381409, 89.6999969, 89.8105698, 106.800003, 86.2289505, 95.4000015],
+          [1, 82.6473236, 84, 0, 0, 0, 0],
+          [0, 64.6584778, 95.2837982, 0, 0, 0, 0],
+          [1, 47.4860573, 89.8886185, 0, 0, 0, 0],
+          [0, 62.8600845, 101.007942, 0, 0, 0, 0],
+          [1, 45.687664, 95.6127548, 0, 0, 0, 0],
+          [0, 88.042511, 101.172417, 0, 0, 0, 0],
+          [2, 77.2521439, 66.8275833, 72.9974442, 93.3209305, 69.40065, 81.8726501],
+          [2, 88.042511, 101.172417, 92.2972107, 74.6790695, 95.8940048, 86.1273499]
+        ]
+      }
+    },
+    {
+      "name": "er-self-This is a very long label",
+      "source": "erDiagram\nA ||--o{ A : \"This is a very long label\"",
+      "source_sha256": "a381decffc789bb27a40c967ea4d033f4b998377b22ed87c980324af75dd9696",
+      "result": {
+        "kind": 4,
+        "request_status": 0,
+        "request_source_range": [0, 0],
+        "fallback": {
+          "reason": 0,
+          "subject": 0,
+          "line": 0
+        },
+        "measurements": [
+          {"role": 6, "text": "A", "width": 10.671875, "height": 16},
+          {"role": 11, "text": "This is a very long label", "width": 167.1875, "height": 16}
+        ],
+        "status": 0,
+        "bounds": [59.796875, 7.5, 226.984375, 138.200012],
+        "next_request_count": 0,
+        "commands": [
+          {"kind": 0, "role": 20, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 6], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [6, 4], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [10, 3], "text_ref": 0},
+          {"kind": 2, "role": 29, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [172.981674, 104.241844, 12, 12], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 2, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [172.981674, 104.241844, 12, 12], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 22, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [59.796875, 122.199997, 167.1875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 23, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [59.796875, 122.199997, 167.1875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 1},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [93.390625, 8, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [138.054688, 38, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0}
+        ],
+        "paths": [
+          [0, 122.33799, 84, 0, 0, 0, 0],
+          [1, 119.180099, 89.6999969, 0, 0, 0, 0],
+          [2, 119.881851, 112.5, 116.022202, 95.4000015, 109.706413, 106.800003],
+          [2, 166.899399, 112.5, 130.057297, 118.199997, 156.723953, 118.199997],
+          [2, 167.601151, 89.6999969, 177.074829, 106.800003, 170.759048, 95.4000015],
+          [1, 164.443253, 84, 0, 0, 0, 0],
+          [0, 125.849022, 96.2340775, 0, 0, 0, 0],
+          [1, 110.103912, 87.5110245, 0, 0, 0, 0],
+          [0, 122.941338, 101.482445, 0, 0, 0, 0],
+          [1, 107.196228, 92.7593994, 0, 0, 0, 0],
+          [0, 173.166306, 99.7451096, 0, 0, 0, 0],
+          [2, 155.7202, 68.2548904, 156.854202, 95.063736, 151.038834, 84.5670013],
+          [2, 173.166306, 99.7451096, 172.032318, 72.936264, 177.847672, 83.4329987]
+        ]
+      }
+    },
+    {
+      "name": "er-self-attrs",
+      "source": "erDiagram\nA {\nstring name\n}\nA ||--o{ A : loop",
+      "source_sha256": "264f8c300834b0d9c0dcc9f265cf13421eeffb522e80bd629ab4bba5aaca47ab",
+      "result": {
+        "kind": 4,
+        "request_status": 0,
+        "request_source_range": [0, 0],
+        "fallback": {
+          "reason": 0,
+          "subject": 0,
+          "line": 0
+        },
+        "measurements": [
+          {"role": 6, "text": "A", "width": 10.671875, "height": 16},
+          {"role": 6, "text": "string", "width": 39.125, "height": 16},
+          {"role": 6, "text": "name", "width": 40.0234375, "height": 16},
+          {"role": 11, "text": "loop", "width": 30.25, "height": 16}
+        ],
+        "status": 0,
+        "bounds": [7.3499999, 7.3499999, 137.798447, 128.775009],
+        "next_request_count": 0,
+        "commands": [
+          {"kind": 0, "role": 20, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 6], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [6, 4], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [10, 3], "text_ref": 0},
+          {"kind": 2, "role": 29, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [88.1852875, 99.8831482, 12, 12], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 2, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [88.1852875, 99.8831482, 12, 12], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 22, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [57.4492188, 112.775002, 30.25, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 23, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [57.4492188, 112.775002, 30.25, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 3},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 8, 129.148438, 34.75], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 29, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 42.75, 129.148438, 34.75], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 28, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 42.75, 129.148438, 34.75], "radii": [0, 0], "stroke_width": 1.29999995, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 24, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 8, 129.148438, 69.5], "radii": [0, 0], "stroke_width": 1.29999995, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [67.2382812, 17.375, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [20.5, 52.125, 39.125, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 1},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [84.625, 52.125, 40.0234375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 2},
+          {"kind": 0, "role": 28, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1.29999995, "dash": [0, 0], "path_range": [13, 2], "text_ref": 0},
+          {"kind": 0, "role": 28, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1.29999995, "dash": [0, 0], "path_range": [15, 2], "text_ref": 0}
+        ],
+        "paths": [
+          [0, 60.6789665, 77.5, 0, 0, 0, 0],
+          [1, 58.89468, 82.7125015, 0, 0, 0, 0],
+          [2, 59.2911873, 103.5625, 57.1103935, 87.9250031, 53.5418167, 98.3499985],
+          [2, 85.8572464, 103.5625, 65.0405579, 108.775002, 80.1078796, 108.775002],
+          [2, 86.2537537, 82.7125015, 91.6066208, 98.3499985, 88.0380478, 87.9250031],
+          [1, 84.4694672, 77.5, 0, 0, 0, 0],
+          [0, 66.2791672, 88.9296875, 0, 0, 0, 0],
+          [1, 49.249279, 83.1001968, 0, 0, 0, 0],
+          [0, 64.3360062, 94.6063156, 0, 0, 0, 0],
+          [1, 47.306118, 88.776825, 0, 0, 0, 0],
+          [0, 90.2989578, 94.5298843, 0, 0, 0, 0],
+          [2, 78.6399765, 60.4701118, 75.0593719, 87.0629578, 71.1730499, 75.7096939],
+          [2, 90.2989578, 94.5298843, 93.8795624, 67.9370422, 97.765892, 79.2903061],
+          [0, 8, 42.75, 0, 0, 0, 0],
+          [1, 137.148438, 42.75, 0, 0, 0, 0],
+          [0, 72.125, 42.75, 0, 0, 0, 0],
+          [1, 72.125, 77.5, 0, 0, 0, 0]
+        ]
+      }
+    },
+    {
+      "name": "er-self-tall",
+      "source": "erDiagram\nA {\nint a\nint b\nint c\n}\nA ||--o{ A : loop",
+      "source_sha256": "09f0b50e7256a168ea884a0ab402c0ba5cd2c4ab26e377754f9c35b11ffba0c6",
+      "result": {
+        "kind": 4,
+        "request_status": 0,
+        "request_source_range": [0, 0],
+        "fallback": {
+          "reason": 0,
+          "subject": 0,
+          "line": 0
+        },
+        "measurements": [
+          {"role": 6, "text": "A", "width": 10.671875, "height": 16},
+          {"role": 6, "text": "int", "width": 16.8984375, "height": 16},
+          {"role": 6, "text": "a", "width": 8.8984375, "height": 16},
+          {"role": 6, "text": "b", "width": 8.8984375, "height": 16},
+          {"role": 6, "text": "c", "width": 8, "height": 16},
+          {"role": 11, "text": "loop", "width": 30.25, "height": 16}
+        ],
+        "status": 0,
+        "bounds": [24.6015625, 7.3499999, 101.698441, 201.108597],
+        "next_request_count": 0,
+        "commands": [
+          {"kind": 0, "role": 20, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 6], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [6, 4], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [10, 3], "text_ref": 0},
+          {"kind": 2, "role": 29, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [74.3592911, 170.557266, 12, 12], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 2, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [74.3592911, 170.557266, 12, 12], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 22, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [48.0250015, 185.108597, 30.25, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 23, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [48.0250015, 185.108597, 30.25, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 5},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [25.2515621, 8, 75.796875, 34.75], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 29, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [25.2515621, 42.75, 75.796875, 34.75], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 27, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [25.2515621, 77.5, 75.796875, 34.75], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 29, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [25.2515621, 112.25, 75.796875, 34.75], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 28, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [25.2515621, 42.75, 75.796875, 34.75], "radii": [0, 0], "stroke_width": 1.29999995, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 28, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [25.2515621, 77.5, 75.796875, 34.75], "radii": [0, 0], "stroke_width": 1.29999995, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 28, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [25.2515621, 112.25, 75.796875, 34.75], "radii": [0, 0], "stroke_width": 1.29999995, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 24, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [25.2515621, 8, 75.796875, 139], "radii": [0, 0], "stroke_width": 1.29999995, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [57.814064, 17.375, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [37.751564, 52.125, 16.8984375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 1},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [79.6500015, 52.125, 8.8984375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 2},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [37.751564, 86.875, 16.8984375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 1},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [79.6500015, 86.875, 8.8984375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 3},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [37.751564, 121.625, 16.8984375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 1},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [79.6500015, 121.625, 8, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 4},
+          {"kind": 0, "role": 28, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1.29999995, "dash": [0, 0], "path_range": [13, 2], "text_ref": 0},
+          {"kind": 0, "role": 28, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1.29999995, "dash": [0, 0], "path_range": [15, 2], "text_ref": 0}
+        ],
+        "paths": [
+          [0, 51.0757103, 147, 0, 0, 0, 0],
+          [1, 50.0880928, 152.684769, 0, 0, 0, 0],
+          [2, 52.137619, 175.423828, 49.1004753, 158.369537, 47.1252365, 169.739059],
+          [2, 74.162384, 175.423828, 57.1500015, 181.108597, 69.1500015, 181.108597],
+          [2, 76.2119064, 152.684769, 79.1747589, 169.739059, 77.1995239, 158.369537],
+          [1, 75.2242889, 147, 0, 0, 0, 0],
+          [0, 58.4023895, 157.407684, 0, 0, 0, 0],
+          [1, 40.6680336, 154.326675, 0, 0, 0, 0],
+          [0, 57.3753891, 163.319138, 0, 0, 0, 0],
+          [1, 39.6410294, 160.238129, 0, 0, 0, 0],
+          [0, 78.3052902, 164.73436, 0, 0, 0, 0],
+          [2, 72.1432877, 129.26564, 64.4283829, 154.965454, 62.374382, 143.142548],
+          [2, 78.3052902, 164.73436, 86.020195, 139.034546, 88.0741959, 150.857452],
+          [0, 25.2515621, 42.75, 0, 0, 0, 0],
+          [1, 101.048439, 42.75, 0, 0, 0, 0],
+          [0, 67.1500015, 42.75, 0, 0, 0, 0],
+          [1, 67.1500015, 147, 0, 0, 0, 0]
+        ]
+      }
+    },
+    {
+      "name": "er-self-wide",
+      "source": "erDiagram\nLongLongLongLongName ||--|| LongLongLongLongName : loop",
+      "source_sha256": "b22954b70a01b104b45d7bfe1241ddd75f722c27d177a83de43a34539b9df63f",
+      "result": {
+        "kind": 4,
+        "request_status": 0,
+        "request_source_range": [0, 0],
+        "fallback": {
+          "reason": 0,
+          "subject": 0,
+          "line": 0
+        },
+        "measurements": [
+          {"role": 6, "text": "LongLongLongLongName", "width": 185.054688, "height": 16},
+          {"role": 11, "text": "loop", "width": 30.25, "height": 16}
+        ],
+        "status": 0,
+        "bounds": [7.5, 7.5, 233.554688, 138.200012],
+        "next_request_count": 0,
+        "commands": [
+          {"kind": 0, "role": 20, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 6], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [6, 4], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [10, 4], "text_ref": 0},
+          {"kind": 1, "role": 22, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [105.402344, 122.199997, 30.25, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 23, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [105.402344, 122.199997, 30.25, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 1},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 8, 225.054688, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [28, 38, 185.054688, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0}
+        ],
+        "paths": [
+          [0, 99.7986221, 84, 0, 0, 0, 0],
+          [1, 96.6893158, 89.6999969, 0, 0, 0, 0],
+          [2, 97.3802719, 112.5, 93.5800095, 95.4000015, 87.3613892, 106.800003],
+          [2, 143.674423, 112.5, 107.399155, 118.199997, 133.655533, 118.199997],
+          [2, 144.365372, 89.6999969, 153.693298, 106.800003, 147.474686, 95.4000015],
+          [1, 141.256058, 84, 0, 0, 0, 0],
+          [0, 103.389656, 96.2108383, 0, 0, 0, 0],
+          [1, 87.5877914, 87.5910339, 0, 0, 0, 0],
+          [0, 100.516388, 101.478127, 0, 0, 0, 0],
+          [1, 84.7145233, 92.8583221, 0, 0, 0, 0],
+          [0, 140.5383, 101.478127, 0, 0, 0, 0],
+          [1, 156.340164, 92.8583221, 0, 0, 0, 0],
+          [0, 137.665039, 96.2108383, 0, 0, 0, 0],
+          [1, 153.466904, 87.5910339, 0, 0, 0, 0]
+        ]
+      }
+    },
+    {
+      "name": "er-self-neighbor",
+      "source": "erDiagram\nA ||--|| B : owns\nA ||--o{ A : loop",
+      "source_sha256": "24905d00d6b41c1f1ea7e5f91b4708daeb4fbfc45a1bfc4dbfaf3a691ebb1b87",
+      "result": {
+        "kind": 4,
+        "request_status": 0,
+        "request_source_range": [0, 0],
+        "fallback": {
+          "reason": 0,
+          "subject": 0,
+          "line": 0
+        },
+        "measurements": [
+          {"role": 6, "text": "A", "width": 10.671875, "height": 16},
+          {"role": 6, "text": "B", "width": 10.671875, "height": 16},
+          {"role": 11, "text": "owns", "width": 37.3515625, "height": 16},
+          {"role": 11, "text": "loop", "width": 30.25, "height": 16}
+        ],
+        "status": 0,
+        "bounds": [7.5, 7.5, 298.550018, 256.5],
+        "next_request_count": 0,
+        "commands": [
+          {"kind": 0, "role": 20, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 5], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [5, 4], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [9, 4], "text_ref": 0},
+          {"kind": 0, "role": 20, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [13, 6], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [19, 4], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [23, 3], "text_ref": 0},
+          {"kind": 2, "role": 29, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [258.780792, 107.109009, 12, 12], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 2, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [258.780792, 107.109009, 12, 12], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 22, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [39.3242188, 124, 37.3515625, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 23, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [39.3242188, 124, 37.3515625, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 2},
+          {"kind": 1, "role": 22, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [232.925003, 122.199997, 30.25, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 23, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [232.925003, 122.199997, 30.25, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 3},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [198.050003, 8, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [242.714066, 38, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [8, 180, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [52.6640625, 210, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 1}
+        ],
+        "paths": [
+          [0, 198.050003, 68.6256256, 0, 0, 0, 0],
+          [1, 174.708328, 79.1880188, 0, 0, 0, 0],
+          [2, 81.3416672, 129.437607, 151.366669, 89.7504196, 104.683334, 110.875206],
+          [2, 58, 172, 58, 148, 58, 164],
+          [1, 58, 180, 0, 0, 0, 0],
+          [0, 193.560837, 80.5355988, 0, 0, 0, 0],
+          [1, 186.14003, 64.136467, 0, 0, 0, 0],
+          [0, 188.094467, 83.009201, 0, 0, 0, 0],
+          [1, 180.673645, 66.6100693, 0, 0, 0, 0],
+          [0, 67, 165, 0, 0, 0, 0],
+          [1, 49, 165, 0, 0, 0, 0],
+          [0, 67, 171, 0, 0, 0, 0],
+          [1, 49, 171, 0, 0, 0, 0],
+          [0, 238.576309, 84, 0, 0, 0, 0],
+          [1, 237.155258, 89.6999969, 0, 0, 0, 0],
+          [2, 237.471054, 112.5, 235.734207, 95.4000015, 232.892105, 106.800003],
+          [2, 258.628937, 112.5, 242.050003, 118.199997, 254.050003, 118.199997],
+          [2, 258.944733, 89.6999969, 263.207886, 106.800003, 260.365784, 95.4000015],
+          [1, 257.523682, 84, 0, 0, 0, 0],
+          [0, 245.131897, 94.9098282, 0, 0, 0, 0],
+          [1, 227.666489, 90.5555725, 0, 0, 0, 0],
+          [0, 243.680466, 100.731636, 0, 0, 0, 0],
+          [1, 226.215057, 96.3773804, 0, 0, 0, 0],
+          [0, 261.87793, 101.465408, 0, 0, 0, 0],
+          [2, 253.169434, 66.5345917, 247.331497, 92.7246399, 244.428665, 81.0810318],
+          [2, 261.87793, 101.465408, 267.715881, 75.2753601, 270.618713, 86.9189682]
+        ]
+      }
+    },
+    {
+      "name": "er-self-repeat",
+      "source": "erDiagram\nA ||--|| A : first\nA ||--o{ A : second",
+      "source_sha256": "27d3b6440c6490e4607d36a2671b0ea19ae64f4a3d015c1d899b11fa43592794",
+      "result": {
+        "kind": 4,
+        "request_status": 0,
+        "request_source_range": [0, 0],
+        "fallback": {
+          "reason": 0,
+          "subject": 0,
+          "line": 0
+        },
+        "measurements": [
+          {"role": 6, "text": "A", "width": 10.671875, "height": 16},
+          {"role": 11, "text": "second", "width": 51.59375, "height": 16}
+        ],
+        "status": 0,
+        "bounds": [23.3218746, 7.5, 124.321877, 138.200012],
+        "next_request_count": 0,
+        "commands": [
+          {"kind": 0, "role": 20, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 6], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [6, 4], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [10, 3], "text_ref": 0},
+          {"kind": 2, "role": 29, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [91.4931412, 106.250877, 12, 12], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 2, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [91.4931412, 106.250877, 12, 12], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 22, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [48.0250015, 122.199997, 51.59375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 23, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 1, "rect": [48.0250015, 122.199997, 51.59375, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 1},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [23.8218746, 8, 100, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [68.485939, 38, 10.671875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0}
+        ],
+        "paths": [
+          [0, 60.2445717, 84, 0, 0, 0, 0],
+          [1, 58.2079773, 89.6999969, 0, 0, 0, 0],
+          [2, 58.660553, 112.5, 56.1713829, 95.4000015, 52.0981903, 106.800003],
+          [2, 88.9832001, 112.5, 65.2229156, 118.199997, 82.4208298, 118.199997],
+          [2, 89.4357758, 89.6999969, 95.5455627, 106.800003, 91.4723663, 95.4000015],
+          [1, 87.3991776, 84, 0, 0, 0, 0],
+          [0, 65.6916428, 95.5034485, 0, 0, 0, 0],
+          [1, 48.7411194, 89.4470749, 0, 0, 0, 0],
+          [0, 63.6728516, 101.153625, 0, 0, 0, 0],
+          [1, 46.7223282, 95.0972443, 0, 0, 0, 0],
+          [0, 93.4555588, 100.950523, 0, 0, 0, 0],
+          [2, 81.3427963, 67.0494766, 78.1176224, 93.6877594, 74.0800323, 82.387413],
+          [2, 93.4555588, 100.950523, 96.6807327, 74.3122406, 100.718323, 85.612587]
+        ]
+      }
+    },
+    {
+      "name": "er-self-verywide",
+      "source": "erDiagram\nLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLong ||--o{ LongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLong : loop",
+      "source_sha256": "3563ef72402371129d63c33685c878408f74beb28e9001159f85966169125713",
+      "result": {
+        "kind": 4,
+        "request_status": 0,
+        "request_source_range": [0, 0],
+        "fallback": {
+          "reason": 0,
+          "subject": 0,
+          "line": 0
+        },
+        "measurements": [
+          {"role": 6, "text": "LongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLong", "width": 711.875, "height": 16},
+          {"role": 11, "text": "loop", "width": 30.25, "height": 16}
+        ],
+        "status": 0,
+        "bounds": [7.5, 7.5, 760.375, 138.200012],
+        "next_request_count": 0,
+        "commands": [
+          {"kind": 0, "role": 20, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 6], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [6, 4], "text_ref": 0},
+          {"kind": 0, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [0, 0, 0, 0], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [10, 3], "text_ref": 0},
+          {"kind": 2, "role": 29, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [421.33313, 102.663307, 12, 12], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 2, "role": 21, "fill": 0, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [421.33313, 102.663307, 12, 12], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 1, "role": 22, "fill": 1, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [368.8125, 122.199997, 30.25, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 23, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [368.8125, 122.199997, 30.25, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 1},
+          {"kind": 1, "role": 24, "fill": 1, "stroke": 1, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [8, 8, 751.875, 76], "radii": [0, 0], "stroke_width": 1, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0},
+          {"kind": 3, "role": 25, "fill": 2, "stroke": 0, "fill_tint": 0, "stroke_tint": 0, "subject": 0, "rect": [28, 38, 711.875, 16], "radii": [0, 0], "stroke_width": 0, "dash": [0, 0], "path_range": [0, 0], "text_ref": 0}
+        ],
+        "paths": [
+          [0, 357.621704, 84, 0, 0, 0, 0],
+          [1, 353.674347, 89.6999969, 0, 0, 0, 0],
+          [2, 354.551544, 112.5, 349.726959, 95.4000015, 341.832245, 106.800003],
+          [2, 413.323456, 112.5, 367.270844, 118.199997, 400.604156, 118.199997],
+          [2, 414.200653, 89.6999969, 426.042755, 106.800003, 418.148041, 95.4000015],
+          [1, 410.253296, 84, 0, 0, 0, 0],
+          [0, 359.896759, 96.5229492, 0, 0, 0, 0],
+          [1, 345.098755, 86.2750397, 0, 0, 0, 0],
+          [0, 356.480774, 101.455612, 0, 0, 0, 0],
+          [1, 341.6828, 91.207695, 0, 0, 0, 0],
+          [0, 420.50119, 98.7979813, 0, 0, 0, 0],
+          [2, 400.005371, 69.2020187, 403.803925, 95.7646027, 396.971985, 85.8992767],
+          [2, 420.50119, 98.7979813, 416.702637, 72.2353973, 423.534576, 82.1007233]
+        ]
+      }
+    }
+  ]
+}

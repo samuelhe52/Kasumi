@@ -1,0 +1,29 @@
+[meta]
+name = "Paragraph geometry"
+
+[anchor]
+latin_family = "New York"
+han_family = "Songti SC"
+han_baseline = 0.04
+heading_han_baseline = 0.06
+
+[profile]
+base_size = 18
+line_spacing = 1.7
+latin_scale = 0.97
+han_scale = 1.05
+compactness = 0.4
+punct_squeeze = 0.35
+cjk_latin_gap = 0.25
+inter_cjk_natural = 0.03
+inter_cjk_stretch = 0.08
+inter_cjk_shrink = 0.06
+hanging_punctuation = true
+ragged_code_fraction = 0.45
+auto_ragged_narrow = true
+auto_ragged_measure_em = 20
+code_capsule = true
+code_capsule_pad = 0.2
+para_separation = "indent"
+first_line_indent = 2
+print_body_size = 11

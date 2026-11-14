@@ -1,0 +1,1533 @@
+{
+  "schema_version": 1,
+  "themes": [
+    {
+      "id": "default-light",
+      "name": "Classic (Light)",
+      "appearance": "light",
+      "document": {
+        "paper": {
+          "system": "textBackgroundColor"
+        },
+        "text": {
+          "system": "textColor"
+        },
+        "heading": {
+          "system": "textColor"
+        },
+        "link": {
+          "system": "linkColor"
+        },
+        "inline_code": {
+          "system": "textColor"
+        },
+        "secondary_text": {
+          "system": "secondaryLabelColor"
+        },
+        "rule": {
+          "system": "separatorColor"
+        },
+        "code_block_background": {
+          "space": "sRGB",
+          "rgba": [
+            0.958,
+            0.961,
+            0.969,
+            1.0
+          ]
+        },
+        "code_capsule_background": {
+          "space": "sRGB",
+          "rgba": [
+            0.929,
+            0.933,
+            0.945,
+            1.0
+          ]
+        },
+        "table_header_background": {
+          "space": "genericRGB",
+          "rgba": [
+            0.96,
+            0.96,
+            0.96,
+            1.0
+          ]
+        },
+        "image_placeholder_background": {
+          "space": "genericRGB",
+          "rgba": [
+            0.95,
+            0.95,
+            0.95,
+            1.0
+          ]
+        },
+        "diagram_node_fill": {
+          "space": "sRGB",
+          "rgba": [
+            0.952,
+            0.955,
+            0.965,
+            1.0
+          ]
+        },
+        "diagram_node_stroke": {
+          "space": "sRGB",
+          "rgba": [
+            0.52,
+            0.53,
+            0.57,
+            1.0
+          ]
+        },
+        "diagram_edge_label_background": {
+          "space": "sRGB",
+          "rgba": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "diagram_note_fill": {
+          "space": "sRGB",
+          "rgba": [
+            0.8862745098039215,
+            0.8862745098039215,
+            0.8862745098039215,
+            1.0
+          ]
+        },
+        "diagram_block_fill": {
+          "space": "sRGB",
+          "rgba": [
+            0.9647058823529412,
+            0.9647058823529412,
+            0.9647058823529412,
+            1.0
+          ]
+        },
+        "diagram_badge_text": {
+          "space": "sRGB",
+          "rgba": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "diagram_accent_red_tint": {
+          "space": "sRGB",
+          "rgba": [
+            0.996078431372549,
+            0.792156862745098,
+            0.7725490196078432,
+            1.0
+          ]
+        },
+        "diagram_accent_red_mid": {
+          "space": "sRGB",
+          "rgba": [
+            1.0,
+            0.7098039215686275,
+            0.6823529411764706,
+            1.0
+          ]
+        },
+        "diagram_accent_red_deep": {
+          "space": "sRGB",
+          "rgba": [
+            0.7725490196078432,
+            0.3176470588235294,
+            0.2980392156862745,
+            1.0
+          ]
+        },
+        "diagram_accent_orange_tint": {
+          "space": "sRGB",
+          "rgba": [
+            0.9647058823529412,
+            0.8117647058823529,
+            0.6901960784313725,
+            1.0
+          ]
+        },
+        "diagram_accent_orange_mid": {
+          "space": "sRGB",
+          "rgba": [
+            1.0,
+            0.7254901960784313,
+            0.4980392156862745,
+            1.0
+          ]
+        },
+        "diagram_accent_orange_deep": {
+          "space": "sRGB",
+          "rgba": [
+            0.6941176470588235,
+            0.3843137254901961,
+            0.0,
+            1.0
+          ]
+        },
+        "diagram_accent_yellow_tint": {
+          "space": "sRGB",
+          "rgba": [
+            0.9686274509803922,
+            0.9411764705882353,
+            0.7607843137254902,
+            1.0
+          ]
+        },
+        "diagram_accent_yellow_mid": {
+          "space": "sRGB",
+          "rgba": [
+            0.8588235294117647,
+            0.8,
+            0.4588235294117647,
+            1.0
+          ]
+        },
+        "diagram_accent_yellow_deep": {
+          "space": "sRGB",
+          "rgba": [
+            0.5254901960784314,
+            0.4666666666666667,
+            0.0,
+            1.0
+          ]
+        },
+        "diagram_accent_green_tint": {
+          "space": "sRGB",
+          "rgba": [
+            0.8470588235294118,
+            0.9882352941176471,
+            0.8470588235294118,
+            1.0
+          ]
+        },
+        "diagram_accent_green_mid": {
+          "space": "sRGB",
+          "rgba": [
+            0.6941176470588235,
+            0.9529411764705882,
+            0.6980392156862745,
+            1.0
+          ]
+        },
+        "diagram_accent_green_deep": {
+          "space": "sRGB",
+          "rgba": [
+            0.03137254901960784,
+            0.4549019607843137,
+            0.12156862745098039,
+            1.0
+          ]
+        },
+        "diagram_accent_cyan_tint": {
+          "space": "sRGB",
+          "rgba": [
+            0.7529411764705882,
+            0.9882352941176471,
+            0.984313725490196,
+            1.0
+          ]
+        },
+        "diagram_accent_cyan_mid": {
+          "space": "sRGB",
+          "rgba": [
+            0.396078431372549,
+            0.8823529411764706,
+            0.8823529411764706,
+            1.0
+          ]
+        },
+        "diagram_accent_cyan_deep": {
+          "space": "sRGB",
+          "rgba": [
+            0.0,
+            0.5176470588235295,
+            0.5176470588235295,
+            1.0
+          ]
+        },
+        "diagram_accent_blue_tint": {
+          "space": "sRGB",
+          "rgba": [
+            0.8901960784313725,
+            0.9372549019607843,
+            1.0,
+            1.0
+          ]
+        },
+        "diagram_accent_blue_mid": {
+          "space": "sRGB",
+          "rgba": [
+            0.6549019607843137,
+            0.807843137254902,
+            1.0,
+            1.0
+          ]
+        },
+        "diagram_accent_blue_deep": {
+          "space": "sRGB",
+          "rgba": [
+            0.18823529411764706,
+            0.4666666666666667,
+            0.803921568627451,
+            1.0
+          ]
+        },
+        "diagram_accent_purple_tint": {
+          "space": "sRGB",
+          "rgba": [
+            0.8509803921568627,
+            0.796078431372549,
+            0.9647058823529412,
+            1.0
+          ]
+        },
+        "diagram_accent_purple_mid": {
+          "space": "sRGB",
+          "rgba": [
+            0.7490196078431373,
+            0.6431372549019608,
+            0.9411764705882353,
+            1.0
+          ]
+        },
+        "diagram_accent_purple_deep": {
+          "space": "sRGB",
+          "rgba": [
+            0.4666666666666667,
+            0.3137254901960784,
+            0.6941176470588235,
+            1.0
+          ]
+        },
+        "diagram_accent_pink_tint": {
+          "space": "sRGB",
+          "rgba": [
+            1.0,
+            0.9058823529411765,
+            0.9529411764705882,
+            1.0
+          ]
+        },
+        "diagram_accent_pink_mid": {
+          "space": "sRGB",
+          "rgba": [
+            1.0,
+            0.7019607843137254,
+            0.8666666666666667,
+            1.0
+          ]
+        },
+        "diagram_accent_pink_deep": {
+          "space": "sRGB",
+          "rgba": [
+            0.7215686274509804,
+            0.3215686274509804,
+            0.5686274509803921,
+            1.0
+          ]
+        },
+        "diagram_accent_neutral_mid": {
+          "space": "sRGB",
+          "rgba": [
+            0.792156862745098,
+            0.792156862745098,
+            0.792156862745098,
+            1.0
+          ]
+        },
+        "diagram_accent_neutral_deep": {
+          "space": "sRGB",
+          "rgba": [
+            0.1803921568627451,
+            0.1803921568627451,
+            0.1803921568627451,
+            1.0
+          ]
+        },
+        "diagram_accent_ink": {
+          "space": "sRGB",
+          "rgba": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "diagram_series_1_fill": {
+          "space": "sRGB",
+          "rgba": [
+            0.4235294117647059,
+            0.6588235294117647,
+            0.9607843137254902,
+            1.0
+          ]
+        },
+        "diagram_series_2_fill": {
+          "space": "sRGB",
+          "rgba": [
+            0.9450980392156862,
+            0.5568627450980392,
+            0.41568627450980394,
+            1.0
+          ]
+        },
+        "diagram_series_3_fill": {
+          "space": "sRGB",
+          "rgba": [
+            0.30980392156862746,
+            0.7725490196078432,
+            0.5764705882352941,
+            1.0
+          ]
+        },
+        "diagram_series_4_fill": {
+          "space": "sRGB",
+          "rgba": [
+            0.8901960784313725,
+            0.6509803921568628,
+            0.2823529411764706,
+            1.0
+          ]
+        },
+        "diagram_series_5_fill": {
+          "space": "sRGB",
+          "rgba": [
+            0.9411764705882353,
+            0.5450980392156862,
+            0.6901960784313725,
+            1.0
+          ]
+        },
+        "diagram_series_6_fill": {
+          "space": "sRGB",
+          "rgba": [
+            0.43529411764705883,
+            0.7137254901960784,
+            0.41568627450980394,
+            1.0
+          ]
+        },
+        "diagram_series_7_fill": {
+          "space": "sRGB",
+          "rgba": [
+            0.5725490196078431,
+            0.5607843137254902,
+            0.9137254901960784,
+            1.0
+          ]
+        },
+        "diagram_series_8_fill": {
+          "space": "sRGB",
+          "rgba": [
+            0.9372549019607843,
+            0.5254901960784314,
+            0.4980392156862745,
+            1.0
+          ]
+        },
+        "diagram_series_1_edge": {
+          "space": "sRGB",
+          "rgba": [
+            0.1568627450980392,
+            0.43137254901960786,
+            0.7647058823529411,
+            1.0
+          ]
+        },
+        "diagram_series_2_edge": {
+          "space": "sRGB",
+          "rgba": [
+            0.7019607843137254,
+            0.2823529411764706,
+            0.10980392156862745,
+            1.0
+          ]
+        },
+        "diagram_series_3_edge": {
+          "space": "sRGB",
+          "rgba": [
+            0.0,
+            0.5137254901960784,
+            0.34901960784313724,
+            1.0
+          ]
+        },
+        "diagram_series_4_edge": {
+          "space": "sRGB",
+          "rgba": [
+            0.5843137254901961,
+            0.38823529411764707,
+            0.0,
+            1.0
+          ]
+        },
+        "diagram_series_5_edge": {
+          "space": "sRGB",
+          "rgba": [
+            0.6745098039215687,
+            0.27058823529411763,
+            0.43529411764705883,
+            1.0
+          ]
+        },
+        "diagram_series_6_edge": {
+          "space": "sRGB",
+          "rgba": [
+            0.1803921568627451,
+            0.5137254901960784,
+            0.16470588235294117,
+            1.0
+          ]
+        },
+        "diagram_series_7_edge": {
+          "space": "sRGB",
+          "rgba": [
+            0.4,
+            0.3686274509803922,
+            0.7568627450980392,
+            1.0
+          ]
+        },
+        "diagram_series_8_edge": {
+          "space": "sRGB",
+          "rgba": [
+            0.7137254901960784,
+            0.2627450980392157,
+            0.25098039215686274,
+            1.0
+          ]
+        },
+        "diagram_series_ink": {
+          "space": "sRGB",
+          "rgba": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        "mark_background": {
+          "space": "sRGB",
+          "rgba": [
+            0.9725490196078431,
+            0.8705882352941177,
+            0.4470588235294118,
+            1.0
+          ]
+        }
+      },
+      "chrome": {},
+      "syntax": {
+        "keyword": {
+          "space": "sRGB",
+          "rgba": [
+            0.17647058823529413,
+            0.1843137254901961,
+            0.49411764705882355,
+            1.0
+          ]
+        },
+        "string": {
+          "space": "sRGB",
+          "rgba": [
+            0.06666666666666667,
+            0.4392156862745098,
+            0.30196078431372547,
+            1.0
+          ]
+        },
+        "comment": {
+          "space": "sRGB",
+          "rgba": [
+            0.5803921568627451,
+            0.5882352941176471,
+            0.6,
+            1.0
+          ]
+        },
+        "literal": {
+          "space": "sRGB",
+          "rgba": [
+            0.6823529411764706,
+            0.38823529411764707,
+            0.047058823529411764,
+            1.0
+          ]
+        },
+        "type": {
+          "space": "sRGB",
+          "rgba": [
+            0.0,
+            0.3215686274509804,
+            0.5490196078431373,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "id": "default-dark",
+      "name": "Classic (Dark)",
+      "appearance": "dark",
+      "document": {
+        "paper": {
+          "system": "textBackgroundColor"
+        },
+        "text": {
+          "system": "textColor"
+        },
+        "heading": {
+          "system": "textColor"
+        },
+        "link": {
+          "system": "linkColor"
+        },
+        "inline_code": {
+          "system": "textColor"
+        },
+        "secondary_text": {
+          "system": "secondaryLabelColor"
+        },
+        "rule": {
+          "system": "separatorColor"
+        },
+        "code_block_background": {
+          "space": "sRGB",
+          "rgba": [
+            0.145,
+            0.15,
+            0.165,
+            1.0
+          ]
+        },
+        "code_capsule_background": {
+          "space": "sRGB",
+          "rgba": [
+            0.18,
+            0.186,
+            0.204,
+            1.0
+          ]
+        },
+        "table_header_background": {
+          "space": "genericRGB",
+          "rgba": [
+            0.1259303879737854,
+            0.1259303879737854,
+            0.1259303879737854,
+            1.0
+          ]
+        },
+        "image_placeholder_background": {
+          "space": "genericRGB",
+          "rgba": [
+            0.13503527976572513,
+            0.13503527976572513,
+            0.13503527976572513,
+            1.0
+          ]
+        },
+        "diagram_node_fill": {
+          "space": "sRGB",
+          "rgba": [
+            0.16,
+            0.166,
+            0.182,
+            1.0
+          ]
+        },
+        "diagram_node_stroke": {
+          "space": "sRGB",
+          "rgba": [
+            0.56,
+            0.57,
+            0.6,
+            1.0
+          ]
+        },
+        "diagram_edge_label_background": {
+          "space": "sRGB",
+          "rgba": [
+            0.118,
+            0.118,
+            0.125,
+            1.0
+          ]
+        },
+        "diagram_note_fill": {
+          "space": "sRGB",
+          "rgba": [
+            0.2,
+            0.2,
+            0.20784313725490197,
+            1.0
+          ]
+        },
+        "diagram_block_fill": {
+          "space": "sRGB",
+          "rgba": [
+            0.1411764705882353,
+            0.1411764705882353,
+            0.14901960784313725,
+            1.0
+          ]
+        },
+        "diagram_badge_text": {
+          "space": "sRGB",
+          "rgba": [
+            0.118,
+            0.118,
+            0.125,
+            1.0
+          ]
+        },
+        "diagram_accent_red_tint": {
+          "space": "sRGB",
+          "rgba": [
+            0.2627450980392157,
+            0.11372549019607843,
+            0.10588235294117647,
+            1.0
+          ]
+        },
+        "diagram_accent_red_mid": {
+          "space": "sRGB",
+          "rgba": [
+            0.4627450980392157,
+            0.1568627450980392,
+            0.14901960784313725,
+            1.0
+          ]
+        },
+        "diagram_accent_red_deep": {
+          "space": "sRGB",
+          "rgba": [
+            0.8392156862745098,
+            0.3764705882352941,
+            0.3568627450980392,
+            1.0
+          ]
+        },
+        "diagram_accent_orange_tint": {
+          "space": "sRGB",
+          "rgba": [
+            0.24705882352941178,
+            0.13333333333333333,
+            0.023529411764705882,
+            1.0
+          ]
+        },
+        "diagram_accent_orange_mid": {
+          "space": "sRGB",
+          "rgba": [
+            0.403921568627451,
+            0.21176470588235294,
+            0.0,
+            1.0
+          ]
+        },
+        "diagram_accent_orange_deep": {
+          "space": "sRGB",
+          "rgba": [
+            0.7803921568627451,
+            0.43529411764705883,
+            0.0,
+            1.0
+          ]
+        },
+        "diagram_accent_yellow_tint": {
+          "space": "sRGB",
+          "rgba": [
+            0.19215686274509805,
+            0.16470588235294117,
+            0.0,
+            1.0
+          ]
+        },
+        "diagram_accent_yellow_mid": {
+          "space": "sRGB",
+          "rgba": [
+            0.3176470588235294,
+            0.2784313725490196,
+            0.0,
+            1.0
+          ]
+        },
+        "diagram_accent_yellow_deep": {
+          "space": "sRGB",
+          "rgba": [
+            0.592156862745098,
+            0.5215686274509804,
+            0.0,
+            1.0
+          ]
+        },
+        "diagram_accent_green_tint": {
+          "space": "sRGB",
+          "rgba": [
+            0.1450980392156863,
+            0.25882352941176473,
+            0.14901960784313725,
+            1.0
+          ]
+        },
+        "diagram_accent_green_mid": {
+          "space": "sRGB",
+          "rgba": [
+            0.12549019607843137,
+            0.3764705882352941,
+            0.14901960784313725,
+            1.0
+          ]
+        },
+        "diagram_accent_green_deep": {
+          "space": "sRGB",
+          "rgba": [
+            0.3176470588235294,
+            0.6784313725490196,
+            0.3411764705882353,
+            1.0
+          ]
+        },
+        "diagram_accent_cyan_tint": {
+          "space": "sRGB",
+          "rgba": [
+            0.0,
+            0.19215686274509805,
+            0.19607843137254902,
+            1.0
+          ]
+        },
+        "diagram_accent_cyan_mid": {
+          "space": "sRGB",
+          "rgba": [
+            0.0,
+            0.3176470588235294,
+            0.3215686274509804,
+            1.0
+          ]
+        },
+        "diagram_accent_cyan_deep": {
+          "space": "sRGB",
+          "rgba": [
+            0.0,
+            0.5803921568627451,
+            0.5843137254901961,
+            1.0
+          ]
+        },
+        "diagram_accent_blue_tint": {
+          "space": "sRGB",
+          "rgba": [
+            0.1411764705882353,
+            0.23529411764705882,
+            0.34901960784313724,
+            1.0
+          ]
+        },
+        "diagram_accent_blue_mid": {
+          "space": "sRGB",
+          "rgba": [
+            0.08235294117647059,
+            0.27450980392156865,
+            0.5019607843137255,
+            1.0
+          ]
+        },
+        "diagram_accent_blue_deep": {
+          "space": "sRGB",
+          "rgba": [
+            0.25098039215686274,
+            0.5294117647058824,
+            0.8705882352941177,
+            1.0
+          ]
+        },
+        "diagram_accent_purple_tint": {
+          "space": "sRGB",
+          "rgba": [
+            0.1843137254901961,
+            0.13333333333333333,
+            0.2627450980392157,
+            1.0
+          ]
+        },
+        "diagram_accent_purple_mid": {
+          "space": "sRGB",
+          "rgba": [
+            0.25882352941176473,
+            0.14901960784313725,
+            0.403921568627451,
+            1.0
+          ]
+        },
+        "diagram_accent_purple_deep": {
+          "space": "sRGB",
+          "rgba": [
+            0.6784313725490196,
+            0.5294117647058824,
+            0.9294117647058824,
+            1.0
+          ]
+        },
+        "diagram_accent_pink_tint": {
+          "space": "sRGB",
+          "rgba": [
+            0.3254901960784314,
+            0.18823529411764706,
+            0.26666666666666666,
+            1.0
+          ]
+        },
+        "diagram_accent_pink_mid": {
+          "space": "sRGB",
+          "rgba": [
+            0.4470588235294118,
+            0.17647058823529413,
+            0.34509803921568627,
+            1.0
+          ]
+        },
+        "diagram_accent_pink_deep": {
+          "space": "sRGB",
+          "rgba": [
+            0.788235294117647,
+            0.3843137254901961,
+            0.6274509803921569,
+            1.0
+          ]
+        },
+        "diagram_accent_neutral_mid": {
+          "space": "sRGB",
+          "rgba": [
+            0.27450980392156865,
+            0.27450980392156865,
+            0.27450980392156865,
+            1.0
+          ]
+        },
+        "diagram_accent_neutral_deep": {
+          "space": "sRGB",
+          "rgba": [
+            0.9137254901960784,
+            0.9137254901960784,
+            0.9137254901960784,
+            1.0
+          ]
+        },
+        "diagram_accent_ink": {
+          "space": "sRGB",
+          "rgba": [
+            0.11764705882352941,
+            0.11764705882352941,
+            0.11764705882352941,
+            1.0
+          ]
+        },
+        "diagram_series_1_fill": {
+          "space": "sRGB",
+          "rgba": [
+            0.3137254901960784,
+            0.5490196078431373,
+            0.8431372549019608,
+            1.0
+          ]
+        },
+        "diagram_series_2_fill": {
+          "space": "sRGB",
+          "rgba": [
+            0.796078431372549,
+            0.4235294117647059,
+            0.2901960784313726,
+            1.0
+          ]
+        },
+        "diagram_series_3_fill": {
+          "space": "sRGB",
+          "rgba": [
+            0.11372549019607843,
+            0.6352941176470588,
+            0.45098039215686275,
+            1.0
+          ]
+        },
+        "diagram_series_4_fill": {
+          "space": "sRGB",
+          "rgba": [
+            0.7647058823529411,
+            0.5215686274509804,
+            0.13725490196078433,
+            1.0
+          ]
+        },
+        "diagram_series_5_fill": {
+          "space": "sRGB",
+          "rgba": [
+            0.788235294117647,
+            0.4,
+            0.5254901960784314,
+            1.0
+          ]
+        },
+        "diagram_series_6_fill": {
+          "space": "sRGB",
+          "rgba": [
+            0.27450980392156865,
+            0.5490196078431373,
+            0.2549019607843137,
+            1.0
+          ]
+        },
+        "diagram_series_7_fill": {
+          "space": "sRGB",
+          "rgba": [
+            0.5607843137254902,
+            0.5254901960784314,
+            0.8745098039215686,
+            1.0
+          ]
+        },
+        "diagram_series_8_fill": {
+          "space": "sRGB",
+          "rgba": [
+            0.8470588235294118,
+            0.4392156862745098,
+            0.43137254901960786,
+            1.0
+          ]
+        },
+        "diagram_series_1_edge": {
+          "space": "sRGB",
+          "rgba": [
+            0.5215686274509804,
+            0.7294117647058823,
+            1.0,
+            1.0
+          ]
+        },
+        "diagram_series_2_edge": {
+          "space": "sRGB",
+          "rgba": [
+            1.0,
+            0.596078431372549,
+            0.4549019607843137,
+            1.0
+          ]
+        },
+        "diagram_series_3_edge": {
+          "space": "sRGB",
+          "rgba": [
+            0.3607843137254902,
+            0.8196078431372549,
+            0.6274509803921569,
+            1.0
+          ]
+        },
+        "diagram_series_4_edge": {
+          "space": "sRGB",
+          "rgba": [
+            0.9333333333333333,
+            0.6588235294117647,
+            0.24705882352941178,
+            1.0
+          ]
+        },
+        "diagram_series_5_edge": {
+          "space": "sRGB",
+          "rgba": [
+            1.0,
+            0.5607843137254902,
+            0.6980392156862745,
+            1.0
+          ]
+        },
+        "diagram_series_6_edge": {
+          "space": "sRGB",
+          "rgba": [
+            0.4823529411764706,
+            0.8117647058823529,
+            0.4549019607843137,
+            1.0
+          ]
+        },
+        "diagram_series_7_edge": {
+          "space": "sRGB",
+          "rgba": [
+            0.6980392156862745,
+            0.6745098039215687,
+            1.0,
+            1.0
+          ]
+        },
+        "diagram_series_8_edge": {
+          "space": "sRGB",
+          "rgba": [
+            1.0,
+            0.5843137254901961,
+            0.5725490196078431,
+            1.0
+          ]
+        },
+        "diagram_series_ink": {
+          "space": "sRGB",
+          "rgba": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        "mark_background": {
+          "space": "sRGB",
+          "rgba": [
+            0.32941176470588235,
+            0.26666666666666666,
+            0.03137254901960784,
+            1.0
+          ]
+        }
+      },
+      "chrome": {},
+      "syntax": {
+        "keyword": {
+          "space": "sRGB",
+          "rgba": [
+            0.8431372549019608,
+            0.8156862745098039,
+            1.0,
+            1.0
+          ]
+        },
+        "string": {
+          "space": "sRGB",
+          "rgba": [
+            0.4470588235294118,
+            0.7176470588235294,
+            0.5725490196078431,
+            1.0
+          ]
+        },
+        "comment": {
+          "space": "sRGB",
+          "rgba": [
+            0.4588235294117647,
+            0.4666666666666667,
+            0.47843137254901963,
+            1.0
+          ]
+        },
+        "literal": {
+          "space": "sRGB",
+          "rgba": [
+            0.7803921568627451,
+            0.5137254901960784,
+            0.25882352941176473,
+            1.0
+          ]
+        },
+        "type": {
+          "space": "sRGB",
+          "rgba": [
+            0.5254901960784314,
+            0.7764705882352941,
+            0.9647058823529412,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "id": "mono-dark",
+      "name": "Mono Dark",
+      "appearance": "dark",
+      "document": {
+        "paper": "#262626",
+        "text": "#C7C7C7",
+        "heading": "#FFFFFF",
+        "link": "#FFFFFF",
+        "inline_code": "#FFFFFF",
+        "secondary_text": "#8B8B8B",
+        "rule": "#404040",
+        "code_block_background": "#1D1D1D",
+        "code_capsule_background": "#2C2C2C",
+        "table_header_background": "#2C2C2C",
+        "image_placeholder_background": "#1D1D1D",
+        "diagram_node_fill": "#1D1D1D",
+        "diagram_node_stroke": "#8B8B8B",
+        "diagram_edge_label_background": "#262626",
+        "diagram_note_fill": "#3C3C3C",
+        "diagram_block_fill": "#2C2C2C",
+        "diagram_badge_text": "#262626",
+        "diagram_series_ink": "#000000",
+        "mark_background": "#544408",
+        "diagram_accent_red_tint": "#4D2523",
+        "diagram_accent_red_mid": "#742725",
+        "diagram_accent_red_deep": "#DF6862",
+        "diagram_accent_orange_tint": "#482A0F",
+        "diagram_accent_orange_mid": "#653500",
+        "diagram_accent_orange_deep": "#D1760D",
+        "diagram_accent_yellow_tint": "#3A3307",
+        "diagram_accent_yellow_mid": "#584D00",
+        "diagram_accent_yellow_deep": "#A08D00",
+        "diagram_accent_green_tint": "#2C4A2D",
+        "diagram_accent_green_mid": "#1E5E25",
+        "diagram_accent_green_deep": "#5AB660",
+        "diagram_accent_cyan_tint": "#003B3B",
+        "diagram_accent_cyan_mid": "#005959",
+        "diagram_accent_cyan_deep": "#009D9E",
+        "diagram_accent_blue_tint": "#2B4361",
+        "diagram_accent_blue_mid": "#1C4D87",
+        "diagram_accent_blue_deep": "#468EE5",
+        "diagram_accent_purple_tint": "#372A4C",
+        "diagram_accent_purple_mid": "#482D6F",
+        "diagram_accent_purple_deep": "#B58FF6",
+        "diagram_accent_pink_tint": "#5B374B",
+        "diagram_accent_pink_mid": "#79335E",
+        "diagram_accent_pink_deep": "#D169A7",
+        "diagram_accent_neutral_mid": "#4D4D4D",
+        "diagram_accent_neutral_deep": "#C7C7C7",
+        "diagram_accent_ink": "#262626"
+      },
+      "chrome": {
+        "sidebar_background": "#1D1D1D",
+        "tab_active_background": "#2C2C2C",
+        "column_divider": "#4E4E4E"
+      },
+      "syntax": {
+        "keyword": "#F1F5FF",
+        "string": "#6AC1A2",
+        "comment": "#80898F",
+        "literal": "#D68B48",
+        "type": "#A4E9FF"
+      }
+    },
+    {
+      "id": "mono-light",
+      "name": "Mono Light",
+      "appearance": "light",
+      "document": {
+        "paper": "#FAFAF8",
+        "text": "#313131",
+        "heading": "#000000",
+        "link": "#000000",
+        "inline_code": "#000000",
+        "secondary_text": "#7C7C7C",
+        "rule": "#D8D8D6",
+        "code_block_background": "#EDEDEB",
+        "code_capsule_background": "#E5E5E3",
+        "table_header_background": "#F2F2F0",
+        "image_placeholder_background": "#EDEDEB",
+        "diagram_node_fill": "#EDEDEB",
+        "diagram_node_stroke": "#7C7C7C",
+        "diagram_edge_label_background": "#FAFAF8",
+        "diagram_note_fill": "#DDDDDB",
+        "diagram_block_fill": "#F1F1EF",
+        "diagram_badge_text": "#FAFAF8",
+        "diagram_series_ink": "#000000",
+        "mark_background": "#F8DE72",
+        "diagram_accent_red_tint": "#F9C6C0",
+        "diagram_accent_red_mid": "#FFADA6",
+        "diagram_accent_red_deep": "#C14E49",
+        "diagram_accent_orange_tint": "#F1CAAB",
+        "diagram_accent_orange_mid": "#F9B47A",
+        "diagram_accent_orange_deep": "#AD5F00",
+        "diagram_accent_yellow_tint": "#F2EBBD",
+        "diagram_accent_yellow_mid": "#D6C770",
+        "diagram_accent_yellow_deep": "#837400",
+        "diagram_accent_green_tint": "#D4F7D4",
+        "diagram_accent_green_mid": "#ABEDAC",
+        "diagram_accent_green_deep": "#00711B",
+        "diagram_accent_cyan_tint": "#BBF7F6",
+        "diagram_accent_cyan_mid": "#60DCDC",
+        "diagram_accent_cyan_deep": "#008181",
+        "diagram_accent_blue_tint": "#DCEBFF",
+        "diagram_accent_blue_mid": "#9FC9FF",
+        "diagram_accent_blue_deep": "#2C74CA",
+        "diagram_accent_purple_tint": "#D5C7F1",
+        "diagram_accent_purple_mid": "#BBA0EC",
+        "diagram_accent_purple_deep": "#744CAD",
+        "diagram_accent_pink_tint": "#FFE1F1",
+        "diagram_accent_pink_mid": "#FDADDA",
+        "diagram_accent_pink_deep": "#B44E8D",
+        "diagram_accent_neutral_mid": "#C5C5C5",
+        "diagram_accent_neutral_deep": "#313131",
+        "diagram_accent_ink": "#FAFAF8"
+      },
+      "chrome": {
+        "sidebar_background": "#EDEDEB",
+        "tab_active_background": "#E5E5E3",
+        "column_divider": "#C7C7C5"
+      },
+      "syntax": {
+        "keyword": "#000343",
+        "string": "#004E36",
+        "comment": "#616A70",
+        "literal": "#844600",
+        "type": "#001E4B"
+      }
+    },
+    {
+      "id": "one-dark",
+      "name": "One Dark",
+      "appearance": "dark",
+      "document": {
+        "paper": "#282C34",
+        "text": "#ABB2BF",
+        "heading": "#ABB2BF",
+        "link": "#61AFEF",
+        "secondary_text": "#5C6370",
+        "rule": "#3E4452",
+        "code_block_background": "#21252B",
+        "code_capsule_background": "#2C313A",
+        "table_header_background": "#21252B",
+        "image_placeholder_background": "#21252B",
+        "diagram_node_fill": "#21252B",
+        "diagram_node_stroke": "#5C6370",
+        "diagram_edge_label_background": "#282C34",
+        "diagram_note_fill": "#3E424B",
+        "diagram_block_fill": "#2E323B",
+        "diagram_badge_text": "#282C34",
+        "diagram_series_ink": "#000000",
+        "mark_background": "#504104",
+        "diagram_accent_red_tint": "#532B2D",
+        "diagram_accent_red_mid": "#782A32",
+        "diagram_accent_red_deep": "#E56D76",
+        "diagram_accent_orange_tint": "#4F3015",
+        "diagram_accent_orange_mid": "#693800",
+        "diagram_accent_orange_deep": "#D77C1A",
+        "diagram_accent_yellow_tint": "#40390F",
+        "diagram_accent_yellow_mid": "#4F4500",
+        "diagram_accent_yellow_deep": "#A69300",
+        "diagram_accent_green_tint": "#162806",
+        "diagram_accent_green_mid": "#1E3A00",
+        "diagram_accent_green_deep": "#7EB84F",
+        "diagram_accent_cyan_tint": "#004047",
+        "diagram_accent_cyan_mid": "#004C53",
+        "diagram_accent_cyan_deep": "#00A2B1",
+        "diagram_accent_blue_tint": "#1B3B56",
+        "diagram_accent_blue_mid": "#004876",
+        "diagram_accent_blue_deep": "#2C99E7",
+        "diagram_accent_purple_tint": "#2D1734",
+        "diagram_accent_purple_mid": "#4D1F5A",
+        "diagram_accent_purple_deep": "#D68EEC",
+        "diagram_accent_pink_tint": "#4E2B40",
+        "diagram_accent_pink_mid": "#702C56",
+        "diagram_accent_pink_deep": "#D76FAD",
+        "diagram_accent_neutral_mid": "#444444",
+        "diagram_accent_neutral_deep": "#B2B2B2",
+        "diagram_accent_ink": "#282C34"
+      },
+      "chrome": {
+        "sidebar_background": "#21252B",
+        "tab_active_background": "#2C313A",
+        "column_divider": "#181A1F"
+      },
+      "syntax": {
+        "keyword": "#C678DD",
+        "string": "#98C379",
+        "comment": "#5C6370",
+        "literal": "#D19A66",
+        "type": "#E5C07B"
+      }
+    },
+    {
+      "id": "one-light",
+      "name": "One Light",
+      "appearance": "light",
+      "document": {
+        "paper": "#FAFAFA",
+        "text": "#383A42",
+        "heading": "#383A42",
+        "link": "#4078F2",
+        "secondary_text": "#A0A1A7",
+        "rule": "#E5E5E6",
+        "code_block_background": "#F0F0F1",
+        "code_capsule_background": "#E8E8EA",
+        "table_header_background": "#F0F0F1",
+        "image_placeholder_background": "#F0F0F1",
+        "diagram_node_fill": "#F0F0F1",
+        "diagram_node_stroke": "#A0A1A7",
+        "diagram_edge_label_background": "#FAFAFA",
+        "diagram_note_fill": "#DDDDDD",
+        "diagram_block_fill": "#F1F1F1",
+        "diagram_badge_text": "#FAFAFA",
+        "diagram_series_ink": "#000000",
+        "mark_background": "#F8DE72",
+        "diagram_accent_red_tint": "#FAC6BE",
+        "diagram_accent_red_mid": "#FFACA1",
+        "diagram_accent_red_deep": "#C14E42",
+        "diagram_accent_orange_tint": "#F1CAAC",
+        "diagram_accent_orange_mid": "#F8B279",
+        "diagram_accent_orange_deep": "#AD5F00",
+        "diagram_accent_yellow_tint": "#F2EBBD",
+        "diagram_accent_yellow_mid": "#D6C870",
+        "diagram_accent_yellow_deep": "#837400",
+        "diagram_accent_green_tint": "#D5F7D3",
+        "diagram_accent_green_mid": "#ACEBA9",
+        "diagram_accent_green_deep": "#0F7116",
+        "diagram_accent_cyan_tint": "#D4EEFF",
+        "diagram_accent_cyan_mid": "#84D0FF",
+        "diagram_accent_cyan_deep": "#007BB0",
+        "diagram_accent_blue_tint": "#DFEAFF",
+        "diagram_accent_blue_mid": "#A8C6FF",
+        "diagram_accent_blue_deep": "#4470CB",
+        "diagram_accent_purple_tint": "#D5C7F2",
+        "diagram_accent_purple_mid": "#BBA0EC",
+        "diagram_accent_purple_deep": "#744CAD",
+        "diagram_accent_pink_tint": "#FFE2F1",
+        "diagram_accent_pink_mid": "#FEADDA",
+        "diagram_accent_pink_deep": "#B44F8D",
+        "diagram_accent_neutral_mid": "#C6C6C6",
+        "diagram_accent_neutral_deep": "#3A3A3A",
+        "diagram_accent_ink": "#FAFAFA"
+      },
+      "chrome": {
+        "sidebar_background": "#F0F0F1",
+        "tab_active_background": "#E3E3E5",
+        "column_divider": "#D4D4D6"
+      },
+      "syntax": {
+        "keyword": "#A626A4",
+        "string": "#50A14F",
+        "comment": "#A0A1A7",
+        "literal": "#986801",
+        "type": "#C18401"
+      }
+    },
+    {
+      "id": "solarized-dark",
+      "name": "Solarized Dark",
+      "appearance": "dark",
+      "document": {
+        "paper": "#002B36",
+        "text": "#839496",
+        "heading": "#93A1A1",
+        "link": "#268BD2",
+        "secondary_text": "#586E75",
+        "rule": "#073642",
+        "code_block_background": "#073642",
+        "code_capsule_background": "#0A3C49",
+        "table_header_background": "#073642",
+        "image_placeholder_background": "#073642",
+        "diagram_node_fill": "#073642",
+        "diagram_node_stroke": "#586E75",
+        "diagram_edge_label_background": "#002B36",
+        "diagram_note_fill": "#1C414D",
+        "diagram_block_fill": "#08313D",
+        "diagram_badge_text": "#002B36",
+        "diagram_series_ink": "#000000",
+        "mark_background": "#493A00",
+        "diagram_accent_red_tint": "#330E0D",
+        "diagram_accent_red_mid": "#671A1A",
+        "diagram_accent_red_deep": "#D15C56",
+        "diagram_accent_orange_tint": "#2D1500",
+        "diagram_accent_orange_mid": "#552C00",
+        "diagram_accent_orange_deep": "#C16B00",
+        "diagram_accent_yellow_tint": "#261A00",
+        "diagram_accent_yellow_mid": "#463300",
+        "diagram_accent_yellow_deep": "#A27A00",
+        "diagram_accent_green_tint": "#050700",
+        "diagram_accent_green_mid": "#242B00",
+        "diagram_accent_green_deep": "#8A9F14",
+        "diagram_accent_cyan_tint": "#00221F",
+        "diagram_accent_cyan_mid": "#003D39",
+        "diagram_accent_cyan_deep": "#009087",
+        "diagram_accent_blue_tint": "#001E35",
+        "diagram_accent_blue_mid": "#002A47",
+        "diagram_accent_blue_deep": "#0386D3",
+        "diagram_accent_purple_tint": "#04021D",
+        "diagram_accent_purple_mid": "#2F2E6F",
+        "diagram_accent_purple_deep": "#858BF2",
+        "diagram_accent_pink_tint": "#310E1D",
+        "diagram_accent_pink_mid": "#4D022A",
+        "diagram_accent_pink_deep": "#CA5A89",
+        "diagram_accent_neutral_mid": "#363636",
+        "diagram_accent_neutral_deep": "#909090",
+        "diagram_accent_ink": "#002B36"
+      },
+      "chrome": {
+        "sidebar_background": "#073642",
+        "tab_active_background": "#0F4A59",
+        "column_divider": "#0A3C49"
+      },
+      "syntax": {
+        "keyword": "#859900",
+        "string": "#2AA198",
+        "comment": "#586E75",
+        "literal": "#CB4B16",
+        "type": "#B58900"
+      }
+    },
+    {
+      "id": "solarized-light",
+      "name": "Solarized Light",
+      "appearance": "light",
+      "document": {
+        "paper": "#FDF6E3",
+        "text": "#657B83",
+        "heading": "#586E75",
+        "link": "#268BD2",
+        "secondary_text": "#93A1A1",
+        "rule": "#EEE8D5",
+        "code_block_background": "#EEE8D5",
+        "code_capsule_background": "#E9E2CF",
+        "table_header_background": "#EEE8D5",
+        "image_placeholder_background": "#EEE8D5",
+        "diagram_node_fill": "#EEE8D5",
+        "diagram_node_stroke": "#93A1A1",
+        "diagram_edge_label_background": "#FDF6E3",
+        "diagram_note_fill": "#E0DAC7",
+        "diagram_block_fill": "#F4EDDB",
+        "diagram_badge_text": "#FDF6E3",
+        "diagram_series_ink": "#073642",
+        "mark_background": "#F6DC70",
+        "diagram_accent_red_tint": "#FFDBD8",
+        "diagram_accent_red_mid": "#FFDBD8",
+        "diagram_accent_red_deep": "#D8625C",
+        "diagram_accent_orange_tint": "#FFDEC4",
+        "diagram_accent_orange_mid": "#FFDEC4",
+        "diagram_accent_orange_deep": "#CA7000",
+        "diagram_accent_yellow_tint": "#FFDA8B",
+        "diagram_accent_yellow_mid": "#FFDA8B",
+        "diagram_accent_yellow_deep": "#AA8100",
+        "diagram_accent_green_tint": "#D5E793",
+        "diagram_accent_green_mid": "#D5E793",
+        "diagram_accent_green_deep": "#6B7B00",
+        "diagram_accent_cyan_tint": "#BBF6EF",
+        "diagram_accent_cyan_mid": "#7AF2E7",
+        "diagram_accent_cyan_deep": "#00988F",
+        "diagram_accent_blue_tint": "#C1E2FF",
+        "diagram_accent_blue_mid": "#C1E2FF",
+        "diagram_accent_blue_deep": "#168DDA",
+        "diagram_accent_purple_tint": "#E4E7FF",
+        "diagram_accent_purple_mid": "#E4E7FF",
+        "diagram_accent_purple_deep": "#6669CD",
+        "diagram_accent_pink_tint": "#FFD3E2",
+        "diagram_accent_pink_mid": "#FFD3E2",
+        "diagram_accent_pink_deep": "#D26190",
+        "diagram_accent_neutral_mid": "#DEDEDE",
+        "diagram_accent_neutral_deep": "#777777",
+        "diagram_accent_ink": "#FDF6E3"
+      },
+      "chrome": {
+        "sidebar_background": "#EEE8D5",
+        "tab_active_background": "#E4DECB",
+        "column_divider": "#D3CBB7"
+      },
+      "syntax": {
+        "keyword": "#859900",
+        "string": "#2AA198",
+        "comment": "#93A1A1",
+        "literal": "#CB4B16",
+        "type": "#B58900"
+      }
+    }
+  ]
+}

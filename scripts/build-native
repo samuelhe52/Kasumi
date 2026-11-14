@@ -1,0 +1,39 @@
+#!/bin/sh
+# Builds the pinned Rust dependencies as static-library XCFrameworks for
+# macOS (arm64), iOS devices (arm64) and the iOS simulator (arm64).
+# Outputs go to the ignored .build/native/ directory, which Package.swift
+# references as binary targets. Run before any swift or xcodebuild build.
+set -eu
+project_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+output_dir="$project_dir/.build/native"
+export CARGO_TARGET_DIR="$output_dir/target"
+targets="aarch64-apple-darwin aarch64-apple-ios aarch64-apple-ios-sim"
+
+installed=$(rustup target list --installed)
+for target in $targets; do
+  case "$installed" in
+    *"$target"*) ;;
+    *) printf 'Missing Rust target %s. Run: rustup target add %s\n' "$target" "$target" >&2; exit 1 ;;
+  esac
+done
+
+export MACOSX_DEPLOYMENT_TARGET=13.0
+export IPHONEOS_DEPLOYMENT_TARGET=17.0
+
+build() {
+  package=$1 library=$2
+  set --
+  for target in $targets; do
+    cargo build --locked --release --target "$target" \
+      --manifest-path "$project_dir/packages/$package/Cargo.toml"
+    set -- "$@" -library "$CARGO_TARGET_DIR/$target/release/lib$library.a"
+  done
+  rm -rf "$output_dir/$library.xcframework"
+  xcodebuild -create-xcframework "$@" -output "$output_dir/$library.xcframework" >/dev/null
+  printf '%s\n' "$output_dir/$library.xcframework"
+}
+
+mkdir -p "$output_dir"
+build NativeDagre kasumi_dagre
+build NativeLineBreak kasumi_linebreak
+build NativeHyphenation kasumi_hyphenation

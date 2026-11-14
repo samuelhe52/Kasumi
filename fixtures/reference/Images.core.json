@@ -1,0 +1,106 @@
+{
+  "blocks": 9,
+  "items": [
+    {
+      "kind": 1,
+      "level": 1,
+      "meta": 0,
+      "flags": 0,
+      "runs": 1,
+      "text": "Document Images",
+      "footnote_label": "",
+      "display_label": "",
+      "marks": []
+    },
+    {
+      "kind": 0,
+      "level": 0,
+      "meta": 0,
+      "flags": 0,
+      "runs": 1,
+      "text": "The wide image uses a percent-encoded relative path. Its upper-left corner is white; the upper half is red and the lower half is green.",
+      "footnote_label": "",
+      "display_label": "",
+      "marks": []
+    },
+    {
+      "kind": 5,
+      "level": 0,
+      "meta": 0,
+      "flags": 0,
+      "runs": 1,
+      "text": "Wide color sample",
+      "footnote_label": "",
+      "display_label": "",
+      "marks": []
+    },
+    {
+      "kind": 0,
+      "level": 0,
+      "meta": 0,
+      "flags": 0,
+      "runs": 5,
+      "text": "Inline image: Checkerboard between text and formatting.",
+      "footnote_label": "",
+      "display_label": "",
+      "marks": []
+    },
+    {
+      "kind": 5,
+      "level": 0,
+      "meta": 0,
+      "flags": 0,
+      "runs": 1,
+      "text": "Linked checkerboard",
+      "footnote_label": "",
+      "display_label": "",
+      "marks": []
+    },
+    {
+      "kind": 5,
+      "level": 0,
+      "meta": 0,
+      "flags": 0,
+      "runs": 1,
+      "text": "Missing local image",
+      "footnote_label": "",
+      "display_label": "",
+      "marks": []
+    },
+    {
+      "kind": 0,
+      "level": 0,
+      "meta": 0,
+      "flags": 0,
+      "runs": 1,
+      "text": "A data URL works without a source document folder:",
+      "footnote_label": "",
+      "display_label": "",
+      "marks": []
+    },
+    {
+      "kind": 5,
+      "level": 0,
+      "meta": 0,
+      "flags": 0,
+      "runs": 1,
+      "text": "Embedded checkerboard",
+      "footnote_label": "",
+      "display_label": "",
+      "marks": []
+    },
+    {
+      "kind": 6,
+      "level": 0,
+      "meta": 0,
+      "flags": 0,
+      "runs": 0,
+      "text": "",
+      "footnote_label": "",
+      "display_label": "",
+      "marks": []
+    }
+  ],
+  "fixture": "Images.md",
+  "fixture_sha256": "4ef5f32d55e9289412e62517a2cca305333b1cf9156c872f1c3df0980d4bac74"
+}

@@ -1,0 +1,20 @@
+# Machine-local files and agent configuration.
+/.local/
+/.agents/
+/.codex/
+
+# Application build products and per-user IDE state.
+.build/
+/packages/NativeDagre/target/
+/packages/NativeLineBreak/target/
+/packages/NativeHyphenation/target/
+/packages/NativeTOML/target/
+build/
+DerivedData/
+xcuserdata/
+*.xcuserstate
+.DS_Store
+__pycache__/
+
+# Git worktrees
+.worktrees/

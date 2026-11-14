@@ -1,0 +1,3421 @@
+{
+  "font_sha256": "60394d357348f68cd301764fe61cc502a5858e1c4ff21b948a1d14d82586a7a2",
+  "font": "NewCMMath-Regular 4.0",
+  "coordinates": "points; origin at formula top-left; glyph y is baseline, formula baseline is ascent; rules are top-left rectangles; color is RGBA, 0 uses foreground",
+  "items": [
+    {
+      "tex": "x",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 9.15200043,
+        "ascent": 7.07200003,
+        "descent": 0.175999999,
+        "ink_left": 0.463999987,
+        "ink_right": 8.43200016,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 3014,
+            "size": 16,
+            "x": 0,
+            "y": 7.07200003,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "x",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 9.15200043,
+        "ascent": 7.07200003,
+        "descent": 0.175999999,
+        "ink_left": 0.463999987,
+        "ink_right": 8.43200016,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 3014,
+            "size": 16,
+            "x": 0,
+            "y": 7.07200003,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "x^2",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 16.4207993,
+        "ascent": 13.2447996,
+        "descent": 0.175999999,
+        "ink_left": 0.463999987,
+        "ink_right": 14.8079996,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 3014,
+            "size": 16,
+            "x": 0,
+            "y": 13.2447996,
+            "color": 0
+          },
+          {
+            "glyph": 4902,
+            "size": 11.1999998,
+            "x": 9.15200043,
+            "y": 7.4368,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "x^2",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 16.4207993,
+        "ascent": 13.2447996,
+        "descent": 0.175999999,
+        "ink_left": 0.463999987,
+        "ink_right": 14.8079996,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 3014,
+            "size": 16,
+            "x": 0,
+            "y": 13.2447996,
+            "color": 0
+          },
+          {
+            "glyph": 4902,
+            "size": 11.1999998,
+            "x": 9.15200043,
+            "y": 7.4368,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "x_i",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 14.5727997,
+        "ascent": 7.07200003,
+        "descent": 4.06400013,
+        "ink_left": 0.463999987,
+        "ink_right": 13.0719995,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 3014,
+            "size": 16,
+            "x": 0,
+            "y": 7.07200003,
+            "color": 0
+          },
+          {
+            "glyph": 5246,
+            "size": 11.1999998,
+            "x": 9.15200043,
+            "y": 11.0240002,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "x_i",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 14.5727997,
+        "ascent": 7.07200003,
+        "descent": 4.06400013,
+        "ink_left": 0.463999987,
+        "ink_right": 13.0719995,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 3014,
+            "size": 16,
+            "x": 0,
+            "y": 7.07200003,
+            "color": 0
+          },
+          {
+            "glyph": 5246,
+            "size": 11.1999998,
+            "x": 9.15200043,
+            "y": 11.0240002,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "x_i^2",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 16.4207993,
+        "ascent": 13.2447996,
+        "descent": 4.2895999,
+        "ink_left": 0.463999987,
+        "ink_right": 14.8079996,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 3014,
+            "size": 16,
+            "x": 0,
+            "y": 13.2447996,
+            "color": 0
+          },
+          {
+            "glyph": 4902,
+            "size": 11.1999998,
+            "x": 9.15200043,
+            "y": 7.4368,
+            "color": 0
+          },
+          {
+            "glyph": 5246,
+            "size": 11.1999998,
+            "x": 9.15200043,
+            "y": 17.4223995,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "x_i^2",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 16.4207993,
+        "ascent": 13.2447996,
+        "descent": 4.2895999,
+        "ink_left": 0.463999987,
+        "ink_right": 14.8079996,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 3014,
+            "size": 16,
+            "x": 0,
+            "y": 13.2447996,
+            "color": 0
+          },
+          {
+            "glyph": 4902,
+            "size": 11.1999998,
+            "x": 9.15200043,
+            "y": 7.4368,
+            "color": 0
+          },
+          {
+            "glyph": 5246,
+            "size": 11.1999998,
+            "x": 9.15200043,
+            "y": 17.4223995,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\frac{1}{3}",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 10.2128,
+        "ascent": 13.7407999,
+        "descent": 5.74399996,
+        "ink_left": 1.91999996,
+        "ink_right": 8.29279995,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 4855,
+            "size": 11.1999998,
+            "x": 1.91999996,
+            "y": 7.4368,
+            "color": 0
+          },
+          {
+            "glyph": 4896,
+            "size": 11.1999998,
+            "x": 1.91999996,
+            "y": 19.2607994,
+            "color": 0
+          }
+        ],
+        "rules": [
+          {
+            "x": 1.91999996,
+            "y": 9.42080021,
+            "width": 6.37279987,
+            "height": 0.639999986,
+            "color": 0
+          }
+        ],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\frac{1}{3}",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 11.8400002,
+        "ascent": 21.4880009,
+        "descent": 11.3280001,
+        "ink_left": 1.91999996,
+        "ink_right": 9.92000008,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 18,
+            "size": 16,
+            "x": 1.91999996,
+            "y": 10.6560001,
+            "color": 0
+          },
+          {
+            "glyph": 20,
+            "size": 16,
+            "x": 1.91999996,
+            "y": 32.4640007,
+            "color": 0
+          }
+        ],
+        "rules": [
+          {
+            "x": 1.91999996,
+            "y": 17.1679993,
+            "width": 8,
+            "height": 0.639999986,
+            "color": 0
+          }
+        ],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\sqrt{x}",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 22.4799995,
+        "ascent": 12.8079996,
+        "descent": 3.83200002,
+        "ink_left": 1.16799998,
+        "ink_right": 22.4799995,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 989,
+            "size": 16,
+            "x": 0,
+            "y": 1.27999997,
+            "color": 0
+          },
+          {
+            "glyph": 3014,
+            "size": 16,
+            "x": 13.3280001,
+            "y": 12.8079996,
+            "color": 0
+          }
+        ],
+        "rules": [
+          {
+            "x": 13.3280001,
+            "y": 0.639999986,
+            "width": 9.15200043,
+            "height": 0.639999986,
+            "color": 0
+          }
+        ],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\sqrt{x}",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 22.4799995,
+        "ascent": 13.592,
+        "descent": 3.0480001,
+        "ink_left": 1.16799998,
+        "ink_right": 22.4799995,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 989,
+            "size": 16,
+            "x": 0,
+            "y": 1.27999997,
+            "color": 0
+          },
+          {
+            "glyph": 3014,
+            "size": 16,
+            "x": 13.3280001,
+            "y": 13.592,
+            "color": 0
+          }
+        ],
+        "rules": [
+          {
+            "x": 13.3280001,
+            "y": 0.639999986,
+            "width": 9.15200043,
+            "height": 0.639999986,
+            "color": 0
+          }
+        ],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\sqrt[3]{x}",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 23.4799995,
+        "ascent": 12.8079996,
+        "descent": 3.83200002,
+        "ink_left": 2.16799998,
+        "ink_right": 23.4799995,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 989,
+            "size": 16,
+            "x": 1,
+            "y": 1.27999997,
+            "color": 0
+          },
+          {
+            "glyph": 4489,
+            "size": 8,
+            "x": 4.44799995,
+            "y": 7.03999996,
+            "color": 0
+          },
+          {
+            "glyph": 3014,
+            "size": 16,
+            "x": 14.3280001,
+            "y": 12.8079996,
+            "color": 0
+          }
+        ],
+        "rules": [
+          {
+            "x": 14.3280001,
+            "y": 0.639999986,
+            "width": 9.15200043,
+            "height": 0.639999986,
+            "color": 0
+          }
+        ],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\sqrt[3]{x}",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 23.4799995,
+        "ascent": 13.592,
+        "descent": 3.0480001,
+        "ink_left": 2.16799998,
+        "ink_right": 23.4799995,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 989,
+            "size": 16,
+            "x": 1,
+            "y": 1.27999997,
+            "color": 0
+          },
+          {
+            "glyph": 4489,
+            "size": 8,
+            "x": 4.44799995,
+            "y": 7.03999996,
+            "color": 0
+          },
+          {
+            "glyph": 3014,
+            "size": 16,
+            "x": 14.3280001,
+            "y": 13.592,
+            "color": 0
+          }
+        ],
+        "rules": [
+          {
+            "x": 14.3280001,
+            "y": 0.639999986,
+            "width": 9.15200043,
+            "height": 0.639999986,
+            "color": 0
+          }
+        ],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\sum_{i=0}^n i",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 45.5898666,
+        "ascent": 12.9392004,
+        "descent": 7.42399979,
+        "ink_left": 0.896000028,
+        "ink_right": 44.7578659,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 980,
+            "size": 16,
+            "x": 0,
+            "y": 12.9392004,
+            "color": 0
+          },
+          {
+            "glyph": 5251,
+            "size": 11.1999998,
+            "x": 16.8959999,
+            "y": 4.93919992,
+            "color": 0
+          },
+          {
+            "glyph": 5246,
+            "size": 11.1999998,
+            "x": 16.8959999,
+            "y": 20.1392002,
+            "color": 0
+          },
+          {
+            "glyph": 30,
+            "size": 11.1999998,
+            "x": 21.4207993,
+            "y": 20.1392002,
+            "color": 0
+          },
+          {
+            "glyph": 4921,
+            "size": 11.1999998,
+            "x": 30.1343994,
+            "y": 20.1392002,
+            "color": 0
+          },
+          {
+            "glyph": 2999,
+            "size": 16,
+            "x": 40.0698662,
+            "y": 12.9392004,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\sum_{i=0}^n i",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 31.2906666,
+        "ascent": 23.4512005,
+        "descent": 17.5328007,
+        "ink_left": 0.896000028,
+        "ink_right": 30.4586658,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 6241,
+            "size": 16,
+            "x": 0,
+            "y": 23.4512005,
+            "color": 0
+          },
+          {
+            "glyph": 5251,
+            "size": 11.1999998,
+            "x": 7.59840012,
+            "y": 4.93919992,
+            "color": 0
+          },
+          {
+            "glyph": 5246,
+            "size": 11.1999998,
+            "x": 1.7464,
+            "y": 40.7599983,
+            "color": 0
+          },
+          {
+            "glyph": 30,
+            "size": 11.1999998,
+            "x": 6.27120018,
+            "y": 40.7599983,
+            "color": 0
+          },
+          {
+            "glyph": 4921,
+            "size": 11.1999998,
+            "x": 14.9848003,
+            "y": 40.7599983,
+            "color": 0
+          },
+          {
+            "glyph": 2999,
+            "size": 16,
+            "x": 25.7706661,
+            "y": 23.4512005,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\int_0^1 x^2\\,dx",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 57.5189323,
+        "ascent": 16.3248005,
+        "descent": 8.31200027,
+        "ink_left": 0.896000028,
+        "ink_right": 56.7989349,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 1006,
+            "size": 16,
+            "x": 0,
+            "y": 16.3167992,
+            "color": 0
+          },
+          {
+            "glyph": 4855,
+            "size": 11.1999998,
+            "x": 10.6400003,
+            "y": 7.4368,
+            "color": 0
+          },
+          {
+            "glyph": 4921,
+            "size": 11.1999998,
+            "x": 6.92799997,
+            "y": 24.4127998,
+            "color": 0
+          },
+          {
+            "glyph": 3014,
+            "size": 16,
+            "x": 20.5754662,
+            "y": 16.3248005,
+            "color": 0
+          },
+          {
+            "glyph": 4902,
+            "size": 11.1999998,
+            "x": 29.7274666,
+            "y": 10.5167999,
+            "color": 0
+          },
+          {
+            "glyph": 2995,
+            "size": 16,
+            "x": 39.6629333,
+            "y": 16.3248005,
+            "color": 0
+          },
+          {
+            "glyph": 3014,
+            "size": 16,
+            "x": 48.3669319,
+            "y": 16.3248005,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\int_0^1 x^2\\,dx",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 62.8629341,
+        "ascent": 25.2127991,
+        "descent": 17.2000008,
+        "ink_left": 0.896000028,
+        "ink_right": 62.1429329,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 6230,
+            "size": 16,
+            "x": 0,
+            "y": 25.2127991,
+            "color": 0
+          },
+          {
+            "glyph": 4855,
+            "size": 11.1999998,
+            "x": 15.9840002,
+            "y": 7.4368,
+            "color": 0
+          },
+          {
+            "glyph": 4921,
+            "size": 11.1999998,
+            "x": 8.64000034,
+            "y": 42.1888008,
+            "color": 0
+          },
+          {
+            "glyph": 3014,
+            "size": 16,
+            "x": 25.919466,
+            "y": 25.2127991,
+            "color": 0
+          },
+          {
+            "glyph": 4902,
+            "size": 11.1999998,
+            "x": 35.0714684,
+            "y": 19.4048004,
+            "color": 0
+          },
+          {
+            "glyph": 2995,
+            "size": 16,
+            "x": 45.0069351,
+            "y": 25.2127991,
+            "color": 0
+          },
+          {
+            "glyph": 3014,
+            "size": 16,
+            "x": 53.7109337,
+            "y": 25.2127991,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\left(\\frac{a}{b}\\right)",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 24.2880001,
+        "ascent": 12.7519999,
+        "descent": 5.63199997,
+        "ink_left": 1.85599995,
+        "ink_right": 22.4319992,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 5915,
+            "size": 16,
+            "x": 0,
+            "y": 12.7519999,
+            "color": 0
+          },
+          {
+            "glyph": 5238,
+            "size": 11.1999998,
+            "x": 8.67199993,
+            "y": 6.44799995,
+            "color": 0
+          },
+          {
+            "glyph": 5239,
+            "size": 11.1999998,
+            "x": 9.33279991,
+            "y": 18.2719994,
+            "color": 0
+          },
+          {
+            "glyph": 5916,
+            "size": 16,
+            "x": 17.5359993,
+            "y": 12.7519999,
+            "color": 0
+          }
+        ],
+        "rules": [
+          {
+            "x": 8.67199993,
+            "y": 8.43200016,
+            "width": 6.94399977,
+            "height": 0.639999986,
+            "color": 0
+          }
+        ],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\left(\\frac{a}{b}\\right)",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 31.4080009,
+        "ascent": 18.3360004,
+        "descent": 11.1520004,
+        "ink_left": 2.86400008,
+        "ink_right": 28.5440006,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 5981,
+            "size": 16,
+            "x": 0,
+            "y": 18.3360004,
+            "color": 0
+          },
+          {
+            "glyph": 2992,
+            "size": 16,
+            "x": 11.4720001,
+            "y": 7.50400019,
+            "color": 0
+          },
+          {
+            "glyph": 2993,
+            "size": 16,
+            "x": 12.1599998,
+            "y": 29.3120003,
+            "color": 0
+          },
+          {
+            "glyph": 5982,
+            "size": 16,
+            "x": 21.8560009,
+            "y": 18.3360004,
+            "color": 0
+          }
+        ],
+        "rules": [
+          {
+            "x": 11.4720001,
+            "y": 14.0159998,
+            "width": 8.46399975,
+            "height": 0.639999986,
+            "color": 0
+          }
+        ],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\begin{pmatrix}a&b\\\\c&d\\end{pmatrix}",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 50.7200012,
+        "ascent": 23.1359997,
+        "descent": 15.1359997,
+        "ink_left": 3.61599994,
+        "ink_right": 47.1040001,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 6025,
+            "size": 16,
+            "x": 0,
+            "y": 23.1359997,
+            "color": 0
+          },
+          {
+            "glyph": 2992,
+            "size": 16,
+            "x": 11.776,
+            "y": 13.5360003,
+            "color": 0
+          },
+          {
+            "glyph": 2993,
+            "size": 16,
+            "x": 31.0480003,
+            "y": 13.5360003,
+            "color": 0
+          },
+          {
+            "glyph": 2994,
+            "size": 16,
+            "x": 12.3439999,
+            "y": 32.2026672,
+            "color": 0
+          },
+          {
+            "glyph": 2995,
+            "size": 16,
+            "x": 30.2399998,
+            "y": 32.2026672,
+            "color": 0
+          },
+          {
+            "glyph": 6026,
+            "size": 16,
+            "x": 38.9440002,
+            "y": 23.1359997,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\begin{pmatrix}a&b\\\\c&d\\end{pmatrix}",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 50.7200012,
+        "ascent": 23.1359997,
+        "descent": 15.1359997,
+        "ink_left": 3.61599994,
+        "ink_right": 47.1040001,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 6025,
+            "size": 16,
+            "x": 0,
+            "y": 23.1359997,
+            "color": 0
+          },
+          {
+            "glyph": 2992,
+            "size": 16,
+            "x": 11.776,
+            "y": 13.5360003,
+            "color": 0
+          },
+          {
+            "glyph": 2993,
+            "size": 16,
+            "x": 31.0480003,
+            "y": 13.5360003,
+            "color": 0
+          },
+          {
+            "glyph": 2994,
+            "size": 16,
+            "x": 12.3439999,
+            "y": 32.2026672,
+            "color": 0
+          },
+          {
+            "glyph": 2995,
+            "size": 16,
+            "x": 30.2399998,
+            "y": 32.2026672,
+            "color": 0
+          },
+          {
+            "glyph": 6026,
+            "size": 16,
+            "x": 38.9440002,
+            "y": 23.1359997,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\alpha+\\beta=\\gamma",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 69.9039993,
+        "ascent": 11.2959995,
+        "descent": 3.44000006,
+        "ink_left": 0.656000018,
+        "ink_right": 69.4560013,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 3652,
+            "size": 16,
+            "x": 0,
+            "y": 11.2959995,
+            "color": 0
+          },
+          {
+            "glyph": 12,
+            "size": 16,
+            "x": 13.7955551,
+            "y": 11.2959995,
+            "color": 0
+          },
+          {
+            "glyph": 3653,
+            "size": 16,
+            "x": 29.7991104,
+            "y": 11.2959995,
+            "color": 0
+          },
+          {
+            "glyph": 30,
+            "size": 16,
+            "x": 43.8755569,
+            "y": 11.2959995,
+            "color": 0
+          },
+          {
+            "glyph": 3654,
+            "size": 16,
+            "x": 60.7680016,
+            "y": 11.2959995,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\alpha+\\beta=\\gamma",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 69.9039993,
+        "ascent": 11.2959995,
+        "descent": 3.44000006,
+        "ink_left": 0.656000018,
+        "ink_right": 69.4560013,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 3652,
+            "size": 16,
+            "x": 0,
+            "y": 11.2959995,
+            "color": 0
+          },
+          {
+            "glyph": 12,
+            "size": 16,
+            "x": 13.7955551,
+            "y": 11.2959995,
+            "color": 0
+          },
+          {
+            "glyph": 3653,
+            "size": 16,
+            "x": 29.7991104,
+            "y": 11.2959995,
+            "color": 0
+          },
+          {
+            "glyph": 30,
+            "size": 16,
+            "x": 43.8755569,
+            "y": 11.2959995,
+            "color": 0
+          },
+          {
+            "glyph": 3654,
+            "size": 16,
+            "x": 60.7680016,
+            "y": 11.2959995,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\text{hello world}",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 77.8720016,
+        "ascent": 11.1040001,
+        "descent": 0.175999999,
+        "ink_left": 0.512000024,
+        "ink_right": 77.4079971,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 73,
+            "size": 16,
+            "x": 0,
+            "y": 11.1040001,
+            "color": 0
+          },
+          {
+            "glyph": 70,
+            "size": 16,
+            "x": 9.00800037,
+            "y": 11.1040001,
+            "color": 0
+          },
+          {
+            "glyph": 77,
+            "size": 16,
+            "x": 16.1119995,
+            "y": 11.1040001,
+            "color": 0
+          },
+          {
+            "glyph": 77,
+            "size": 16,
+            "x": 20.6399994,
+            "y": 11.1040001,
+            "color": 0
+          },
+          {
+            "glyph": 80,
+            "size": 16,
+            "x": 25.1679993,
+            "y": 11.1040001,
+            "color": 0
+          },
+          {
+            "glyph": 88,
+            "size": 16,
+            "x": 38.4799995,
+            "y": 11.1040001,
+            "color": 0
+          },
+          {
+            "glyph": 80,
+            "size": 16,
+            "x": 50.1759987,
+            "y": 11.1040001,
+            "color": 0
+          },
+          {
+            "glyph": 83,
+            "size": 16,
+            "x": 58.1759987,
+            "y": 11.1040001,
+            "color": 0
+          },
+          {
+            "glyph": 77,
+            "size": 16,
+            "x": 64.447998,
+            "y": 11.1040001,
+            "color": 0
+          },
+          {
+            "glyph": 69,
+            "size": 16,
+            "x": 68.9759979,
+            "y": 11.1040001,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\text{hello world}",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 77.8720016,
+        "ascent": 11.1040001,
+        "descent": 0.175999999,
+        "ink_left": 0.512000024,
+        "ink_right": 77.4079971,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 73,
+            "size": 16,
+            "x": 0,
+            "y": 11.1040001,
+            "color": 0
+          },
+          {
+            "glyph": 70,
+            "size": 16,
+            "x": 9.00800037,
+            "y": 11.1040001,
+            "color": 0
+          },
+          {
+            "glyph": 77,
+            "size": 16,
+            "x": 16.1119995,
+            "y": 11.1040001,
+            "color": 0
+          },
+          {
+            "glyph": 77,
+            "size": 16,
+            "x": 20.6399994,
+            "y": 11.1040001,
+            "color": 0
+          },
+          {
+            "glyph": 80,
+            "size": 16,
+            "x": 25.1679993,
+            "y": 11.1040001,
+            "color": 0
+          },
+          {
+            "glyph": 88,
+            "size": 16,
+            "x": 38.4799995,
+            "y": 11.1040001,
+            "color": 0
+          },
+          {
+            "glyph": 80,
+            "size": 16,
+            "x": 50.1759987,
+            "y": 11.1040001,
+            "color": 0
+          },
+          {
+            "glyph": 83,
+            "size": 16,
+            "x": 58.1759987,
+            "y": 11.1040001,
+            "color": 0
+          },
+          {
+            "glyph": 77,
+            "size": 16,
+            "x": 64.447998,
+            "y": 11.1040001,
+            "color": 0
+          },
+          {
+            "glyph": 69,
+            "size": 16,
+            "x": 68.9759979,
+            "y": 11.1040001,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\unknown{x}",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 0,
+        "ascent": 0,
+        "descent": 0,
+        "ink_left": 0,
+        "ink_right": 0,
+        "error": 1,
+        "status": 1,
+        "glyphs": [],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\unknown{x}",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 0,
+        "ascent": 0,
+        "descent": 0,
+        "ink_left": 0,
+        "ink_right": 0,
+        "error": 1,
+        "status": 1,
+        "glyphs": [],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\color{red}{\\frac{a}{b}}",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 10.7840004,
+        "ascent": 11.2432003,
+        "descent": 5.63199997,
+        "ink_left": 1.91999996,
+        "ink_right": 8.86400032,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 5238,
+            "size": 11.1999998,
+            "x": 1.91999996,
+            "y": 4.93919992,
+            "color": 4278190335
+          },
+          {
+            "glyph": 5239,
+            "size": 11.1999998,
+            "x": 2.58080006,
+            "y": 16.7632008,
+            "color": 4278190335
+          }
+        ],
+        "rules": [
+          {
+            "x": 1.91999996,
+            "y": 6.92320013,
+            "width": 6.94399977,
+            "height": 0.639999986,
+            "color": 4278190335
+          }
+        ],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\color{red}{\\frac{a}{b}}",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 12.3039999,
+        "ascent": 17.9039993,
+        "descent": 11.1520004,
+        "ink_left": 1.91999996,
+        "ink_right": 10.3839998,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 2992,
+            "size": 16,
+            "x": 1.91999996,
+            "y": 7.07200003,
+            "color": 4278190335
+          },
+          {
+            "glyph": 2993,
+            "size": 16,
+            "x": 2.60800004,
+            "y": 28.8799992,
+            "color": 4278190335
+          }
+        ],
+        "rules": [
+          {
+            "x": 1.91999996,
+            "y": 13.5839996,
+            "width": 8.46399975,
+            "height": 0.639999986,
+            "color": 4278190335
+          }
+        ],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "f",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 9.27999973,
+        "ascent": 11.2799997,
+        "descent": 3.27999997,
+        "ink_left": 0.84799999,
+        "ink_right": 8.83199978,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 2997,
+            "size": 16,
+            "x": 0,
+            "y": 11.2799997,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "f",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 9.27999973,
+        "ascent": 11.2799997,
+        "descent": 3.27999997,
+        "ink_left": 0.84799999,
+        "ink_right": 8.83199978,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 2997,
+            "size": 16,
+            "x": 0,
+            "y": 11.2799997,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "f^2",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 16.5487995,
+        "ascent": 13.2447996,
+        "descent": 3.27999997,
+        "ink_left": 0.84799999,
+        "ink_right": 14.9359999,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 2997,
+            "size": 16,
+            "x": 0,
+            "y": 13.2447996,
+            "color": 0
+          },
+          {
+            "glyph": 4902,
+            "size": 11.1999998,
+            "x": 9.27999973,
+            "y": 7.4368,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "f^2",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 16.5487995,
+        "ascent": 13.2447996,
+        "descent": 3.27999997,
+        "ink_left": 0.84799999,
+        "ink_right": 14.9359999,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 2997,
+            "size": 16,
+            "x": 0,
+            "y": 13.2447996,
+            "color": 0
+          },
+          {
+            "glyph": 4902,
+            "size": 11.1999998,
+            "x": 9.27999973,
+            "y": 7.4368,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "f_i",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 13.2608004,
+        "ascent": 11.2799997,
+        "descent": 4.06400013,
+        "ink_left": 0.84799999,
+        "ink_right": 11.7600002,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 2997,
+            "size": 16,
+            "x": 0,
+            "y": 11.2799997,
+            "color": 0
+          },
+          {
+            "glyph": 5246,
+            "size": 11.1999998,
+            "x": 7.84000015,
+            "y": 15.2320004,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "f_i",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 13.2608004,
+        "ascent": 11.2799997,
+        "descent": 4.06400013,
+        "ink_left": 0.84799999,
+        "ink_right": 11.7600002,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 2997,
+            "size": 16,
+            "x": 0,
+            "y": 11.2799997,
+            "color": 0
+          },
+          {
+            "glyph": 5246,
+            "size": 11.1999998,
+            "x": 7.84000015,
+            "y": 15.2320004,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "f_i^2",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 16.5487995,
+        "ascent": 13.2447996,
+        "descent": 4.2895999,
+        "ink_left": 0.84799999,
+        "ink_right": 14.9359999,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 2997,
+            "size": 16,
+            "x": 0,
+            "y": 13.2447996,
+            "color": 0
+          },
+          {
+            "glyph": 4902,
+            "size": 11.1999998,
+            "x": 9.27999973,
+            "y": 7.4368,
+            "color": 0
+          },
+          {
+            "glyph": 5246,
+            "size": 11.1999998,
+            "x": 7.84000015,
+            "y": 17.4223995,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "f_i^2",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 16.5487995,
+        "ascent": 13.2447996,
+        "descent": 4.2895999,
+        "ink_left": 0.84799999,
+        "ink_right": 14.9359999,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 2997,
+            "size": 16,
+            "x": 0,
+            "y": 13.2447996,
+            "color": 0
+          },
+          {
+            "glyph": 4902,
+            "size": 11.1999998,
+            "x": 9.27999973,
+            "y": 7.4368,
+            "color": 0
+          },
+          {
+            "glyph": 5246,
+            "size": 11.1999998,
+            "x": 7.84000015,
+            "y": 17.4223995,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\beta",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 9.63199997,
+        "ascent": 11.2959995,
+        "descent": 3.10400009,
+        "ink_left": 0.479999989,
+        "ink_right": 9.18400002,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 3653,
+            "size": 16,
+            "x": 0,
+            "y": 11.2959995,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\beta",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 9.63199997,
+        "ascent": 11.2959995,
+        "descent": 3.10400009,
+        "ink_left": 0.479999989,
+        "ink_right": 9.18400002,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 3653,
+            "size": 16,
+            "x": 0,
+            "y": 11.2959995,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\beta_i",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 14.4768,
+        "ascent": 11.2959995,
+        "descent": 4.06400013,
+        "ink_left": 0.479999989,
+        "ink_right": 12.9759998,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 3653,
+            "size": 16,
+            "x": 0,
+            "y": 11.2959995,
+            "color": 0
+          },
+          {
+            "glyph": 5246,
+            "size": 11.1999998,
+            "x": 9.05599976,
+            "y": 15.2480001,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\beta_i",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 14.4768,
+        "ascent": 11.2959995,
+        "descent": 4.06400013,
+        "ink_left": 0.479999989,
+        "ink_right": 12.9759998,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 3653,
+            "size": 16,
+            "x": 0,
+            "y": 11.2959995,
+            "color": 0
+          },
+          {
+            "glyph": 5246,
+            "size": 11.1999998,
+            "x": 9.05599976,
+            "y": 15.2480001,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\gamma",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 9.13599968,
+        "ascent": 7.07200003,
+        "descent": 3.44000006,
+        "ink_left": 0.287999988,
+        "ink_right": 8.68799973,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 3654,
+            "size": 16,
+            "x": 0,
+            "y": 7.07200003,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\gamma",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 9.13599968,
+        "ascent": 7.07200003,
+        "descent": 3.44000006,
+        "ink_left": 0.287999988,
+        "ink_right": 8.68799973,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 3654,
+            "size": 16,
+            "x": 0,
+            "y": 7.07200003,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "h",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 9.2159996,
+        "ascent": 11.1040001,
+        "descent": 0.175999999,
+        "ink_left": 0.879999995,
+        "ink_right": 8.73600006,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 785,
+            "size": 16,
+            "x": 0,
+            "y": 11.1040001,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "h",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 9.2159996,
+        "ascent": 11.1040001,
+        "descent": 0.175999999,
+        "ink_left": 0.879999995,
+        "ink_right": 8.73600006,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 785,
+            "size": 16,
+            "x": 0,
+            "y": 11.1040001,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\text{h l w}",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 35.855999,
+        "ascent": 11.1040001,
+        "descent": 0.175999999,
+        "ink_left": 0.512000024,
+        "ink_right": 35.4080009,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 73,
+            "size": 16,
+            "x": 0,
+            "y": 11.1040001,
+            "color": 0
+          },
+          {
+            "glyph": 77,
+            "size": 16,
+            "x": 14.3199997,
+            "y": 11.1040001,
+            "color": 0
+          },
+          {
+            "glyph": 88,
+            "size": 16,
+            "x": 24.1599998,
+            "y": 11.1040001,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\text{h l w}",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 35.855999,
+        "ascent": 11.1040001,
+        "descent": 0.175999999,
+        "ink_left": 0.512000024,
+        "ink_right": 35.4080009,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 73,
+            "size": 16,
+            "x": 0,
+            "y": 11.1040001,
+            "color": 0
+          },
+          {
+            "glyph": 77,
+            "size": 16,
+            "x": 14.3199997,
+            "y": 11.1040001,
+            "color": 0
+          },
+          {
+            "glyph": 88,
+            "size": 16,
+            "x": 24.1599998,
+            "y": 11.1040001,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\sin x",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 31.5786667,
+        "ascent": 10.5120001,
+        "descent": 0.175999999,
+        "ink_left": 0.527999997,
+        "ink_right": 30.8586674,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 84,
+            "size": 16,
+            "x": 0,
+            "y": 10.5120001,
+            "color": 0
+          },
+          {
+            "glyph": 74,
+            "size": 16,
+            "x": 6.3039999,
+            "y": 10.5120001,
+            "color": 0
+          },
+          {
+            "glyph": 79,
+            "size": 16,
+            "x": 10.7519999,
+            "y": 10.5120001,
+            "color": 0
+          },
+          {
+            "glyph": 3014,
+            "size": 16,
+            "x": 22.4266663,
+            "y": 10.5120001,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\sin x",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 31.5786667,
+        "ascent": 10.5120001,
+        "descent": 0.175999999,
+        "ink_left": 0.527999997,
+        "ink_right": 30.8586674,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 84,
+            "size": 16,
+            "x": 0,
+            "y": 10.5120001,
+            "color": 0
+          },
+          {
+            "glyph": 74,
+            "size": 16,
+            "x": 6.3039999,
+            "y": 10.5120001,
+            "color": 0
+          },
+          {
+            "glyph": 79,
+            "size": 16,
+            "x": 10.7519999,
+            "y": 10.5120001,
+            "color": 0
+          },
+          {
+            "glyph": 3014,
+            "size": 16,
+            "x": 22.4266663,
+            "y": 10.5120001,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\sqrt{\\frac{1}{3}}",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 26.2127991,
+        "ascent": 16.5583992,
+        "descent": 6.48159981,
+        "ink_left": 1.75999999,
+        "ink_right": 26.2127991,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 6247,
+            "size": 16,
+            "x": 0,
+            "y": 15.8400002,
+            "color": 0
+          },
+          {
+            "glyph": 4855,
+            "size": 11.1999998,
+            "x": 17.9200001,
+            "y": 10.2544003,
+            "color": 0
+          },
+          {
+            "glyph": 4896,
+            "size": 11.1999998,
+            "x": 17.9200001,
+            "y": 22.0783997,
+            "color": 0
+          }
+        ],
+        "rules": [
+          {
+            "x": 17.9200001,
+            "y": 12.2384005,
+            "width": 6.37279987,
+            "height": 0.639999986,
+            "color": 0
+          },
+          {
+            "x": 16,
+            "y": 0.639999986,
+            "width": 10.2128,
+            "height": 0.639999986,
+            "color": 0
+          }
+        ],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\sqrt{\\frac{1}{3}}",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 27.8400002,
+        "ascent": 26.4239998,
+        "descent": 12.6160002,
+        "ink_left": 1.77600002,
+        "ink_right": 27.8400002,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 6249,
+            "size": 16,
+            "x": 0,
+            "y": 23.8400002,
+            "color": 0
+          },
+          {
+            "glyph": 18,
+            "size": 16,
+            "x": 17.9200001,
+            "y": 15.592,
+            "color": 0
+          },
+          {
+            "glyph": 20,
+            "size": 16,
+            "x": 17.9200001,
+            "y": 37.4000015,
+            "color": 0
+          }
+        ],
+        "rules": [
+          {
+            "x": 17.9200001,
+            "y": 22.1040001,
+            "width": 8,
+            "height": 0.639999986,
+            "color": 0
+          },
+          {
+            "x": 16,
+            "y": 0.639999986,
+            "width": 11.8400002,
+            "height": 0.639999986,
+            "color": 0
+          }
+        ],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\begin{matrix}a&b\\\\c&d\\end{matrix}",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 27.1679993,
+        "ascent": 22.666666,
+        "descent": 14.666667,
+        "ink_left": 0.639999986,
+        "ink_right": 26.7199993,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 2992,
+            "size": 16,
+            "x": 0,
+            "y": 13.0666666,
+            "color": 0
+          },
+          {
+            "glyph": 2993,
+            "size": 16,
+            "x": 19.2719994,
+            "y": 13.0666666,
+            "color": 0
+          },
+          {
+            "glyph": 2994,
+            "size": 16,
+            "x": 0.568000019,
+            "y": 31.7333336,
+            "color": 0
+          },
+          {
+            "glyph": 2995,
+            "size": 16,
+            "x": 18.4640007,
+            "y": 31.7333336,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\begin{matrix}a&b\\\\c&d\\end{matrix}",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 27.1679993,
+        "ascent": 22.666666,
+        "descent": 14.666667,
+        "ink_left": 0.639999986,
+        "ink_right": 26.7199993,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 2992,
+            "size": 16,
+            "x": 0,
+            "y": 13.0666666,
+            "color": 0
+          },
+          {
+            "glyph": 2993,
+            "size": 16,
+            "x": 19.2719994,
+            "y": 13.0666666,
+            "color": 0
+          },
+          {
+            "glyph": 2994,
+            "size": 16,
+            "x": 0.568000019,
+            "y": 31.7333336,
+            "color": 0
+          },
+          {
+            "glyph": 2995,
+            "size": 16,
+            "x": 18.4640007,
+            "y": 31.7333336,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "a",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 8.46399975,
+        "ascent": 7.07200003,
+        "descent": 0.175999999,
+        "ink_left": 0.639999986,
+        "ink_right": 7.96799994,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 2992,
+            "size": 16,
+            "x": 0,
+            "y": 7.07200003,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "a",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 8.46399975,
+        "ascent": 7.07200003,
+        "descent": 0.175999999,
+        "ink_left": 0.639999986,
+        "ink_right": 7.96799994,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 2992,
+            "size": 16,
+            "x": 0,
+            "y": 7.07200003,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\hat{a}",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 8.46399975,
+        "ascent": 11.0719995,
+        "descent": 0.175999999,
+        "ink_left": 0.639999986,
+        "ink_right": 7.96799994,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 2992,
+            "size": 16,
+            "x": 0,
+            "y": 11.0719995,
+            "color": 0
+          },
+          {
+            "glyph": 342,
+            "size": 16,
+            "x": 0.592000008,
+            "y": 11.0719995,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\hat{a}",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 8.46399975,
+        "ascent": 11.0719995,
+        "descent": 0.175999999,
+        "ink_left": 0.639999986,
+        "ink_right": 7.96799994,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 2992,
+            "size": 16,
+            "x": 0,
+            "y": 11.0719995,
+            "color": 0
+          },
+          {
+            "glyph": 342,
+            "size": 16,
+            "x": 0.592000008,
+            "y": 11.0719995,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\widehat{abc}",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 22.8799992,
+        "ascent": 15.8719997,
+        "descent": 0.175999999,
+        "ink_left": 0.639999986,
+        "ink_right": 22.4319992,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 2992,
+            "size": 16,
+            "x": 0,
+            "y": 15.8719997,
+            "color": 0
+          },
+          {
+            "glyph": 2993,
+            "size": 16,
+            "x": 8.46399975,
+            "y": 15.8719997,
+            "color": 0
+          },
+          {
+            "glyph": 2994,
+            "size": 16,
+            "x": 15.552,
+            "y": 15.8719997,
+            "color": 0
+          },
+          {
+            "glyph": 5891,
+            "size": 16,
+            "x": 0.879999995,
+            "y": 11.9680004,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\widehat{abc}",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 22.8799992,
+        "ascent": 15.8719997,
+        "descent": 0.175999999,
+        "ink_left": 0.639999986,
+        "ink_right": 22.4319992,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 2992,
+            "size": 16,
+            "x": 0,
+            "y": 15.8719997,
+            "color": 0
+          },
+          {
+            "glyph": 2993,
+            "size": 16,
+            "x": 8.46399975,
+            "y": 15.8719997,
+            "color": 0
+          },
+          {
+            "glyph": 2994,
+            "size": 16,
+            "x": 15.552,
+            "y": 15.8719997,
+            "color": 0
+          },
+          {
+            "glyph": 5891,
+            "size": 16,
+            "x": 0.879999995,
+            "y": 11.9680004,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\tilde{x}",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 9.15200043,
+        "ascent": 10.4160004,
+        "descent": 0.175999999,
+        "ink_left": 0.463999987,
+        "ink_right": 8.43200016,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 3014,
+            "size": 16,
+            "x": 0,
+            "y": 10.4160004,
+            "color": 0
+          },
+          {
+            "glyph": 343,
+            "size": 16,
+            "x": 1.20000005,
+            "y": 10.4160004,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\tilde{x}",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 9.15200043,
+        "ascent": 10.4160004,
+        "descent": 0.175999999,
+        "ink_left": 0.463999987,
+        "ink_right": 8.43200016,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 3014,
+            "size": 16,
+            "x": 0,
+            "y": 10.4160004,
+            "color": 0
+          },
+          {
+            "glyph": 343,
+            "size": 16,
+            "x": 1.20000005,
+            "y": 10.4160004,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\vec{x}",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 9.15200043,
+        "ascent": 11.3760004,
+        "descent": 0.175999999,
+        "ink_left": 0.463999987,
+        "ink_right": 8.59200001,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 3014,
+            "size": 16,
+            "x": 0,
+            "y": 11.3760004,
+            "color": 0
+          },
+          {
+            "glyph": 750,
+            "size": 16,
+            "x": 9.48799992,
+            "y": 11.3760004,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\vec{x}",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 9.15200043,
+        "ascent": 11.3760004,
+        "descent": 0.175999999,
+        "ink_left": 0.463999987,
+        "ink_right": 8.59200001,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 3014,
+            "size": 16,
+            "x": 0,
+            "y": 11.3760004,
+            "color": 0
+          },
+          {
+            "glyph": 750,
+            "size": 16,
+            "x": 9.48799992,
+            "y": 11.3760004,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\dot{x}",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 9.15200043,
+        "ascent": 10.8319998,
+        "descent": 0.175999999,
+        "ink_left": 0.463999987,
+        "ink_right": 8.43200016,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 3014,
+            "size": 16,
+            "x": 0,
+            "y": 10.8319998,
+            "color": 0
+          },
+          {
+            "glyph": 347,
+            "size": 16,
+            "x": 9.50399971,
+            "y": 10.8319998,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\dot{x}",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 9.15200043,
+        "ascent": 10.8319998,
+        "descent": 0.175999999,
+        "ink_left": 0.463999987,
+        "ink_right": 8.43200016,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 3014,
+            "size": 16,
+            "x": 0,
+            "y": 10.8319998,
+            "color": 0
+          },
+          {
+            "glyph": 347,
+            "size": 16,
+            "x": 9.50399971,
+            "y": 10.8319998,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\ddot{x}",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 9.15200043,
+        "ascent": 10.7519999,
+        "descent": 0.175999999,
+        "ink_left": 0.463999987,
+        "ink_right": 8.43200016,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 3014,
+            "size": 16,
+            "x": 0,
+            "y": 10.7519999,
+            "color": 0
+          },
+          {
+            "glyph": 348,
+            "size": 16,
+            "x": 9.43999958,
+            "y": 10.7519999,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\ddot{x}",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 9.15200043,
+        "ascent": 10.7519999,
+        "descent": 0.175999999,
+        "ink_left": 0.463999987,
+        "ink_right": 8.43200016,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 3014,
+            "size": 16,
+            "x": 0,
+            "y": 10.7519999,
+            "color": 0
+          },
+          {
+            "glyph": 348,
+            "size": 16,
+            "x": 9.43999958,
+            "y": 10.7519999,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\bar{x}",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 9.15200043,
+        "ascent": 10.2399998,
+        "descent": 0.175999999,
+        "ink_left": 0.463999987,
+        "ink_right": 8.43200016,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 3014,
+            "size": 16,
+            "x": 0,
+            "y": 10.2399998,
+            "color": 0
+          },
+          {
+            "glyph": 344,
+            "size": 16,
+            "x": 9.47200012,
+            "y": 10.2399998,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\bar{x}",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 9.15200043,
+        "ascent": 10.2399998,
+        "descent": 0.175999999,
+        "ink_left": 0.463999987,
+        "ink_right": 8.43200016,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 3014,
+            "size": 16,
+            "x": 0,
+            "y": 10.2399998,
+            "color": 0
+          },
+          {
+            "glyph": 344,
+            "size": 16,
+            "x": 9.47200012,
+            "y": 10.2399998,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\overline{AB}",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 24.5440006,
+        "ascent": 14.6560001,
+        "descent": 0,
+        "ink_left": 0,
+        "ink_right": 24.5440006,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 2966,
+            "size": 16,
+            "x": 0,
+            "y": 14.6560001,
+            "color": 0
+          },
+          {
+            "glyph": 2967,
+            "size": 16,
+            "x": 12,
+            "y": 14.6560001,
+            "color": 0
+          }
+        ],
+        "rules": [
+          {
+            "x": 0,
+            "y": 0.639999986,
+            "width": 24.5440006,
+            "height": 0.639999986,
+            "color": 0
+          }
+        ],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\overline{AB}",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 24.5440006,
+        "ascent": 14.6560001,
+        "descent": 0,
+        "ink_left": 0,
+        "ink_right": 24.5440006,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 2966,
+            "size": 16,
+            "x": 0,
+            "y": 14.6560001,
+            "color": 0
+          },
+          {
+            "glyph": 2967,
+            "size": 16,
+            "x": 12,
+            "y": 14.6560001,
+            "color": 0
+          }
+        ],
+        "rules": [
+          {
+            "x": 0,
+            "y": 0.639999986,
+            "width": 24.5440006,
+            "height": 0.639999986,
+            "color": 0
+          }
+        ],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\underline{AB}",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 24.5440006,
+        "ascent": 11.4560003,
+        "descent": 3.20000005,
+        "ink_left": 0,
+        "ink_right": 24.5440006,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 2966,
+            "size": 16,
+            "x": 0,
+            "y": 11.4560003,
+            "color": 0
+          },
+          {
+            "glyph": 2967,
+            "size": 16,
+            "x": 12,
+            "y": 11.4560003,
+            "color": 0
+          }
+        ],
+        "rules": [
+          {
+            "x": 0,
+            "y": 13.3760004,
+            "width": 24.5440006,
+            "height": 0.639999986,
+            "color": 0
+          }
+        ],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\underline{AB}",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 24.5440006,
+        "ascent": 11.4560003,
+        "descent": 3.20000005,
+        "ink_left": 0,
+        "ink_right": 24.5440006,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 2966,
+            "size": 16,
+            "x": 0,
+            "y": 11.4560003,
+            "color": 0
+          },
+          {
+            "glyph": 2967,
+            "size": 16,
+            "x": 12,
+            "y": 11.4560003,
+            "color": 0
+          }
+        ],
+        "rules": [
+          {
+            "x": 0,
+            "y": 13.3760004,
+            "width": 24.5440006,
+            "height": 0.639999986,
+            "color": 0
+          }
+        ],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\overbrace{a+b}",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 35.1111107,
+        "ascent": 17.1040001,
+        "descent": 1.32799995,
+        "ink_left": 0.639999986,
+        "ink_right": 34.6631126,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 2992,
+            "size": 16,
+            "x": 0,
+            "y": 17.1040001,
+            "color": 0
+          },
+          {
+            "glyph": 12,
+            "size": 16,
+            "x": 12.0195551,
+            "y": 17.1040001,
+            "color": 0
+          },
+          {
+            "glyph": 2993,
+            "size": 16,
+            "x": 28.0231113,
+            "y": 17.1040001,
+            "color": 0
+          },
+          {
+            "glyph": 5973,
+            "size": 16,
+            "x": 1.36355555,
+            "y": 13.1999998,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\overbrace{a+b}",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 35.1111107,
+        "ascent": 17.1040001,
+        "descent": 1.32799995,
+        "ink_left": 0.639999986,
+        "ink_right": 34.6631126,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 2992,
+            "size": 16,
+            "x": 0,
+            "y": 17.1040001,
+            "color": 0
+          },
+          {
+            "glyph": 12,
+            "size": 16,
+            "x": 12.0195551,
+            "y": 17.1040001,
+            "color": 0
+          },
+          {
+            "glyph": 2993,
+            "size": 16,
+            "x": 28.0231113,
+            "y": 17.1040001,
+            "color": 0
+          },
+          {
+            "glyph": 5973,
+            "size": 16,
+            "x": 1.36355555,
+            "y": 13.1999998,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\underbrace{a+b}",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 35.1111107,
+        "ascent": 11.1040001,
+        "descent": 7.63199997,
+        "ink_left": 0.639999986,
+        "ink_right": 34.6631126,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 2992,
+            "size": 16,
+            "x": 0,
+            "y": 11.1040001,
+            "color": 0
+          },
+          {
+            "glyph": 12,
+            "size": 16,
+            "x": 12.0195551,
+            "y": 11.1040001,
+            "color": 0
+          },
+          {
+            "glyph": 2993,
+            "size": 16,
+            "x": 28.0231113,
+            "y": 11.1040001,
+            "color": 0
+          },
+          {
+            "glyph": 5974,
+            "size": 16,
+            "x": 1.36355555,
+            "y": 12.4320002,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\underbrace{a+b}",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 35.1111107,
+        "ascent": 11.1040001,
+        "descent": 7.63199997,
+        "ink_left": 0.639999986,
+        "ink_right": 34.6631126,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 2992,
+            "size": 16,
+            "x": 0,
+            "y": 11.1040001,
+            "color": 0
+          },
+          {
+            "glyph": 12,
+            "size": 16,
+            "x": 12.0195551,
+            "y": 11.1040001,
+            "color": 0
+          },
+          {
+            "glyph": 2993,
+            "size": 16,
+            "x": 28.0231113,
+            "y": 11.1040001,
+            "color": 0
+          },
+          {
+            "glyph": 5974,
+            "size": 16,
+            "x": 1.36355555,
+            "y": 12.4320002,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\mathbf{v}",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 9.71199989,
+        "ascent": 7.10400009,
+        "descent": 0.064000003,
+        "ink_left": 0.416000009,
+        "ink_right": 9.27999973,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 2961,
+            "size": 16,
+            "x": 0,
+            "y": 7.10400009,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\mathbf{v}",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 9.71199989,
+        "ascent": 7.10400009,
+        "descent": 0.064000003,
+        "ink_left": 0.416000009,
+        "ink_right": 9.27999973,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 2961,
+            "size": 16,
+            "x": 0,
+            "y": 7.10400009,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\mathbb{R}",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 11.552,
+        "ascent": 10.96,
+        "descent": 0,
+        "ink_left": 0.256000012,
+        "ink_right": 11.2480001,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 800,
+            "size": 16,
+            "x": 0,
+            "y": 10.96,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\mathbb{R}",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 11.552,
+        "ascent": 10.96,
+        "descent": 0,
+        "ink_left": 0.256000012,
+        "ink_right": 11.2480001,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 800,
+            "size": 16,
+            "x": 0,
+            "y": 10.96,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\mathcal{F}",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 14.4639997,
+        "ascent": 11.184,
+        "descent": 0.239999995,
+        "ink_left": 0.60799998,
+        "ink_right": 13.8400002,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 820,
+            "size": 16,
+            "x": 0,
+            "y": 11.184,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\mathcal{F}",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 14.4639997,
+        "ascent": 11.184,
+        "descent": 0.239999995,
+        "ink_left": 0.60799998,
+        "ink_right": 13.8400002,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 820,
+            "size": 16,
+            "x": 0,
+            "y": 11.184,
+            "color": 0
+          }
+        ],
+        "rules": [],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\displaystyle\\frac{1}{2}",
+      "display": false,
+      "size": 16,
+      "result": {
+        "width": 11.8400002,
+        "ascent": 21.4880009,
+        "descent": 10.9759998,
+        "ink_left": 1.91999996,
+        "ink_right": 9.92000008,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 18,
+            "size": 16,
+            "x": 1.91999996,
+            "y": 10.6560001,
+            "color": 0
+          },
+          {
+            "glyph": 19,
+            "size": 16,
+            "x": 1.91999996,
+            "y": 32.4640007,
+            "color": 0
+          }
+        ],
+        "rules": [
+          {
+            "x": 1.91999996,
+            "y": 17.1679993,
+            "width": 8,
+            "height": 0.639999986,
+            "color": 0
+          }
+        ],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    },
+    {
+      "tex": "\\displaystyle\\frac{1}{2}",
+      "display": true,
+      "size": 16,
+      "result": {
+        "width": 11.8400002,
+        "ascent": 21.4880009,
+        "descent": 10.9759998,
+        "ink_left": 1.91999996,
+        "ink_right": 9.92000008,
+        "error": 0,
+        "status": 0,
+        "glyphs": [
+          {
+            "glyph": 18,
+            "size": 16,
+            "x": 1.91999996,
+            "y": 10.6560001,
+            "color": 0
+          },
+          {
+            "glyph": 19,
+            "size": 16,
+            "x": 1.91999996,
+            "y": 32.4640007,
+            "color": 0
+          }
+        ],
+        "rules": [
+          {
+            "x": 1.91999996,
+            "y": 17.1679993,
+            "width": 8,
+            "height": 0.639999986,
+            "color": 0
+          }
+        ],
+        "external_text_count": 0,
+        "extra_item_count": 0
+      }
+    }
+  ]
+}

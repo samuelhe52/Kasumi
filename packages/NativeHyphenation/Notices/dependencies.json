@@ -1,0 +1,79 @@
+[
+  {
+    "name": "bincode",
+    "version": "1.3.3",
+    "checksum": "b1f45e9417d87227c7a56d22e471c6206462cba514c7590c09aff4cf6d1ddcad",
+    "license": "MIT",
+    "repository": "https://github.com/servo/bincode"
+  },
+  {
+    "name": "fst",
+    "version": "0.4.7",
+    "checksum": "7ab85b9b05e3978cc9a9cf8fea7f01b494e1a09ed3037e16ba39edc7a29eb61a",
+    "license": "Unlicense/MIT",
+    "repository": "https://github.com/BurntSushi/fst"
+  },
+  {
+    "name": "hyphenation",
+    "version": "0.8.4",
+    "checksum": "bcf4dd4c44ae85155502a52c48739c8a48185d1449fff1963cffee63c28a50f0",
+    "license": "Apache-2.0/MIT",
+    "repository": "https://github.com/tapeinosyne/hyphenation"
+  },
+  {
+    "name": "hyphenation_commons",
+    "version": "0.8.4",
+    "checksum": "5febe7a2ade5c7d98eb8b75f946c046b335324b06a14ea0998271504134c05bf",
+    "license": "Apache-2.0/MIT",
+    "repository": "https://github.com/tapeinosyne/hyphenation"
+  },
+  {
+    "name": "proc-macro2",
+    "version": "1.0.107",
+    "checksum": "985e7ec9bb745e6ce6535b544d84d6cd6f7ad8bd711c398938ae983b91a766d9",
+    "license": "MIT OR Apache-2.0",
+    "repository": "https://github.com/dtolnay/proc-macro2"
+  },
+  {
+    "name": "quote",
+    "version": "1.0.47",
+    "checksum": "1fbf4db142a473a8d80c26bbf18454ed458bf8d26c8219c331daecfdbd079001",
+    "license": "MIT OR Apache-2.0",
+    "repository": "https://github.com/dtolnay/quote"
+  },
+  {
+    "name": "serde",
+    "version": "1.0.229",
+    "checksum": "4148590afebada386688f18773da617792bf2ef03ffc1e4cbd2b1d45b023e0ba",
+    "license": "MIT OR Apache-2.0",
+    "repository": "https://github.com/serde-rs/serde"
+  },
+  {
+    "name": "serde_core",
+    "version": "1.0.229",
+    "checksum": "67dca2c9c51e58a4791a4b1ed58308b39c64224d349a935ab5039aa360942a48",
+    "license": "MIT OR Apache-2.0",
+    "repository": "https://github.com/serde-rs/serde"
+  },
+  {
+    "name": "serde_derive",
+    "version": "1.0.229",
+    "checksum": "e7a5d71263a5a7d47b41f6b3f06ba276f10cc18b0931f1799f710578e2309348",
+    "license": "MIT OR Apache-2.0",
+    "repository": "https://github.com/serde-rs/serde"
+  },
+  {
+    "name": "syn",
+    "version": "3.0.10",
+    "checksum": "4ae9ccbea3a7b0b09443036490c8f34a8b1b760fd345e5c0dae0aac718faea79",
+    "license": "MIT OR Apache-2.0",
+    "repository": "https://github.com/dtolnay/syn"
+  },
+  {
+    "name": "unicode-ident",
+    "version": "1.0.27",
+    "checksum": "a2c754d6c33795a1c324727428e5a7dedb5b06195f9890bdbcba760d3e246563",
+    "license": "(MIT OR Apache-2.0) AND Unicode-3.0",
+    "repository": "https://github.com/dtolnay/unicode-ident"
+  }
+]

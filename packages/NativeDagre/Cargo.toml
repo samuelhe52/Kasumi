@@ -1,0 +1,17 @@
+[package]
+name = "kasumi-dagre"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[lib]
+crate-type = ["staticlib"]
+
+[dependencies]
+# 0.1.1 unconditionally compiles graph/json.rs, which requires serde even
+# with default features disabled. Enable only that dependency, not serde_json.
+dagre = { version = "=0.1.1", default-features = false, features = ["serde"] }
+
+[profile.release]
+lto = true
+codegen-units = 1

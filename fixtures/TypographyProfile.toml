@@ -1,0 +1,18 @@
+# Authored profile for font, rule geometry and PDF-size checks.
+[meta]
+name = "Typography controls"
+
+[anchor]
+latin_family = "New York"
+han_family = "Songti SC"
+han_baseline = 0.04
+heading_han_baseline = 0.06
+line_spacing = 1.7
+
+[profile]
+base_size = 18
+math_font = "newcm-book"
+math_radical_gap = 1.6
+math_frac_bar_overhang = 0.08
+cjk_punct_face = "simsong"
+print_body_size = 11

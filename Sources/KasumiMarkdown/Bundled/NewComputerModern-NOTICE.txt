@@ -1,0 +1,44 @@
+NewComputerModern Math — bundled font notice and packaging manifest
+
+Upstream package: NewComputerModern 7.1.1, TeX Live revision 77677.
+Font name-table ID 5: 4.0 (both faces). This internal font version is not the
+upstream package version; a package 4.0 download is not the source of these bytes.
+Family: NewComputerModernMath; Regular and Book.
+Font copyright retained inside each face: (C) 2019-2021 Antonis Tsolomitis.
+Package README: Antonis Tsolomitis, Samos, Greece, 2019--2026.
+License: GUST Font License v1 or later (LPPL 1.3c or later).
+
+Included files (original filename; PostScript name; SHA-256):
+NewCMMath-Regular.otf; NewCMMath-Regular
+60394d357348f68cd301764fe61cc502a5858e1c4ff21b948a1d14d82586a7a2
+NewCMMath-Book.otf; NewCMMath-Book
+ac2f4393db81faa7242751483e52de8fd784c89bd00c20d07aaa938c68441ff8
+
+Packaging change: this application selects the two OpenType math faces from
+the larger NewComputerModern work. No glyph, name, metadata, metric, table,
+copyright notice or original font filename has been changed. This is a partial
+distribution of the upstream work. This notice records that packaging selection.
+Original font authors/maintainers do not provide support for this application.
+The unmodified upstream README-NewComputerModern-7.1.1.txt, complete
+GUST-FONT-LICENSE.txt and LPPL-1.3c.txt accompany these files.
+
+Information sufficient to obtain the complete unmodified upstream work:
+https://ftp.math.utah.edu/pub/tex/historic/systems/texlive/2025/tlnet-final/archive/
+Retrieve newcomputermodern.tar.xz and newcomputermodern.doc.tar.xz from this
+archived TeX Live distribution. The documentation archive contains the full
+font sources as doc/fonts/newcomputermodern/source.txz.
+The font files are under fonts/opentype/public/newcomputermodern/ in the
+first archive. That archive's SHA-256 is
+1c94581b200952e002aa73d979680948f356af8948a5d1d7a142fb42c193ce71.
+Its tlpobj identifies package version 7.1.1, revision 77677 and license gfl.
+The documentation archive SHA-256 is
+8e1cc26c575fd033e3946688b3130c329ff36ccd1845106c583c4fbd20324976.
+
+Current project/maintainer information (later releases may differ):
+https://ctan.org/pkg/newcomputermodern
+https://git.gnu.org.ua/newcm.git
+https://download.gnu.org.ua/release/newcm/
+Maintainer: Antonis Tsolomitis, University of the Aegean, atsol@aegean.gr.
+
+Provenance: both faces are unmodified and match the archived upstream 7.1.1
+distribution byte for byte (verified 2026-11-14).

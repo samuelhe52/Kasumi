@@ -1,0 +1,25 @@
+#!/bin/sh
+# Read-only checks. Does not install tools, launch apps, or drive devices.
+set -eu
+missing=0
+for tool in git swift xcodebuild cargo rustc; do
+  if command -v "$tool" >/dev/null 2>&1; then
+    printf 'Found %s\n' "$tool"
+  else
+    printf 'Missing required tool: %s\n' "$tool" >&2
+    missing=1
+  fi
+done
+[ "$missing" -eq 0 ] || exit 1
+xcodebuild -version
+swift --version
+cargo --version
+if command -v sim-use >/dev/null 2>&1; then
+  sim-use --version
+else
+  printf '%s\n' 'sim-use is unavailable; it is required for iOS UI verification.'
+fi
+printf '%s\n' 'Optional REA installation:'
+if ! "$(dirname -- "$0")/rea" --version; then
+  printf '%s\n' 'REA is optional; configure it before binary investigation.'
+fi

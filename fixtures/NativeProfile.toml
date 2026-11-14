@@ -1,0 +1,24 @@
+# Authored profile-format fixture, intentionally not strict TOML.
+# The later invalid numeric assignment retains the earlier valid value.
+[meta]
+name = "Native profile fixture"
+
+[anchor]
+latin_family = "TeX Gyre Pagella"
+han_family = "Songti SC"
+line_spacing = 1.7
+latin_scale = 0.97
+han_baseline = 0.04
+heading_han_baseline = 0.06
+
+[profile]
+base_size = 18
+base_size = invalid
+code_capsule = true
+code_capsule_pad = 0.3
+table_style = "grid"
+para_separation = "indent"
+
+[future-layout]
+# Recognized keys in every non-anchor section share the override namespace.
+para_space_after = 0.5

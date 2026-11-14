@@ -1,0 +1,19 @@
+第一卷 文本阅读示例
+
+第一章 段落与章节
+这是第一行中文。
+这是第二行中文。
+
+连续的中文换行在重排时连接。
+English lines retain a word boundary
+when they are joined together.
+
+第二章 原样显示
+**这些星号在纯文本模式下保留。**
+# This is not a Markdown heading in plain text mode.
+
+  缩进可以开始一个新的段落。
+后面的行继续同一段。
+
+Chapter Three
+The outline recognises this chapter heading.
