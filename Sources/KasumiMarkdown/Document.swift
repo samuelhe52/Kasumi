@@ -1,45 +1,45 @@
 import Foundation
 import Markdown
 
-public struct InlineRun: Equatable, Sendable {
-    public enum Trait: String, Sendable { case strong, emphasis, code, strikethrough, link, math, highlight, footnote, image }
-    public var text: String
-    public var traits: Set<Trait> = []
-    public var destination: String?
-    public var imageSource: String?
-    public var footnoteLabel: String?
-    public var footnoteDisplay: String?
-    public init(_ text: String, traits: Set<Trait> = [], destination: String? = nil) {
+struct InlineRun: Equatable, Sendable {
+    enum Trait: String, Sendable { case strong, emphasis, code, strikethrough, link, math, highlight, footnote, image }
+    var text: String
+    var traits: Set<Trait> = []
+    var destination: String?
+    var imageSource: String?
+    var footnoteLabel: String?
+    var footnoteDisplay: String?
+    init(_ text: String, traits: Set<Trait> = [], destination: String? = nil) {
         self.text = text; self.traits = traits; self.destination = destination
     }
 }
 
-public struct DocumentBlock: Identifiable, Sendable {
-    public enum Kind: String, Sendable { case paragraph, heading, quote, code, rule, table, image, math, diagram }
-    public let id: Int
-    public var kind: Kind
-    public var runs: [InlineRun]
-    public var level: Int = 0
-    public var prefix = ""
-    public var language: String?
-    public var rows: [[[InlineRun]]] = []
-    public var alignments: [String] = []
-    public var destination: String?
-    public var sourceLines: ClosedRange<Int>?
-    public var footnoteLabel: String?
-    public var footnoteDisplay: String?
-    public var text: String { runs.map(\.text).joined() }
+struct DocumentBlock: Identifiable, Sendable {
+    enum Kind: String, Sendable { case paragraph, heading, quote, code, rule, table, image, math, diagram }
+    let id: Int
+    var kind: Kind
+    var runs: [InlineRun]
+    var level: Int = 0
+    var prefix = ""
+    var language: String?
+    var rows: [[[InlineRun]]] = []
+    var alignments: [String] = []
+    var destination: String?
+    var sourceLines: ClosedRange<Int>?
+    var footnoteLabel: String?
+    var footnoteDisplay: String?
+    var text: String { runs.map(\.text).joined() }
 }
 
-public struct ParsedDocument: Sendable {
-    public var blocks: [DocumentBlock]
+struct ParsedDocument: Sendable {
+    var blocks: [DocumentBlock]
     /// Directory against which relative resources in this document resolve.
-    public var baseURL: URL? = nil
-    public var headings: [DocumentBlock] { blocks.filter { $0.kind == .heading } }
+    var baseURL: URL? = nil
+    var headings: [DocumentBlock] { blocks.filter { $0.kind == .heading } }
 }
 
-public enum DocumentParser {
-    public static func parse(_ source: String, plainText: Bool = false, keepLineBreaks: Bool = false, baseURL: URL? = nil, plainTextOptions: PlainTextOptions = PlainTextOptions()) -> ParsedDocument {
+enum DocumentParser {
+    static func parse(_ source: String, plainText: Bool = false, keepLineBreaks: Bool = false, baseURL: URL? = nil, plainTextOptions: PlainTextOptions = PlainTextOptions()) -> ParsedDocument {
         if plainText && !plainTextOptions.parseAsMarkdown {
             return PlainTextParser.parse(source, options: plainTextOptions, baseURL: baseURL)
         }

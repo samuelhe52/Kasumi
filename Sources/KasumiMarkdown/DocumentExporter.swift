@@ -7,10 +7,10 @@ import ImageIO
 import UniformTypeIdentifiers
 import CoreText
 
-public enum DocumentExportError: LocalizedError {
+enum DocumentExportError: LocalizedError {
     case invalidGeometry, cannotCreateImage, cannotWriteImage, cannotCreatePDF, cannotWritePDF
     case imageTooLarge(width: Int, height: Int)
-    public var errorDescription: String? {
+    var errorDescription: String? {
         switch self {
         case .invalidGeometry: "The export size or margins are invalid."
         case .cannotCreateImage: "Not enough memory for a picture this size. Lower the scale or width."
@@ -22,25 +22,31 @@ public enum DocumentExportError: LocalizedError {
     }
 }
 
-public struct PDFExportOptions: Sendable {
-    public var paperSize = CGSize(width: 595.276, height: 841.89)
-    public var margins = DocumentInsets(top: 72, left: 72, bottom: 72, right: 72)
-    public var pageNumbers = true
-    public var footerTemplate = "{page}"
-    public var headerTemplate = ""
-    public var title = ""
-    public var date = Date()
-    public init() {}
+struct PDFExportOptions: Sendable {
+    var paperSize = CGSize(width: 595.276, height: 841.89)
+    var margins = DocumentInsets(top: 72, left: 72, bottom: 72, right: 72)
+    var pageNumbers = true
+    var footerTemplate = "{page}"
+    var headerTemplate = ""
+    var title = ""
+    var date = Date()
+    init() {}
 }
 
-public enum DocumentExporter {
-    public static func writeImage(_ document: ParsedDocument, style: Typography, width: CGFloat, scale: CGFloat = 2, to url: URL) throws {
+enum DocumentExporter {
+    static func writeImage(_ document: ParsedDocument, style: Typography, width: CGFloat, scale: CGFloat = 2, to url: URL) throws {
         guard width.isFinite, width > 0, scale.isFinite, scale > 0 else { throw DocumentExportError.invalidGeometry }
         let layout = DocumentTypesetter.layout(document, width: width, style: style)
         try writeImage(layout, style: style, scale: scale, to: url)
     }
 
-    public static func writeImage(_ layout: DocumentLayout, style: Typography, scale: CGFloat = 2, region: CGRect? = nil, to url: URL) throws {
+    static func writeImage(_ layout: DocumentLayout, style: Typography, scale: CGFloat = 2, region: CGRect? = nil, to url: URL) throws {
+        do { try imageData(layout, style: style, scale: scale, region: region).write(to: url, options: .atomic) }
+        catch let error as DocumentExportError { throw error }
+        catch { throw DocumentExportError.cannotWriteImage }
+    }
+
+    static func imageData(_ layout: DocumentLayout, style: Typography, scale: CGFloat = 2, region: CGRect? = nil) throws -> Data {
         let full = CGRect(x: 0, y: 0, width: layout.width, height: layout.height)
         let region = region ?? full
         guard region.width.isFinite, region.height.isFinite, region.width > 0, region.height > 0,
@@ -53,12 +59,20 @@ public enum DocumentExporter {
         context.setFillColor(style.paperColor.cgColor); context.fill(CGRect(origin: .zero, size: region.size))
         context.translateBy(x: -region.minX, y: -region.minY)
         DocumentTypesetter.draw(layout, in: context)
-        guard let image = context.makeImage(), let destination = CGImageDestinationCreateWithURL(url as CFURL, UTType.png.identifier as CFString, 1, nil) else { throw DocumentExportError.cannotCreateImage }
+        let data = NSMutableData()
+        guard let image = context.makeImage(), let destination = CGImageDestinationCreateWithData(data as CFMutableData, UTType.png.identifier as CFString, 1, nil) else { throw DocumentExportError.cannotCreateImage }
         CGImageDestinationAddImage(destination, image, nil)
         guard CGImageDestinationFinalize(destination) else { throw DocumentExportError.cannotWriteImage }
+        return data as Data
     }
 
-    public static func writePDF(_ document: ParsedDocument, style: Typography, options: PDFExportOptions = PDFExportOptions(), to url: URL) throws {
+    static func writePDF(_ document: ParsedDocument, style: Typography, options: PDFExportOptions = PDFExportOptions(), to url: URL) throws {
+        do { try pdfData(document, style: style, options: options).write(to: url, options: .atomic) }
+        catch let error as DocumentExportError { throw error }
+        catch { throw DocumentExportError.cannotWritePDF }
+    }
+
+    static func pdfData(_ document: ParsedDocument, style: Typography, options: PDFExportOptions = PDFExportOptions()) throws -> Data {
         let size = options.paperSize, m = options.margins
         let values = [size.width, size.height, m.top, m.left, m.bottom, m.right]
         let footerHeight: CGFloat = options.pageNumbers && !options.footerTemplate.isEmpty ? 24 : 0
@@ -111,7 +125,6 @@ public enum DocumentExporter {
             context.endPDFPage()
         }
         context.closePDF()
-        do { try (data as Data).write(to: url, options: .atomic) }
-        catch { throw DocumentExportError.cannotWritePDF }
+        return data as Data
     }
 }

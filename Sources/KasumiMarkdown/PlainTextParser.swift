@@ -16,7 +16,7 @@ public struct PlainTextOptions: Codable, Equatable, Sendable {
     }
 }
 
-public enum PlainTextParser {
+enum PlainTextParser {
     private struct Line {
         let text: String
         let number: Int
@@ -26,9 +26,9 @@ public enum PlainTextParser {
     private static let edgeSpaces = CharacterSet(charactersIn: " \t\u{3000}")
     private static let terminalPunctuation = Set("!\"').?]’”…。》」』】！）？")
 
-    public static func resolvedParagraphMode(for source: String) -> TXTParagraphMode { automaticMode(lines(source)) }
+    static func resolvedParagraphMode(for source: String) -> TXTParagraphMode { automaticMode(lines(source)) }
 
-    public static func parse(_ source: String, options: PlainTextOptions = PlainTextOptions(), baseURL: URL? = nil) -> ParsedDocument {
+    static func parse(_ source: String, options: PlainTextOptions = PlainTextOptions(), baseURL: URL? = nil) -> ParsedDocument {
         let input = lines(source)
         let mode = options.paragraphMode == .automatic ? automaticMode(input) : options.paragraphMode
         var blocks: [DocumentBlock] = []

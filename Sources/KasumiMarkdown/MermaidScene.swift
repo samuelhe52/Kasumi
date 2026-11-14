@@ -2,7 +2,7 @@ import Foundation
 import CoreGraphics
 import CoreText
 
-public enum MermaidError: Error, Equatable {
+enum MermaidError: Error, Equatable {
     case unsupported(line: Int), syntax(line: Int), tooLarge, unsupportedType(String), unknownType, empty
 
     var explanation: String {

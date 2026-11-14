@@ -1,15 +1,15 @@
 import Foundation
 import CoreText
 
-public enum ParagraphAlignment: String, Codable, CaseIterable, Sendable { case justified, leading, centered, trailing }
+enum ParagraphAlignment: String, Codable, CaseIterable, Sendable { case justified, leading, centered, trailing }
 
 /// Paragraph-wide box/glue/penalty optimization. Native shaping supplies edge widths.
 /// Narrow-measure alignment policy is selected by the caller, independently of breaking.
-public enum ParagraphBreaker {
+enum ParagraphBreaker {
     private struct Point { let offset: Int; let forced: Bool }
     private struct State { var cost = Double.infinity; var predecessor = -1; var fitness = 1 }
 
-    public static func ranges(in text: String, width: Double, fontSize: Double = 16,
+    static func ranges(in text: String, width: Double, fontSize: Double = 16,
                               alignment: ParagraphAlignment = .justified, firstLineIndent: Double = 0,
                               measure: (NSRange) -> Double) -> [NSRange] {
         guard !text.isEmpty, width > 0 else { return [] }
@@ -83,7 +83,7 @@ public enum ParagraphBreaker {
         return result.reversed()
     }
 
-    public static func isCJK(_ character: Character) -> Bool {
+    static func isCJK(_ character: Character) -> Bool {
         character.unicodeScalars.contains { scalar in
             (0x2E80...0x9FFF).contains(scalar.value) || (0xF900...0xFAFF).contains(scalar.value) ||
             (0x20000...0x323AF).contains(scalar.value) || (0xAC00...0xD7AF).contains(scalar.value) ||

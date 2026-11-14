@@ -4,10 +4,10 @@ import Foundation
 
 /// Unmodified bundled math faces, loaded without global font registration or
 /// dependence on user-installed fonts. Every access names an immutable face.
-public enum MathFont {
-    public static var resourceURL: URL { resourceURL(for: .newCMRegular) }
+enum MathFont {
+    static var resourceURL: URL { resourceURL(for: .newCMRegular) }
 
-    public static func resourceURL(for face: MathFontChoice) -> URL {
+    static func resourceURL(for face: MathFontChoice) -> URL {
         let name: String
         switch face {
         case .newCMRegular: name = "NewCMMath-Regular"
@@ -20,12 +20,12 @@ public enum MathFont {
         return url
     }
 
-    public static func font(size: CGFloat, face: MathFontChoice = .newCMRegular) -> CTFont {
+    static func font(size: CGFloat, face: MathFontChoice = .newCMRegular) -> CTFont {
         precondition(size.isFinite && size > 0, "Math font size must be finite and positive")
         return CTFontCreateWithGraphicsFont(asset(for: face).face, size, nil, nil)
     }
 
-    public static func metrics(size: CGFloat, face: MathFontChoice = .newCMRegular) -> MathMetrics {
+    static func metrics(size: CGFloat, face: MathFontChoice = .newCMRegular) -> MathMetrics {
         precondition(size.isFinite && size > 0, "Math font size must be finite and positive")
         let asset = asset(for: face)
         return MathMetrics(table: asset.table, scale: size / CGFloat(asset.unitsPerEm))
@@ -34,7 +34,7 @@ public enum MathFont {
     /// First ready-made variant meeting the requested height, or the largest
     /// available variant. Compare `advance` with the request before deciding
     /// whether a glyph assembly is needed. Measurements use the supplied size.
-    public static func verticalVariant(glyph: CGGlyph, minimumHeight: CGFloat, size: CGFloat, face: MathFontChoice = .newCMRegular) -> MathGlyphVariant? {
+    static func verticalVariant(glyph: CGGlyph, minimumHeight: CGFloat, size: CGFloat, face: MathFontChoice = .newCMRegular) -> MathGlyphVariant? {
         guard minimumHeight.isFinite, size.isFinite, size > 0 else { return nil }
         let asset = asset(for: face), scale = size / CGFloat(asset.unitsPerEm)
         let variants = asset.table.variants(glyph: glyph, vertical: true)
@@ -42,7 +42,7 @@ public enum MathFont {
         return MathGlyphVariant(glyph: chosen.glyph, advance: CGFloat(chosen.advance) * scale)
     }
 
-    public static func horizontalVariant(glyph: CGGlyph, minimumWidth: CGFloat, size: CGFloat, face: MathFontChoice = .newCMRegular) -> MathGlyphVariant? {
+    static func horizontalVariant(glyph: CGGlyph, minimumWidth: CGFloat, size: CGFloat, face: MathFontChoice = .newCMRegular) -> MathGlyphVariant? {
         guard minimumWidth.isFinite, size.isFinite, size > 0 else { return nil }
         let asset = asset(for: face), scale = size / CGFloat(asset.unitsPerEm)
         let variants = asset.table.variants(glyph: glyph, vertical: false)
@@ -51,7 +51,7 @@ public enum MathFont {
     }
 
     /// Accents use the widest ready-made glyph that fits over their nucleus.
-    public static func horizontalVariant(glyph: CGGlyph, maximumWidth: CGFloat, size: CGFloat, face: MathFontChoice = .newCMRegular) -> MathGlyphVariant? {
+    static func horizontalVariant(glyph: CGGlyph, maximumWidth: CGFloat, size: CGFloat, face: MathFontChoice = .newCMRegular) -> MathGlyphVariant? {
         guard maximumWidth.isFinite, size.isFinite, size > 0 else { return nil }
         let asset = asset(for: face), scale = size / CGFloat(asset.unitsPerEm)
         let variants = asset.table.variants(glyph: glyph, vertical: false)
@@ -60,16 +60,16 @@ public enum MathFont {
     }
 
     /// Optical script designs are selected separately from reducing font size.
-    public static func scriptVariant(glyph: CGGlyph, level: Int, face: MathFontChoice = .newCMRegular) -> CGGlyph {
+    static func scriptVariant(glyph: CGGlyph, level: Int, face: MathFontChoice = .newCMRegular) -> CGGlyph {
         asset(for: face).scriptVariants.substitute(glyph: glyph, level: level)
     }
 
-    public static func italicCorrection(glyph: CGGlyph, size: CGFloat, face: MathFontChoice = .newCMRegular) -> CGFloat {
+    static func italicCorrection(glyph: CGGlyph, size: CGFloat, face: MathFontChoice = .newCMRegular) -> CGFloat {
         let asset = asset(for: face)
         return CGFloat(asset.table.glyphValue(glyph: glyph, infoOffset: 0) ?? 0) * size / CGFloat(asset.unitsPerEm)
     }
 
-    public static func topAccentAttachment(glyph: CGGlyph, size: CGFloat, face: MathFontChoice = .newCMRegular) -> CGFloat? {
+    static func topAccentAttachment(glyph: CGGlyph, size: CGFloat, face: MathFontChoice = .newCMRegular) -> CGFloat? {
         let asset = asset(for: face)
         return asset.table.glyphValue(glyph: glyph, infoOffset: 2).map { CGFloat($0) * size / CGFloat(asset.unitsPerEm) }
     }
@@ -114,17 +114,17 @@ public enum MathFont {
     }
 }
 
-public struct MathGlyphVariant: Sendable {
-    public let glyph: CGGlyph
+struct MathGlyphVariant: Sendable {
+    let glyph: CGGlyph
     /// Font-declared size in the direction of extension, in points.
-    public let advance: CGFloat
+    let advance: CGFloat
 }
 
 /// OpenType MATH constants scaled from design units to points. Percent fields
 /// are ratios (e.g. 0.7), relative to the original text size, not percentages.
 /// Device corrections are deliberately ignored to keep screen/PDF geometry
 /// independent of raster resolution, as permitted by the OpenType spec.
-public struct MathMetrics: Sendable {
+struct MathMetrics: Sendable {
     private let table: OpenTypeMathTable
     private let scale: CGFloat
 
@@ -133,62 +133,62 @@ public struct MathMetrics: Sendable {
         self.scale = scale
     }
 
-    public var scriptPercentScaleDown: CGFloat { CGFloat(table.constantInt16(at: 0)) / 100 }
-    public var scriptScriptPercentScaleDown: CGFloat { CGFloat(table.constantInt16(at: 2)) / 100 }
-    public var delimitedSubFormulaMinHeight: CGFloat { CGFloat(table.constantUInt16(at: 4)) * scale }
-    public var displayOperatorMinHeight: CGFloat { CGFloat(table.constantUInt16(at: 6)) * scale }
-    public var mathLeading: CGFloat { value(at: 8) }
-    public var axisHeight: CGFloat { value(at: 12) }
-    public var accentBaseHeight: CGFloat { value(at: 16) }
-    public var flattenedAccentBaseHeight: CGFloat { value(at: 20) }
-    public var subscriptShiftDown: CGFloat { value(at: 24) }
-    public var subscriptTopMax: CGFloat { value(at: 28) }
-    public var subscriptBaselineDropMin: CGFloat { value(at: 32) }
-    public var superscriptShiftUp: CGFloat { value(at: 36) }
-    public var superscriptShiftUpCramped: CGFloat { value(at: 40) }
-    public var superscriptBottomMin: CGFloat { value(at: 44) }
-    public var superscriptBaselineDropMax: CGFloat { value(at: 48) }
-    public var subSuperscriptGapMin: CGFloat { value(at: 52) }
-    public var superscriptBottomMaxWithSubscript: CGFloat { value(at: 56) }
-    public var spaceAfterScript: CGFloat { value(at: 60) }
-    public var upperLimitGapMin: CGFloat { value(at: 64) }
-    public var upperLimitBaselineRiseMin: CGFloat { value(at: 68) }
-    public var lowerLimitGapMin: CGFloat { value(at: 72) }
-    public var lowerLimitBaselineDropMin: CGFloat { value(at: 76) }
-    public var stackTopShiftUp: CGFloat { value(at: 80) }
-    public var stackTopDisplayStyleShiftUp: CGFloat { value(at: 84) }
-    public var stackBottomShiftDown: CGFloat { value(at: 88) }
-    public var stackBottomDisplayStyleShiftDown: CGFloat { value(at: 92) }
-    public var stackGapMin: CGFloat { value(at: 96) }
-    public var stackDisplayStyleGapMin: CGFloat { value(at: 100) }
-    public var stretchStackTopShiftUp: CGFloat { value(at: 104) }
-    public var stretchStackBottomShiftDown: CGFloat { value(at: 108) }
-    public var stretchStackGapAboveMin: CGFloat { value(at: 112) }
-    public var stretchStackGapBelowMin: CGFloat { value(at: 116) }
-    public var fractionNumeratorShiftUp: CGFloat { value(at: 120) }
-    public var fractionNumeratorDisplayStyleShiftUp: CGFloat { value(at: 124) }
-    public var fractionDenominatorShiftDown: CGFloat { value(at: 128) }
-    public var fractionDenominatorDisplayStyleShiftDown: CGFloat { value(at: 132) }
-    public var fractionNumeratorGapMin: CGFloat { value(at: 136) }
-    public var fractionNumDisplayStyleGapMin: CGFloat { value(at: 140) }
-    public var fractionRuleThickness: CGFloat { value(at: 144) }
-    public var fractionDenominatorGapMin: CGFloat { value(at: 148) }
-    public var fractionDenomDisplayStyleGapMin: CGFloat { value(at: 152) }
-    public var skewedFractionHorizontalGap: CGFloat { value(at: 156) }
-    public var skewedFractionVerticalGap: CGFloat { value(at: 160) }
-    public var overbarVerticalGap: CGFloat { value(at: 164) }
-    public var overbarRuleThickness: CGFloat { value(at: 168) }
-    public var overbarExtraAscender: CGFloat { value(at: 172) }
-    public var underbarVerticalGap: CGFloat { value(at: 176) }
-    public var underbarRuleThickness: CGFloat { value(at: 180) }
-    public var underbarExtraDescender: CGFloat { value(at: 184) }
-    public var radicalVerticalGap: CGFloat { value(at: 188) }
-    public var radicalDisplayStyleVerticalGap: CGFloat { value(at: 192) }
-    public var radicalRuleThickness: CGFloat { value(at: 196) }
-    public var radicalExtraAscender: CGFloat { value(at: 200) }
-    public var radicalKernBeforeDegree: CGFloat { value(at: 204) }
-    public var radicalKernAfterDegree: CGFloat { value(at: 208) }
-    public var radicalDegreeBottomRaisePercent: CGFloat { CGFloat(table.constantInt16(at: 212)) / 100 }
+    var scriptPercentScaleDown: CGFloat { CGFloat(table.constantInt16(at: 0)) / 100 }
+    var scriptScriptPercentScaleDown: CGFloat { CGFloat(table.constantInt16(at: 2)) / 100 }
+    var delimitedSubFormulaMinHeight: CGFloat { CGFloat(table.constantUInt16(at: 4)) * scale }
+    var displayOperatorMinHeight: CGFloat { CGFloat(table.constantUInt16(at: 6)) * scale }
+    var mathLeading: CGFloat { value(at: 8) }
+    var axisHeight: CGFloat { value(at: 12) }
+    var accentBaseHeight: CGFloat { value(at: 16) }
+    var flattenedAccentBaseHeight: CGFloat { value(at: 20) }
+    var subscriptShiftDown: CGFloat { value(at: 24) }
+    var subscriptTopMax: CGFloat { value(at: 28) }
+    var subscriptBaselineDropMin: CGFloat { value(at: 32) }
+    var superscriptShiftUp: CGFloat { value(at: 36) }
+    var superscriptShiftUpCramped: CGFloat { value(at: 40) }
+    var superscriptBottomMin: CGFloat { value(at: 44) }
+    var superscriptBaselineDropMax: CGFloat { value(at: 48) }
+    var subSuperscriptGapMin: CGFloat { value(at: 52) }
+    var superscriptBottomMaxWithSubscript: CGFloat { value(at: 56) }
+    var spaceAfterScript: CGFloat { value(at: 60) }
+    var upperLimitGapMin: CGFloat { value(at: 64) }
+    var upperLimitBaselineRiseMin: CGFloat { value(at: 68) }
+    var lowerLimitGapMin: CGFloat { value(at: 72) }
+    var lowerLimitBaselineDropMin: CGFloat { value(at: 76) }
+    var stackTopShiftUp: CGFloat { value(at: 80) }
+    var stackTopDisplayStyleShiftUp: CGFloat { value(at: 84) }
+    var stackBottomShiftDown: CGFloat { value(at: 88) }
+    var stackBottomDisplayStyleShiftDown: CGFloat { value(at: 92) }
+    var stackGapMin: CGFloat { value(at: 96) }
+    var stackDisplayStyleGapMin: CGFloat { value(at: 100) }
+    var stretchStackTopShiftUp: CGFloat { value(at: 104) }
+    var stretchStackBottomShiftDown: CGFloat { value(at: 108) }
+    var stretchStackGapAboveMin: CGFloat { value(at: 112) }
+    var stretchStackGapBelowMin: CGFloat { value(at: 116) }
+    var fractionNumeratorShiftUp: CGFloat { value(at: 120) }
+    var fractionNumeratorDisplayStyleShiftUp: CGFloat { value(at: 124) }
+    var fractionDenominatorShiftDown: CGFloat { value(at: 128) }
+    var fractionDenominatorDisplayStyleShiftDown: CGFloat { value(at: 132) }
+    var fractionNumeratorGapMin: CGFloat { value(at: 136) }
+    var fractionNumDisplayStyleGapMin: CGFloat { value(at: 140) }
+    var fractionRuleThickness: CGFloat { value(at: 144) }
+    var fractionDenominatorGapMin: CGFloat { value(at: 148) }
+    var fractionDenomDisplayStyleGapMin: CGFloat { value(at: 152) }
+    var skewedFractionHorizontalGap: CGFloat { value(at: 156) }
+    var skewedFractionVerticalGap: CGFloat { value(at: 160) }
+    var overbarVerticalGap: CGFloat { value(at: 164) }
+    var overbarRuleThickness: CGFloat { value(at: 168) }
+    var overbarExtraAscender: CGFloat { value(at: 172) }
+    var underbarVerticalGap: CGFloat { value(at: 176) }
+    var underbarRuleThickness: CGFloat { value(at: 180) }
+    var underbarExtraDescender: CGFloat { value(at: 184) }
+    var radicalVerticalGap: CGFloat { value(at: 188) }
+    var radicalDisplayStyleVerticalGap: CGFloat { value(at: 192) }
+    var radicalRuleThickness: CGFloat { value(at: 196) }
+    var radicalExtraAscender: CGFloat { value(at: 200) }
+    var radicalKernBeforeDegree: CGFloat { value(at: 204) }
+    var radicalKernAfterDegree: CGFloat { value(at: 208) }
+    var radicalDegreeBottomRaisePercent: CGFloat { CGFloat(table.constantInt16(at: 212)) / 100 }
 
     private func value(at offset: Int) -> CGFloat { CGFloat(table.constantInt16(at: offset)) * scale }
 }

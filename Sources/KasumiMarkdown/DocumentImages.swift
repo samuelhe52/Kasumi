@@ -8,13 +8,13 @@ import Foundation
 import ImageIO
 
 /// Immutable decoded pixels shared by layout passes and asynchronous loading.
-public final class DocumentImage: NSObject, @unchecked Sendable {
-    public let bitmap: CGImage
+final class DocumentImage: NSObject, @unchecked Sendable {
+    let bitmap: CGImage
     /// Oriented source dimensions in document points. Small images are not enlarged.
-    public let size: CGSize
+    let size: CGSize
     init(bitmap: CGImage, size: CGSize) { self.bitmap = bitmap; self.size = size }
 
-    public func fitted(to maximumWidth: CGFloat) -> CGSize {
+    func fitted(to maximumWidth: CGFloat) -> CGSize {
         guard maximumWidth.isFinite, maximumWidth > 0, size.width > 0, size.height > 0 else { return .zero }
         let scale = min(1, maximumWidth / size.width)
         return CGSize(width: size.width * scale, height: size.height * scale)
@@ -23,13 +23,13 @@ public final class DocumentImage: NSObject, @unchecked Sendable {
 
 /// Layout reads local/data resources and already decoded cache entries only.
 /// HTTP loading is explicitly asynchronous, bounded, and never starts in draw().
-public final class DocumentImageStore: @unchecked Sendable {
-    public static let shared = DocumentImageStore()
-    public static let maximumBytes = 20 * 1024 * 1024
+final class DocumentImageStore: @unchecked Sendable {
+    static let shared = DocumentImageStore()
+    static let maximumBytes = 20 * 1024 * 1024
     private let cache = NSCache<NSString, DocumentImage>()
     private let session: URLSession
 
-    public convenience init() {
+    convenience init() {
         let configuration = URLSessionConfiguration.default
         configuration.timeoutIntervalForRequest = 15
         configuration.timeoutIntervalForResource = 30
@@ -41,7 +41,7 @@ public final class DocumentImageStore: @unchecked Sendable {
     }
     deinit { session.invalidateAndCancel() }
 
-    public static func resourceURL(_ source: String, baseURL: URL?) -> URL? {
+    static func resourceURL(_ source: String, baseURL: URL?) -> URL? {
         guard !source.isEmpty else { return nil }
         if baseURL == nil, source.hasPrefix("/") { return URL(fileURLWithPath: source.removingPercentEncoding ?? source) }
         let directory = baseURL?.appendingPathComponent("", isDirectory: true)
@@ -51,7 +51,7 @@ public final class DocumentImageStore: @unchecked Sendable {
         return url
     }
 
-    public func image(for source: String, baseURL: URL?) -> DocumentImage? {
+    func image(for source: String, baseURL: URL?) -> DocumentImage? {
         guard let url = Self.resourceURL(source, baseURL: baseURL) else { return nil }
         let key = cacheKey(url)
         if let image = cache.object(forKey: key) { return image }
@@ -70,7 +70,7 @@ public final class DocumentImageStore: @unchecked Sendable {
     /// Preload remote resources before export, or redraw a reader when this
     /// returns true. Up to four requests run concurrently. Relative local files
     /// need no preload; they are decoded lazily on the first layout pass.
-    @discardableResult public func preload(_ document: ParsedDocument) async -> Bool {
+    @discardableResult func preload(_ document: ParsedDocument) async -> Bool {
         var sources = Set<URL>()
         for block in document.blocks {
             let runs = block.runs + block.rows.flatMap { $0.flatMap { $0 } }

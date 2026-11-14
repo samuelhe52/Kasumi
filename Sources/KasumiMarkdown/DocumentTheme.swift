@@ -28,7 +28,7 @@ public struct DocumentColor: Codable, Equatable, Sendable {
                   alpha: digits.count == 8 ? Double(value & 255) / 255 : 1)
     }
 
-    public var nsColor: PlatformColor {
+    var nsColor: PlatformColor {
         PlatformColor(srgbRed: red, green: green, blue: blue, alpha: alpha)
     }
 
@@ -59,7 +59,7 @@ public struct DocumentTheme: Identifiable, Equatable, Sendable {
     public let id: String
     public let name: String
     public let appearance: Appearance
-    public var dark: Bool { appearance == .dark }
+    var dark: Bool { appearance == .dark }
     public let document: [String: DocumentColor]
     public let chrome: [String: DocumentColor]
     public let syntax: [String: DocumentColor]
@@ -71,24 +71,24 @@ public struct DocumentTheme: Identifiable, Equatable, Sendable {
         self.document = document; self.chrome = chrome; self.syntax = syntax
     }
 
-    public func color(_ key: String) -> PlatformColor? {
+    func color(_ key: String) -> PlatformColor? {
         (document[key] ?? chrome[key] ?? syntax[key])?.nsColor
     }
 }
 
-public enum DocumentThemeCatalog {
+enum DocumentThemeCatalog {
     /// The bundled themes retain their sparse overrides. Classic entries expose
     /// the Classic base palette, resolving semantic colors for their appearance.
-    public static var themes: [DocumentTheme] { definitions.map { $0.materialize() } }
+    static var themes: [DocumentTheme] { definitions.map { $0.materialize() } }
 
     /// An exact ID wins. An unknown ID selects Classic for the requested appearance.
-    public static func theme(id: String, dark: Bool) -> DocumentTheme {
+    static func theme(id: String, dark: Bool) -> DocumentTheme {
         (definitions.first { $0.id == id } ?? classic(dark: dark)).materialize()
     }
 
     /// Overlay semantics: missing keys inherit Classic, including an
     /// omitted inline_code value inheriting Classic textColor rather than theme text.
-    public static func resolved(id: String, dark: Bool) -> DocumentTheme {
+    static func resolved(id: String, dark: Bool) -> DocumentTheme {
         let selected = theme(id: id, dark: dark)
         let base = classic(dark: selected.dark).materialize()
         return DocumentTheme(id: selected.id, name: selected.name, appearance: selected.appearance,

@@ -6,29 +6,29 @@ import UIKit
 #endif
 import CoreText
 
-public struct Typography: Codable, Equatable, Sendable {
-    public var size: Double = 16
-    public var lineSpacing: Double = 1.7
-    public var latinFamily = "New York"
-    public var hanFamily = "Songti SC"
-    public var codeFamily = ""
-    public var alignment: ParagraphAlignment = .justified
-    public var paragraphIndent = false
-    public var hangingPunctuation = true
-    public var narrowMeasureRagged = true
-    public var narrowMeasureEm: Double = 20
-    public var widthLimit: Double = 960
-    public var limitWidth = true
-    public var dark = false
-    public var mermaidEnabled = true
-    public var profileValues = BuiltinProfiles.all[0].effective
-    public var lightThemeID = "mono-light"
-    public var darkThemeID = "mono-dark"
-    public init() {}
+struct Typography: Codable, Equatable, Sendable {
+    var size: Double = 16
+    var lineSpacing: Double = 1.7
+    var latinFamily = "New York"
+    var hanFamily = "Songti SC"
+    var codeFamily = ""
+    var alignment: ParagraphAlignment = .justified
+    var paragraphIndent = false
+    var hangingPunctuation = true
+    var narrowMeasureRagged = true
+    var narrowMeasureEm: Double = 20
+    var widthLimit: Double = 960
+    var limitWidth = true
+    var dark = false
+    var mermaidEnabled = true
+    var profileValues = BuiltinProfiles.all[0].effective
+    var lightThemeID = "mono-light"
+    var darkThemeID = "mono-dark"
+    init() {}
     private enum CodingKeys: String, CodingKey {
         case size, lineSpacing, latinFamily, hanFamily, codeFamily, alignment, paragraphIndent, hangingPunctuation, narrowMeasureRagged, narrowMeasureEm, widthLimit, limitWidth, dark, mermaidEnabled, profileValues, lightThemeID, darkThemeID
     }
-    public init(from decoder: Decoder) throws {
+    init(from decoder: Decoder) throws {
         self.init()
         let values = try decoder.container(keyedBy: CodingKeys.self)
         size = try values.decodeIfPresent(Double.self, forKey: .size) ?? size
@@ -49,49 +49,50 @@ public struct Typography: Codable, Equatable, Sendable {
         lightThemeID = try values.decodeIfPresent(String.self, forKey: .lightThemeID) ?? lightThemeID
         darkThemeID = try values.decodeIfPresent(String.self, forKey: .darkThemeID) ?? darkThemeID
     }
-    public var documentTheme: DocumentTheme { DocumentThemeCatalog.resolved(id: dark ? darkThemeID : lightThemeID, dark: dark) }
-    public var textColor: PlatformColor { documentTheme.color("text")! }
-    public var headingColor: PlatformColor { documentTheme.color("heading") ?? textColor }
-    public var paperColor: PlatformColor { documentTheme.color("paper")! }
-    public var secondaryColor: PlatformColor { documentTheme.color("secondary_text")! }
-    public var ruleColor: PlatformColor { documentTheme.color("rule")! }
-    public var hanScale: Double { profileValues.resolved(.hanScale).number! }
-    public var latinScale: Double { profileValues.resolved(.latinScale).number! }
-    public var codeScale: Double { profileValues.resolved(.codeScale).number! }
-    public var hanBaseline: Double { profileValues.resolved(.hanBaseline).number! }
-    public var headingHanBaseline: Double { profileValues.resolved(.headingHanBaseline).number! }
-    public var scriptScale: Double { profileValues.resolved(.scriptScale).number! }
-    public func headingSize(_ level: Int) -> Double {
+    var explicitTheme: DocumentTheme? = nil
+    var documentTheme: DocumentTheme { explicitTheme ?? DocumentThemeCatalog.resolved(id: dark ? darkThemeID : lightThemeID, dark: dark) }
+    var textColor: PlatformColor { documentTheme.color("text")! }
+    var headingColor: PlatformColor { documentTheme.color("heading") ?? textColor }
+    var paperColor: PlatformColor { documentTheme.color("paper")! }
+    var secondaryColor: PlatformColor { documentTheme.color("secondary_text")! }
+    var ruleColor: PlatformColor { documentTheme.color("rule")! }
+    var hanScale: Double { profileValues.resolved(.hanScale).number! }
+    var latinScale: Double { profileValues.resolved(.latinScale).number! }
+    var codeScale: Double { profileValues.resolved(.codeScale).number! }
+    var hanBaseline: Double { profileValues.resolved(.hanBaseline).number! }
+    var headingHanBaseline: Double { profileValues.resolved(.headingHanBaseline).number! }
+    var scriptScale: Double { profileValues.resolved(.scriptScale).number! }
+    func headingSize(_ level: Int) -> Double {
         (size * headingScale(level)).rounded(.toNearestOrAwayFromZero)
     }
-    public var mathOptions: MathProfileOptions {
+    var mathOptions: MathProfileOptions {
         MathProfileOptions(fontName: profileValues.resolved(.mathFont).string!,
                            radicalGap: profileValues.resolved(.mathRadicalGap).number!,
                            fractionBarOverhang: profileValues.resolved(.mathFracBarOverhang).number!)
     }
-    public var printBodySize: Double { profileValues.resolved(.printBodySize).number! }
-    public var superscriptShift: Double { profileValues.resolved(.superscriptShift).number! }
-    public var paraSpaceBefore: Double { profileValues.resolved(.paraSpaceBefore).number! }
-    public var paraSpaceAfter: Double { profileValues.resolved(.paraSpaceAfter).number! }
-    public var paraSpaceBetween: Double {
+    var printBodySize: Double { profileValues.resolved(.printBodySize).number! }
+    var superscriptShift: Double { profileValues.resolved(.superscriptShift).number! }
+    var paraSpaceBefore: Double { profileValues.resolved(.paraSpaceBefore).number! }
+    var paraSpaceAfter: Double { profileValues.resolved(.paraSpaceAfter).number! }
+    var paraSpaceBetween: Double {
         profileValues[.paraSpaceBetween]?.number ?? (paragraphIndent ? 0 : paraSpaceAfter)
     }
-    public var firstLineIndent: Double { profileValues[.firstLineIndent]?.number ?? (paragraphIndent ? 2 : 0) }
-    public var indentFirstParagraph: Bool { profileValues[.paraSeparation]?.string == "indent" || (profileValues[.paraSeparation] == nil && paragraphIndent) }
-    public var headingSpaceBefore: Double { profileValues.resolved(.headingSpaceBefore).number! }
-    public var headingSpaceAfter: Double { profileValues.resolved(.headingSpaceAfter).number! }
-    public func headingScale(_ level: Int) -> Double {
+    var firstLineIndent: Double { profileValues[.firstLineIndent]?.number ?? (paragraphIndent ? 2 : 0) }
+    var indentFirstParagraph: Bool { profileValues[.paraSeparation]?.string == "indent" || (profileValues[.paraSeparation] == nil && paragraphIndent) }
+    var headingSpaceBefore: Double { profileValues.resolved(.headingSpaceBefore).number! }
+    var headingSpaceAfter: Double { profileValues.resolved(.headingSpaceAfter).number! }
+    func headingScale(_ level: Int) -> Double {
         if case .numbers(let values) = profileValues.resolved(.headingScale), values.count == 6 {
             return min(4, max(0.5, values[min(5,max(0,level-1))]))
         }
         return [1.6,1.5,1.4,1.3,1.2,1.1][min(5,max(0,level-1))]
     }
-    public func headingWeight(_ level: Int) -> PlatformFont.Weight {
+    func headingWeight(_ level: Int) -> PlatformFont.Weight {
         guard case .strings(let weights)=profileValues.resolved(.headingWeight), weights.count==6,
               weights.allSatisfy({["regular","medium","semibold","bold"].contains($0)}) else { return .semibold }
         switch weights[min(5,max(0,level-1))] {case "regular":return .regular;case "medium":return .medium;case "bold":return .bold;default:return .semibold}
     }
-    public func applying(_ values: ProfileValues) -> Typography {
+    func applying(_ values: ProfileValues) -> Typography {
         var result=self; result.profileValues=values
         result.size=values.resolved(.baseSize).number!
         let latin=values[.latinFamily]?.string ?? ""
@@ -108,7 +109,7 @@ public struct Typography: Codable, Equatable, Sendable {
         return result
     }
 
-    public func font(size: Double? = nil, strong: Bool = false, emphasis: Bool = false, code: Bool = false, cjk: Bool = false, weight: PlatformFont.Weight? = nil, heading: Bool = false) -> PlatformFont {
+    func font(size: Double? = nil, strong: Bool = false, emphasis: Bool = false, code: Bool = false, cjk: Bool = false, weight: PlatformFont.Weight? = nil, heading: Bool = false) -> PlatformFont {
         _ = try? DocumentFonts.registerBundledFonts()
         let requestedSize = (size ?? self.size) * (code ? codeScale : cjk ? hanScale : latinScale)
         // Code font sizes round to nearest, ties away from zero, after scaling.
@@ -140,7 +141,7 @@ public struct Typography: Codable, Equatable, Sendable {
         return PlatformFonts.applying(traits, to: base)
     }
 
-    public func attributed(_ runs: [InlineRun], size: Double? = nil, heading: Bool = false, code: Bool = false, headingLevel: Int? = nil, baseURL: URL? = nil, imageMaxWidth: CGFloat = 960) -> NSAttributedString {
+    func attributed(_ runs: [InlineRun], size: Double? = nil, heading: Bool = false, code: Bool = false, headingLevel: Int? = nil, baseURL: URL? = nil, imageMaxWidth: CGFloat = 960) -> NSAttributedString {
         let output = NSMutableAttributedString(string: "")
         func append(_ text: NSAttributedString, base: PlatformFont, han: PlatformFont? = nil, punctuation: PlatformFont? = nil, run: InlineRun, isCode: Bool) {
             let piece = NSMutableAttributedString(attributedString: text)
@@ -220,16 +221,16 @@ public struct Typography: Codable, Equatable, Sendable {
     }
 }
 
-public struct ParagraphLayout {
-    public let attributed: NSAttributedString
-    public let lines: [ShapedLine]
-    public let height: CGFloat
-    public var autoRagged = false
-    public var diagnostics: [String] = []
+struct ParagraphLayout {
+    let attributed: NSAttributedString
+    let lines: [ShapedLine]
+    let height: CGFloat
+    var autoRagged = false
+    var diagnostics: [String] = []
 }
 
-public enum ParagraphTypesetter {
-    public static func layout(_ attributed: NSAttributedString, width: CGFloat, fontSize: CGFloat, lineSpacing: CGFloat = 1.7, alignment: ParagraphAlignment = .justified, indent: CGFloat = 0, verbatim: Bool = false, profileValues: ProfileValues? = nil, outerWidth: CGFloat? = nil, baseEm: CGFloat? = nil) -> ParagraphLayout {
+enum ParagraphTypesetter {
+    static func layout(_ attributed: NSAttributedString, width: CGFloat, fontSize: CGFloat, lineSpacing: CGFloat = 1.7, alignment: ParagraphAlignment = .justified, indent: CGFloat = 0, verbatim: Bool = false, profileValues: ProfileValues? = nil, outerWidth: CGFloat? = nil, baseEm: CGFloat? = nil) -> ParagraphLayout {
         guard attributed.length > 0, width > 0 else { return ParagraphLayout(attributed: attributed, lines: [], height: 0) }
         // RTL text keeps Core Text's visual ordering; the paragraph engine does
         // not implement bidi painting yet.

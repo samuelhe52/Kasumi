@@ -1,16 +1,16 @@
 import Foundation
 
-public struct ProfileLibrary: Codable, Equatable, Sendable {
-    public private(set) var profiles: [TypographyProfile]
-    public var selectedID: String
-    public init(profiles: [TypographyProfile] = BuiltinProfiles.all, selectedID: String = "serif") {
+struct ProfileLibrary: Codable, Equatable, Sendable {
+    private(set) var profiles: [TypographyProfile]
+    var selectedID: String
+    init(profiles: [TypographyProfile] = BuiltinProfiles.all, selectedID: String = "serif") {
         self.profiles=profiles; self.selectedID=selectedID
     }
-    public var selected: TypographyProfile {
+    var selected: TypographyProfile {
         profiles.first(where: { $0.id == selectedID }) ?? profiles.first(where: { $0.id == "serif" }) ?? BuiltinProfiles.all[0]
     }
-    public var missingSelection: Bool { !profiles.contains(where: { $0.id == selectedID }) }
-    public init(files: [String: String], selectedID: String, order: [String]? = nil) throws {
+    var missingSelection: Bool { !profiles.contains(where: { $0.id == selectedID }) }
+    init(files: [String: String], selectedID: String, order: [String]? = nil) throws {
         var profiles = BuiltinProfiles.all
         for id in order ?? Array(files.keys) {
             guard let source = files[id] else { continue }
@@ -27,14 +27,14 @@ public struct ProfileLibrary: Codable, Equatable, Sendable {
         self.init(profiles: profiles, selectedID: selectedID)
     }
     /// Built-in files contain delta only; user files retain their sparse anchor.
-    public func fileSources() throws -> [String: String] {
+    func fileSources() throws -> [String: String] {
         var result: [String: String] = [:]
         for profile in profiles {
             if let source = try profile.storedSource() { result[profile.id] = source }
         }
         return result
     }
-    public mutating func rebaseBuiltins() {
+    mutating func rebaseBuiltins() {
         let stored=profiles
         // Drop malformed collisions with a reserved built-in ID.
         let builtins=Set(BuiltinProfiles.all.map(\.id))
@@ -43,11 +43,11 @@ public struct ProfileLibrary: Codable, Equatable, Sendable {
             var value=factory; value.delta=stored.first(where:{$0.origin == .builtin && $0.id==factory.id})?.delta ?? .init(); return value
         } + stored.filter { $0.origin == .user && !$0.id.isEmpty && seen.insert($0.id).inserted }
     }
-    public mutating func set(_ value: ProfileValue?, for field: ProfileField) throws {
+    mutating func set(_ value: ProfileValue?, for field: ProfileField) throws {
         guard let index=profiles.firstIndex(where:{$0.id==selectedID}) else { return }
         try profiles[index].set(value,for:field)
     }
-    public mutating func reset() throws {
+    mutating func reset() throws {
         guard let index=profiles.firstIndex(where:{$0.id==selectedID}) else { return }
         var profile = profiles[index]
         profile.delta=ProfileValues()
@@ -55,20 +55,20 @@ public struct ProfileLibrary: Codable, Equatable, Sendable {
         else { try profile.synchronizeSource() }
         profiles[index] = profile
     }
-    public mutating func setAsAnchor() throws {
+    mutating func setAsAnchor() throws {
         guard let index=profiles.firstIndex(where:{$0.id==selectedID}),profiles[index].origin == .user else { return }
         var profile = profiles[index]
         profile.factory=profile.effective; profile.delta=ProfileValues()
         try profile.synchronizeSource()
         profiles[index] = profile
     }
-    @discardableResult public mutating func duplicate(reservedIDs: Set<String> = []) throws -> String {
+    @discardableResult mutating func duplicate(reservedIDs: Set<String> = []) throws -> String {
         let source=selected, name=source.name+" copy", id=uniqueID(name, reservedIDs: reservedIDs)
         var copy=TypographyProfile(id:id,name:name,factory:source.effective)
         try copy.synchronizeSource()
         profiles.append(copy); selectedID=id; return id
     }
-    @discardableResult public mutating func add(name: String, reservedIDs: Set<String> = []) throws -> String {
+    @discardableResult mutating func add(name: String, reservedIDs: Set<String> = []) throws -> String {
         let id = uniqueID(name, reservedIDs: reservedIDs)
         // Native Add starts with a blank optional factory and delta. Duplicate
         // is the separate action that snapshots the current profile.
@@ -77,7 +77,7 @@ public struct ProfileLibrary: Codable, Equatable, Sendable {
         profiles.append(profile); selectedID = id
         return id
     }
-    @discardableResult public mutating func importProfile(_ source: String, suggestedName: String, reservedIDs: Set<String> = []) throws -> String {
+    @discardableResult mutating func importProfile(_ source: String, suggestedName: String, reservedIDs: Set<String> = []) throws -> String {
         let document=try ProfileFileDocument(source)
         let name=document.name ?? suggestedName
         let id=uniqueID(name, reservedIDs: reservedIDs)
@@ -85,14 +85,14 @@ public struct ProfileLibrary: Codable, Equatable, Sendable {
         profiles.append(TypographyProfile(id:id,name:name.isEmpty ? suggestedName:name,factory:anchor,delta:delta,importedSource:source))
         selectedID=id; return id
     }
-    public mutating func rename(_ name: String) throws {
+    mutating func rename(_ name: String) throws {
         guard !name.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty,
               let i=profiles.firstIndex(where:{$0.id==selectedID}),profiles[i].origin == .user else { return }
         var profile = profiles[i]
         profile.name=name;try profile.synchronizeSource(writeName: true)
         profiles[i] = profile
     }
-    public mutating func removeSelected() {
+    mutating func removeSelected() {
         guard selected.origin == .user else { return }
         profiles.removeAll { $0.id==selectedID }
     }
@@ -106,7 +106,7 @@ public struct ProfileLibrary: Codable, Equatable, Sendable {
 }
 
 extension TypographyProfile {
-    public func storedSource() throws -> String? {
+    func storedSource() throws -> String? {
         if origin == .builtin {
             if let importedSource { return importedSource }
             guard !delta.isEmpty else { return nil }
@@ -116,7 +116,7 @@ extension TypographyProfile {
         }
         return try exportedSource()
     }
-    public func editableSource() throws -> String {
+    func editableSource() throws -> String {
         if let source = try storedSource() { return source }
         return ProfileFileDocument.template(name: name)
     }

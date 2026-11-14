@@ -5,23 +5,23 @@ import Foundation
 
 /// Text faces used by document presets. Registration is process scoped; it does
 /// not install fonts or change the user's font configuration.
-public enum DocumentFonts {
-    public struct Face: Sendable, Equatable {
-        public let fileName: String
-        public let familyName: String
-        public let styleName: String
-        public let postScriptName: String
-        public let sha256: String
-        public let resourceURL: URL
+enum DocumentFonts {
+    struct Face: Sendable, Equatable {
+        let fileName: String
+        let familyName: String
+        let styleName: String
+        let postScriptName: String
+        let sha256: String
+        let resourceURL: URL
     }
 
-    public enum RegistrationError: Error, Sendable, Equatable, CustomStringConvertible {
+    enum RegistrationError: Error, Sendable, Equatable, CustomStringConvertible {
         case missingResource(String)
         case invalidResource(file: String, reason: String)
         case registrationFailed(file: String, code: Int, reason: String)
         case unavailable(postScriptName: String, reason: String)
 
-        public var description: String {
+        var description: String {
             switch self {
             case .missingResource(let file): "Missing bundled document font: \(file)"
             case .invalidResource(let file, let reason): "Invalid bundled document font \(file): \(reason)"
@@ -34,7 +34,7 @@ public enum DocumentFonts {
     /// Registers all four unmodified TeX Gyre Pagella 2.501 text faces exactly
     /// once. Every caller receives the same success or explicit failure; no
     /// system-font substitution is reported as success.
-    public static func registerBundledFonts() throws -> [Face] {
+    static func registerBundledFonts() throws -> [Face] {
         try registration.get()
     }
 

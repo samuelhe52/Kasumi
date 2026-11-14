@@ -1,9 +1,9 @@
 import Foundation
 
-public struct DocumentPageSlice {
-    public let range: Range<CGFloat>
+struct DocumentPageSlice {
+    let range: Range<CGFloat>
     /// Oversized indivisible content is uniformly reduced to fit one page.
-    public let scale: CGFloat
+    let scale: CGFloat
 }
 
 struct PaginationBand {
@@ -11,8 +11,8 @@ struct PaginationBand {
     var keepWithNext = false
 }
 
-public enum DocumentPaginator {
-    public static func pages(for layout: DocumentLayout, contentHeight: CGFloat) throws -> [DocumentPageSlice] {
+enum DocumentPaginator {
+    static func pages(for layout: DocumentLayout, contentHeight: CGFloat) throws -> [DocumentPageSlice] {
         var bands: [PaginationBand] = []
         for item in layout.paragraphs {
             let heading = layout.headingPositions.values.contains { abs($0 - item.origin.y) < 0.01 }

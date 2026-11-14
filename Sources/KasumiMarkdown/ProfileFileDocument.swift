@@ -3,12 +3,12 @@ import Foundation
 /// The profile format is line oriented. Only exact anchor sections form
 /// a separate namespace; every other section contributes profile overrides.
 /// This deliberately does not interpret a profile as a strict TOML document.
-public struct ProfileFileDocument: Sendable {
-    public enum FileError: LocalizedError { case tooLarge
-        public var errorDescription: String? { "The preset exceeds the 4 MiB size limit." }
+struct ProfileFileDocument: Sendable {
+    enum FileError: LocalizedError { case tooLarge
+        var errorDescription: String? { "The preset exceeds the 4 MiB size limit." }
     }
-    public private(set) var source: String
-    public init(_ source: String) throws {
+    private(set) var source: String
+    init(_ source: String) throws {
         guard source.utf8.count <= 4 * 1024 * 1024 else { throw FileError.tooLarge }
         self.source = source
     }
@@ -16,7 +16,7 @@ public struct ProfileFileDocument: Sendable {
     private static let duplicateMarker = "# ← 这个键被设了不止一次，解析只认最后一条；这条已失效"
     private static func trim(_ text: String) -> String { text.trimmingCharacters(in: .whitespaces) }
 
-    public var name: String? {
+    var name: String? {
         for line in lines {
             if let assignment = Self.assignment(line), assignment.key == "name" {
                 // Unlike ordinary fields, the native name reader does not strip
@@ -26,7 +26,7 @@ public struct ProfileFileDocument: Sendable {
         }
         return nil
     }
-    public func values(anchor: Bool = false) -> ProfileValues {
+    func values(anchor: Bool = false) -> ProfileValues {
         var result = ProfileValues(), inAnchor = false
         for line in lines {
             if let header = Self.header(line) { inAnchor = header == "anchor" }
@@ -42,7 +42,7 @@ public struct ProfileFileDocument: Sendable {
         }
         return result
     }
-    public mutating func set(_ value: ProfileValue?, for field: ProfileField, anchor: Bool = false) throws {
+    mutating func set(_ value: ProfileValue?, for field: ProfileField, anchor: Bool = false) throws {
         var edited = lines
         var inAnchor = false, matches: [Int] = [], template: Int?
         for (index, line) in edited.enumerated() {
@@ -86,7 +86,7 @@ public struct ProfileFileDocument: Sendable {
         }
         try commit(edited)
     }
-    public mutating func setName(_ name: String) throws {
+    mutating func setName(_ name: String) throws {
         var edited = lines
         let value = Self.quote(name)
         if let index = edited.firstIndex(where: { Self.assignment($0)?.key == "name" }) {
@@ -96,7 +96,7 @@ public struct ProfileFileDocument: Sendable {
         } else { edited.insert(contentsOf: ["[meta]", "name = " + value, ""], at: 0) }
         try commit(edited)
     }
-    public static func template(name: String) -> String {
+    static func template(name: String) -> String {
         "[meta]\nname = " + quote(name) + "\n\n[profile]\n" + ProfileField.allCases.map { field in
             "# " + field.rawValue + " = " + field.specification.defaultValue.profileText + "  # " + field.specification.label
         }.joined(separator: "\n") + "\n"

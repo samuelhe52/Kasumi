@@ -1,53 +1,53 @@
 import Foundation
 
-public struct ParagraphInputCluster: Equatable, Sendable {
-    public var text: String
-    public var run: Int
-    public var advance: Float
-    public init(text: String, run: Int, advance: Float) { self.text = text; self.run = run; self.advance = advance }
+struct ParagraphInputCluster: Equatable, Sendable {
+    var text: String
+    var run: Int
+    var advance: Float
+    init(text: String, run: Int, advance: Float) { self.text = text; self.run = run; self.advance = advance }
 }
 
-public struct ParagraphRunMetrics: Equatable, Sendable {
-    public var spaceAdvance: Float
-    public var hyphenAdvance: Float
-    public var em: Float
-    public var isCode: Bool
+struct ParagraphRunMetrics: Equatable, Sendable {
+    var spaceAdvance: Float
+    var hyphenAdvance: Float
+    var em: Float
+    var isCode: Bool
     /// Original parser RunInfo flags: strong1, emphasis2, code4, link8,
     /// footnote0x10, image0x20, math0x40. Not internal classifier byte flags.
-    public var flags: UInt32
-    public init(spaceAdvance: Float, hyphenAdvance: Float, em: Float, isCode: Bool, flags: UInt32 = 0) {
+    var flags: UInt32
+    init(spaceAdvance: Float, hyphenAdvance: Float, em: Float, isCode: Bool, flags: UInt32 = 0) {
         self.spaceAdvance = spaceAdvance; self.hyphenAdvance = hyphenAdvance
         self.em = em; self.isCode = isCode; self.flags = flags
     }
 }
 
-public struct ParagraphFragment: Equatable, Sendable {
-    public var run: Int
-    public var clusterRange: Range<Int>
-    public var x: Float
-    public var width: Float
-    public var drawDx: Float
-    public var capsuleLeft: Float
-    public var capsuleRight: Float
+struct ParagraphFragment: Equatable, Sendable {
+    var run: Int
+    var clusterRange: Range<Int>
+    var x: Float
+    var width: Float
+    var drawDx: Float
+    var capsuleLeft: Float
+    var capsuleRight: Float
 }
 
-public struct ParagraphEngineLine: Equatable, Sendable {
-    public var clusterRange: Range<Int> = 0..<0
-    public var fragments: [ParagraphFragment]
-    public var storedRatio: Float
-    public var hyphenX: Float?
-    public var hyphenRun: Int?
+struct ParagraphEngineLine: Equatable, Sendable {
+    var clusterRange: Range<Int> = 0..<0
+    var fragments: [ParagraphFragment]
+    var storedRatio: Float
+    var hyphenX: Float?
+    var hyphenRun: Int?
 }
 
-public struct ParagraphEngineResult: Equatable, Sendable {
-    public var lines: [ParagraphEngineLine]
-    public var autoRagged: Bool
+struct ParagraphEngineResult: Equatable, Sendable {
+    var lines: [ParagraphEngineLine]
+    var autoRagged: Bool
     /// Explicit limits of the currently translated native algorithm. A caller
     /// can report these without treating a successful layout as parity proof.
-    public var diagnostics: [ParagraphEngineDiagnostic]
+    var diagnostics: [ParagraphEngineDiagnostic]
 }
 
-public enum ParagraphEngineDiagnostic: String, Equatable, Sendable {
+enum ParagraphEngineDiagnostic: String, Equatable, Sendable {
     case invalidInput
     case unicodeBreakPolicy
     case dictionaryHyphenation
@@ -59,7 +59,7 @@ public enum ParagraphEngineDiagnostic: String, Equatable, Sendable {
 /// by the caller; this module has no CoreText dependency. The item/DP/emission
 /// contract is exercised by frozen authored reference cases, with remaining
 /// Unicode and fallback limits explicit.
-public enum ParagraphEngine {
+enum ParagraphEngine {
     private enum Kind { case box, glue, penalty }
     private struct Item {
         var kind: Kind
@@ -96,7 +96,7 @@ public enum ParagraphEngine {
     private struct Totals { var width: Float = 0; var stretch: Float = 0; var shrink: Float = 0; var infinite: Float = 0 }
     private struct Break { var start: Int; var end: Int; var ratio: Float; var allowHyphen = true }
 
-    public static func layout(clusters: [ParagraphInputCluster], runs: [ParagraphRunMetrics], width: Float,
+    static func layout(clusters: [ParagraphInputCluster], runs: [ParagraphRunMetrics], width: Float,
                               outerWidth: Float, baseEm: Float, alignment: ParagraphAlignment = .justified,
                               indent: Float = 0, options: ParagraphProfileOptions = .init()) -> ParagraphEngineResult {
         guard width.isFinite, width > 0, outerWidth.isFinite, baseEm.isFinite, indent.isFinite,

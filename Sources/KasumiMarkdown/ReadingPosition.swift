@@ -4,17 +4,17 @@ import Foundation
 /// A position in semantic document text, independent of font and viewport size.
 /// Hashes identify paragraphs and their neighbors without persisting excerpts.
 public struct ReadingAnchor: Codable, Equatable, Sendable {
-    public var blockKey: String
-    public var blockIndex: Int
-    public var offset: Int
+    var blockKey: String
+    var blockIndex: Int
+    var offset: Int
     /// Nearest previous paragraph first.
-    public var previousKeys: [String]
+    var previousKeys: [String]
     /// Nearest following paragraph first.
-    public var nextKeys: [String]
-    public var blockCount: Int
-    public var verticalFraction: Double
+    var nextKeys: [String]
+    var blockCount: Int
+    var verticalFraction: Double
 
-    public init(blockKey: String, blockIndex: Int, offset: Int, previousKeys: [String] = [], nextKeys: [String] = [], blockCount: Int, verticalFraction: Double) {
+    init(blockKey: String, blockIndex: Int, offset: Int, previousKeys: [String] = [], nextKeys: [String] = [], blockCount: Int, verticalFraction: Double) {
         self.blockKey = blockKey; self.blockIndex = blockIndex; self.offset = offset
         self.previousKeys = previousKeys; self.nextKeys = nextKeys
         self.blockCount = blockCount; self.verticalFraction = verticalFraction
@@ -23,7 +23,7 @@ public struct ReadingAnchor: Codable, Equatable, Sendable {
 
 /// Built once after typesetting. Capturing a scroll position does not hash or
 /// scan document text; restoration can relocate an unchanged or edited block.
-public struct ReadingPositionIndex {
+struct ReadingPositionIndex {
     private struct Block {
         let key: String
         let textMap: DocumentTextMap
@@ -43,7 +43,7 @@ public struct ReadingPositionIndex {
     private let prefixBottoms: [CGFloat]
     private let indicesByKey: [String: [Int]]
 
-    public init(layout: DocumentLayout) {
+    init(layout: DocumentLayout) {
         var blocks: [Block] = [], lines: [Line] = []
         var indices: [String: [Int]] = [:]
         for (index, item) in layout.paragraphs.enumerated() {
@@ -72,7 +72,7 @@ public struct ReadingPositionIndex {
         self.blocks = blocks; self.lines = lines; prefixBottoms = prefix; indicesByKey = indices
     }
 
-    public func capture(y: CGFloat) -> ReadingAnchor? {
+    func capture(y: CGFloat) -> ReadingAnchor? {
         guard y.isFinite, !lines.isEmpty else { return nil }
         var lower = 0, upper = prefixBottoms.count
         while lower < upper {
@@ -86,7 +86,7 @@ public struct ReadingPositionIndex {
         return ReadingAnchor(blockKey: blocks[block].key, blockIndex: block, offset: line.semanticOffset, previousKeys: previous, nextKeys: following, blockCount: blocks.count, verticalFraction: Double((y - line.top) / line.height))
     }
 
-    public func y(for anchor: ReadingAnchor) -> CGFloat? {
+    func y(for anchor: ReadingAnchor) -> CGFloat? {
         guard anchor.verticalFraction.isFinite, let index = relocatedBlock(for: anchor), !blocks[index].lines.isEmpty else { return nil }
         let block = blocks[index]
         let semanticLength = block.textMap.string.utf16.count

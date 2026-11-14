@@ -1,28 +1,28 @@
 import CDagre
 import CoreGraphics
 
-public struct DagreNode: Sendable, Equatable {
-    public var id: String
-    public var width: Double
-    public var height: Double
-    public var parentID: String?
-    public init(id: String, width: Double, height: Double, parentID: String? = nil) {
+struct DagreNode: Sendable, Equatable {
+    var id: String
+    var width: Double
+    var height: Double
+    var parentID: String?
+    init(id: String, width: Double, height: Double, parentID: String? = nil) {
         self.id = id; self.width = width; self.height = height; self.parentID = parentID
     }
 }
 
-public struct DagreEdge: Sendable, Equatable {
-    public enum LabelPosition: UInt32, Sendable { case center, left, right }
-    public var id: String
-    public var source: String
-    public var target: String
-    public var labelWidth: Double
-    public var labelHeight: Double
-    public var minLength: Int
-    public var weight: Int
-    public var labelPosition: LabelPosition
-    public var labelOffset: Double
-    public init(id: String, source: String, target: String, labelWidth: Double = 0,
+struct DagreEdge: Sendable, Equatable {
+    enum LabelPosition: UInt32, Sendable { case center, left, right }
+    var id: String
+    var source: String
+    var target: String
+    var labelWidth: Double
+    var labelHeight: Double
+    var minLength: Int
+    var weight: Int
+    var labelPosition: LabelPosition
+    var labelOffset: Double
+    init(id: String, source: String, target: String, labelWidth: Double = 0,
                 labelHeight: Double = 0, minLength: Int = 1, weight: Int = 1,
                 labelPosition: LabelPosition = .center, labelOffset: Double = 10) {
         self.id = id; self.source = source; self.target = target
@@ -32,23 +32,23 @@ public struct DagreEdge: Sendable, Equatable {
     }
 }
 
-public struct DagreOptions: Sendable, Equatable {
-    public enum Direction: UInt32, Sendable { case topToBottom, bottomToTop, leftToRight, rightToLeft }
-    public enum Ranker: UInt32, Sendable { case networkSimplex, tightTree, longestPath }
-    public enum Alignment: UInt32, Sendable { case automatic, upperLeft, upperRight, lowerLeft, lowerRight }
-    public enum RankAlignment: UInt32, Sendable { case center, top, bottom }
-    public var direction: Direction
-    public var nodeSeparation: Double
-    public var rankSeparation: Double
-    public var edgeSeparation: Double
-    public var marginX: Double
-    public var marginY: Double
-    public var tieKeepFirst: Bool
-    public var ranker: Ranker
-    public var alignment: Alignment
-    public var rankAlignment: RankAlignment
-    public var greedyAcyclicer: Bool
-    public init(direction: Direction = .topToBottom, nodeSeparation: Double = 50,
+struct DagreOptions: Sendable, Equatable {
+    enum Direction: UInt32, Sendable { case topToBottom, bottomToTop, leftToRight, rightToLeft }
+    enum Ranker: UInt32, Sendable { case networkSimplex, tightTree, longestPath }
+    enum Alignment: UInt32, Sendable { case automatic, upperLeft, upperRight, lowerLeft, lowerRight }
+    enum RankAlignment: UInt32, Sendable { case center, top, bottom }
+    var direction: Direction
+    var nodeSeparation: Double
+    var rankSeparation: Double
+    var edgeSeparation: Double
+    var marginX: Double
+    var marginY: Double
+    var tieKeepFirst: Bool
+    var ranker: Ranker
+    var alignment: Alignment
+    var rankAlignment: RankAlignment
+    var greedyAcyclicer: Bool
+    init(direction: Direction = .topToBottom, nodeSeparation: Double = 50,
                 rankSeparation: Double = 50, edgeSeparation: Double = 20,
                 marginX: Double = 0, marginY: Double = 0, tieKeepFirst: Bool = false,
                 ranker: Ranker = .networkSimplex, alignment: Alignment = .automatic,
@@ -61,27 +61,27 @@ public struct DagreOptions: Sendable, Equatable {
     }
 }
 
-public struct DagreNodeLayout: Sendable, Equatable {
-    public let center: CGPoint
-    public let width: Double
-    public let height: Double
-    public var rect: CGRect { CGRect(x: center.x - width / 2, y: center.y - height / 2, width: width, height: height) }
+struct DagreNodeLayout: Sendable, Equatable {
+    let center: CGPoint
+    let width: Double
+    let height: Double
+    var rect: CGRect { CGRect(x: center.x - width / 2, y: center.y - height / 2, width: width, height: height) }
 }
 
-public struct DagreEdgeLayout: Sendable, Equatable {
-    public let points: [CGPoint]
-    public let labelCenter: CGPoint?
+struct DagreEdgeLayout: Sendable, Equatable {
+    let points: [CGPoint]
+    let labelCenter: CGPoint?
 }
 
-public struct DagreResult: Sendable, Equatable {
-    public let nodes: [String: DagreNodeLayout]
-    public let edges: [String: DagreEdgeLayout]
-    public let width: Double
-    public let height: Double
-    public var size: CGSize { CGSize(width: width, height: height) }
+struct DagreResult: Sendable, Equatable {
+    let nodes: [String: DagreNodeLayout]
+    let edges: [String: DagreEdgeLayout]
+    let width: Double
+    let height: Double
+    var size: CGSize { CGSize(width: width, height: height) }
 }
 
-public enum DagreLayoutError: Error, Sendable, Equatable {
+enum DagreLayoutError: Error, Sendable, Equatable {
     case invalidInput(String)
     case nativeFailure(Int32)
 }
@@ -89,8 +89,8 @@ public enum DagreLayoutError: Error, Sendable, Equatable {
 /// Native Sugiyama layout using the pinned Apache-2.0 Dagre Rust port.
 /// Coordinates have a top-left origin and node coordinates describe centers.
 /// Input order is preserved because it affects deterministic tie breaking.
-public enum DagreLayout {
-    public static func layout(nodes: [DagreNode], edges: [DagreEdge], options: DagreOptions = .init()) throws -> DagreResult {
+enum DagreLayout {
+    static func layout(nodes: [DagreNode], edges: [DagreEdge], options: DagreOptions = .init()) throws -> DagreResult {
         guard nodes.count <= 4096, edges.count <= 16384 else {
             throw DagreLayoutError.invalidInput("Graph exceeds 4096 nodes or 16384 edges")
         }

@@ -1,6 +1,6 @@
 import Foundation
 
-public enum ProfileField: String, CaseIterable, Codable, Identifiable, Sendable {
+enum ProfileField: String, CaseIterable, Codable, Identifiable, Sendable {
     case baseSize = "base_size"
     case lineSpacing = "line_spacing"
     case paraSpaceBefore = "para_space_before"
@@ -50,6 +50,6 @@ public enum ProfileField: String, CaseIterable, Codable, Identifiable, Sendable 
     case listMarkerGap = "list_marker_gap"
     case listBulletSize = "list_bullet_size"
     case quoteBarGap = "quote_bar_gap"
-    public var id: String { rawValue }
-    public var specification: ProfileSpecification { ProfileSchema.specifications[self]! }
+    var id: String { rawValue }
+    var specification: ProfileSpecification { ProfileSchema.specifications[self]! }
 }

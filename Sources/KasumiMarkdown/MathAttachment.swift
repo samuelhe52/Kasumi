@@ -56,13 +56,13 @@ final class MathAttachment: NSObject {
 /// Owns the correspondence between Core Text's drawable storage and text that
 /// users can search, copy, and read through accessibility. A formula occupies
 /// one layout object but expands to its original TeX in the semantic stream.
-public struct DocumentTextMap {
+struct DocumentTextMap {
     private struct Segment {
         let rendered: NSRange
         let semantic: NSRange
         let replacement: Bool
     }
-    public let string: String
+    let string: String
     private let segments: [Segment]
     private let renderedLength: Int
     private let semanticLength: Int
@@ -87,7 +87,7 @@ public struct DocumentTextMap {
         self.semanticLength = semanticLength
     }
 
-    public func semanticOffset(forRenderedOffset offset: Int) -> Int {
+    func semanticOffset(forRenderedOffset offset: Int) -> Int {
         let offset = min(renderedLength, max(0, offset))
         guard offset < renderedLength else { return semanticLength }
         var lower = 0, upper = segments.count
@@ -100,7 +100,7 @@ public struct DocumentTextMap {
         return segment.semantic.location + (segment.replacement ? 0 : offset - segment.rendered.location)
     }
 
-    public func substring(in renderedRange: NSRange) -> String {
+    func substring(in renderedRange: NSRange) -> String {
         let selected = NSIntersectionRange(renderedRange, NSRange(location: 0, length: renderedLength))
         guard selected.length > 0 else { return "" }
         let text = string as NSString
@@ -112,7 +112,7 @@ public struct DocumentTextMap {
         }.joined()
     }
 
-    public func renderedRange(for semanticRange: NSRange) -> NSRange? {
+    func renderedRange(for semanticRange: NSRange) -> NSRange? {
         var start: Int?, end = 0
         for segment in segments {
             let overlap = NSIntersectionRange(semanticRange, segment.semantic)
@@ -123,7 +123,17 @@ public struct DocumentTextMap {
         return start.map { NSRange(location: $0, length: end - $0) }
     }
 
-    public func matches(_ query: String) -> [NSRange] {
+    /// Carets at attachment interiors snap to the object's leading edge.
+    func renderedOffset(forSemanticOffset offset: Int) -> Int {
+        let offset = min(semanticLength, max(0, offset))
+        guard offset < semanticLength else { return renderedLength }
+        for segment in segments where NSLocationInRange(offset, segment.semantic) {
+            return segment.rendered.location + (segment.replacement ? 0 : offset - segment.semantic.location)
+        }
+        return renderedLength
+    }
+
+    func matches(_ query: String) -> [NSRange] {
         guard !query.isEmpty else { return [] }
         let text = string as NSString
         var start = 0, result: [NSRange] = []

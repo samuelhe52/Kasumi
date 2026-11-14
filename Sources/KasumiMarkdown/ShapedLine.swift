@@ -4,14 +4,14 @@ import CoreGraphics
 
 /// A source-backed text fragment. Box geometry and glyph origin are distinct:
 /// compressed opening punctuation can draw to the left of its selection box.
-public struct ShapedFragment {
-    public let range: NSRange
-    public let line: CTLine
-    public let x: CGFloat
-    public let width: CGFloat
-    public let drawOffset: CGFloat
-    public let capsuleLeft: CGFloat
-    public let capsuleRight: CGFloat
+struct ShapedFragment {
+    let range: NSRange
+    let line: CTLine
+    let x: CGFloat
+    let width: CGFloat
+    let drawOffset: CGFloat
+    let capsuleLeft: CGFloat
+    let capsuleRight: CGFloat
     let boundaries: [Int]
 
     func offset(for index: Int) -> CGFloat {
@@ -28,31 +28,31 @@ public struct ShapedFragment {
     }
 }
 
-public struct ShapedHyphen {
-    public let line: CTLine
-    public let x: CGFloat
-    public let width: CGFloat
+struct ShapedHyphen {
+    let line: CTLine
+    let x: CGFloat
+    let width: CGFloat
 }
 
-public enum SourceBoundaryAffinity {
+enum SourceBoundaryAffinity {
     case followingFragment
     case precedingFragment
 }
 
-public struct ShapedLine {
-    public let range: NSRange
+struct ShapedLine {
+    let range: NSRange
     /// Logical source line. Fragment geometry below governs native paragraph
     /// drawing and hit testing; this line also supports the verbatim path.
-    public let line: CTLine
-    public let origin: CGPoint
-    public let ascent: CGFloat
-    public let descent: CGFloat
-    public let width: CGFloat
-    public var fragments: [ShapedFragment] = []
-    public var hyphen: ShapedHyphen? = nil
-    public var adjustmentRatio: Float = 0
+    let line: CTLine
+    let origin: CGPoint
+    let ascent: CGFloat
+    let descent: CGFloat
+    let width: CGFloat
+    var fragments: [ShapedFragment] = []
+    var hyphen: ShapedHyphen? = nil
+    var adjustmentRatio: Float = 0
 
-    public func offset(forStringIndex index: Int, affinity: SourceBoundaryAffinity = .followingFragment) -> CGFloat {
+    func offset(forStringIndex index: Int, affinity: SourceBoundaryAffinity = .followingFragment) -> CGFloat {
         guard !fragments.isEmpty else { return CTLineGetOffsetForStringIndex(line, index, nil) }
         let visible = fragments.filter { $0.range.length > 0 }
         guard let first = visible.first, let last = visible.last else { return 0 }
@@ -78,7 +78,7 @@ public struct ShapedLine {
         return last.x + last.width
     }
 
-    public func stringIndex(forPosition position: CGPoint) -> Int {
+    func stringIndex(forPosition position: CGPoint) -> Int {
         guard !fragments.isEmpty else { return CTLineGetStringIndexForPosition(line, position) }
         let visible = fragments.filter { $0.range.length > 0 }
         guard let nearest = visible.min(by: {

@@ -16,7 +16,7 @@ public enum DocumentTextEncoding: String, Codable, CaseIterable, Hashable, Senda
         }
     }
 
-    public var foundationEncoding: String.Encoding? {
+    var foundationEncoding: String.Encoding? {
         switch self {
         case .automatic: nil
         case .utf8: .utf8
@@ -30,27 +30,27 @@ public enum DocumentTextEncoding: String, Codable, CaseIterable, Hashable, Senda
     }
 }
 
-public struct DecodedDocumentText: Sendable {
-    public let text: String
-    public let encoding: DocumentTextEncoding
-    public let isLossy: Bool
-    public let isGuessed: Bool
-    public let hadByteOrderMark: Bool
+struct DecodedDocumentText: Sendable {
+    let text: String
+    let encoding: DocumentTextEncoding
+    let isLossy: Bool
+    let isGuessed: Bool
+    let hadByteOrderMark: Bool
 }
 
-public enum DocumentDecodingError: LocalizedError {
+enum DocumentDecodingError: LocalizedError {
     case invalidData(DocumentTextEncoding)
-    public var errorDescription: String? {
+    var errorDescription: String? {
         switch self {
         case let .invalidData(encoding): "The document cannot be decoded as \(encoding.title). Choose another text encoding."
         }
     }
 }
 
-public enum DocumentDecoder {
+enum DocumentDecoder {
     /// Always decode original bytes, never a previously decoded String. The
     /// automatic order is BOM → UTF-8 → GB18030.
-    public static func decode(_ data: Data, encoding: DocumentTextEncoding = .automatic) throws -> DecodedDocumentText {
+    static func decode(_ data: Data, encoding: DocumentTextEncoding = .automatic) throws -> DecodedDocumentText {
         let bytes = [UInt8](data.prefix(3))
         let utf8BOM = bytes.starts(with: [0xEF, 0xBB, 0xBF])
         let littleBOM = bytes.starts(with: [0xFF, 0xFE])

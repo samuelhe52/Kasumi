@@ -6,15 +6,15 @@ import UIKit
 #endif
 import CoreText
 
-public struct PlacedText {
-    public let paragraph: ParagraphLayout
-    public let origin: CGPoint
-    public let textOffset: Int
-    public var bounds: CGRect { CGRect(x: origin.x, y: origin.y, width: paragraph.lines.map { $0.origin.x + $0.width }.max() ?? 0, height: paragraph.height) }
+struct PlacedText {
+    let paragraph: ParagraphLayout
+    let origin: CGPoint
+    let textOffset: Int
+    var bounds: CGRect { CGRect(x: origin.x, y: origin.y, width: paragraph.lines.map { $0.origin.x + $0.width }.max() ?? 0, height: paragraph.height) }
 }
-public struct PaintedRect { public let rect: CGRect; public let color: PlatformColor; public var radius: CGFloat = 0 }
-public struct PaintedRule { public let start: CGPoint; public let end: CGPoint; public let color: PlatformColor; public var width: CGFloat = 1 }
-public struct DocumentInsets: Sendable {
+struct PaintedRect { let rect: CGRect; let color: PlatformColor; var radius: CGFloat = 0 }
+struct PaintedRule { let start: CGPoint; let end: CGPoint; let color: PlatformColor; var width: CGFloat = 1 }
+public struct DocumentInsets: Sendable, Equatable {
     public var top: CGFloat
     public var left: CGFloat
     public var bottom: CGFloat
@@ -25,23 +25,23 @@ public struct DocumentInsets: Sendable {
     public static let reader = DocumentInsets(top: 28, left: 40, bottom: 48, right: 40)
     public static let zero = DocumentInsets(top: 0, left: 0, bottom: 0, right: 0)
 }
-public struct DocumentLayout {
-    public var width: CGFloat
-    public var height: CGFloat
-    public var text: NSAttributedString
-    public var textMap: DocumentTextMap
-    public var paragraphs: [PlacedText]
-    public var backgrounds: [PaintedRect]
-    public var rules: [PaintedRule]
-    public var headingPositions: [Int: CGFloat]
-    public var anchorPositions: [String: CGFloat]
+struct DocumentLayout {
+    var width: CGFloat
+    var height: CGFloat
+    var text: NSAttributedString
+    var textMap: DocumentTextMap
+    var paragraphs: [PlacedText]
+    var backgrounds: [PaintedRect]
+    var rules: [PaintedRule]
+    var headingPositions: [Int: CGFloat]
+    var anchorPositions: [String: CGFloat]
     /// Occupied image rectangles, including inline images, for pagination/hit testing.
-    public var imageBounds: [CGRect]
-    public var paginationGroups: [Range<CGFloat>]
+    var imageBounds: [CGRect]
+    var paginationGroups: [Range<CGFloat>]
 }
 
-public enum DocumentTypesetter {
-    public static func layout(_ document: ParsedDocument, width: CGFloat, style: Typography, insets: DocumentInsets = .reader) -> DocumentLayout {
+enum DocumentTypesetter {
+    static func layout(_ document: ParsedDocument, width: CGFloat, style: Typography, insets: DocumentInsets = .reader) -> DocumentLayout {
         let available = max(20, width - insets.left - insets.right)
         let measure = style.limitWidth ? min(available, style.widthLimit) : available
         let left = insets.left + (available - measure) / 2
@@ -238,14 +238,14 @@ public enum DocumentTypesetter {
         return DocumentLayout(width: width, height: y + insets.bottom, text: storage, textMap: DocumentTextMap(storage), paragraphs: paragraphs, backgrounds: backgrounds, rules: rules, headingPositions: headings, anchorPositions: anchors, imageBounds: imageBounds, paginationGroups: paginationGroups)
     }
 
-    public static func anchorSlug(_ text: String) -> String {
+    static func anchorSlug(_ text: String) -> String {
         let allowed = CharacterSet.alphanumerics.union(.whitespaces).union(CharacterSet(charactersIn: "-_"))
         let filtered = String(text.lowercased().unicodeScalars.filter { allowed.contains($0) })
         return filtered.split(whereSeparator: \.isWhitespace).joined(separator: "-")
     }
 
     /// Draw in a top-left, downward-positive graphics coordinate space.
-    public static func draw(_ layout: DocumentLayout, in context: CGContext, sourceRange: Range<CGFloat>? = nil) {
+    static func draw(_ layout: DocumentLayout, in context: CGContext, sourceRange: Range<CGFloat>? = nil) {
         let clip = context.boundingBoxOfClipPath
         for background in layout.backgrounds where background.rect.intersects(clip) {
             context.setFillColor(background.color.cgColor)
@@ -253,6 +253,9 @@ public enum DocumentTypesetter {
             else { context.fill(background.rect) }
         }
         for rule in layout.rules {
+            let bounds = CGRect(x: min(rule.start.x, rule.end.x), y: min(rule.start.y, rule.end.y),
+                                width: abs(rule.end.x - rule.start.x), height: abs(rule.end.y - rule.start.y)).insetBy(dx: -rule.width / 2, dy: -rule.width / 2)
+            guard bounds.intersects(clip) else { continue }
             context.setStrokeColor(rule.color.cgColor); context.setLineWidth(rule.width)
             context.move(to: rule.start); context.addLine(to: rule.end); context.strokePath()
         }
