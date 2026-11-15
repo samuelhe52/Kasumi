@@ -56,7 +56,7 @@ app: native ## Build the iOS app for the simulator
 		-derivedDataPath $(DERIVED_DATA) build
 
 run-sim: native ## Build, install, and launch on the booted simulator
-	@udid=$$(xcrun simctl list devices booted | awk -F'[()]' '/\(Booted\)/ { print $$2; exit }'); \
+	@udid=$$(xcrun simctl list devices booted | grep -oE '[0-9A-F]{8}(-[0-9A-F]{4}){3}-[0-9A-F]{12}' | head -1); \
 	[ -n "$$udid" ] || { echo "No booted simulator found. Boot one first (e.g. open -a Simulator)."; exit 1; }; \
 	echo "Using simulator $$udid"; \
 	xcodebuild -quiet -project apps/iOS/Kasumi.xcodeproj -scheme Kasumi \
@@ -77,7 +77,7 @@ run-device: native ## Build, install, and launch on a connected iPhone (DEVICE=<
 	xcrun devicectl device process launch --terminate-existing --device "$$device" $(BUNDLE_ID)
 
 launch-sim: ## Install and launch the last built app on the booted simulator, without building
-	@udid=$$(xcrun simctl list devices booted | awk -F'[()]' '/\(Booted\)/ { print $$2; exit }'); \
+	@udid=$$(xcrun simctl list devices booted | grep -oE '[0-9A-F]{8}(-[0-9A-F]{4}){3}-[0-9A-F]{12}' | head -1); \
 	[ -n "$$udid" ] || { echo "No booted simulator found. Boot one first (e.g. open -a Simulator)."; exit 1; }; \
 	app_path="$(SIM_APP_PATH)"; \
 	[ -d "$$app_path" ] || { echo "No built simulator app at $$app_path. Run make run-sim first."; exit 1; }; \
