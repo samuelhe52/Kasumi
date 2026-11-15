@@ -47,10 +47,17 @@ struct ReaderScreen: View {
         .background(paper.ignoresSafeArea())
         .sheet(isPresented: $showOutline) {
             NavigationStack {
-                outline.navigationTitle("Outline").navigationBarTitleDisplayMode(.inline)
+                outline
+                    .navigationTitle("Outline")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .navigationBarBackButtonHidden()
+                    .toolbarBackground(paper, for: .navigationBar)
+                    .toolbarBackground(.visible, for: .navigationBar)
                     .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { showOutline = false } } }
             }
-            .presentationDetents([.medium, .large])
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+            .presentationBackground(paper)
         }
         .sheet(isPresented: Binding(get: { showAppearance && !regular }, set: { showAppearance = $0 })) {
             AppearanceSettings(presetID: $presetID, pairID: $pairID, fontSize: $fontSize)
@@ -103,33 +110,75 @@ struct ReaderScreen: View {
     }
 
     private var outline: some View {
-        List {
-            if let items = document.snapshot?.parsed?.outline, !items.isEmpty {
-                ForEach(items) { item in
-                    let current = viewport.headingID == item.id
-                    Button {
-                        viewport.jump(to: item.id); showOutline = false
-                    } label: {
-                        Text(item.title)
-                            .font(item.level <= 1 ? .body.weight(.semibold) : item.level == 2 ? .body : .subheadline)
-                            .foregroundStyle(item.level <= 2 ? .primary : .secondary)
-                            .lineLimit(2)
-                            .padding(.leading, CGFloat(max(0, item.level - 1)) * 16)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .listRowBackground(current ? Color.accentColor.opacity(0.12) : Color.clear)
-                    .overlay(alignment: .leading) {
-                        if current { Capsule().fill(Color.accentColor).frame(width: 3).padding(.vertical, 6).offset(x: -12) }
-                    }
-                    .accessibilityAddTraits(current ? .isSelected : [])
-                    .accessibilityIdentifier("outline-" + item.id)
-                }
-            } else { Text("No headings").foregroundStyle(.secondary) }
+        ReaderOutline(items: document.snapshot?.parsed?.outline ?? [], currentID: viewport.headingID) { item in
+            viewport.jump(to: item.id)
+            showOutline = false
         }
-        .scrollContentBackground(.hidden)
-        .background(paper.ignoresSafeArea())
+    }
+}
+
+private struct ReaderOutline: View {
+    let items: [OutlineItem]
+    let currentID: String?
+    let select: (OutlineItem) -> Void
+    @State private var query = ""
+
+    private var filteredItems: [OutlineItem] {
+        let search = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        return search.isEmpty ? items : items.filter { $0.title.localizedStandardContains(search) }
+    }
+    private var baseLevel: Int { items.map(\.level).min() ?? 1 }
+
+    var body: some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(spacing: 4) {
+                    ForEach(filteredItems) { item in
+                        let current = currentID == item.id
+                        let depth = min(3, max(0, item.level - baseLevel))
+                        Button { select(item) } label: {
+                            HStack(spacing: 10) {
+                                Capsule()
+                                    .fill(current ? Color.accentColor : .clear)
+                                    .frame(width: 3, height: 20)
+                                Text(item.title)
+                                    .font(depth == 0 ? .body.weight(.semibold) : .subheadline)
+                                    .fontWeight(current ? .semibold : nil)
+                                    .foregroundStyle(current ? Color.accentColor : Color.primary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                            .padding(.leading, 12 + CGFloat(depth) * 12)
+                            .padding(.trailing, 12)
+                            .padding(.vertical, 12)
+                            .frame(minHeight: 44)
+                            .background(current ? Color.accentColor.opacity(0.1) : .clear, in: RoundedRectangle(cornerRadius: 12))
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.top, depth == 0 && item.id != filteredItems.first?.id ? 8 : 0)
+                        .id(item.id)
+                        .accessibilityAddTraits(current ? .isSelected : [])
+                        .accessibilityValue("Heading level \(item.level)")
+                        .accessibilityIdentifier("outline-" + item.id)
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+            }
+            .overlay {
+                if items.isEmpty {
+                    ContentUnavailableView("No Headings", systemImage: "list.bullet.indent", description: Text("Headings in this document appear here."))
+                } else if filteredItems.isEmpty {
+                    ContentUnavailableView.search(text: query)
+                }
+            }
+            .defaultScrollAnchor(.top)
+            .onAppear {
+                if let currentID { proxy.scrollTo(currentID, anchor: .center) }
+            }
+        }
+        .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Find a heading")
     }
 }
 

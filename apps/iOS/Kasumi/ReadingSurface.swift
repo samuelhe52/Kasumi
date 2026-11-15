@@ -22,6 +22,7 @@ struct ReadingSurface: UIViewRepresentable {
 final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecognizerDelegate {
     private var page: ReaderPageView?
     private var rendered: RenderedDocument?
+    private let openingIndicator = UIActivityIndicatorView(style: .medium)
     private var document: MarkdownDocument?
     private var revision: UUID?
     private var style: RenderStyle?
@@ -45,6 +46,14 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
         delegate = self
         alwaysBounceVertical = true
         contentInsetAdjustmentBehavior = .automatic
+        openingIndicator.hidesWhenStopped = true
+        openingIndicator.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(openingIndicator)
+        NSLayoutConstraint.activate([
+            openingIndicator.centerXAnchor.constraint(equalTo: frameLayoutGuide.centerXAnchor),
+            openingIndicator.centerYAnchor.constraint(equalTo: frameLayoutGuide.centerYAnchor)
+        ])
+        openingIndicator.startAnimating()
         let tap = UITapGestureRecognizer(target: self, action: #selector(tapped(_:)))
         tap.cancelsTouchesInView = false
         tap.delegate = self
@@ -131,6 +140,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
 
     private func install(_ next: RenderedDocument, restoring anchor: ReadingAnchor?) {
         adjusting = true
+        let firstLayout = rendered == nil
         let nextPage = ReaderPageView(rendered: next, scale: max(1, traitCollection.displayScale))
         page?.removeFromSuperview()
         rendered = next; page = nextPage; pageScale = 1
@@ -145,6 +155,13 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
         adjusting = false
         previousOffset = contentOffset.y
         jumpIfNeeded()
+        openingIndicator.stopAnimating()
+        if firstLayout, !UIAccessibility.isReduceMotionEnabled {
+            nextPage.alpha = 0
+            UIView.animate(withDuration: 0.18, delay: 0, options: [.beginFromCurrentState, .curveEaseOut]) {
+                nextPage.alpha = 1
+            }
+        }
         reportPosition()
     }
 
@@ -185,7 +202,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
     private func reportPosition() {
         guard window != nil, let rendered else { return }
         let y = topY
-        let heading = headings.last { $0.1 <= y + 2 }?.0 ?? headings.first?.0
+        let heading = headings.last { $0.1 <= y + 10 }?.0 ?? headings.first?.0
         viewport?.moved(anchor: rendered.readingAnchor(atY: y), heading: heading)
     }
     func finish() { viewport?.flush(); layoutTask?.cancel() }

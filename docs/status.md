@@ -1,6 +1,6 @@
 # Status
 
-## Current state (2026-11-14)
+## Current state (2026-11-15)
 
 Working:
 
@@ -18,16 +18,27 @@ Working:
   `FontAvailability` reports missing families.
 - The Rust dependencies build as XCFrameworks for macOS, iOS and the iOS
   simulator (arm64 only).
-- The iOS app is a `DocumentGroup` reader built on the public API only. The
-  launch screen has Paste Markdown (a text sheet; pasting there through the
-  edit menu needs no pasteboard permission) and Open URL, and on first launch it copies
-  `Welcome.md` into the app's Documents folder. The reading view keeps the
-  paper color edge to edge, lays out on a background task, draws with
-  `CATiledLayer`, follows system light/dark through theme pairs, hides its
-  bars on scroll, and has an appearance sheet (preset, size, theme) and an
-  outline (sheet on iPhone, sidebar on iPad). Reading position is saved per
-  file. Memory stays at 55–70 MB on the Welcome document through scrolling,
-  rotation, dark mode and style changes.
+- The iOS app uses the native `DocumentGroupLaunchScene`, with Paste Markdown
+  and Open URL above the system document browser. `DocumentGroup` owns file
+  opening; there is no alternate browser or custom file-session path. On first
+  launch it copies `Welcome.md` into the app's Documents folder. The reader keeps
+  paper edge to edge, lays
+  out on a background task, draws with `CATiledLayer`, follows system light/dark
+  through theme pairs, and hides its bars on scroll. Initial layout shows a
+  progress indicator and reveals the page with a short fade (disabled for
+  Reduce Motion). Appearance controls cover preset, size, and theme. Outline
+  uses a full-height sheet on iPhone and sidebar on iPad, with heading search,
+  wrapping labels, shallow indentation, and a rounded current-section marker.
+  Reading position is saved per file.
+  Outline search omits the section gap above its first visible result.
+- Restored-launch validation on the iPhone 18 Pro simulator: `make run-sim`
+  succeeds. The native launch screen, paste-to-reader opening after sheet
+  dismissal, Outline presentation and section navigation, return to the native
+  Recents card, and URL-entry presentation were exercised. Heading search,
+  wrapping labels, and selected-heading tracking were exercised in the earlier
+  UX pass. URL fetching, iPad layout, Reduce Motion, and in-place file opening
+  remain unverified.
+  Apple's collapsed “Recents” / expanded “Kasumi Recents” titles are unchanged.
 
 Not yet:
 
@@ -49,17 +60,17 @@ Known issues in the reader (milestone 1):
   `failed to get a cached domain for FILocalAppContainerNode<Kasumi>` before
   enumerating, which points to the simulator's File Provider, not app
   configuration. Needs a check on a physical device.
-- Not verified: opening a file in place (blocked by the issue above), Open URL, iPad layout, reading
-  position restore, link and footnote taps.
+- Not verified: opening a file in place (blocked by the issue above), URL fetching,
+  iPad layout, reading-position restore, link and footnote taps.
 - Launch in the simulator stalls a few seconds while UIKit loads accessibility
   bundles; this comes from simulator automation, not the app.
 
 Reader milestones, in order:
 
-1. Document app shell (`DocumentGroup`: Files/iCloud, in place, recents,
-   windows, iPad drag and drop; paste and URLs open as untitled documents) and
-   a reading view with edge-to-edge paper, system light/dark, outline (sheet on
-   iPhone, sidebar on iPad) and per-file reading position.
+1. Document app shell (`DocumentGroupLaunchScene` and `DocumentGroup`:
+   Files/iCloud, in-place opening, recents, and windows; paste and URLs open
+   as untitled documents) and a reading view with edge-to-edge paper,
+   system light/dark, searchable outline, and per-file reading position.
 2. Selection through UIKit text interaction, find bar with match navigation,
    links.
 3. Export: PDF, long PNG, print, share sheet.
