@@ -19,7 +19,8 @@ Working:
 - The Rust dependencies build as XCFrameworks for macOS, iOS and the iOS
   simulator (arm64 only).
 - The iOS app is a `DocumentGroup` reader built on the public API only. The
-  launch screen has Paste Markdown and Open URL, and on first launch it copies
+  launch screen has Paste Markdown (a text sheet; pasting there through the
+  edit menu needs no pasteboard permission) and Open URL, and on first launch it copies
   `Welcome.md` into the app's Documents folder. The reading view keeps the
   paper color edge to edge, lays out on a background task, draws with
   `CATiledLayer`, follows system light/dark through theme pairs, hides its
@@ -42,11 +43,13 @@ Not yet:
 
 Known issues in the reader (milestone 1):
 
-- The document browser shows the Kasumi folder as empty although it holds
-  `Welcome.md`; the Files app shows the same. Not yet diagnosed.
-- Paste Markdown reported an empty pasteboard after `simctl pbcopy`;
-  unclear whether this is simulator pasteboard sync or the app.
-- Not verified: opening a file in place, Open URL, iPad layout, reading
+- In the iOS 27.2 simulator the document browser and the Files app show the
+  Kasumi folder as empty although it holds `Welcome.md`, also on a freshly
+  created simulator and with every file type accepted. Document Manager logs
+  `failed to get a cached domain for FILocalAppContainerNode<Kasumi>` before
+  enumerating, which points to the simulator's File Provider, not app
+  configuration. Needs a check on a physical device.
+- Not verified: opening a file in place (blocked by the issue above), Open URL, iPad layout, reading
   position restore, link and footnote taps.
 - Launch in the simulator stalls a few seconds while UIKit loads accessibility
   bundles; this comes from simulator automation, not the app.

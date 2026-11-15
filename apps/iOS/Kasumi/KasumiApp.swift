@@ -6,7 +6,7 @@ struct KasumiApp: App {
     init() { LaunchStore.installWelcomeIfNeeded() }
     var body: some Scene {
         DocumentGroupLaunchScene("Kasumi") {
-            Button("Paste Markdown") { launchStore.paste() }
+            Button("Paste Markdown") { launchStore.showPaste = true }
             Button("Open URL") { launchStore.remote() }
         } background: {
             LaunchBackground()
