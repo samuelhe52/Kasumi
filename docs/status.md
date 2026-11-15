@@ -18,8 +18,15 @@ Working:
   `FontAvailability` reports missing families.
 - The Rust dependencies build as XCFrameworks for macOS, iOS and the iOS
   simulator (arm64 only).
-- The iOS app renders a bundled sample through the public API only, with
-  layout on a background task and `CATiledLayer` drawing.
+- The iOS app is a `DocumentGroup` reader built on the public API only. The
+  launch screen has Paste Markdown and Open URL, and on first launch it copies
+  `Welcome.md` into the app's Documents folder. The reading view keeps the
+  paper color edge to edge, lays out on a background task, draws with
+  `CATiledLayer`, follows system light/dark through theme pairs, hides its
+  bars on scroll, and has an appearance sheet (preset, size, theme) and an
+  outline (sheet on iPhone, sidebar on iPad). Reading position is saved per
+  file. Memory stays at 55–70 MB on the Welcome document through scrolling,
+  rotation, dark mode and style changes.
 
 Not yet:
 
@@ -32,6 +39,17 @@ Not yet:
 - License notices aren't bundled into the app.
 
 ## Next
+
+Known issues in the reader (milestone 1):
+
+- The document browser shows the Kasumi folder as empty although it holds
+  `Welcome.md`; the Files app shows the same. Not yet diagnosed.
+- Paste Markdown reported an empty pasteboard after `simctl pbcopy`;
+  unclear whether this is simulator pasteboard sync or the app.
+- Not verified: opening a file in place, Open URL, iPad layout, reading
+  position restore, link and footnote taps.
+- Launch in the simulator stalls a few seconds while UIKit loads accessibility
+  bundles; this comes from simulator automation, not the app.
 
 Reader milestones, in order:
 

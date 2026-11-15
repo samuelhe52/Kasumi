@@ -1,31 +1,52 @@
-# Kasumi on iOS
+# Welcome to Kasumi
 
-This bundled fixture is rendered by **KasumiMarkdown** using Core Text, with *emphasis*, a [link](https://example.com), and `inline code`.
+Kasumi is a reader for Markdown and plain text, set with care: justified
+paragraphs with real hyphenation, hanging punctuation, and spacing tuned for
+mixed Latin and CJK text.
+
+Open any `.md` or `.txt` file from Files or iCloud Drive and it opens in
+place. Kasumi remembers where you stopped reading.
+
+## Reading
+
+- Tap **Outline** to jump between headings.
+- Tap **Aa** to change the typography preset, theme and size. Themes come
+  in light and dark pairs and follow your device's appearance.
+- Scroll down and the bars step aside; scroll up or tap to bring them back.
 
 ## Mathematics
 
-Inline math: $E = mc^2$.
+Inline math sits on the baseline, like $E = mc^2$, and display math is
+centered:
 
 $$
-\frac{a+b}{c} + \sqrt{x}
+\int_0^\infty e^{-x^2}\,dx = \frac{\sqrt{\pi}}{2}
 $$
 
-## Diagram
+## Diagrams
+
+Mermaid diagrams are laid out natively:
 
 ```mermaid
 flowchart LR
-    A[Markdown] --> B[Core Text]
-    B --> C[iOS]
+    A[Markdown] --> B[Layout]
+    B --> C[Your screen]
 ```
 
-## A small table
+## Tables
 
-| Feature | Renderer |
+| Feature | How |
 | --- | --- |
-| Text | Core Text |
-| Math | Bundled fonts |
-| Diagram | Native layout |
+| Text | Measured paragraph layout |
+| Math | Bundled math fonts |
+| Diagrams | Native graph layout |
 
-> The same library also renders on macOS.
+## 中文排版
 
-End of the bundled fixture.
+霞（かすみ）是春日远山间的薄雾。Kasumi 处理中西文混排时，会在汉字与拉丁字母之间留出恰当的间距，标点也遵循中文排版的习惯。
+
+> Good typography is invisible until it's missing.
+
+Footnotes work too.[^1]
+
+[^1]: Tap a footnote marker to jump here.

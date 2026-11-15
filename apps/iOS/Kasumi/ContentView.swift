@@ -1,112 +1,196 @@
 import KasumiMarkdown
 import SwiftUI
-import UIKit
 
-struct ContentView: View {
+struct ReaderScreen: View {
+    let document: ReaderDocument
+    var canClose = false
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
+    @AppStorage("reader.preset") private var presetID = "serif"
+    @AppStorage("reader.theme-pair") private var pairID = "mono"
+    @AppStorage("reader.font-size") private var fontSize: Double = 0
+    @State private var viewport = ReaderViewport()
+    @State private var showAppearance = false
+    @State private var showOutline = false
+    @State private var columns: NavigationSplitViewVisibility = .detailOnly
+
+    private var regular: Bool { horizontalSizeClass == .regular }
+    private var pair: DocumentThemePair { DocumentThemePair.builtin.first { $0.id == pairID } ?? DocumentThemePair.builtin.first { $0.id == "mono" }! }
+    private var theme: DocumentTheme { colorScheme == .dark ? pair.dark : pair.light }
+    private var preset: TypographyPreset { TypographyPreset.builtin.first { $0.id == presetID } ?? .default }
+    private var style: RenderStyle {
+        var style = RenderStyle(preset: preset, theme: theme, fontSize: fontSize > 0 ? min(28, max(12, fontSize)) : nil)
+        style.insets.left = regular ? 40 : 20; style.insets.right = regular ? 40 : 20
+        return style
+    }
+    private var paper: Color {
+        if let rendered = viewport.rendered { return Color(cgColor: rendered.backgroundColor) }
+        return theme.document["paper"].map { Color(.sRGB, red: $0.red, green: $0.green, blue: $0.blue, opacity: $0.alpha) } ?? Color(.sRGB, white: colorScheme == .dark ? 0.15 : 0.98, opacity: 1)
+    }
+
     var body: some View {
-        FixturePreview()
-            .accessibilityLabel("Kasumi Markdown fixture")
-    }
-}
-
-private struct FixturePreview: UIViewRepresentable {
-    func makeUIView(context: Context) -> FixtureScrollView { FixtureScrollView() }
-    func updateUIView(_ uiView: FixtureScrollView, context: Context) {}
-}
-
-private final class FixtureScrollView: UIScrollView {
-    private var page: UIView?
-    private var requestedWidth: CGFloat = 0
-    private var layoutTask: Task<Void, Never>?
-    private let loading = UIActivityIndicatorView(style: .medium)
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        backgroundColor = .systemBackground
-        alwaysBounceVertical = true
-        addSubview(loading)
-        loading.startAnimating()
-    }
-
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-    deinit { layoutTask?.cancel() }
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        loading.center = CGPoint(x: bounds.midX, y: bounds.midY)
-        let width = bounds.width
-        guard width > 0, width != requestedWidth else { return }
-        requestedWidth = width
-        layoutTask?.cancel()
-        guard let url = Bundle.main.url(forResource: "Sample", withExtension: "md") else { return }
-        // File I/O, parsing, font resolution and layout all run outside the UI
-        // actor. Only publishing the completed immutable snapshot hops back.
-        let worker = Task.detached(priority: .userInitiated) {
-            try Task.checkCancellation()
-            let data = try Data(contentsOf: url)
-            let document = try MarkdownDocument(data: data, fileExtension: "md", baseURL: url.deletingLastPathComponent())
-            try Task.checkCancellation()
-            return RenderedDocument(document, width: width, style: RenderStyle())
+        Group {
+            if regular {
+                NavigationSplitView(columnVisibility: $columns) {
+                    outline
+                        .navigationTitle("Outline")
+                        .toolbar(removing: .sidebarToggle)
+                } detail: { reader }
+                .toolbar(removing: .sidebarToggle)
+            } else {
+                NavigationStack { reader }
+            }
         }
-        layoutTask = Task { [weak self] in
-            do {
-                let rendered = try await withTaskCancellationHandler {
-                    try await worker.value
-                } onCancel: { worker.cancel() }
-                guard !Task.isCancelled, let self, self.requestedWidth == width else { return }
-                let page = FixturePageView(rendered: rendered, scale: max(1, self.traitCollection.displayScale))
-                self.page?.removeFromSuperview()
-                self.page = page
-                self.addSubview(page)
-                self.contentSize = page.bounds.size
-                self.backgroundColor = UIColor(cgColor: rendered.backgroundColor)
-                self.loading.stopAnimating()
-            } catch {
-                guard !Task.isCancelled, let self else { return }
-                self.loading.stopAnimating()
-                self.accessibilityValue = "Unable to load the sample."
+        .background(paper.ignoresSafeArea())
+        .sheet(isPresented: $showOutline) {
+            NavigationStack {
+                outline.navigationTitle("Outline").navigationBarTitleDisplayMode(.inline)
+                    .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { showOutline = false } } }
+            }
+            .presentationDetents([.medium, .large])
+        }
+        .sheet(isPresented: Binding(get: { showAppearance && !regular }, set: { showAppearance = $0 })) {
+            AppearanceSettings(presetID: $presetID, pairID: $pairID, fontSize: $fontSize)
+                .presentationDetents([.medium, .large])
+        }
+        .onChange(of: presetID) { _, _ in fontSize = 0 }
+        .onChange(of: scenePhase) { _, phase in if phase != .active { viewport.flush() } }
+        .onDisappear { viewport.flush() }
+    }
+
+    private var reader: some View {
+        Group {
+            if document.needsURL {
+                URLImportView(document: document)
+            } else if let snapshot = document.snapshot, let parsed = snapshot.parsed {
+                ReadingSurface(document: parsed, revision: snapshot.revision, style: style,
+                    outline: parsed.outline, fileURL: document.fileURL, viewport: viewport,
+                    openLink: { url in openURL(url) })
+            } else if let error = document.snapshot?.error {
+                ContentUnavailableView("Could Not Decode Document", systemImage: "doc.badge.exclamationmark", description: Text(error))
+            } else {
+                ProgressView("Opening document…").frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+        .background(paper.ignoresSafeArea())
+        .toolbar(removing: .sidebarToggle)
+        .navigationTitle(document.title)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(paper, for: .navigationBar)
+        .toolbarVisibility(viewport.barsHidden ? .hidden : .visible, for: .navigationBar)
+        .toolbar {
+            if canClose {
+                ToolbarItem(placement: .topBarLeading) { Button("Close", systemImage: "xmark") { viewport.flush(); dismiss() } }
+            }
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                Button("Outline", systemImage: "list.bullet.indent") {
+                    viewport.barsHidden = false
+                    if regular { withAnimation { columns = columns == .detailOnly ? .all : .detailOnly } }
+                    else { showOutline = true }
+                }
+                .accessibilityIdentifier("reader-outline")
+                Button("Appearance", systemImage: "textformat.size") { showAppearance = true; viewport.barsHidden = false }
+                    .accessibilityIdentifier("reader-appearance")
+                    .popover(isPresented: Binding(get: { showAppearance && regular }, set: { showAppearance = $0 })) {
+                        AppearanceSettings(presetID: $presetID, pairID: $pairID, fontSize: $fontSize)
+                            .frame(width: 360, height: 560)
+                    }
             }
         }
     }
-}
 
-private final class FixturePageView: UIView {
-    init(rendered: RenderedDocument, scale: CGFloat) {
-        super.init(frame: CGRect(origin: .zero, size: rendered.size))
-        backgroundColor = UIColor(cgColor: rendered.backgroundColor)
-        let tiles = FixtureTileLayer(rendered: rendered)
-        tiles.frame = bounds
-        tiles.contentsScale = scale
-        tiles.tileSize = CGSize(width: 512, height: 512)
-        layer.addSublayer(tiles)
-        isAccessibilityElement = true
-        accessibilityLabel = rendered.text(in: rendered.documentRange)
-    }
-
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-}
-
-/// CATiledLayer calls draw(in:) on background threads. This layer retains only
-/// an immutable Sendable snapshot; the callback never reads a UIView or UI state.
-private final class FixtureTileLayer: CATiledLayer {
-    private let rendered: RenderedDocument?
-
-    init(rendered: RenderedDocument) {
-        self.rendered = rendered
-        super.init()
-    }
-
-    override init(layer: Any) {
-        rendered = (layer as? FixtureTileLayer)?.rendered
-        super.init(layer: layer)
-    }
-
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-    override class func fadeDuration() -> CFTimeInterval { 0 }
-
-    override func draw(in context: CGContext) {
-        rendered?.draw(in: context, rect: context.boundingBoxOfClipPath)
+    private var outline: some View {
+        List {
+            if let items = document.snapshot?.parsed?.outline, !items.isEmpty {
+                ForEach(items) { item in
+                    let current = viewport.headingID == item.id
+                    Button {
+                        viewport.jump(to: item.id); showOutline = false
+                    } label: {
+                        Text(item.title)
+                            .font(item.level <= 1 ? .body.weight(.semibold) : item.level == 2 ? .body : .subheadline)
+                            .foregroundStyle(item.level <= 2 ? .primary : .secondary)
+                            .lineLimit(2)
+                            .padding(.leading, CGFloat(max(0, item.level - 1)) * 16)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .listRowBackground(current ? Color.accentColor.opacity(0.12) : Color.clear)
+                    .overlay(alignment: .leading) {
+                        if current { Capsule().fill(Color.accentColor).frame(width: 3).padding(.vertical, 6).offset(x: -12) }
+                    }
+                    .accessibilityAddTraits(current ? .isSelected : [])
+                    .accessibilityIdentifier("outline-" + item.id)
+                }
+            } else { Text("No headings").foregroundStyle(.secondary) }
+        }
+        .scrollContentBackground(.hidden)
+        .background(paper.ignoresSafeArea())
     }
 }
 
-#Preview { ContentView() }
+private struct AppearanceSettings: View {
+    @Binding var presetID: String
+    @Binding var pairID: String
+    @Binding var fontSize: Double
+    @Environment(\.dismiss) private var dismiss
+    private var preset: TypographyPreset { TypographyPreset.builtin.first { $0.id == presetID } ?? .default }
+    private var size: Double { fontSize > 0 ? min(28, max(12, fontSize)) : preset.defaultFontSize }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    Picker("Preset", selection: $presetID) {
+                        ForEach(TypographyPreset.builtin) { Text($0.name).tag($0.id) }
+                    }.pickerStyle(.menu)
+                    LabeledContent("Size") {
+                        HStack(spacing: 4) {
+                            Button { fontSize = max(12, size - 1) } label: {
+                                Image(systemName: "textformat.size.smaller").frame(width: 40, height: 32)
+                            }
+                            .disabled(size <= 12).accessibilityLabel("Decrease font size")
+                            Text("\(Int(size))").monospacedDigit().frame(minWidth: 28)
+                                .accessibilityIdentifier("reader-font-size")
+                            Button { fontSize = min(28, size + 1) } label: {
+                                Image(systemName: "textformat.size.larger").frame(width: 40, height: 32)
+                            }
+                            .disabled(size >= 28).accessibilityLabel("Increase font size")
+                        }
+                        .buttonStyle(.borderless)
+                    }
+                }
+                Section("Theme") {
+                    ForEach(DocumentThemePair.builtin) { pair in
+                        Button { pairID = pair.id } label: {
+                            HStack {
+                                swatch(pair.light)
+                                swatch(pair.dark)
+                                Text(pair.name).foregroundStyle(.primary).padding(.leading, 4)
+                                Spacer()
+                                if pairID == pair.id { Image(systemName: "checkmark").foregroundStyle(.tint).fontWeight(.semibold) }
+                            }
+                        }
+                        .accessibilityLabel(pair.name)
+                        .accessibilityIdentifier("theme-" + pair.id)
+                    }
+                }
+            }
+            .navigationTitle("Appearance").navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
+        }
+    }
+    private func swatch(_ theme: DocumentTheme) -> some View {
+        let paper = theme.document["paper"]!, text = theme.document["text"]!
+        return Text("Aa").font(.caption.weight(.medium))
+            .foregroundStyle(Color(.sRGB, red: text.red, green: text.green, blue: text.blue, opacity: text.alpha))
+            .frame(width: 30, height: 27)
+            .background(Color(.sRGB, red: paper.red, green: paper.green, blue: paper.blue, opacity: paper.alpha), in: RoundedRectangle(cornerRadius: 4))
+            .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(.secondary.opacity(0.3)))
+            .accessibilityHidden(true)
+    }
+}
