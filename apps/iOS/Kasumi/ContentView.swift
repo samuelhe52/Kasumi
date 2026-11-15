@@ -207,35 +207,40 @@ private struct ReaderOutline: View {
 
 /// A compact panel: one row of type controls above a grid of theme cards.
 /// Its content doesn't grow, so the sheet's only detent is the content height.
-private struct AppearanceSettings: View {
+fileprivate struct AppearanceSettings: View {
     @Binding var presetID: String
     @Binding var pairID: String
     @Binding var fontSize: Double
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
-    @State private var height: CGFloat = 360
-    private var preset: TypographyPreset { TypographyPreset.builtin.first { $0.id == presetID } ?? .default }
+    private var preset: TypographyPreset {
+        TypographyPreset.builtin.first { $0.id == presetID } ?? .default
+    }
     private var size: Double { fontSize > 0 ? min(28, max(12, fontSize)) : preset.defaultFontSize }
 
     var body: some View {
-        // Scrolls only when accessibility text sizes outgrow the screen.
-        ScrollView {
-            content.onGeometryChange(for: CGFloat.self, of: \.size.height) { height = $0 }
+        NavigationStack {
+            // Scrolls only when accessibility text sizes outgrow the screen.
+            ScrollView {
+                content
+            }
+            .scrollBounceBehavior(.basedOnSize)
+            .scrollEdgeEffectStyle(.soft, for: .top)
+            .navigationTitle("Appearance")
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden()
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close", systemImage: "xmark") { dismiss() }
+                }
+            }
         }
-        .scrollBounceBehavior(.basedOnSize)
-        .scrollEdgeEffectStyle(.soft, for: .top)
-        .frame(idealHeight: height)
-        .presentationDetents([.height(height)])
+        .frame(idealHeight: 330)
+        .presentationDetents([.height(330)])
     }
 
     private var content: some View {
         VStack(alignment: .leading, spacing: 20) {
-            HStack {
-                Text("Appearance").font(.title3.weight(.semibold)).accessibilityAddTraits(.isHeader)
-                Spacer()
-                Button("Close", systemImage: "xmark") { dismiss() }
-                    .labelStyle(.iconOnly).buttonBorderShape(.circle).buttonStyle(.glass).controlSize(.large)
-            }
             HStack(spacing: 12) {
                 sizeControl
                 presetMenu
@@ -244,20 +249,28 @@ private struct AppearanceSettings: View {
                 ForEach(DocumentThemePair.builtin) { card($0) }
             }
         }
-        .padding(20)
+        .padding(.horizontal, 20)
+        .padding(.bottom, 8)
+        .padding(.top, 8)
     }
 
     private var sizeControl: some View {
         HStack(spacing: 0) {
-            Button { fontSize = max(12, size - 1) } label: {
-                Text("A").font(.footnote.weight(.medium)).frame(maxWidth: .infinity, maxHeight: .infinity).contentShape(Rectangle())
+            Button {
+                fontSize = max(12, size - 1)
+            } label: {
+                Text("A").font(.footnote.weight(.medium)).frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .contentShape(Rectangle())
             }
             .disabled(size <= 12).accessibilityLabel("Decrease font size")
             Text("\(Int(size))").font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
                 .frame(minWidth: 28).accessibilityIdentifier("reader-font-size")
                 .accessibilityLabel("Font size \(Int(size))")
-            Button { fontSize = min(28, size + 1) } label: {
-                Text("A").font(.title2.weight(.medium)).frame(maxWidth: .infinity, maxHeight: .infinity).contentShape(Rectangle())
+            Button {
+                fontSize = min(28, size + 1)
+            } label: {
+                Text("A").font(.title2.weight(.medium)).frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .contentShape(Rectangle())
             }
             .disabled(size >= 28).accessibilityLabel("Increase font size")
         }
@@ -274,7 +287,8 @@ private struct AppearanceSettings: View {
         } label: {
             HStack(spacing: 6) {
                 Text(preset.name).lineLimit(1)
-                Image(systemName: "chevron.up.chevron.down").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                Image(systemName: "chevron.up.chevron.down").font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
             }
             .font(.subheadline.weight(.medium)).foregroundStyle(.primary)
             .padding(.horizontal, 16)
@@ -289,7 +303,9 @@ private struct AppearanceSettings: View {
         let theme = colorScheme == .dark ? pair.dark : pair.light
         let selected = pairID == pair.id
         let shape = RoundedRectangle(cornerRadius: 16, style: .continuous)
-        return Button { pairID = pair.id } label: {
+        return Button {
+            pairID = pair.id
+        } label: {
             VStack(spacing: 2) {
                 Text("Aa").font(.title.weight(.semibold))
                 Text(pair.name).font(.caption.weight(.medium)).lineLimit(1)
@@ -298,8 +314,11 @@ private struct AppearanceSettings: View {
             .frame(maxWidth: .infinity, minHeight: 80)
             .background(color(theme.document["paper"]!), in: shape)
             .overlay {
-                if selected { shape.strokeBorder(.tint, lineWidth: 3) }
-                else { shape.strokeBorder(.separator) }
+                if selected {
+                    shape.strokeBorder(.tint, lineWidth: 3)
+                } else {
+                    shape.strokeBorder(.separator)
+                }
             }
             .contentShape(shape)
         }
