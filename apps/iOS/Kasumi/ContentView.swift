@@ -59,7 +59,7 @@ struct ReaderScreen: View {
         }
         .sheet(isPresented: Binding(get: { showAppearance && !regular }, set: { showAppearance = $0 })) {
             AppearanceSettings(presetID: $presetID, pairID: $pairID, fontSize: $fontSize)
-                .presentationDetents([.medium, .large])
+                .presentationDetents([.medium])
         }
         .onChange(of: presetID) { _, _ in fontSize = 0 }
         .onChange(of: scenePhase) { _, phase in if phase != .active { viewport.flush() } }
@@ -107,7 +107,7 @@ struct ReaderScreen: View {
                     .accessibilityIdentifier("reader-appearance")
                     .popover(isPresented: Binding(get: { showAppearance && regular }, set: { showAppearance = $0 })) {
                         AppearanceSettings(presetID: $presetID, pairID: $pairID, fontSize: $fontSize)
-                            .frame(width: 360, height: 560)
+                            .frame(width: 360)
                     }
             }
         }
@@ -206,66 +206,106 @@ private struct ReaderOutline: View {
     }
 }
 
+/// A fixed-height panel: one row of type controls above a grid of theme
+/// cards. It has no growable content, so the sheet stays at half height.
 private struct AppearanceSettings: View {
     @Binding var presetID: String
     @Binding var pairID: String
     @Binding var fontSize: Double
+    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
     private var preset: TypographyPreset { TypographyPreset.builtin.first { $0.id == presetID } ?? .default }
     private var size: Double { fontSize > 0 ? min(28, max(12, fontSize)) : preset.defaultFontSize }
 
     var body: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    Picker("Preset", selection: $presetID) {
-                        ForEach(TypographyPreset.builtin) { Text($0.name).tag($0.id) }
-                    }.pickerStyle(.menu)
-                    LabeledContent("Size") {
-                        HStack(spacing: 4) {
-                            Button { fontSize = max(12, size - 1) } label: {
-                                Image(systemName: "textformat.size.smaller").frame(width: 40, height: 32)
-                            }
-                            .disabled(size <= 12).accessibilityLabel("Decrease font size")
-                            Text("\(Int(size))").monospacedDigit().frame(minWidth: 28)
-                                .accessibilityIdentifier("reader-font-size")
-                            Button { fontSize = min(28, size + 1) } label: {
-                                Image(systemName: "textformat.size.larger").frame(width: 40, height: 32)
-                            }
-                            .disabled(size >= 28).accessibilityLabel("Increase font size")
-                        }
-                        .buttonStyle(.borderless)
-                    }
-                }
-                Section("Theme") {
-                    ForEach(DocumentThemePair.builtin) { pair in
-                        Button { pairID = pair.id } label: {
-                            HStack {
-                                swatch(pair.light)
-                                swatch(pair.dark)
-                                Text(pair.name).foregroundStyle(.primary).padding(.leading, 4)
-                                Spacer()
-                                if pairID == pair.id { Image(systemName: "checkmark").foregroundStyle(.tint).fontWeight(.semibold) }
-                            }
-                        }
-                        .accessibilityLabel(pair.name)
-                        .accessibilityIdentifier("theme-" + pair.id)
-                    }
-                }
-            }
-            .scrollEdgeEffectStyle(.soft, for: .top)
-            .navigationTitle("Appearance").navigationBarTitleDisplayMode(.inline)
-            .navigationBarBackButtonHidden()
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
+        // Accessibility text sizes can outgrow the half-height sheet.
+        ViewThatFits(in: .vertical) {
+            content
+            ScrollView { content }.scrollEdgeEffectStyle(.soft, for: .top)
         }
     }
-    private func swatch(_ theme: DocumentTheme) -> some View {
-        let paper = theme.document["paper"]!, text = theme.document["text"]!
-        return Text("Aa").font(.caption.weight(.medium))
-            .foregroundStyle(Color(.sRGB, red: text.red, green: text.green, blue: text.blue, opacity: text.alpha))
-            .frame(width: 30, height: 27)
-            .background(Color(.sRGB, red: paper.red, green: paper.green, blue: paper.blue, opacity: paper.alpha), in: RoundedRectangle(cornerRadius: 4))
-            .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(.secondary.opacity(0.3)))
-            .accessibilityHidden(true)
+
+    private var content: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            HStack {
+                Text("Appearance").font(.title3.weight(.semibold)).accessibilityAddTraits(.isHeader)
+                Spacer()
+                Button("Close", systemImage: "xmark") { dismiss() }
+                    .labelStyle(.iconOnly).buttonBorderShape(.circle).buttonStyle(.glass).controlSize(.large)
+            }
+            HStack(spacing: 12) {
+                sizeControl
+                presetMenu
+            }
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 140), spacing: 12)], spacing: 12) {
+                ForEach(DocumentThemePair.builtin) { card($0) }
+            }
+        }
+        .padding(.horizontal, 20).padding(.top, 20).padding(.bottom, 12)
+    }
+
+    private var sizeControl: some View {
+        HStack(spacing: 0) {
+            Button { fontSize = max(12, size - 1) } label: {
+                Text("A").font(.footnote.weight(.medium)).frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            .disabled(size <= 12).accessibilityLabel("Decrease font size")
+            Text("\(Int(size))").font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
+                .frame(minWidth: 28).accessibilityIdentifier("reader-font-size")
+                .accessibilityLabel("Font size \(Int(size))")
+            Button { fontSize = min(28, size + 1) } label: {
+                Text("A").font(.title2.weight(.medium)).frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            .disabled(size >= 28).accessibilityLabel("Increase font size")
+        }
+        .buttonStyle(.plain).contentShape(Capsule())
+        .frame(maxWidth: .infinity, minHeight: 48)
+        .background(.fill.tertiary, in: Capsule())
+    }
+
+    private var presetMenu: some View {
+        Menu {
+            Picker("Typography", selection: $presetID) {
+                ForEach(TypographyPreset.builtin) { Text($0.name).tag($0.id) }
+            }
+        } label: {
+            HStack(spacing: 6) {
+                Text(preset.name).lineLimit(1)
+                Image(systemName: "chevron.up.chevron.down").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+            }
+            .font(.subheadline.weight(.medium)).foregroundStyle(.primary)
+            .padding(.horizontal, 16)
+            .frame(maxWidth: .infinity, minHeight: 48)
+            .background(.fill.tertiary, in: Capsule())
+        }
+        .accessibilityLabel("Typography, \(preset.name)")
+    }
+
+    private func card(_ pair: DocumentThemePair) -> some View {
+        let theme = colorScheme == .dark ? pair.dark : pair.light
+        let selected = pairID == pair.id
+        let shape = RoundedRectangle(cornerRadius: 16, style: .continuous)
+        return Button { pairID = pair.id } label: {
+            VStack(spacing: 2) {
+                Text("Aa").font(.title.weight(.semibold))
+                Text(pair.name).font(.caption.weight(.medium)).lineLimit(1)
+            }
+            .foregroundStyle(color(theme.document["text"]!))
+            .frame(maxWidth: .infinity, minHeight: 80)
+            .background(color(theme.document["paper"]!), in: shape)
+            .overlay {
+                if selected { shape.strokeBorder(.tint, lineWidth: 3) }
+                else { shape.strokeBorder(.separator) }
+            }
+            .contentShape(shape)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(pair.name)
+        .accessibilityAddTraits(selected ? .isSelected : [])
+        .accessibilityIdentifier("theme-" + pair.id)
+    }
+
+    private func color(_ value: DocumentColor) -> Color {
+        Color(.sRGB, red: value.red, green: value.green, blue: value.blue, opacity: value.alpha)
     }
 }
