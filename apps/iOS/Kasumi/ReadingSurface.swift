@@ -93,11 +93,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
 
     private func updateScrollExtent() {
         guard let rendered else { return }
-        // Even a short final section can be placed below the bars by an outline
-        // jump. The additional scrollable area uses the same paper as the page.
-        let visibleHeight = max(0, bounds.height - adjustedContentInset.top - adjustedContentInset.bottom)
-        let height = max(rendered.size.height * pageScale, (headings.last?.1 ?? 0) * pageScale + visibleHeight - 8)
-        let size = CGSize(width: bounds.width, height: height)
+        let size = CGSize(width: bounds.width, height: rendered.size.height * pageScale)
         if contentSize != size { contentSize = size }
     }
 

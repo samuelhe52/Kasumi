@@ -65,6 +65,16 @@ Bottom-scroll jitter fix, verified on 2026-11-15:
   reverse drag.
 - Physical-device behavior was not verified.
 
+Document-end scrolling fix (2026-11-15):
+
+- Scroll extent now matches the rendered document height, including during
+  width-change scaling. Outline and internal-link jumps retain the existing
+  document-boundary clamp; short final sections need only be visible, not
+  aligned to the top.
+- `make run-sim` succeeded. Bottom scrolling and outline-jump behavior were
+  not runtime-verified; further simulator checks were stopped at the user's
+  request.
+
 ## Open questions
 
 - In the iOS 27.2 simulator the document browser and the Files app show the
