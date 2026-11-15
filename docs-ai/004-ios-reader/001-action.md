@@ -18,6 +18,7 @@ finished when the milestone closes.
 | 2026-11-15 | Paste Markdown reads the clipboard directly again | `7778595` |
 | 2026-11-15 | Animated section jumps | `fbb13cb` |
 | 2026-11-15 | Auto-hiding bars follow in-bounds finger travel, not bounce or bar-induced offset changes; drag direction resets for each gesture | — |
+| 2026-11-15 | Keep the reader toolbar visible; remove auto-hide state and drag tracking | — |
 
 ## Outcome and current state (as of 2026-11-15)
 
@@ -96,6 +97,31 @@ Document-end scrolling fix (2026-11-15):
   spinner, and the hand-off to the reader with a `README.md` title. Not
   verified: haptics (the simulator has none), animation smoothness frame by
   frame, iPad layout, dark mode, and physical devices.
+
+### Persistent reader toolbar (2026-11-15)
+
+- The navigation toolbar stays visible while reading. Removed `barsHidden`,
+  scroll-direction accumulation, and toolbar-reveal writes from taps, outline
+  jumps, and appearance actions. Scrolling still reports reading position.
+- This replaces auto-hiding rather than compensating content offsets during
+  navigation-bar geometry changes.
+- Removed the reader's opaque paper-colour toolbar background override so iOS
+  supplies its native translucent scroll-edge treatment. A subsequent
+  `make run-sim` succeeded on the same simulator; a scrolled screenshot showed
+  blurred document content behind the status/navigation-bar region, with the
+  toolbar still visible.
+- Explicitly set `ReaderScrollView.topEdgeEffect.style = .soft` for a gradual
+  blurred transition beneath the toolbar. `make run-sim` succeeded on iPhone
+  18 Pro, iOS 27.2; a `sim-use` scroll and screenshot confirmed the soft fade
+  with the toolbar remaining visible. Physical devices and iPad were not checked.
+- `make run-sim` succeeded on iPhone 18 Pro, iOS 27.2. Opened
+  `fixtures/Rendering.md` through the debug launch argument; `sim-use` forward
+  and reverse scroll gestures kept the toolbar controls at the same positions.
+  Screenshots confirmed that content scrolled beneath the visible toolbar.
+  Outline presentation and a Mathematics section jump also kept it visible.
+- An initial coordinate-based swipe unexpectedly returned to the launch screen;
+  reopened the fixture and completed the checks with named scroll gestures.
+  Physical devices and iPad were not verified.
 
 ## Open questions
 

@@ -37,8 +37,6 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
     private var requestedWidth: CGFloat = 0
     private var pageScale: CGFloat = 1
     private var lastJump: UUID?
-    private var previousPanTranslation: CGFloat = 0
-    private var scrollTravel: CGFloat = 0
     private var adjusting = false
 
     override init(frame: CGRect) {
@@ -46,6 +44,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
         delegate = self
         alwaysBounceVertical = true
         contentInsetAdjustmentBehavior = .automatic
+        topEdgeEffect.style = .soft
         openingIndicator.hidesWhenStopped = true
         openingIndicator.translatesAutoresizingMaskIntoConstraints = false
         addSubview(openingIndicator)
@@ -177,30 +176,11 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
               let rendered, let rect = rendered.rect(forAnchor: id) else { return }
         lastJump = viewport.jumpRevision
         adjusting = true; setTop(max(0, rect.minY * pageScale - 8), animated: !UIAccessibility.isReduceMotionEnabled); adjusting = false
-        viewport.barsHidden = false
         reportPosition()
     }
 
-    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-        previousPanTranslation = panGestureRecognizer.translation(in: self).y
-        scrollTravel = 0
-    }
-
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        let translation = panGestureRecognizer.translation(in: self).y
-        let delta = previousPanTranslation - translation
-        previousPanTranslation = translation
         guard !adjusting else { return }
-        // Offset changes also come from rubber-banding and bar-driven inset
-        // adjustments. Only an in-bounds finger movement expresses scroll intent.
-        let minimum = -adjustedContentInset.top
-        let maximum = max(minimum, contentSize.height - bounds.height + adjustedContentInset.bottom)
-        if isDragging, delta != 0, contentOffset.y >= minimum, contentOffset.y <= maximum {
-            if delta * scrollTravel < 0 { scrollTravel = 0 }
-            scrollTravel += delta
-            if topY < 12 || scrollTravel < -18 { viewport?.barsHidden = false }
-            else if scrollTravel > 18 { viewport?.barsHidden = true }
-        }
         reportPosition()
     }
     private func reportPosition() {
@@ -212,7 +192,6 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
     func finish() { viewport?.flush(); layoutTask?.cancel() }
 
     @objc private func tapped(_ gesture: UITapGestureRecognizer) {
-        viewport?.barsHidden = false
         guard let rendered, let page else { return }
         let point = gesture.location(in: page)
         guard let url = rendered.link(at: point) else { return }

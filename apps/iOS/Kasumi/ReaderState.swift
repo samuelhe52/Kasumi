@@ -7,7 +7,6 @@ import Observation
 final class ReaderViewport {
     var rendered: RenderedDocument?
     var headingID: String?
-    var barsHidden = false
     var jumpID: String?
     var jumpRevision = UUID()
     @ObservationIgnored private var identity: String?
@@ -41,7 +40,7 @@ final class ReaderViewport {
     }
 
     func jump(to id: String) {
-        barsHidden = false; jumpID = id; jumpRevision = UUID()
+        jumpID = id; jumpRevision = UUID()
     }
 
     func flush() {

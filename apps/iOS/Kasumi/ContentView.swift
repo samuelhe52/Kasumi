@@ -99,20 +99,17 @@ struct ReaderScreen: View {
         .toolbar(removing: .sidebarToggle)
         .navigationTitle(document.title)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(paper, for: .navigationBar)
-        .toolbarVisibility(viewport.barsHidden ? .hidden : .visible, for: .navigationBar)
         .toolbar {
             if canClose {
                 ToolbarItem(placement: .topBarLeading) { Button("Close", systemImage: "xmark") { viewport.flush(); dismiss() } }
             }
             ToolbarItemGroup(placement: .topBarTrailing) {
                 Button("Outline", systemImage: "list.bullet.indent") {
-                    viewport.barsHidden = false
                     if regular { withAnimation { columns = columns == .detailOnly ? .all : .detailOnly } }
                     else { showOutline = true }
                 }
                 .accessibilityIdentifier("reader-outline")
-                Button("Appearance", systemImage: "textformat.size") { showAppearance = true; viewport.barsHidden = false }
+                Button("Appearance", systemImage: "textformat.size") { showAppearance = true }
                     .accessibilityIdentifier("reader-appearance")
                     .popover(isPresented: Binding(get: { showAppearance && regular }, set: { showAppearance = $0 })) {
                         AppearanceSettings(presetID: $presetID, pairID: $pairID, fontSize: $fontSize)

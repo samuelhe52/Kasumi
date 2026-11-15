@@ -36,7 +36,7 @@ source editor, settings and font store.
 - `apps/iOS/Kasumi/ReaderDocument.swift`, `ReaderState.swift`: the read-only
   document and per-file reading position.
 - `apps/iOS/Kasumi/ReadingSurface.swift`: lays out on a background task and draws
-  with `CATiledLayer`; hides bars on scroll; animated section jumps.
+  with `CATiledLayer`; keeps the toolbar visible while scrolling; animated section jumps.
 - `apps/iOS/Kasumi/ContentView.swift`: reader screen, appearance controls (preset,
   size, theme), outline as a full-height sheet on iPhone and a sidebar on iPad.
 
@@ -64,4 +64,5 @@ paste consent prompt on a device (`make run-device`).
 
 ## Amendments
 
-None yet.
+- Updated 2026-11-15: removed toolbar auto-hiding to avoid bar-driven viewport
+  shifts; see [action record](001-action.md#persistent-reader-toolbar-2026-11-15).
