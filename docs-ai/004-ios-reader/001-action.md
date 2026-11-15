@@ -75,6 +75,28 @@ Document-end scrolling fix (2026-11-15):
   not runtime-verified; further simulator checks were stopped at the user's
   request.
 
+### URL-entry redesign (2026-11-15)
+
+- URL entry is a single screen: large "Open URL" title, one URL field with a
+  clear control, one line of guidance, and a full-width Open button. The Paste
+  button, icon tile, field label, and introduction were dropped as noise; the
+  system edit menu still pastes into the field.
+- The field takes focus on appear. Keyboard Go submits; whitespace-only input
+  disables Open.
+- Feedback: the field border follows focus and turns red on error; the error
+  replaces the guidance line in place; invalid input or a failed fetch shakes
+  the field with an error haptic and refocuses it. While loading, Open keeps its
+  colour and shows a spinner, and the field dims and locks.
+- On success the form cross-fades into the reader, titled with the URL's last
+  path component instead of "Untitled".
+- URL entry has its own navigation stack, without reader Outline or Appearance
+  controls or the iPad outline sidebar.
+- Verified on the iPhone 18 Pro simulator (iOS 27.2): layout, autofocus with
+  typing, clear button, invalid-URL error, a 404 fetch error, the loading
+  spinner, and the hand-off to the reader with a `README.md` title. Not
+  verified: haptics (the simulator has none), animation smoothness frame by
+  frame, iPad layout, dark mode, and physical devices.
+
 ## Open questions
 
 - In the iOS 27.2 simulator the document browser and the Files app show the

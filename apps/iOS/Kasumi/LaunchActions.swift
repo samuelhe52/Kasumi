@@ -75,23 +75,123 @@ struct URLImportView: View {
     @State private var urlText = ""
     @State private var loading = false
     @State private var errorMessage: String?
+    @State private var failures = 0
+    @FocusState private var urlFocused: Bool
+
+    private var trimmedURL: String { urlText.trimmingCharacters(in: .whitespacesAndNewlines) }
+    private var canOpen: Bool { !loading && !trimmedURL.isEmpty }
+    private var fieldBorder: Color {
+        if errorMessage != nil { return .red }
+        return urlFocused ? .accentColor : Color.primary.opacity(0.12)
+    }
 
     var body: some View {
-        Form {
-            TextField("https://example.com/document.md", text: $urlText)
-                .keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
-                .accessibilityIdentifier("document-url")
-            Text("HTTPS text or Markdown, up to 5 MB.").font(.footnote).foregroundStyle(.secondary)
-            Button("Open") { fetch() }.disabled(loading || urlText.isEmpty)
-            if loading { ProgressView("Opening…") }
-            if let errorMessage { Text(errorMessage).foregroundStyle(.red) }
+        ScrollView {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(spacing: 8) {
+                    TextField("https://example.com/document.md", text: $urlText)
+                        .keyboardType(.URL)
+                        .textContentType(.URL)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .submitLabel(.go)
+                        .focused($urlFocused)
+                        .onSubmit { if canOpen { fetch() } }
+                        .accessibilityLabel("Document URL")
+                        .accessibilityIdentifier("document-url")
+                    if !urlText.isEmpty && !loading {
+                        Button {
+                            urlText = ""
+                            urlFocused = true
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundStyle(.tertiary)
+                                .frame(minWidth: 28, minHeight: 28)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Clear URL")
+                        .transition(.scale(scale: 0.6).combined(with: .opacity))
+                    }
+                }
+                .padding(.horizontal, 16)
+                .frame(minHeight: 52)
+                .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 14))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 14)
+                        .strokeBorder(fieldBorder, lineWidth: urlFocused || errorMessage != nil ? 1.5 : 1)
+                }
+                .opacity(loading ? 0.6 : 1)
+                .disabled(loading)
+                .keyframeAnimator(initialValue: 0.0, trigger: failures) { content, x in
+                    content.offset(x: x)
+                } keyframes: { _ in
+                    KeyframeTrack {
+                        SpringKeyframe(8, duration: 0.07)
+                        SpringKeyframe(-7, duration: 0.07)
+                        SpringKeyframe(5, duration: 0.07)
+                        SpringKeyframe(-3, duration: 0.07)
+                        SpringKeyframe(0, duration: 0.07)
+                    }
+                }
+
+                ZStack(alignment: .topLeading) {
+                    if let errorMessage {
+                        Label(errorMessage, systemImage: "exclamationmark.circle.fill")
+                            .foregroundStyle(.red)
+                            .transition(.opacity.combined(with: .offset(y: -4)))
+                    } else {
+                        Text("A direct HTTPS link to Markdown or plain text, up to 5 MB.")
+                            .foregroundStyle(.secondary)
+                            .transition(.opacity)
+                    }
+                }
+                .font(.footnote)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, 4)
+
+                Button(action: fetch) {
+                    ZStack {
+                        Text("Open").opacity(loading ? 0 : 1)
+                        ProgressView().tint(.white).opacity(loading ? 1 : 0)
+                    }
+                    .font(.headline)
+                    .frame(maxWidth: .infinity, minHeight: 36)
+                }
+                .buttonStyle(.borderedProminent)
+                .buttonBorderShape(.roundedRectangle(radius: 14))
+                .disabled(trimmedURL.isEmpty)
+                .allowsHitTesting(!loading)
+                .accessibilityLabel(loading ? "Opening" : "Open")
+                .accessibilityIdentifier("open-url")
+                .padding(.top, 8)
+            }
+            .frame(maxWidth: 480)
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+            .frame(maxWidth: .infinity)
+            .animation(.snappy(duration: 0.2), value: urlText.isEmpty)
+            .animation(.smooth(duration: 0.2), value: urlFocused)
+            .animation(.smooth(duration: 0.25), value: errorMessage)
+            .animation(.smooth(duration: 0.25), value: loading)
         }
+        .scrollDismissesKeyboard(.interactively)
+        .background(Color(uiColor: .systemGroupedBackground))
         .navigationTitle("Open URL")
+        .navigationBarTitleDisplayMode(.large)
+        .sensoryFeedback(.error, trigger: failures)
+        .onChange(of: urlText) { _, _ in errorMessage = nil }
+        .task { urlFocused = true }
+    }
+    private func fail(_ message: String) {
+        errorMessage = message
+        failures += 1
     }
     private func fetch() {
-        guard let url = URL(string: urlText.trimmingCharacters(in: .whitespacesAndNewlines)), url.scheme?.lowercased() == "https", url.host != nil else {
-            errorMessage = "Enter a complete HTTPS URL."; return
+        guard !loading else { return }
+        guard let url = URL(string: trimmedURL), url.scheme?.lowercased() == "https", url.host != nil else {
+            fail("Enter a complete HTTPS URL."); return
         }
+        urlFocused = false
         loading = true; errorMessage = nil
         Task {
             do {
@@ -99,9 +199,14 @@ struct URLImportView: View {
                 document.snapshot = await Task.detached {
                     ReaderSnapshot(data: data, fileExtension: "md", baseURL: finalURL.deletingLastPathComponent())
                 }.value
-                document.needsURL = false
-            } catch { errorMessage = error.localizedDescription }
-            loading = false
+                let name = finalURL.lastPathComponent
+                if !name.isEmpty && name != "/" { document.displayName = name }
+                withAnimation(.smooth(duration: 0.35)) { document.needsURL = false }
+            } catch {
+                loading = false
+                fail(error.localizedDescription)
+                urlFocused = true
+            }
         }
     }
 }

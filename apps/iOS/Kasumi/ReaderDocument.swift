@@ -36,7 +36,7 @@ final class ReaderDocument: ReadableDocument, Identifiable {
     nonisolated static let readableContentTypes: [UTType] = [.kasumiMarkdown, .plainText]
     let configuration: URLDocumentConfiguration?
     let initialURL: URL?
-    let displayName: String?
+    var displayName: String?
     var snapshot: ReaderSnapshot?
     var needsURL = false
 

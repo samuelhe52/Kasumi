@@ -33,15 +33,29 @@ struct ReaderScreen: View {
 
     var body: some View {
         Group {
-            if regular {
+            if document.needsURL {
+                NavigationStack {
+                    URLImportView(document: document)
+                        .toolbar {
+                            if canClose {
+                                ToolbarItem(placement: .topBarLeading) {
+                                    Button("Close", systemImage: "xmark") { dismiss() }
+                                }
+                            }
+                        }
+                }
+                .transition(.opacity)
+            } else if regular {
                 NavigationSplitView(columnVisibility: $columns) {
                     outline
                         .navigationTitle("Outline")
                         .toolbar(removing: .sidebarToggle)
                 } detail: { reader }
                 .toolbar(removing: .sidebarToggle)
+                .transition(.opacity)
             } else {
                 NavigationStack { reader }
+                    .transition(.opacity)
             }
         }
         .background(paper.ignoresSafeArea())
@@ -70,9 +84,7 @@ struct ReaderScreen: View {
 
     private var reader: some View {
         Group {
-            if document.needsURL {
-                URLImportView(document: document)
-            } else if let snapshot = document.snapshot, let parsed = snapshot.parsed {
+            if let snapshot = document.snapshot, let parsed = snapshot.parsed {
                 ReadingSurface(document: parsed, revision: snapshot.revision, style: style,
                     outline: parsed.outline, fileURL: document.fileURL, viewport: viewport,
                     openLink: { url in openURL(url) })
