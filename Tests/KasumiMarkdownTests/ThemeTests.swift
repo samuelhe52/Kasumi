@@ -147,3 +147,17 @@ import Testing
         #expect(throws: DecodingError.self) { try decoder.decode(DocumentColor.self, from: Data(invalid.utf8)) }
     }
 }
+
+@Test func builtinThemePairsCoverEachAppearanceExactlyOnce() {
+    let pairs = DocumentThemePair.builtin
+    #expect(Set(pairs.map(\.id)) == Set(["default", "mono", "one", "solarized"]))
+    #expect(Set(pairs.flatMap { [$0.light.id, $0.dark.id] }) == Set(DocumentTheme.builtin.map(\.id)))
+    for pair in pairs {
+        #expect(pair.light.appearance == .light && pair.dark.appearance == .dark)
+        #expect(pair.light.id == pair.id + "-light" && pair.dark.id == pair.id + "-dark")
+        #expect(!pair.name.contains("Light") && !pair.name.contains("Dark"))
+    }
+    for preset in TypographyPreset.builtin {
+        #expect(preset.defaultFontSize == CGFloat(Typography().applying(preset.values).size))
+    }
+}
