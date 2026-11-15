@@ -26,11 +26,6 @@ XCFrameworks under `.build/native/` only when a native package changed. Without
 `make`, run `./scripts/build-native` once before the first `swift` or
 `xcodebuild` call. `make run-sim` doesn't boot a simulator; start one first.
 
-`make run-device` needs the phone unlocked, trusted and in Developer Mode, and
-Xcode signed in to the Apple ID whose team owns the signing identity. The
-project sets no `DEVELOPMENT_TEAM`, so pass yours, e.g.
-`make run-device DEVELOPMENT_TEAM=<team ID>`.
-
 ## Layout
 
 - `Sources/KasumiMarkdown/` — the library. Bundled fonts, themes and presets are
