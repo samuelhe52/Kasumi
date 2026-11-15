@@ -176,6 +176,7 @@ private struct ReaderOutline: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
             }
+            .scrollEdgeEffectStyle(.soft, for: .top)
             .overlay {
                 if items.isEmpty {
                     ContentUnavailableView("No Headings", systemImage: "list.bullet.indent", description: Text("Headings in this document appear here."))
@@ -239,6 +240,7 @@ private struct AppearanceSettings: View {
                     }
                 }
             }
+            .scrollEdgeEffectStyle(.soft, for: .top)
             .navigationTitle("Appearance").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
         }

@@ -12,6 +12,10 @@
 - [`docs-ai/README.md`](docs-ai/README.md) indexes the product goal, roadmap, and decision records.
 - Use the `write-ai-doc` skill for substantial features and decision-shaping fixes, as defined in [`docs-ai/workflow.md`](docs-ai/workflow.md). Keep the roadmap, renderer gaps, and `docs/development.md` current in the same commit as the change. There is no status document; don't add one.
 
+## UI
+
+- Always use the `.soft` style for toolbar edge effects. In UIKit, set `UIScrollView.topEdgeEffect.style = .soft`. In SwiftUI, use `.scrollEdgeEffectStyle(.soft, for: .top)`. Apply this everywhere a toolbar appears.
+
 ## Reference materials
 
 - `fixtures/reference/` holds frozen reference measurements that tests compare against. Treat them as regression data: when a deliberate change alters a covered behavior, update the expectation in the same commit and say so.
