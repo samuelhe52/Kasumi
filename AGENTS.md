@@ -3,7 +3,7 @@
 ## Workflow
 
 - Use Makefile commands for dev routines.
-- Ask before launching or using a simulator. Drive the simulator with `sim-use`.
+- Ask before booting a simulator. Drive the simulator with `sim-use`.
 - If the user asks to perform a change in a new worktree, create that worktree under `.worktrees/` in the repository root.
 
 ## Documentation
