@@ -51,8 +51,6 @@ struct ReaderScreen: View {
                     .navigationTitle("Outline")
                     .navigationBarTitleDisplayMode(.inline)
                     .navigationBarBackButtonHidden()
-                    .toolbarBackground(paper, for: .navigationBar)
-                    .toolbarBackground(.visible, for: .navigationBar)
                     .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { showOutline = false } } }
             }
             .presentationDetents([.large])
@@ -204,7 +202,7 @@ private struct ReaderOutline: View {
                 if let currentID { proxy.scrollTo(currentID, anchor: .center) }
             }
         }
-        .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Find a heading")
+        .searchable(text: $query, prompt: "Find a heading")
     }
 }
 
@@ -257,6 +255,7 @@ private struct AppearanceSettings: View {
             }
             .scrollEdgeEffectStyle(.soft, for: .top)
             .navigationTitle("Appearance").navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden()
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
         }
     }
