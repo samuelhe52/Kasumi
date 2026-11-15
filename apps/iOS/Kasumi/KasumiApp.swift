@@ -3,6 +3,7 @@ import SwiftUI
 @main
 struct KasumiApp: App {
     @State private var launchStore = LaunchStore()
+    @Environment(\.scenePhase) private var scenePhase
     init() { LaunchStore.installWelcomeIfNeeded() }
     var body: some Scene {
         DocumentGroupLaunchScene(Text(verbatim: " ")) {
@@ -15,6 +16,9 @@ struct KasumiApp: App {
             LaunchLogotype(titleFrame: geometry.titleViewFrame)
         } overlayAccessoryView: { _ in
             LaunchPresenter(store: launchStore)
+        }
+        .onChange(of: scenePhase, initial: true) { _, phase in
+            if phase == .active { Task { await launchStore.importSharedFiles() } }
         }
         DocumentGroup { document in
             ReaderScreen(document: document).id(document.id)

@@ -10,8 +10,9 @@ targets.
   `.build/native/` only when a `packages/Native*` input changed. Calling `swift`
   or `xcodebuild` directly needs `./scripts/build-native` once first.
 - `make run-sim` and `make test-ios` don't boot a simulator.
-- New files under `apps/iOS/Kasumi/` are picked up without project edits
-  (folder-synchronized group).
+- New files under `apps/iOS/Kasumi/`, `ImportExtension/`, and `Shared/` are
+  picked up without project edits (folder-synchronized groups). `Shared/` is
+  compiled into both the app and the "Import into Kasumi" action extension.
 - Package resources live in `Sources/KasumiMarkdown/Bundled/`. A top-level
   `Resources` folder breaks iOS resource-bundle signing.
 - Tests reach `fixtures/` through the `Tests/KasumiMarkdownTests/fixtures`
@@ -32,6 +33,14 @@ targets.
   lacking `com.apple.springboard.CFUserNotification`), and the read returns nil.
   Set the permission to Allow on the simulator; test the prompt with
   `make run-device`.
+- **Share-sheet import.** The action extension and the app share the App Group
+  `group.com.samuelhe.Kasumi` (`Kasumi.entitlements`, `ImportExtension.entitlements`),
+  so a device build needs automatic signing to register it for your team. In a
+  share sheet the action sits under View More until promoted with Edit Actions.
+  The extension then opens `kasumi://import`, and the app imports when it becomes
+  active. If the open is refused the extension's sheet stays, and sharing from
+  inside Kasumi alone doesn't trigger an import: send Kasumi Home and launch it
+  again.
 - **Open a file at launch (debug builds only).** Pass `-KasumiOpen <path>` to skip
   the launch scene. The file is copied into the app's `Documents/Debug/`
   (replacing an earlier copy) and opened through the document browser, so

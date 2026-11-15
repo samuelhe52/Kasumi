@@ -3,18 +3,19 @@ import Observation
 import SwiftUI
 import UIKit
 
-/// Pasted and fetched documents are saved as ordinary files, one folder per
-/// kind, and open through the system document browser like any other file.
-enum ImportFolder: String {
+/// Pasted, fetched, and shared documents are saved as ordinary files, one folder
+/// per kind, and open through the system document browser like any other file.
+enum ImportFolder: String, CaseIterable {
     case pasted = "Pasted"
     case downloaded = "Downloaded"
+    case imported = "Imported"
 
     var url: URL { URL.documentsDirectory.appending(path: rawValue, directoryHint: .isDirectory) }
 
-    /// Whether `file` sits directly in the Pasted or Downloaded folder.
+    /// Whether `file` sits directly in one of the import folders.
     static func contains(_ file: URL) -> Bool {
         let parent = file.deletingLastPathComponent().resolvingSymlinksInPath().standardizedFileURL.pathComponents
-        return [ImportFolder.pasted, .downloaded].contains {
+        return ImportFolder.allCases.contains {
             $0.url.resolvingSymlinksInPath().standardizedFileURL.pathComponents == parent
         }
     }
@@ -44,7 +45,12 @@ enum ImportFolder: String {
     static func downloadName(for url: URL) -> String {
         var name = url.lastPathComponent
         if name.isEmpty || name == "/" { name = url.host() ?? "Download" }
-        return ["md", "markdown", "txt"].contains((name as NSString).pathExtension.lowercased()) ? name : name + ".md"
+        return markdownName(name)
+    }
+
+    /// Adds `.md` unless `name` already ends in a Markdown or text extension.
+    static func markdownName(_ name: String) -> String {
+        ["md", "markdown", "txt"].contains((name as NSString).pathExtension.lowercased()) ? name : name + ".md"
     }
 }
 
@@ -115,6 +121,26 @@ final class LaunchStore {
         alert = LaunchAlert(title: String(localized: "Could Not Paste"), message: message)
     }
 
+    /// Moves files shared through the "Import into Kasumi" action out of the
+    /// App Group inbox into Documents/Imported and opens the newest one. Runs
+    /// whenever the app becomes active, since the extension can't launch it.
+    func importSharedFiles() async {
+        var saved: [URL] = []
+        ImportInbox.drain { data, name in
+            saved.append(try ImportFolder.imported.save(data, as: ImportFolder.markdownName(name)))
+        }
+        guard let newest = saved.last else { return }
+        await waitForBrowser()
+        open(newest)
+    }
+
+    /// The browser installs itself after the launch overlay appears.
+    private func waitForBrowser() async {
+        for _ in 0..<50 where window.flatMap(Self.browser(in:)) == nil {
+            try? await Task.sleep(for: .milliseconds(100))
+        }
+    }
+
     /// Hands a file to this window's document browser, so `DocumentGroup` opens
     /// it with the same file session and presentation as a file the user picked.
     private func open(_ url: URL) {
@@ -159,10 +185,7 @@ final class LaunchStore {
                 NSLog("KasumiOpen: cannot read %@", path)
                 return
             }
-            // The browser installs itself after the launch overlay appears.
-            for _ in 0..<50 where window.flatMap(Self.browser(in:)) == nil {
-                try? await Task.sleep(for: .milliseconds(100))
-            }
+            await waitForBrowser()
             open(target)
         }
     #endif

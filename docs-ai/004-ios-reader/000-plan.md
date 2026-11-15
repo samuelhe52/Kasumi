@@ -70,3 +70,4 @@ paste consent prompt on a device (`make run-device`).
 - Updated 2026-11-15: removed toolbar auto-hiding to avoid bar-driven viewport
   shifts; see [action record](001-action.md#persistent-reader-toolbar-2026-11-15).
 - Updated 2026-11-15: save pasted and fetched documents as files and open every reader through `DocumentGroup`; corrected the Goals and the action record's URL-entry notes — see [002-saved-imports.md](002-saved-imports.md).
+- Updated 2026-11-16: "Import into Kasumi" share-sheet Action extension, saved to `Documents/Imported/` — see [004-import-action.md](004-import-action.md).
