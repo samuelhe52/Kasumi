@@ -27,6 +27,6 @@
 
 ## Commits
 
-- Organize work into coherent commits. Fold small review corrections into the unpushed commit they fix. Do not amend, rebase, or rewrite commits you did not create in the current task without asking.
+- Organize work into coherent commits. Do not amend, rebase, or rewrite commits you did not create in the current task without asking.
 - Other agents may be editing the same working tree. Stage only changes within the commit's scope, by path (`git add <paths>`); never use `git add -A`, `git add .`, or `git commit -a`.
 - Use conventional commits: `<type>: <subject>`, with imperative, capitalized, concise subjects and no trailing period.
