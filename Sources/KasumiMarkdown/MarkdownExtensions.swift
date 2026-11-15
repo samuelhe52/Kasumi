@@ -76,32 +76,63 @@ struct MarkdownExtensions {
             return slashes % 2 == 1
         }
         func whitespace(_ byte: UInt8) -> Bool { byte == 32 || byte == 9 || byte == 10 || byte == 13 }
+        func lineBreak(_ byte: UInt8) -> Bool { byte == 10 || byte == 13 }
+        // `\[` is also CommonMark's escaped bracket, so display brackets count only
+        // when `\[` opens a line (after up to three spaces) and `\]` closes one.
+        func opensLine(_ index: Int) -> Bool {
+            var before = index
+            while before > 0 && bytes[before - 1] == 32 && index - before < 3 { before -= 1 }
+            return before == 0 || lineBreak(bytes[before - 1])
+        }
+        func closesLine(_ index: Int) -> Bool {
+            var after = index
+            while after < bytes.count && (bytes[after] == 32 || bytes[after] == 9) { after += 1 }
+            return after == bytes.count || lineBreak(bytes[after])
+        }
         while cursor < bytes.count {
             while exclusion < excluded.count && excluded[exclusion].upperBound <= cursor { exclusion += 1 }
             if exclusion < excluded.count && excluded[exclusion].contains(cursor) { cursor = excluded[exclusion].upperBound; continue }
-            guard bytes[cursor] == 36, !escaped(cursor) else { cursor += 1; continue }
-            let delimiter = cursor + 1 < bytes.count && bytes[cursor + 1] == 36 ? 2 : 1
-            let contentStart = cursor + delimiter
-            guard contentStart < bytes.count, delimiter == 2 || !whitespace(bytes[contentStart]) else { cursor += delimiter; continue }
-            var end = contentStart, closing: Int?
-            while end < bytes.count {
-                if delimiter == 1 && (bytes[end] == 10 || bytes[end] == 13) { break }
-                if bytes[end] == 36 && !escaped(end) {
-                    if delimiter == 2 {
-                        if end + 1 < bytes.count && bytes[end + 1] == 36 { closing = end; break }
-                    } else {
-                        if end > contentStart && !whitespace(bytes[end - 1]) && !(end + 1 < bytes.count && (48...57).contains(bytes[end + 1])) { closing = end }
-                        break
+            let display: Bool, contentStart: Int, closing: Int?, width: Int
+            if bytes[cursor] == 36, !escaped(cursor) {
+                let delimiter = cursor + 1 < bytes.count && bytes[cursor + 1] == 36 ? 2 : 1
+                contentStart = cursor + delimiter
+                guard contentStart < bytes.count, delimiter == 2 || !whitespace(bytes[contentStart]) else { cursor += delimiter; continue }
+                var end = contentStart, found: Int?
+                while end < bytes.count {
+                    if delimiter == 1 && lineBreak(bytes[end]) { break }
+                    if bytes[end] == 36 && !escaped(end) {
+                        if delimiter == 2 {
+                            if end + 1 < bytes.count && bytes[end + 1] == 36 { found = end; break }
+                        } else {
+                            if end > contentStart && !whitespace(bytes[end - 1]) && !(end + 1 < bytes.count && (48...57).contains(bytes[end + 1])) { found = end }
+                            break
+                        }
                     }
+                    end += 1
                 }
-                end += 1
-            }
-            guard let closing else { cursor += delimiter; continue }
-            let finish = closing + delimiter
+                display = delimiter == 2; closing = found; width = delimiter
+            } else if bytes[cursor] == 92, cursor + 1 < bytes.count, bytes[cursor + 1] == 40 || bytes[cursor + 1] == 91, !escaped(cursor) {
+                display = bytes[cursor + 1] == 91
+                guard !display || opensLine(cursor) else { cursor += 2; continue }
+                contentStart = cursor + 2
+                let close: UInt8 = display ? 93 : 41
+                var end = contentStart, found: Int?
+                while end + 1 < bytes.count {
+                    if !display && lineBreak(bytes[end]) { break }
+                    if bytes[end] == 92 {
+                        if bytes[end + 1] == close && end > contentStart && (!display || closesLine(end + 2)) { found = end; break }
+                        end += 2; continue
+                    }
+                    end += 1
+                }
+                closing = found; width = 2
+            } else { cursor += 1; continue }
+            guard let closing else { cursor += width; continue }
+            let finish = closing + width
             let marker = prefix + String(tokens.count) + "\u{E001}"
             let lowerLine = bytes[..<cursor].filter { $0 == 10 }.count + 1
             let upperLine = lowerLine + bytes[cursor..<finish].filter { $0 == 10 }.count
-            tokens[marker] = MathSource(text: String(decoding: bytes[contentStart..<closing], as: UTF8.self), display: delimiter == 2, sourceLines: lowerLine...upperLine)
+            tokens[marker] = MathSource(text: String(decoding: bytes[contentStart..<closing], as: UTF8.self), display: display, sourceLines: lowerLine...upperLine)
             output.append(contentsOf: bytes[copied..<cursor]); output.append(contentsOf: marker.utf8)
             output.append(contentsOf: repeatElement(UInt8(10), count: upperLine - lowerLine))
             cursor = finish; copied = finish

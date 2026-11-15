@@ -37,5 +37,14 @@ $$
 \color{red}{\frac{a}{b}} + \color{blue}{\sin x}
 $$
 
+## Backslash delimiters
+
+LaTeX-style delimiters render like dollars: \(E=mc^2\) and \(\frac{a}{b}\)
+sit inline, while an escaped \\(literal\\) and a mid-line \[bracket\] stay text.
+
+\[
+e^{i\pi} + 1 = 0
+\]
+
 Search for `alpha` or `frac` in the rendered reader. Copying a formula returns
 its TeX, including the command backslashes and grouping braces.

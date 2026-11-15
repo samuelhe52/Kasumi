@@ -45,6 +45,25 @@ func parserSemanticsMatchNativeReference(fixture: String) throws {
     #expect(parsed.blocks[0].runs.allSatisfy { !$0.traits.contains(.emphasis) })
 }
 
+@Test func backslashDelimitersMatchDollarMath() {
+    let parsed = DocumentParser.parse(#"""
+    Inline \(x_i + \{a\}\), $y_j$, `\(code\)`, \\(not math\\), \(unclosed, and \[x\] mid-line.
+
+    \[
+    \int_0^1 x^2\,dx
+    \]
+
+    \[unclosed
+    """#)
+    #expect(parsed.blocks[0].runs.filter { $0.traits.contains(.math) }.map(\.text) == [#"x_i + \{a\}"#, "y_j"])
+    #expect(parsed.blocks[0].runs.contains { $0.text == #"\(code\)"# && $0.traits.contains(.code) })
+    #expect(parsed.blocks[0].text.hasSuffix(#", \(not math\), (unclosed, and [x] mid-line."#))
+    #expect(parsed.blocks[1].kind == .math)
+    #expect(parsed.blocks[1].runs.map(\.text) == ["\n\\int_0^1 x^2\\,dx\n"])
+    #expect(parsed.blocks[1].sourceLines == 3...5)
+    #expect(parsed.blocks[2].kind == .paragraph && parsed.blocks[2].text == "[unclosed")
+}
+
 @Test func footnotesRetainSourceLinesAndUndefinedReferences() {
     let parsed = DocumentParser.parse("Start[^later], [^missing].\n\n[^later]: First.\n\n    Second.\n")
     #expect(parsed.blocks[0].text == "Startlater, [^missing].")

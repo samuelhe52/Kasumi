@@ -16,7 +16,10 @@ that fixes it; add one when a limitation is found and not fixed.
 - Themes: no syntax highlighting, no custom theme files; chrome colors are kept
   but not fully applied. On iOS, the Classic theme's system colors resolve to
   UIKit's semantic colors, so it differs slightly from macOS.
-- Math: limited LaTeX coverage beyond the tested cases.
+- Math: limited LaTeX coverage beyond the tested cases. `\[...\]` display math
+  is recognized only when `\[` opens a line and `\]` ends one, so mid-line
+  `\[x\]` stays an escaped bracket, while a line wrapped in escaped brackets
+  becomes math; `\(...\)` can't span lines.
 - Diagrams: no rich HTML labels; syntax outside the tested corpus may be
   rejected; no links or selection inside diagrams.
 - Export: pagination details, PDF links, footnote edge cases, HTML/SVG images.
