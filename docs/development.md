@@ -18,6 +18,12 @@ targets.
   symlink, which is what lets them run on the simulator.
 - `swift run KasumiRender <input> <output.png|pdf> [width]` renders a document
   from the command line; see its options for preset, theme, profile, and dark.
+- `DocumentGroupLaunchScene` draws the title and action buttons from plain
+  strings and drops fonts and colors. A `nil` title falls back to the app name,
+  so the scene gets a one-space title and `LaunchLogotype` draws the wordmark.
+  `titleViewFrame` spans everything above the browser sheet, not the title, so
+  the wordmark sits at a fixed offset from its top. `scenePhase` reads
+  `background` inside the accessory views.
 
 ## Simulator and device notes
 

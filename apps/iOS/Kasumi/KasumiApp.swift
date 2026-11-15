@@ -5,12 +5,14 @@ struct KasumiApp: App {
     @State private var launchStore = LaunchStore()
     init() { LaunchStore.installWelcomeIfNeeded() }
     var body: some Scene {
-        DocumentGroupLaunchScene("Kasumi") {
+        DocumentGroupLaunchScene(Text(verbatim: " ")) {
             Button("Paste Markdown") { launchStore.pasteFromClipboard() }
             Button("Open URL") { launchStore.remote() }
         } background: {
             LaunchBackground()
                 .ignoresSafeArea()
+        } backgroundAccessoryView: { geometry in
+            LaunchLogotype(titleFrame: geometry.titleViewFrame)
         } overlayAccessoryView: { _ in
             LaunchPresenter(store: launchStore)
         }
