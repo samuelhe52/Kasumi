@@ -92,6 +92,9 @@ Document-end scrolling fix (2026-11-15):
   path component instead of "Untitled".
 - URL entry has its own navigation stack, without reader Outline or Appearance
   controls or the iPad outline sidebar.
+- Corrected 2026-11-15: URL entry is now a sheet over the launch scene, and the
+  fetched document is saved and opened through `DocumentGroup`; see
+  [002-saved-imports.md](002-saved-imports.md).
 - Verified on the iPhone 18 Pro simulator (iOS 27.2): layout, autofocus with
   typing, clear button, invalid-URL error, a 404 fetch error, the loading
   spinner, and the hand-off to the reader with a `README.md` title. Not

@@ -16,8 +16,9 @@ library's typography.
 ## Goals
 
 - Document app shell with `DocumentGroupLaunchScene` and `DocumentGroup`:
-  Files/iCloud, in-place opening, recents, and windows. Paste and URLs open as
-  untitled documents.
+  Files/iCloud, in-place opening, recents, and windows. Pasted text and
+  fetched URLs are saved as documents and open the same way (corrected by
+  [002](002-saved-imports.md); they first opened as untitled documents).
 - Reading view with edge-to-edge paper, system light/dark, searchable outline,
   and per-file reading position.
 
@@ -32,7 +33,8 @@ source editor, settings and font store.
   Markdown and Open URL above the system document browser; `DocumentGroup` owns
   file opening. On first launch the app copies `Welcome.md` into its Documents
   folder.
-- `apps/iOS/Kasumi/LaunchActions.swift`: paste and URL entry.
+- `apps/iOS/Kasumi/LaunchActions.swift`: paste and URL entry, saved to the
+  `Pasted` and `Downloaded` folders ([002](002-saved-imports.md)).
 - `apps/iOS/Kasumi/ReaderDocument.swift`, `ReaderState.swift`: the read-only
   document and per-file reading position.
 - `apps/iOS/Kasumi/ReadingSurface.swift`: lays out on a background task and draws
@@ -66,3 +68,4 @@ paste consent prompt on a device (`make run-device`).
 
 - Updated 2026-11-15: removed toolbar auto-hiding to avoid bar-driven viewport
   shifts; see [action record](001-action.md#persistent-reader-toolbar-2026-11-15).
+- Updated 2026-11-15: save pasted and fetched documents as files and open every reader through `DocumentGroup`; corrected the Goals and the action record's URL-entry notes — see [002-saved-imports.md](002-saved-imports.md).

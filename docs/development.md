@@ -27,7 +27,9 @@ targets.
   Set the permission to Allow on the simulator; test the prompt with
   `make run-device`.
 - **Open a file at launch (debug builds only).** Pass `-KasumiOpen <path>` to skip
-  the launch scene:
+  the launch scene. The file is copied into the app's `Documents/Debug/`
+  (replacing an earlier copy) and opened through the document browser, so
+  relative images resolve against that folder:
 
   ```sh
   xcrun simctl launch --terminate-running-process booted com.samuelhe.Kasumi \

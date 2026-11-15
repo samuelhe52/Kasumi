@@ -43,6 +43,13 @@ final class ReaderViewport {
         jumpID = id; jumpRevision = UUID()
     }
 
+    /// Drops the saved position, for a document that is being deleted.
+    func forget() {
+        saveTask?.cancel(); saveTask = nil
+        if let identity { UserDefaults.standard.removeObject(forKey: identity) }
+        identity = nil; latestAnchor = nil
+    }
+
     func flush() {
         saveTask?.cancel(); saveTask = nil
         guard let identity, let latestAnchor, let data = try? JSONEncoder().encode(latestAnchor) else { return }

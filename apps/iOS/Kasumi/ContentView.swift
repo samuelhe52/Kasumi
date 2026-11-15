@@ -3,7 +3,6 @@ import SwiftUI
 
 struct ReaderScreen: View {
     let document: ReaderDocument
-    var canClose = false
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.scenePhase) private var scenePhase
@@ -15,6 +14,7 @@ struct ReaderScreen: View {
     @State private var viewport = ReaderViewport()
     @State private var showAppearance = false
     @State private var showOutline = false
+    @State private var confirmDelete = false
     @State private var columns: NavigationSplitViewVisibility = .detailOnly
 
     private var regular: Bool { horizontalSizeClass == .regular }
@@ -33,29 +33,15 @@ struct ReaderScreen: View {
 
     var body: some View {
         Group {
-            if document.needsURL {
-                NavigationStack {
-                    URLImportView(document: document)
-                        .toolbar {
-                            if canClose {
-                                ToolbarItem(placement: .topBarLeading) {
-                                    Button("Close", systemImage: "xmark") { dismiss() }
-                                }
-                            }
-                        }
-                }
-                .transition(.opacity)
-            } else if regular {
+            if regular {
                 NavigationSplitView(columnVisibility: $columns) {
                     outline
                         .navigationTitle("Outline")
                         .toolbar(removing: .sidebarToggle)
                 } detail: { reader }
                 .toolbar(removing: .sidebarToggle)
-                .transition(.opacity)
             } else {
-                NavigationStack { reader }
-                    .transition(.opacity)
+                reader
             }
         }
         .background(paper.ignoresSafeArea())
@@ -100,8 +86,18 @@ struct ReaderScreen: View {
         .navigationTitle(document.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            if canClose {
-                ToolbarItem(placement: .topBarLeading) { Button("Close", systemImage: "xmark") { viewport.flush(); dismiss() } }
+            if isImport {
+                // Pinned items never move into the overflow menu, which long
+                // pasted-text titles would otherwise force.
+                ToolbarItem(placement: .topBarPinnedTrailing) {
+                    Button("Delete", systemImage: "trash") { confirmDelete = true }
+                        .accessibilityIdentifier("reader-delete")
+                        .confirmationDialog("Delete \(document.title)?", isPresented: $confirmDelete, titleVisibility: .visible) {
+                            Button("Delete", role: .destructive, action: delete)
+                        } message: {
+                            Text("This can't be undone.")
+                        }
+                }
             }
             ToolbarItemGroup(placement: .topBarTrailing) {
                 Button("Outline", systemImage: "list.bullet.indent") {
@@ -116,6 +112,25 @@ struct ReaderScreen: View {
                             .frame(width: 360, height: 560)
                     }
             }
+        }
+    }
+
+    private var isImport: Bool { document.fileURL.map(ImportFolder.contains) ?? false }
+
+    /// Pasted and downloaded documents can be deleted from the toolbar after a
+    /// confirmation. The file is removed after closing; coordination waits for
+    /// the document's file session to let go.
+    private func delete() {
+        guard let url = document.fileURL else { return }
+        viewport.forget()
+        dismiss()
+        Task.detached {
+            var coordinationError: NSError?
+            NSFileCoordinator().coordinate(writingItemAt: url, options: .forDeleting, error: &coordinationError) { target in
+                do { try FileManager.default.removeItem(at: target) }
+                catch { NSLog("Delete failed %@: %@", target.lastPathComponent, error.localizedDescription) }
+            }
+            if let coordinationError { NSLog("Delete failed %@: %@", url.lastPathComponent, coordinationError.localizedDescription) }
         }
     }
 

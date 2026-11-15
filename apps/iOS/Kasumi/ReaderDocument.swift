@@ -34,23 +34,14 @@ struct ReaderSnapshot: Sendable {
 final class ReaderDocument: ReadableDocument, Identifiable {
     let id = UUID()
     nonisolated static let readableContentTypes: [UTType] = [.kasumiMarkdown, .plainText]
-    let configuration: URLDocumentConfiguration?
-    let initialURL: URL?
-    var displayName: String?
+    let configuration: URLDocumentConfiguration
     var snapshot: ReaderSnapshot?
-    var needsURL = false
 
-    var fileURL: URL? { configuration?.fileURL ?? initialURL }
-    var title: String { displayName ?? fileURL?.lastPathComponent ?? "Untitled" }
+    var fileURL: URL? { configuration.fileURL }
+    var title: String { fileURL?.lastPathComponent ?? "Untitled" }
 
     init(configuration: URLDocumentConfiguration) {
         self.configuration = configuration
-        initialURL = nil; displayName = nil
-    }
-
-    init(snapshot: ReaderSnapshot, title: String, fileURL: URL? = nil) {
-        self.snapshot = snapshot; displayName = title
-        configuration = nil; initialURL = fileURL
     }
 
     struct Reader: DocumentReader {
