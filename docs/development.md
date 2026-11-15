@@ -26,6 +26,16 @@ XCFrameworks under `.build/native/` only when a native package changed. Without
 `make`, run `./scripts/build-native` once before the first `swift` or
 `xcodebuild` call. `make run-sim` doesn't boot a simulator; start one first.
 
+### Clipboard access
+
+Paste Markdown reads `UIPasteboard.general.string` when tapped, and iOS shows
+its consent prompt under **Settings > Apps > Kasumi > Paste from Other Apps >
+Ask**. The iOS 27.2 simulator can't show that prompt for any app: SpringBoard
+rejects Apple's `pasted` daemon for lacking the
+`com.apple.springboard.CFUserNotification` entitlement, and the read returns
+nil. This is a simulator bug, not an app bug. Test the Ask prompt with
+`make run-device`; on the simulator, set the permission to Allow.
+
 ## Layout
 
 - `Sources/KasumiMarkdown/` — the library. Bundled fonts, themes and presets are

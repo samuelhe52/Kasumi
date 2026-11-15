@@ -1,12 +1,12 @@
 import Foundation
 import Observation
 import SwiftUI
+import UIKit
 
 @MainActor @Observable
 final class LaunchStore {
     var document: ReaderDocument?
-    var errorMessage: String?
-    var showPaste = false
+    var pasteError: String?
 
     /// Copies Welcome.md into the app's Documents folder once, so the browser
     /// opens on a real document. Deleting it later is respected.
@@ -21,8 +21,22 @@ final class LaunchStore {
         }
         UserDefaults.standard.set(true, forKey: key)
     }
-    func paste(_ text: String) {
-        guard !text.isEmpty else { return }
+    /// Reads the clipboard on tap. Under Paste from Other Apps > Ask, this read
+    /// is what makes iOS show its consent prompt; Deny leaves `string` nil.
+    func pasteFromClipboard() {
+        let pasteboard = UIPasteboard.general
+        guard pasteboard.hasStrings else {
+            pasteError = String(localized: "The clipboard contains no text to paste.")
+            return
+        }
+        guard let text = pasteboard.string else {
+            pasteError = String(localized: "Kasumi can't read the clipboard. Allow it in Settings > Apps > Kasumi > Paste from Other Apps.")
+            return
+        }
+        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            pasteError = String(localized: "The clipboard contains no text to paste.")
+            return
+        }
         let data = Data(text.utf8)
         Task {
             let snapshot = await Task.detached { ReaderSnapshot(data: data, fileExtension: "md", baseURL: nil) }.value
@@ -45,13 +59,14 @@ struct LaunchPresenter: View {
             .fullScreenCover(item: $store.document) { document in
                 ReaderScreen(document: document, canClose: true)
             }
-            .sheet(isPresented: $store.showPaste) {
-                PasteSheet { text in store.showPaste = false; store.paste(text) }
-                    .presentationDetents([.medium, .large])
+            .alert("Could Not Paste", isPresented: Binding(
+                get: { store.pasteError != nil },
+                set: { if !$0 { store.pasteError = nil } }
+            )) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(store.pasteError ?? "")
             }
-            .alert("Could Not Open Document", isPresented: Binding(get: { store.errorMessage != nil }, set: { if !$0 { store.errorMessage = nil } })) {
-                Button("OK", role: .cancel) { store.errorMessage = nil }
-            } message: { Text(store.errorMessage ?? "") }
     }
 }
 
@@ -124,41 +139,5 @@ private enum TextURLLoader {
             data.append(byte)
         }
         return (data, finalURL)
-    }
-}
-
-/// The launch scene accepts only plain buttons, and a programmatic pasteboard
-/// read needs the "Allow Paste" prompt. Pasting into this text view through the
-/// edit menu or Command-V is user-initiated and needs no permission.
-private struct PasteSheet: View {
-    let open: (String) -> Void
-    @Environment(\.dismiss) private var dismiss
-    @State private var text = ""
-    @FocusState private var focused: Bool
-    var body: some View {
-        NavigationStack {
-            TextEditor(text: $text)
-                .font(.system(.body, design: .monospaced))
-                .focused($focused)
-                .accessibilityIdentifier("paste-text")
-                .scrollContentBackground(.hidden)
-                .padding(.horizontal, 12)
-                .overlay(alignment: .topLeading) {
-                    if text.isEmpty {
-                        Text("Paste or type Markdown")
-                            .font(.system(.body, design: .monospaced)).foregroundStyle(.tertiary)
-                            .padding(.horizontal, 17).padding(.vertical, 8).allowsHitTesting(false)
-                    }
-                }
-                .navigationTitle("New from Text").navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button("Open") { open(text) }
-                            .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                    }
-                }
-                .onAppear { focused = true }
-        }
     }
 }

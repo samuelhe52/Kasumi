@@ -19,7 +19,9 @@ Working:
 - The Rust dependencies build as XCFrameworks for macOS, iOS and the iOS
   simulator (arm64 only).
 - The iOS app uses the native `DocumentGroupLaunchScene`, with Paste Markdown
-  and Open URL above the system document browser. `DocumentGroup` owns file
+  and Open URL above the system document browser. Paste Markdown reads the
+  clipboard on tap; iOS asks for consent under Ask, and a denied read is
+  reported separately from an empty clipboard. `DocumentGroup` owns file
   opening; there is no alternate browser or custom file-session path. On first
   launch it copies `Welcome.md` into the app's Documents folder. The reader keeps
   paper edge to edge, lays
@@ -31,14 +33,14 @@ Working:
   wrapping labels, shallow indentation, and a rounded current-section marker.
   Reading position is saved per file.
   Outline search omits the section gap above its first visible result.
-- Restored-launch validation on the iPhone 18 Pro simulator: `make run-sim`
-  succeeds. The native launch screen, paste-to-reader opening after sheet
-  dismissal, Outline presentation and section navigation, return to the native
-  Recents card, and URL-entry presentation were exercised. Heading search,
-  wrapping labels, and selected-heading tracking were exercised in the earlier
-  UX pass. URL fetching, iPad layout, Reduce Motion, and in-place file opening
-  remain unverified.
-  Apple's collapsed “Recents” / expanded “Kasumi Recents” titles are unchanged.
+- Native-launch validation on the iPhone 18 Pro iOS 27.2 simulator:
+  `make run-sim` succeeds. One tap imports external Markdown and Japanese text
+  into the reader when paste access is allowed. The Ask prompt was verified on
+  a physical iPhone; the simulator can't show it (see `docs/development.md`).
+  Earlier validation covered Outline navigation, URL-entry presentation, and
+  return to the native Recents card. URL fetching, iPad layout, Reduce Motion,
+  and in-place file opening remain unverified. Apple's collapsed “Recents” /
+  expanded “Kasumi Recents” titles are unchanged.
 
 Not yet:
 
