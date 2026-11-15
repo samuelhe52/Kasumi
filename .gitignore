@@ -1,6 +1,9 @@
 # Machine-local files and agent configuration.
 /.local/
-/.agents/
+/.agents/*
+!/.agents/skills/
+/.agents/skills/*
+!/.agents/skills/write-ai-doc/
 /.codex/
 
 # Application build products and per-user IDE state.

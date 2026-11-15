@@ -6,6 +6,11 @@
 - Validate UI and runtime behavior by running the app in the simulator, not only by building or running `swift test`. Drive the simulator with `sim-use`. Report what you did not verify.
 - If the user asks to perform a change in a new worktree, create that worktree under `.worktrees/` in the repository root.
 
+## Documentation
+
+- `docs-ai/` is the only documentation tree. Start from [`docs-ai/README.md`](docs-ai/README.md): product goal, roadmap, decision records, and the [development runbook](docs-ai/development.md) (requirements, commands, simulator and device notes).
+- Use the `write-ai-doc` skill for substantial features and decision-shaping fixes, as defined in [`docs-ai/workflow.md`](docs-ai/workflow.md). Keep the roadmap, renderer gaps, and development runbook current in the same commit as the change. There is no status document; don't add one.
+
 ## Reference materials
 
 - `fixtures/reference/` holds frozen reference measurements that tests compare against. Treat them as regression data: when a deliberate change alters a covered behavior, update the expectation in the same commit and say so.
