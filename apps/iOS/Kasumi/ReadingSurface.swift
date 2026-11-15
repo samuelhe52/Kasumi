@@ -37,7 +37,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
     private var requestedWidth: CGFloat = 0
     private var pageScale: CGFloat = 1
     private var lastJump: UUID?
-    private var previousOffset: CGFloat = 0
+    private var previousPanTranslation: CGFloat = 0
     private var scrollTravel: CGFloat = 0
     private var adjusting = false
 
@@ -153,7 +153,6 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
         setTop(anchor.flatMap { next.y(for: $0) } ?? 0)
         viewport?.rendered = next
         adjusting = false
-        previousOffset = contentOffset.y
         jumpIfNeeded()
         openingIndicator.stopAnimating()
         if firstLayout, !UIAccessibility.isReduceMotionEnabled {
@@ -175,7 +174,6 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
         let minimum = -adjustedContentInset.top
         let maximum = max(minimum, contentSize.height - bounds.height + adjustedContentInset.bottom)
         setContentOffset(CGPoint(x: 0, y: min(maximum, max(minimum, y - adjustedContentInset.top))), animated: animated)
-        previousOffset = contentOffset.y
     }
 
     private func jumpIfNeeded() {
@@ -187,11 +185,21 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
         reportPosition()
     }
 
+    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+        previousPanTranslation = panGestureRecognizer.translation(in: self).y
+        scrollTravel = 0
+    }
+
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        let delta = contentOffset.y - previousOffset
-        previousOffset = contentOffset.y
+        let translation = panGestureRecognizer.translation(in: self).y
+        let delta = previousPanTranslation - translation
+        previousPanTranslation = translation
         guard !adjusting else { return }
-        if isDragging || isDecelerating {
+        // Offset changes also come from rubber-banding and bar-driven inset
+        // adjustments. Only an in-bounds finger movement expresses scroll intent.
+        let minimum = -adjustedContentInset.top
+        let maximum = max(minimum, contentSize.height - bounds.height + adjustedContentInset.bottom)
+        if isDragging, delta != 0, contentOffset.y >= minimum, contentOffset.y <= maximum {
             if delta * scrollTravel < 0 { scrollTravel = 0 }
             scrollTravel += delta
             if topY < 12 || scrollTravel < -18 { viewport?.barsHidden = false }

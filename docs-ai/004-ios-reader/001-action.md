@@ -17,6 +17,7 @@ finished when the milestone closes.
 | 2026-11-15 | Outline search, wrapping labels, current-section marker; progress indicator and fade on opening | `6821de1` |
 | 2026-11-15 | Paste Markdown reads the clipboard directly again | `7778595` |
 | 2026-11-15 | Animated section jumps | `fbb13cb` |
+| 2026-11-15 | Auto-hiding bars follow in-bounds finger travel, not bounce or bar-induced offset changes; drag direction resets for each gesture | — |
 
 ## Outcome and current state (as of 2026-11-15)
 
@@ -54,6 +55,15 @@ Recorded in the status document at `fbb13cb`; nothing was rerun for this record.
 - Physical iPhone: the Paste from Other Apps > Ask prompt appears.
 - Not verified: URL fetching, iPad layout, Reduce Motion, in-place file opening,
   reading-position restore, link and footnote taps.
+
+Bottom-scroll jitter fix, verified on 2026-11-15:
+
+- `make run-sim` succeeded on iPhone 18 Pro, iOS 27.2.
+- Pasted a multi-screen document with nested lists; fast bottom flings and
+  repeated overscroll settled without layout oscillation in the simulator
+  recording. Bars stayed hidden through rebound and reappeared on a deliberate
+  reverse drag.
+- Physical-device behavior was not verified.
 
 ## Open questions
 
