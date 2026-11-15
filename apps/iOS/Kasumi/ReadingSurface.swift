@@ -20,6 +20,8 @@ struct ReadingSurface: UIViewRepresentable {
 }
 
 final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecognizerDelegate {
+    private let headingTopInset: CGFloat = 15
+
     private var page: ReaderPageView?
     private var rendered: RenderedDocument?
     private let openingIndicator = UIActivityIndicatorView(style: .medium)
@@ -175,7 +177,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
         guard let viewport, lastJump != viewport.jumpRevision, let id = viewport.jumpID,
               let rendered, let rect = rendered.rect(forAnchor: id) else { return }
         lastJump = viewport.jumpRevision
-        adjusting = true; setTop(max(0, rect.minY * pageScale - 8), animated: !UIAccessibility.isReduceMotionEnabled); adjusting = false
+        adjusting = true; setTop(max(0, rect.minY * pageScale - headingTopInset), animated: !UIAccessibility.isReduceMotionEnabled); adjusting = false
         reportPosition()
     }
 
@@ -186,7 +188,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
     private func reportPosition() {
         guard window != nil, let rendered else { return }
         let y = topY
-        let heading = headings.last { $0.1 <= y + 10 }?.0 ?? headings.first?.0
+        let heading = headings.last { $0.1 <= y + headingTopInset / pageScale }?.0 ?? headings.first?.0
         viewport?.moved(anchor: rendered.readingAnchor(atY: y), heading: heading)
     }
     func finish() { viewport?.flush(); layoutTask?.cancel() }
