@@ -88,6 +88,7 @@ struct ReaderScreen: View {
                 ReadingSurface(document: parsed, revision: snapshot.revision, style: style,
                     outline: parsed.outline, fileURL: document.fileURL, viewport: viewport,
                     openLink: { url in openURL(url) })
+                    .ignoresSafeArea(.container, edges: [.top, .bottom])
             } else if let error = document.snapshot?.error {
                 ContentUnavailableView("Could Not Decode Document", systemImage: "doc.badge.exclamationmark", description: Text(error))
             } else {
