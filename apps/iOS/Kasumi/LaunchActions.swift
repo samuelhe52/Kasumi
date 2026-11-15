@@ -49,6 +49,27 @@ final class LaunchStore {
         next.needsURL = true
         document = next
     }
+
+    #if DEBUG
+    /// Debug convenience: `-KasumiOpen <path>` opens that file in the reader on
+    /// launch, skipping the clipboard. Works from `simctl launch` and Xcode scheme
+    /// arguments, since launch arguments land in UserDefaults.
+    func openDebugDocumentIfRequested() {
+        guard let path = UserDefaults.standard.string(forKey: "KasumiOpen"), !path.isEmpty else { return }
+        let url = URL(fileURLWithPath: path)
+        Task {
+            let snapshot = await Task.detached { () -> ReaderSnapshot? in
+                guard let data = try? Data(contentsOf: url) else { return nil }
+                return ReaderSnapshot(data: data, fileExtension: url.pathExtension, baseURL: url.deletingLastPathComponent())
+            }.value
+            guard let snapshot else {
+                NSLog("KasumiOpen: cannot read %@", path)
+                return
+            }
+            document = ReaderDocument(snapshot: snapshot, title: url.lastPathComponent, fileURL: url)
+        }
+    }
+    #endif
 }
 
 struct LaunchPresenter: View {
@@ -56,6 +77,9 @@ struct LaunchPresenter: View {
     var body: some View {
         Color.clear
             .allowsHitTesting(false)
+            #if DEBUG
+            .task { store.openDebugDocumentIfRequested() }
+            #endif
             .fullScreenCover(item: $store.document) { document in
                 ReaderScreen(document: document, canClose: true)
             }

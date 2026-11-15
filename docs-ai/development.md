@@ -36,6 +36,21 @@ rejects Apple's `pasted` daemon for lacking the
 nil. This is a simulator bug, not an app bug. Test the Ask prompt with
 `make run-device`; on the simulator, set the permission to Allow.
 
+### Opening a document on launch (debug builds)
+
+Debug builds open a Markdown file in the reader at launch when given the
+`-KasumiOpen <path>` launch argument. This skips the clipboard and the launch
+scene's Recents list. Wait a few seconds after launch before driving the UI.
+
+```sh
+xcrun simctl launch --terminate-running-process booted com.samuelhe.Kasumi \
+  -KasumiOpen "$PWD/fixtures/Rendering.md"
+```
+
+Launch without the argument for the normal launch scene. A path that can't be
+read stays on the launch scene and logs `KasumiOpen: cannot read <path>` to the
+console. The flag is compiled out of release builds.
+
 ## Layout
 
 - `Sources/KasumiMarkdown/` — the library. Bundled fonts, themes and presets are
