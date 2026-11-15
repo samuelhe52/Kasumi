@@ -154,7 +154,7 @@ Commits, files, tests. Add "## Current state" when useful.
 - Reference commits by short hash in backticks; dates come from Git. Cross-link
   sibling entries with relative links.
 - Numbered files are history. **Non-numbered** files (for example
-  `docs-ai/development.md`, `docs-ai/roadmap.md`,
+  `docs-ai/roadmap.md`,
   `002-rendering-engine/renderer-gaps.md`) are living documents: update them in
   place when what they describe changes, and link them instead of duplicating
   their content.
@@ -166,5 +166,5 @@ Commits, files, tests. Add "## Current state" when useful.
   and inference.
 - Sources live in `Sources/KasumiMarkdown/` (library), `Sources/KasumiRender/`
   (CLI), `packages/Native*/` (Rust bridges), and `apps/iOS/Kasumi/` (app). Use
-  `AGENTS.md` and `docs-ai/development.md` for Makefile commands, test filters,
+  `AGENTS.md` and `docs/development.md` for Makefile commands, test filters,
   and simulator rules.

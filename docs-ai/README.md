@@ -8,7 +8,7 @@ decision-shaping fixes. Ordinary tasks do not need numbered documentation.
 
 - [Product goal](001-library-and-reader/goal.md) — what Kasumi and KasumiMarkdown are for.
 - [Roadmap](roadmap.md) — what comes next.
-- [Development](development.md) — requirements, commands, layout, and runbooks.
+- [Development](../docs/development.md) — setup, build quirks, simulator and device notes.
 - [Renderer gaps](002-rendering-engine/renderer-gaps.md) — known library limitations.
 
 ## Index

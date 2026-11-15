@@ -27,7 +27,7 @@ their reasons lived only in commit messages.
 | Old content | New home |
 | --- | --- |
 | `docs/goal.md` | [001-library-and-reader/goal.md](../001-library-and-reader/goal.md) (moved unchanged) |
-| `docs/development.md` | [development.md](../development.md) (moved unchanged) |
+| `docs/development.md` | Stays in `docs/` (moved to `docs-ai/` at first, then back; see amendment) |
 | Status: current state and validation | Action records of [001](../001-library-and-reader/001-action.md), [003](../003-public-rendering-api/001-action.md), [004](../004-ios-reader/001-action.md) |
 | Status: known reader issues | [004 open questions](../004-ios-reader/001-action.md#open-questions) |
 | Status: "Not yet" items | [Roadmap](../roadmap.md), [renderer gaps](../002-rendering-engine/renderer-gaps.md), [001 open questions](../001-library-and-reader/001-action.md#open-questions) |
@@ -44,7 +44,7 @@ to the skill, the workflow, and the runbook.
 
 | Choice | Reason and alternative |
 | --- | --- |
-| Remove `docs/` entirely | AniShelf keeps `docs/` for public tutorials; Kasumi has none (its README was removed until the project matures, `7ddcf1d`), so a second tree would only split the docs. |
+| Remove `docs/` entirely (reversed for `development.md`; see amendment) | AniShelf keeps `docs/` for public tutorials; Kasumi has none (its README was removed until the project matures, `7ddcf1d`), so a second tree would only split the docs. |
 | No running status document | The status file was the main source of churn. What shipped belongs in action records, what's next in the roadmap, and known limits in gap lists. |
 | Five backfilled entries, not one per commit | Git keeps routine history; entries cover decisions later work depends on. |
 | Keep the skill project-owned, not installed with `npx skills` | Same as AniShelf: it's adapted to the project, so no `skills-lock.json` and no upstream updates. |
@@ -57,4 +57,4 @@ changes, so no build, test, or simulator run.
 
 ## Amendments
 
-None yet.
+- Updated 2026-11-15: `development.md` moved back to `docs/` and trimmed — see [002-development-guide.md](002-development-guide.md)

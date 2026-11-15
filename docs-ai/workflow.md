@@ -36,7 +36,7 @@ entry that owns the area (`002-…` and later files) over opening a new topic.
    the aggregate action record when the final slice completes.
 6. Keep the living files current in the same commit as the change: the
    [roadmap](roadmap.md) for what comes next, [renderer gaps](002-rendering-engine/renderer-gaps.md)
-   for known library limitations, and [development](development.md) for setup,
+   for known library limitations, and [development](../docs/development.md) for setup,
    commands, and runbooks.
 
 There is no running status document. What shipped is in action records and
@@ -67,12 +67,14 @@ lists. Do not reintroduce a catch-all status file.
 
 ## Documentation ownership
 
-`docs-ai/` is the only documentation tree. It holds the product goal, design
-history, contracts, the roadmap, and developer runbooks. `AGENTS.md` holds agent
+`docs-ai/` holds the product goal, design history, contracts, and the roadmap.
+`docs/development.md` holds contributor setup, build quirks, and simulator and
+device notes; keep it to what an agent can't quickly find in the Makefile or
+source. `AGENTS.md` holds agent
 rules. Package READMEs and license notices stay with their packages under
 `packages/`. Authored test documents stay in `fixtures/`; `apps/iOS/Kasumi/Welcome.md`
-is app content, not documentation. A public README returns when the project
-matures; it is not a home for design history.
+is app content, not documentation. The root README is public; it is not a home
+for design history.
 
 ## Source and local adaptation
 
