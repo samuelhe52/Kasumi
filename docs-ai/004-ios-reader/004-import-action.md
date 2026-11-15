@@ -32,6 +32,11 @@ browser.
   button and folder-level deletion as pasted and downloaded ones.
 - `apps/iOS/Shared/ImportInbox.swift` holds the group identifier, the inbox
   location, and the size limit (5 MB, as for Open URL). Both targets compile it.
+- The action icon is the app's four-bar mark, redrawn as transparent black
+  standalone `ActionIcon@2x.png` and `ActionIcon@3x.png` resources. The extension's
+  `CFBundleIcons` > `CFBundlePrimaryIcon` > `CFBundleIconFiles` names `ActionIcon`;
+  there is no `CFBundleIconName` or extension asset catalog. The reproducible
+  generator is `design/icon/make_action_icon.swift`.
 
 ## Decisions
 
@@ -69,6 +74,31 @@ iOS 27.2, driven with `sim-use` (2026-11-16):
   result. The maintainer then tested it themselves and reported that it works
   (2026-11-16; device or simulator and OS version not recorded).
 
+### Icon correction (2026-11-16)
+
+- A normal template image set, a primary app-icon set, and standalone PNGs all
+  left the existing build-1 identity showing a white tile. Fresh DerivedData
+  did not change that result. The compiled app-icon PNG retained transparency,
+  so the earlier compiler-flattening theory was not supported.
+- A disposable app registered two fresh Action extension identities: the same
+  standalone PNG bars and an SF Symbol (`flame.fill`). Both rendered correctly
+  in the same iPhone 18 Pro / iOS 27.2 share sheet, including the promoted
+  circular action row, while the existing Kasumi identity remained white.
+- With the same standalone resources and the original Kasumi bundle identifiers,
+  installing build 2 refreshed the existing action to the correct four-bar
+  glyph. The app and extension now both use build 2 in Debug and Release.
+  No Kasumi uninstall, simulator reboot, or document deletion was needed.
+- Inference: stale identity-specific icon registration or cache state explains
+  the build-1 failures. The controlled version change resolves this installation;
+  the exact internal cache mechanism and physical-device behavior remain
+  unverified. Temporary controls and local screenshots are not retained as
+  project dependencies.
+- Final verification used the normal `make run-sim`, without the temporary build
+  override. After the disposable app was uninstalled, sharing `Rendering-10`
+  from Files showed the correct bars in Kasumi's circular action button.
+- The maintainer subsequently confirmed that the corrected icon works
+  (2026-11-16; device and OS version not specified).
+
 Not verified by me: a name clash (" 2" naming reuses `ImportFolder.save`, which the
 other imports already exercise); a shared text selection; a file over 5 MB; a
 cold launch (the app was backgrounded, not terminated); the failure sheet;
@@ -79,19 +109,15 @@ signing with the maintainer's team (`make run-device` passes
 ## Open questions
 
 - Localized display name.
-- The action's icon renders as a solid white tile in the share sheet. On the
-  simulator none of these changed it: no extension icon; an `AppIcon` set in the
-  extension with a transparent black glyph (compiled with alpha, and
-  `CFBundleIcons` generated); and `CFBundleSymbolName` = `text.document` at the
-  top level of the extension's `Info.plist`, after an app reinstall and a restart
-  of the icon and sharing services. Apple's Tech Talk 210 says an SF Symbol name
-  goes in `CFBundleSymbolName`; the placement and whether iOS 27 reads it are
-  unconfirmed. The top-level key is left in place as the documented form.
+- The maintainer's successful icon check did not specify a device or OS version;
+  iPad and physical-device configurations remain unrecorded.
 
 ## Refs
 
 - `apps/iOS/Shared/ImportInbox.swift`
 - `apps/iOS/ImportExtension/ImportViewController.swift`
+- `apps/iOS/ImportExtension/ActionIcon@2x.png`, `apps/iOS/ImportExtension/ActionIcon@3x.png`
+- `design/icon/make_action_icon.swift`
 - `apps/iOS/ImportExtension-Info.plist`, `apps/iOS/ImportExtension.entitlements`,
   `apps/iOS/Kasumi.entitlements`
 - `apps/iOS/Kasumi.xcodeproj/project.pbxproj` (new target, embed phase)

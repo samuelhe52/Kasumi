@@ -41,6 +41,12 @@ targets.
   active. If the open is refused the extension's sheet stays, and sharing from
   inside Kasumi alone doesn't trigger an import: send Kasumi Home and launch it
   again.
+- **Action icon.** The extension uses standalone transparent `ActionIcon@2x.png`
+  and `ActionIcon@3x.png`, named by `CFBundleIconFiles`, not a normal image set.
+  Regenerate them with `swift design/icon/make_action_icon.swift`. On iOS 27.2,
+  replacing the icon while keeping build 1 left a cached white tile; increasing
+  the app and extension build numbers to 2 refreshed it without an uninstall.
+  Rebuilding into fresh DerivedData alone did not refresh that installed icon.
 - **Open a file at launch (debug builds only).** Pass `-KasumiOpen <path>` to skip
   the launch scene. The file is copied into the app's `Documents/Debug/`
   (replacing an earlier copy) and opened through the document browser, so
