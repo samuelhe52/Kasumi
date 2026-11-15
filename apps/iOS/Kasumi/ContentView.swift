@@ -59,7 +59,6 @@ struct ReaderScreen: View {
         }
         .sheet(isPresented: Binding(get: { showAppearance && !regular }, set: { showAppearance = $0 })) {
             AppearanceSettings(presetID: $presetID, pairID: $pairID, fontSize: $fontSize)
-                .presentationDetents([.medium])
         }
         .onChange(of: presetID) { _, _ in fontSize = 0 }
         .onChange(of: scenePhase) { _, phase in if phase != .active { viewport.flush() } }
@@ -206,23 +205,27 @@ private struct ReaderOutline: View {
     }
 }
 
-/// A fixed-height panel: one row of type controls above a grid of theme
-/// cards. It has no growable content, so the sheet stays at half height.
+/// A compact panel: one row of type controls above a grid of theme cards.
+/// Its content doesn't grow, so the sheet's only detent is the content height.
 private struct AppearanceSettings: View {
     @Binding var presetID: String
     @Binding var pairID: String
     @Binding var fontSize: Double
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
+    @State private var height: CGFloat = 360
     private var preset: TypographyPreset { TypographyPreset.builtin.first { $0.id == presetID } ?? .default }
     private var size: Double { fontSize > 0 ? min(28, max(12, fontSize)) : preset.defaultFontSize }
 
     var body: some View {
-        // Accessibility text sizes can outgrow the half-height sheet.
-        ViewThatFits(in: .vertical) {
-            content
-            ScrollView { content }.scrollEdgeEffectStyle(.soft, for: .top)
+        // Scrolls only when accessibility text sizes outgrow the screen.
+        ScrollView {
+            content.onGeometryChange(for: CGFloat.self, of: \.size.height) { height = $0 }
         }
+        .scrollBounceBehavior(.basedOnSize)
+        .scrollEdgeEffectStyle(.soft, for: .top)
+        .frame(idealHeight: height)
+        .presentationDetents([.height(height)])
     }
 
     private var content: some View {
@@ -241,25 +244,25 @@ private struct AppearanceSettings: View {
                 ForEach(DocumentThemePair.builtin) { card($0) }
             }
         }
-        .padding(.horizontal, 20).padding(.top, 20).padding(.bottom, 12)
+        .padding(20)
     }
 
     private var sizeControl: some View {
         HStack(spacing: 0) {
             Button { fontSize = max(12, size - 1) } label: {
-                Text("A").font(.footnote.weight(.medium)).frame(maxWidth: .infinity, maxHeight: .infinity)
+                Text("A").font(.footnote.weight(.medium)).frame(maxWidth: .infinity, maxHeight: .infinity).contentShape(Rectangle())
             }
             .disabled(size <= 12).accessibilityLabel("Decrease font size")
             Text("\(Int(size))").font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
                 .frame(minWidth: 28).accessibilityIdentifier("reader-font-size")
                 .accessibilityLabel("Font size \(Int(size))")
             Button { fontSize = min(28, size + 1) } label: {
-                Text("A").font(.title2.weight(.medium)).frame(maxWidth: .infinity, maxHeight: .infinity)
+                Text("A").font(.title2.weight(.medium)).frame(maxWidth: .infinity, maxHeight: .infinity).contentShape(Rectangle())
             }
             .disabled(size >= 28).accessibilityLabel("Increase font size")
         }
-        .buttonStyle(.plain).contentShape(Capsule())
-        .frame(maxWidth: .infinity, minHeight: 48)
+        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity).frame(height: 48)
         .background(.fill.tertiary, in: Capsule())
     }
 
@@ -275,9 +278,10 @@ private struct AppearanceSettings: View {
             }
             .font(.subheadline.weight(.medium)).foregroundStyle(.primary)
             .padding(.horizontal, 16)
-            .frame(maxWidth: .infinity, minHeight: 48)
+            .frame(maxWidth: .infinity).frame(height: 48)
             .background(.fill.tertiary, in: Capsule())
         }
+        .tint(.primary)
         .accessibilityLabel("Typography, \(preset.name)")
     }
 
