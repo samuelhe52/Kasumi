@@ -1,18 +1,22 @@
-#if canImport(AppKit)
-import AppKit
-#else
-import UIKit
-#endif
 import CoreText
 import Foundation
 import ImageIO
+
+#if canImport(AppKit)
+    import AppKit
+#else
+    import UIKit
+#endif
 
 /// Immutable decoded pixels shared by layout passes and asynchronous loading.
 final class DocumentImage: NSObject, @unchecked Sendable {
     let bitmap: CGImage
     /// Oriented source dimensions in document points. Small images are not enlarged.
     let size: CGSize
-    init(bitmap: CGImage, size: CGSize) { self.bitmap = bitmap; self.size = size }
+    init(bitmap: CGImage, size: CGSize) {
+        self.bitmap = bitmap
+        self.size = size
+    }
 
     func fitted(to maximumWidth: CGFloat) -> CGSize {
         guard maximumWidth.isFinite, maximumWidth > 0, size.width > 0, size.height > 0 else { return .zero }
@@ -43,10 +47,13 @@ final class DocumentImageStore: @unchecked Sendable {
 
     static func resourceURL(_ source: String, baseURL: URL?) -> URL? {
         guard !source.isEmpty else { return nil }
-        if baseURL == nil, source.hasPrefix("/") { return URL(fileURLWithPath: source.removingPercentEncoding ?? source) }
+        if baseURL == nil, source.hasPrefix("/") {
+            return URL(fileURLWithPath: source.removingPercentEncoding ?? source)
+        }
         let directory = baseURL?.appendingPathComponent("", isDirectory: true)
         guard let url = URL(string: source, relativeTo: directory)?.absoluteURL,
-              let scheme = url.scheme?.lowercased(), ["file", "data", "http", "https"].contains(scheme) else { return nil }
+            let scheme = url.scheme?.lowercased(), ["file", "data", "http", "https"].contains(scheme)
+        else { return nil }
         if scheme == "file", let host = url.host, !host.isEmpty, host != "localhost" { return nil }
         return url
     }
@@ -58,10 +65,14 @@ final class DocumentImageStore: @unchecked Sendable {
         let data: Data?
         if url.isFileURL {
             guard let values = try? url.resourceValues(forKeys: [.fileSizeKey]), let count = values.fileSize,
-                  count > 0, count <= Self.maximumBytes else { return nil }
+                count > 0, count <= Self.maximumBytes
+            else { return nil }
             data = try? Data(contentsOf: url, options: .mappedIfSafe)
-        } else if url.scheme?.lowercased() == "data" { data = Self.dataURL(url.absoluteString) }
-        else { return nil }
+        } else if url.scheme?.lowercased() == "data" {
+            data = Self.dataURL(url.absoluteString)
+        } else {
+            return nil
+        }
         guard let data, let image = Self.decode(data) else { return nil }
         store(image, key: key)
         return image
@@ -76,22 +87,28 @@ final class DocumentImageStore: @unchecked Sendable {
             let runs = block.runs + block.rows.flatMap { $0.flatMap { $0 } }
             for run in runs {
                 guard let source = run.imageSource,
-                      let url = Self.resourceURL(source, baseURL: document.baseURL),
-                      ["http", "https"].contains(url.scheme?.lowercased() ?? ""),
-                      cache.object(forKey: cacheKey(url)) == nil else { continue }
+                    let url = Self.resourceURL(source, baseURL: document.baseURL),
+                    ["http", "https"].contains(url.scheme?.lowercased() ?? ""),
+                    cache.object(forKey: cacheKey(url)) == nil
+                else { continue }
                 sources.insert(url)
             }
         }
         let urls = Array(sources)
         return await withTaskGroup(of: Bool.self) { group in
-            var next = 0, changed = false
+            var next = 0
+            var changed = false
             func enqueue() {
                 guard next < urls.count else { return }
-                let url = urls[next]; next += 1
+                let url = urls[next]
+                next += 1
                 group.addTask { await self.fetch(url) }
             }
             for _ in 0..<min(4, urls.count) { enqueue() }
-            while let loaded = await group.next() { changed = loaded || changed; enqueue() }
+            while let loaded = await group.next() {
+                changed = loaded || changed
+                enqueue()
+            }
             return changed
         }
     }
@@ -103,7 +120,8 @@ final class DocumentImageStore: @unchecked Sendable {
             let (bytes, response) = try await session.bytes(for: URLRequest(url: url))
             defer { bytes.task.cancel() }
             guard let response = response as? HTTPURLResponse, (200..<300).contains(response.statusCode),
-                  response.expectedContentLength <= Int64(Self.maximumBytes) else { return false }
+                response.expectedContentLength <= Int64(Self.maximumBytes)
+            else { return false }
             var data = Data()
             if response.expectedContentLength > 0 { data.reserveCapacity(Int(response.expectedContentLength)) }
             for try await byte in bytes {
@@ -120,17 +138,22 @@ final class DocumentImageStore: @unchecked Sendable {
         cache.setObject(image, forKey: key, cost: image.bitmap.bytesPerRow * image.bitmap.height)
     }
     private func cacheKey(_ url: URL) -> NSString {
-        guard url.isFileURL, let values = try? url.resourceValues(forKeys: [.fileSizeKey, .contentModificationDateKey]) else { return url.absoluteString as NSString }
-        return "\(url.absoluteString)|\(values.fileSize ?? 0)|\(values.contentModificationDate?.timeIntervalSince1970 ?? 0)" as NSString
+        guard url.isFileURL, let values = try? url.resourceValues(forKeys: [.fileSizeKey, .contentModificationDateKey])
+        else { return url.absoluteString as NSString }
+        return
+            "\(url.absoluteString)|\(values.fileSize ?? 0)|\(values.contentModificationDate?.timeIntervalSince1970 ?? 0)"
+            as NSString
     }
 
     static func decode(_ data: Data) -> DocumentImage? {
         guard !data.isEmpty, data.count <= maximumBytes,
-              let source = CGImageSourceCreateWithData(data as CFData, [kCGImageSourceShouldCache: false] as CFDictionary),
-              let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
-              let width = (properties[kCGImagePropertyPixelWidth] as? NSNumber)?.doubleValue,
-              let height = (properties[kCGImagePropertyPixelHeight] as? NSNumber)?.doubleValue,
-              width.isFinite, height.isFinite, width > 0, height > 0, width * height <= 40_000_000 else { return nil }
+            let source = CGImageSourceCreateWithData(
+                data as CFData, [kCGImageSourceShouldCache: false] as CFDictionary),
+            let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
+            let width = (properties[kCGImagePropertyPixelWidth] as? NSNumber)?.doubleValue,
+            let height = (properties[kCGImagePropertyPixelHeight] as? NSNumber)?.doubleValue,
+            width.isFinite, height.isFinite, width > 0, height > 0, width * height <= 40_000_000
+        else { return nil }
         let options: [CFString: Any] = [
             kCGImageSourceCreateThumbnailFromImageAlways: true,
             kCGImageSourceCreateThumbnailWithTransform: true,
@@ -139,7 +162,8 @@ final class DocumentImageStore: @unchecked Sendable {
         ]
         guard let bitmap = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) else { return nil }
         let orientation = (properties[kCGImagePropertyOrientation] as? NSNumber)?.intValue ?? 1
-        let size = (5...8).contains(orientation) ? CGSize(width: height, height: width) : CGSize(width: width, height: height)
+        let size =
+            (5...8).contains(orientation) ? CGSize(width: height, height: width) : CGSize(width: width, height: height)
         return DocumentImage(bitmap: bitmap, size: size)
     }
 
@@ -149,16 +173,28 @@ final class DocumentImageStore: @unchecked Sendable {
         let base64 = header.hasSuffix(";base64")
         let maximumPayload = base64 ? (maximumBytes + 2) / 3 * 4 : maximumBytes
         let payload = Array(source[source.index(after: comma)...].utf8)
-        var decoded = Data(), cursor = 0
+        var decoded = Data()
+        var cursor = 0
         func hex(_ byte: UInt8) -> UInt8? {
-            switch byte { case 48...57: return byte - 48; case 65...70: return byte - 55; case 97...102: return byte - 87; default: return nil }
+            switch byte {
+            case 48...57: return byte - 48
+            case 65...70: return byte - 55
+            case 97...102: return byte - 87
+            default: return nil
+            }
         }
         while cursor < payload.count {
             guard decoded.count < maximumPayload else { return nil }
             if payload[cursor] == 37 {
-                guard cursor + 2 < payload.count, let high = hex(payload[cursor + 1]), let low = hex(payload[cursor + 2]) else { return nil }
-                decoded.append(high * 16 + low); cursor += 3
-            } else { decoded.append(payload[cursor]); cursor += 1 }
+                guard cursor + 2 < payload.count, let high = hex(payload[cursor + 1]),
+                    let low = hex(payload[cursor + 2])
+                else { return nil }
+                decoded.append(high * 16 + low)
+                cursor += 3
+            } else {
+                decoded.append(payload[cursor])
+                cursor += 1
+            }
         }
         let data = base64 ? Data(base64Encoded: decoded) : decoded
         guard let data, data.count <= maximumBytes else { return nil }
@@ -175,15 +211,19 @@ final class ImageAttachment: NSObject {
     let size: CGSize
     let altText: String
     init(image: DocumentImage, maximumWidth: CGFloat, altText: String) {
-        self.image = image; size = image.fitted(to: maximumWidth); self.altText = altText
+        self.image = image
+        size = image.fitted(to: maximumWidth)
+        self.altText = altText
     }
     func attributed(link: String? = nil) -> NSAttributedString {
         let pointer = Unmanaged.passRetained(self).toOpaque()
-        var callbacks = CTRunDelegateCallbacks(version: kCTRunDelegateVersion1, dealloc: {
-            Unmanaged<ImageAttachment>.fromOpaque($0).release()
-        }, getAscent: { Unmanaged<ImageAttachment>.fromOpaque($0).takeUnretainedValue().size.height },
-           getDescent: { _ in 0 },
-           getWidth: { Unmanaged<ImageAttachment>.fromOpaque($0).takeUnretainedValue().size.width })
+        var callbacks = CTRunDelegateCallbacks(
+            version: kCTRunDelegateVersion1,
+            dealloc: {
+                Unmanaged<ImageAttachment>.fromOpaque($0).release()
+            }, getAscent: { Unmanaged<ImageAttachment>.fromOpaque($0).takeUnretainedValue().size.height },
+            getDescent: { _ in 0 },
+            getWidth: { Unmanaged<ImageAttachment>.fromOpaque($0).takeUnretainedValue().size.width })
         guard let delegate = CTRunDelegateCreate(&callbacks, pointer) else {
             Unmanaged<ImageAttachment>.fromOpaque(pointer).release()
             return NSAttributedString(string: altText)

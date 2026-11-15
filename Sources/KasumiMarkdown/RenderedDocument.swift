@@ -21,7 +21,8 @@ public struct TextRange: Hashable, Sendable {
     public var isEmpty: Bool { lowerBound == upperBound }
 
     public init(_ start: TextPosition, _ end: TextPosition) {
-        lowerBound = min(start, end); upperBound = max(start, end)
+        lowerBound = min(start, end)
+        upperBound = max(start, end)
     }
 }
 
@@ -66,8 +67,9 @@ public final class RenderedDocument: @unchecked Sendable {
     public init(_ document: MarkdownDocument, width: CGFloat, style: RenderStyle) {
         precondition(width.isFinite && width > 0, "Layout width must be finite and positive")
         let insets = style.insets
-        precondition([insets.top, insets.left, insets.bottom, insets.right].allSatisfy { $0.isFinite && $0 >= 0 },
-                     "Layout insets must be finite and nonnegative")
+        precondition(
+            [insets.top, insets.left, insets.bottom, insets.right].allSatisfy { $0.isFinite && $0 >= 0 },
+            "Layout insets must be finite and nonnegative")
         let typography = style.typography
         var built = DocumentTypesetter.layout(document.parsed, width: width, style: typography, insets: insets)
         built.text = NSAttributedString(attributedString: built.text)
@@ -79,18 +81,23 @@ public final class RenderedDocument: @unchecked Sendable {
         lines = built.paragraphs.enumerated().flatMap { index, item in
             item.paragraph.lines.map { line in
                 let origin = CGPoint(x: item.origin.x + line.origin.x, y: item.origin.y + line.origin.y)
-                return Line(paragraph: index, shaped: line, origin: origin,
+                return Line(
+                    paragraph: index, shaped: line, origin: origin,
                     range: NSRange(location: item.textOffset + line.range.location, length: line.range.length),
-                    rect: CGRect(x: origin.x, y: origin.y - line.ascent, width: max(1, line.width), height: max(1, line.ascent + line.descent)))
+                    rect: CGRect(
+                        x: origin.x, y: origin.y - line.ascent, width: max(1, line.width),
+                        height: max(1, line.ascent + line.descent)))
             }
         }
         // place() appends a storage separator after every paragraph; the last
         // separator is not document content and must not create a phantom caret.
         let text = built.textMap.string.hasSuffix("\n") ? String(built.textMap.string.dropLast()) : built.textMap.string
         semanticText = text
-        var offset = 0, boundaries = [0]
+        var offset = 0
+        var boundaries = [0]
         for character in text {
-            offset += String(character).utf16.count; boundaries.append(offset)
+            offset += String(character).utf16.count
+            boundaries.append(offset)
         }
         semanticBoundaries = boundaries
     }
@@ -100,7 +107,8 @@ public final class RenderedDocument: @unchecked Sendable {
     /// existing sourceRange path excludes off-tile text/attachment drawing.
     public func draw(in context: CGContext, rect: CGRect) {
         guard rect.minX.isFinite, rect.minY.isFinite, rect.width.isFinite, rect.height.isFinite,
-              rect.width > 0, rect.height > 0 else { return }
+            rect.width > 0, rect.height > 0
+        else { return }
         let visible = rect.intersection(CGRect(origin: .zero, size: size))
         guard !visible.isNull, !visible.isEmpty else { return }
         layoutLock.withLock {
@@ -109,7 +117,8 @@ public final class RenderedDocument: @unchecked Sendable {
             context.clip(to: visible)
             // Let the clip apply fractional edge coverage exactly once.
             // Filling the same fractional rect would multiply alpha twice.
-            context.setFillColor(backgroundColor); context.fill(visible.integral)
+            context.setFillColor(backgroundColor)
+            context.fill(visible.integral)
             DocumentTypesetter.draw(layout, in: context, sourceRange: (visible.minY - 4)..<(visible.maxY + 4))
         }
     }
@@ -145,16 +154,19 @@ public final class RenderedDocument: @unchecked Sendable {
 
     public func selectionRects(for range: TextRange) -> [CGRect] {
         guard let semantic = checked(range), semantic.length > 0,
-              let rendered = layout.textMap.renderedRange(for: semantic) else { return [] }
+            let rendered = layout.textMap.renderedRange(for: semantic)
+        else { return [] }
         return layoutLock.withLock {
             lines.compactMap { line in
                 let overlap = NSIntersectionRange(rendered, line.range)
                 guard overlap.length > 0 else { return nil }
                 let item = layout.paragraphs[line.paragraph]
                 let start = line.shaped.offset(forStringIndex: overlap.location - item.textOffset)
-                let end = line.shaped.offset(forStringIndex: NSMaxRange(overlap) - item.textOffset, affinity: .precedingFragment)
-                return CGRect(x: line.origin.x + min(start, end), y: line.rect.minY,
-                              width: abs(end - start), height: line.rect.height)
+                let end = line.shaped.offset(
+                    forStringIndex: NSMaxRange(overlap) - item.textOffset, affinity: .precedingFragment)
+                return CGRect(
+                    x: line.origin.x + min(start, end), y: line.rect.minY,
+                    width: abs(end - start), height: line.rect.height)
             }
         }
     }
@@ -172,8 +184,13 @@ public final class RenderedDocument: @unchecked Sendable {
         guard text.length > 0 else { return nil }
         let index = min(max(0, position.offset), text.length - 1)
         var found: NSRange?
-        text.enumerateSubstrings(in: NSRange(location: 0, length: text.length), options: [.byWords, .substringNotRequired]) { _, range, _, stop in
-            if NSLocationInRange(index, range) { found = range; stop.pointee = true }
+        text.enumerateSubstrings(
+            in: NSRange(location: 0, length: text.length), options: [.byWords, .substringNotRequired]
+        ) { _, range, _, stop in
+            if NSLocationInRange(index, range) {
+                found = range
+                stop.pointee = true
+            }
         }
         return found.map(textRange)
     }
@@ -184,11 +201,15 @@ public final class RenderedDocument: @unchecked Sendable {
         var flags: NSString.CompareOptions = []
         if !options.contains(.caseSensitive) { flags.insert(.caseInsensitive) }
         if !options.contains(.diacriticSensitive) { flags.insert(.diacriticInsensitive) }
-        var cursor = 0, result: [TextRange] = []
+        var cursor = 0
+        var result: [TextRange] = []
         while cursor < text.length {
-            let match = text.range(of: query, options: flags, range: NSRange(location: cursor, length: text.length - cursor), locale: Locale(identifier: "en_US_POSIX"))
+            let match = text.range(
+                of: query, options: flags, range: NSRange(location: cursor, length: text.length - cursor),
+                locale: Locale(identifier: "en_US_POSIX"))
             guard match.location != NSNotFound, match.length > 0 else { break }
-            result.append(textRange(match)); cursor = NSMaxRange(match)
+            result.append(textRange(match))
+            cursor = NSMaxRange(match)
         }
         return result
     }
@@ -214,7 +235,8 @@ public final class RenderedDocument: @unchecked Sendable {
             if local > line.shaped.range.location, x < line.shaped.offset(forStringIndex: local) { local -= 1 }
             let index = min(NSMaxRange(line.shaped.range) - 1, local)
             guard index >= 0, index < item.paragraph.attributed.length,
-                  let value = item.paragraph.attributed.attribute(.link, at: index, effectiveRange: nil) else { return nil }
+                let value = item.paragraph.attributed.attribute(.link, at: index, effectiveRange: nil)
+            else { return nil }
             if let url = value as? URL { return url }
             guard let string = value as? String else { return nil }
             return URL(string: string, relativeTo: string.hasPrefix("#") ? nil : baseURL)?.absoluteURL
@@ -222,7 +244,8 @@ public final class RenderedDocument: @unchecked Sendable {
     }
 
     public func readingAnchor(atY y: CGFloat) -> ReadingAnchor {
-        readingIndex.capture(y: y) ?? ReadingAnchor(blockKey: "", blockIndex: 0, offset: 0, blockCount: 0, verticalFraction: 0)
+        readingIndex.capture(y: y)
+            ?? ReadingAnchor(blockKey: "", blockIndex: 0, offset: 0, blockCount: 0, verticalFraction: 0)
     }
 
     public func y(for anchor: ReadingAnchor) -> CGFloat? {
@@ -234,30 +257,36 @@ public final class RenderedDocument: @unchecked Sendable {
     func imageData(scale: CGFloat, region: CGRect?) throws -> Data {
         try layoutLock.withLock {
             var style = Typography()
-            style.explicitTheme = DocumentTheme(id: "snapshot", name: "Snapshot", appearance: .light,
+            style.explicitTheme = DocumentTheme(
+                id: "snapshot", name: "Snapshot", appearance: .light,
                 document: ["paper": PlatformColors.srgb(backgroundColor)])
             return try DocumentExporter.imageData(layout, style: style, scale: scale, region: region)
         }
     }
 
     private func position(_ offset: Int) -> TextPosition { TextPosition(owner: owner, offset: offset) }
-    private func textRange(_ range: NSRange) -> TextRange { TextRange(position(range.location), position(NSMaxRange(range))) }
+    private func textRange(_ range: NSRange) -> TextRange {
+        TextRange(position(range.location), position(NSMaxRange(range)))
+    }
     private func checked(_ range: TextRange) -> NSRange? {
         guard range.lowerBound.owner == owner, range.upperBound.owner == owner else { return nil }
         let length = semanticText.utf16.count
-        let lower = min(length, max(0, range.lowerBound.offset)), upper = min(length, max(lower, range.upperBound.offset))
+        let lower = min(length, max(0, range.lowerBound.offset))
+        let upper = min(length, max(lower, range.upperBound.offset))
         return NSRange(location: lower, length: upper - lower)
     }
 
     private func nearestSemanticBoundary(to offset: Int) -> Int {
-        var lower = 0, upper = semanticBoundaries.count
+        var lower = 0
+        var upper = semanticBoundaries.count
         while lower < upper {
             let middle = (lower + upper) / 2
             if semanticBoundaries[middle] < offset { lower = middle + 1 } else { upper = middle }
         }
         guard lower > 0 else { return 0 }
         guard lower < semanticBoundaries.count else { return semanticBoundaries.last ?? 0 }
-        let a = semanticBoundaries[lower - 1], b = semanticBoundaries[lower]
+        let a = semanticBoundaries[lower - 1]
+        let b = semanticBoundaries[lower]
         return offset - a <= b - offset ? a : b
     }
 

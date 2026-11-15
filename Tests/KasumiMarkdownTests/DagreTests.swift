@@ -1,5 +1,6 @@
 import CoreGraphics
 import Testing
+
 @testable import KasumiMarkdown
 
 @Test func dagreNativeGeometryAndDirectionCrossTheCABI() throws {
@@ -22,12 +23,16 @@ import Testing
 }
 
 @Test func dagreCompoundParallelAndSelfEdgesPreserveTheirIdentity() throws {
-    let nodes = [DagreNode(id: "cluster", width: 0, height: 0),
-                 DagreNode(id: "a", width: 60, height: 30, parentID: "cluster"),
-                 DagreNode(id: "b", width: 60, height: 30, parentID: "cluster")]
-    let edges = [DagreEdge(id: "first", source: "a", target: "b", labelWidth: 24, labelHeight: 12),
-                 DagreEdge(id: "second", source: "a", target: "b"),
-                 DagreEdge(id: "self", source: "b", target: "b")]
+    let nodes = [
+        DagreNode(id: "cluster", width: 0, height: 0),
+        DagreNode(id: "a", width: 60, height: 30, parentID: "cluster"),
+        DagreNode(id: "b", width: 60, height: 30, parentID: "cluster")
+    ]
+    let edges = [
+        DagreEdge(id: "first", source: "a", target: "b", labelWidth: 24, labelHeight: 12),
+        DagreEdge(id: "second", source: "a", target: "b"),
+        DagreEdge(id: "self", source: "b", target: "b")
+    ]
     let layout = try DagreLayout.layout(nodes: nodes, edges: edges)
     let cluster = try #require(layout.nodes["cluster"]?.rect)
     #expect(cluster.contains(try #require(layout.nodes["a"]?.rect)))
@@ -45,8 +50,10 @@ import Testing
     }
     rejects([.init(id: "a", width: .nan, height: 20)])
     rejects([.init(id: "a", width: 20, height: -1)])
-    rejects([.init(id: "a", width: 20, height: 20, parentID: "b"),
-             .init(id: "b", width: 20, height: 20, parentID: "a")])
+    rejects([
+        .init(id: "a", width: 20, height: 20, parentID: "b"),
+        .init(id: "b", width: 20, height: 20, parentID: "a")
+    ])
     rejects([.init(id: "a", width: 20, height: 20, parentID: "missing")])
     rejects([.init(id: "a", width: 20, height: 20), .init(id: "a", width: 20, height: 20)])
     rejects([.init(id: "a", width: 20, height: 20)], [.init(id: "ab", source: "a", target: "missing")])

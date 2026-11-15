@@ -1,8 +1,9 @@
 import Foundation
 import Testing
+
 @testable import KasumiMarkdown
 
-private struct StyleColorReference: Decodable {
+fileprivate struct StyleColorReference: Decodable {
     var items: [Item]
     struct Item: Decodable {
         var color: String
@@ -19,7 +20,8 @@ private struct StyleColorReference: Decodable {
 
 @Test func styleColorsMatchNativeKeywordHueShadeAlphaAndChannelObservations() throws {
     let root = testRepositoryURL
-    let reference = try JSONDecoder().decode(StyleColorReference.self,
+    let reference = try JSONDecoder().decode(
+        StyleColorReference.self,
         from: Data(contentsOf: root.appendingPathComponent("fixtures/reference/MermaidStyleColor.core.json")))
     #expect(reference.items.count > 700)
     for item in reference.items {

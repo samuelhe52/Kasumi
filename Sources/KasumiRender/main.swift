@@ -3,7 +3,10 @@ import KasumiMarkdown
 
 let arguments = CommandLine.arguments
 if arguments.count < 3 {
-    FileHandle.standardError.write(Data("Usage: KasumiRender INPUT.md OUTPUT.png|OUTPUT.pdf [PNG_WIDTH] [--preset ID] [--profile FILE.toml] [--theme ID] [--dark]\n".utf8))
+    FileHandle.standardError.write(
+        Data(
+            "Usage: KasumiRender INPUT.md OUTPUT.png|OUTPUT.pdf [PNG_WIDTH] [--preset ID] [--profile FILE.toml] [--theme ID] [--dark]\n"
+                .utf8))
     exit(2)
 }
 do {

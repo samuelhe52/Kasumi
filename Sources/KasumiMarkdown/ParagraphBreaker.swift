@@ -1,29 +1,43 @@
-import Foundation
 import CoreText
+import Foundation
 
 enum ParagraphAlignment: String, Codable, CaseIterable, Sendable { case justified, leading, centered, trailing }
 
 /// Paragraph-wide box/glue/penalty optimization. Native shaping supplies edge widths.
 /// Narrow-measure alignment policy is selected by the caller, independently of breaking.
 enum ParagraphBreaker {
-    private struct Point { let offset: Int; let forced: Bool }
-    private struct State { var cost = Double.infinity; var predecessor = -1; var fitness = 1 }
+    private struct Point {
+        let offset: Int
+        let forced: Bool
+    }
+    private struct State {
+        var cost = Double.infinity
+        var predecessor = -1
+        var fitness = 1
+    }
 
-    static func ranges(in text: String, width: Double, fontSize: Double = 16,
-                              alignment: ParagraphAlignment = .justified, firstLineIndent: Double = 0,
-                              measure: (NSRange) -> Double) -> [NSRange] {
+    static func ranges(
+        in text: String, width: Double, fontSize: Double = 16,
+        alignment: ParagraphAlignment = .justified, firstLineIndent: Double = 0,
+        measure: (NSRange) -> Double
+    ) -> [NSRange] {
         guard !text.isEmpty, width > 0 else { return [] }
         let ns = text as NSString
         let characters = Array(text)
-        var offsets = [0], offset = 0
-        for character in characters { offset += String(character).utf16.count; offsets.append(offset) }
+        var offsets = [0]
+        var offset = 0
+        for character in characters {
+            offset += String(character).utf16.count
+            offsets.append(offset)
+        }
         var points = [Point(offset: 0, forced: false)]
         for index in characters.indices {
             let character = characters[index]
             let next = index + 1 < characters.count ? characters[index + 1] : nil
             let forced = character == "\n"
             let whitespace = character.isWhitespace
-            let cjkBreak = next.map { (isCJK(character) || isCJK($0)) && !isOpening(character) && !isClosing($0) } ?? false
+            let cjkBreak =
+                next.map { (isCJK(character) || isCJK($0)) && !isOpening(character) && !isClosing($0) } ?? false
             let spaceBreak = whitespace && !(next?.isWhitespace ?? false) && !(next.map(isClosing) ?? false)
             if forced || spaceBreak || cjkBreak || index == characters.count - 1 {
                 points.append(Point(offset: offsets[index + 1], forced: forced))
@@ -76,36 +90,51 @@ enum ParagraphBreaker {
         var result: [NSRange] = []
         while cursor > 0 {
             let state = states[cursor][fitness]
-            guard state.predecessor >= 0 else { return emergencyRanges(text, width: width, offsets: offsets, measure: measure) }
+            guard state.predecessor >= 0 else {
+                return emergencyRanges(text, width: width, offsets: offsets, measure: measure)
+            }
             result.append(trimmedRange(ns, from: points[state.predecessor].offset, to: points[cursor].offset))
-            cursor = state.predecessor; fitness = state.fitness
+            cursor = state.predecessor
+            fitness = state.fitness
         }
         return result.reversed()
     }
 
     static func isCJK(_ character: Character) -> Bool {
         character.unicodeScalars.contains { scalar in
-            (0x2E80...0x9FFF).contains(scalar.value) || (0xF900...0xFAFF).contains(scalar.value) ||
-            (0x20000...0x323AF).contains(scalar.value) || (0xAC00...0xD7AF).contains(scalar.value) ||
-            (0x3040...0x30FF).contains(scalar.value)
+            (0x2E80...0x9FFF).contains(scalar.value) || (0xF900...0xFAFF).contains(scalar.value)
+                || (0x20000...0x323AF).contains(scalar.value) || (0xAC00...0xD7AF).contains(scalar.value)
+                || (0x3040...0x30FF).contains(scalar.value)
         }
     }
     private static func isOpening(_ c: Character) -> Bool { "（［｛〈《「『【〔〖〘〚([{‘“".contains(c) }
     private static func isClosing(_ c: Character) -> Bool { "，。！？；：、）］｝〉》」』】〕〗〙〛,.!?;:)]}’”".contains(c) }
     private static func trimmedRange(_ text: NSString, from start: Int, to end: Int) -> NSRange {
-        var lower = start, upper = end
+        var lower = start
+        var upper = end
         let spaces = CharacterSet.whitespacesAndNewlines
         while lower < upper, let c = UnicodeScalar(text.character(at: lower)), spaces.contains(c) { lower += 1 }
         while upper > lower, let c = UnicodeScalar(text.character(at: upper - 1)), spaces.contains(c) { upper -= 1 }
         return NSRange(location: lower, length: upper - lower)
     }
-    private static func emergencyRanges(_ text: String, width: Double, offsets: [Int], measure: (NSRange) -> Double) -> [NSRange] {
+    private static func emergencyRanges(_ text: String, width: Double, offsets: [Int], measure: (NSRange) -> Double)
+        -> [NSRange]
+    {
         let ns = text as NSString
-        var result: [NSRange] = [], startIndex = 0
+        var result: [NSRange] = []
+        var startIndex = 0
         while startIndex < offsets.count - 1 {
             var endIndex = startIndex + 1
-            while endIndex + 1 < offsets.count && measure(NSRange(location: offsets[startIndex], length: offsets[endIndex + 1] - offsets[startIndex])) <= width {
-                if ns.substring(with: NSRange(location: offsets[endIndex - 1], length: offsets[endIndex] - offsets[endIndex - 1])) == "\n" { break }
+            while endIndex + 1 < offsets.count
+                && measure(NSRange(location: offsets[startIndex], length: offsets[endIndex + 1] - offsets[startIndex]))
+                    <= width
+            {
+                if ns.substring(
+                    with: NSRange(location: offsets[endIndex - 1], length: offsets[endIndex] - offsets[endIndex - 1]))
+                    == "\n"
+                {
+                    break
+                }
                 endIndex += 1
             }
             result.append(trimmedRange(ns, from: offsets[startIndex], to: offsets[endIndex]))

@@ -11,7 +11,9 @@ public struct DocumentThemePair: Identifiable, Equatable, Sendable {
         let themes = DocumentTheme.builtin
         return themes.filter { $0.appearance == .light }.compactMap { light in
             let id = String(light.id.dropLast("-light".count))
-            guard light.id.hasSuffix("-light"), let dark = themes.first(where: { $0.id == id + "-dark" }) else { return nil }
+            guard light.id.hasSuffix("-light"), let dark = themes.first(where: { $0.id == id + "-dark" }) else {
+                return nil
+            }
             var name = light.name
             for suffix in [" (Light)", " Light"] where name.hasSuffix(suffix) { name.removeLast(suffix.count) }
             return DocumentThemePair(id: id, name: name, light: light, dark: dark)

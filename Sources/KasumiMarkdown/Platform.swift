@@ -3,19 +3,19 @@ import CoreText
 import Foundation
 
 #if canImport(AppKit)
-import AppKit
-typealias PlatformColor = NSColor
-typealias PlatformFont = NSFont
+    import AppKit
+    typealias PlatformColor = NSColor
+    typealias PlatformFont = NSFont
 #else
-import UIKit
-typealias PlatformColor = UIColor
-typealias PlatformFont = UIFont
+    import UIKit
+    typealias PlatformColor = UIColor
+    typealias PlatformFont = UIFont
 
-extension UIColor {
-    convenience init(srgbRed red: CGFloat, green: CGFloat, blue: CGFloat, alpha: CGFloat) {
-        self.init(cgColor: CGColor(srgbRed: red, green: green, blue: blue, alpha: alpha))
+    extension UIColor {
+        convenience init(srgbRed red: CGFloat, green: CGFloat, blue: CGFloat, alpha: CGFloat) {
+            self.init(cgColor: CGColor(srgbRed: red, green: green, blue: blue, alpha: alpha))
+        }
     }
-}
 #endif
 
 /// Match a real face by name or family, without silently accepting a fallback.
@@ -33,7 +33,8 @@ enum PlatformFonts {
 
     static func applying(_ traits: CTFontSymbolicTraits, to font: PlatformFont) -> PlatformFont {
         guard !traits.isEmpty,
-              let converted = CTFontCreateCopyWithSymbolicTraits(font as CTFont, font.pointSize, nil, traits, traits) else { return font }
+            let converted = CTFontCreateCopyWithSymbolicTraits(font as CTFont, font.pointSize, nil, traits, traits)
+        else { return font }
         return converted as PlatformFont
     }
 }
@@ -42,28 +43,28 @@ enum PlatformFonts {
 enum PlatformColors {
     static func semantic(_ role: String, dark: Bool) -> CGColor {
         #if canImport(AppKit)
-        let color: NSColor
-        switch role {
-        case "textBackgroundColor": color = .textBackgroundColor
-        case "textColor": color = .textColor
-        case "linkColor": color = .linkColor
-        case "secondaryLabelColor": color = .secondaryLabelColor
-        default: color = .separatorColor
-        }
-        let appearance = NSAppearance(named: dark ? .darkAqua : .aqua)!
-        var result: CGColor!
-        appearance.performAsCurrentDrawingAppearance { result = color.usingColorSpace(.sRGB)!.cgColor }
-        return result
+            let color: NSColor
+            switch role {
+            case "textBackgroundColor": color = .textBackgroundColor
+            case "textColor": color = .textColor
+            case "linkColor": color = .linkColor
+            case "secondaryLabelColor": color = .secondaryLabelColor
+            default: color = .separatorColor
+            }
+            let appearance = NSAppearance(named: dark ? .darkAqua : .aqua)!
+            var result: CGColor!
+            appearance.performAsCurrentDrawingAppearance { result = color.usingColorSpace(.sRGB)!.cgColor }
+            return result
         #else
-        let color: UIColor
-        switch role {
-        case "textBackgroundColor": color = .systemBackground
-        case "textColor": color = .label
-        case "linkColor": color = .link
-        case "secondaryLabelColor": color = .secondaryLabel
-        default: color = .separator
-        }
-        return color.resolvedColor(with: UITraitCollection(userInterfaceStyle: dark ? .dark : .light)).cgColor
+            let color: UIColor
+            switch role {
+            case "textBackgroundColor": color = .systemBackground
+            case "textColor": color = .label
+            case "linkColor": color = .link
+            case "secondaryLabelColor": color = .secondaryLabel
+            default: color = .separator
+            }
+            return color.resolvedColor(with: UITraitCollection(userInterfaceStyle: dark ? .dark : .light)).cgColor
         #endif
     }
 

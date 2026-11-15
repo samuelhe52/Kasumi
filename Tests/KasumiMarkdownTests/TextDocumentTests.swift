@@ -1,9 +1,10 @@
 import CryptoKit
 import Foundation
 import Testing
+
 @testable import KasumiMarkdown
 
-private struct TXTSnapshot: Decodable {
+fileprivate struct TXTSnapshot: Decodable {
     var items: [Item]
     struct Item: Decodable {
         var name: String
@@ -13,15 +14,24 @@ private struct TXTSnapshot: Decodable {
         var chapters: Bool
         var result: Result
     }
-    struct Result: Decodable { var blocks: Int; var items: [Block] }
-    struct Block: Decodable { var kind: Int; var level: Int; var text: String }
+    struct Result: Decodable {
+        var blocks: Int
+        var items: [Block]
+    }
+    struct Block: Decodable {
+        var kind: Int
+        var level: Int
+        var text: String
+    }
 }
 
 @Test func txtParagraphsAndChapterLevelsMatchNativeSnapshot() throws {
     let root = testRepositoryURL
-    let snapshot = try JSONDecoder().decode(TXTSnapshot.self, from: Data(contentsOf: root.appendingPathComponent("fixtures/reference/TXT.core.json")))
+    let snapshot = try JSONDecoder().decode(
+        TXTSnapshot.self, from: Data(contentsOf: root.appendingPathComponent("fixtures/reference/TXT.core.json")))
     for item in snapshot.items {
-        #expect(SHA256.hash(data: Data(item.source.utf8)).map { String(format: "%02x", $0) }.joined() == item.source_sha256)
+        #expect(
+            SHA256.hash(data: Data(item.source.utf8)).map { String(format: "%02x", $0) }.joined() == item.source_sha256)
         let options = PlainTextOptions(paragraphMode: item.mode, detectChapters: item.chapters)
         let document = DocumentParser.parse(item.source, plainText: true, plainTextOptions: options)
         #expect(document.blocks.count == item.result.blocks, "\(item.name) block count")
@@ -38,7 +48,8 @@ private struct TXTSnapshot: Decodable {
     let input = "\r\nChapter One\r\nfirst\r\nsecond\r\n\r\n  third\r\ncontinued\r\n"
     let parsed = DocumentParser.parse(input, plainText: true, plainTextOptions: .init(paragraphMode: .indent))
     #expect(parsed.blocks.map(\.sourceLines) == [2...2, 3...4, 6...7])
-    let markdown = DocumentParser.parse("# Heading\n\n**bold**", plainText: true, plainTextOptions: .init(parseAsMarkdown: true))
+    let markdown = DocumentParser.parse(
+        "# Heading\n\n**bold**", plainText: true, plainTextOptions: .init(parseAsMarkdown: true))
     #expect(markdown.headings.first?.text == "Heading")
     #expect(markdown.blocks[1].runs.first?.traits.contains(.strong) == true)
     #expect(PlainTextParser.resolvedParagraphMode(for: "  a.\n  b.\n  c.\nd.\ne.") == .indent)

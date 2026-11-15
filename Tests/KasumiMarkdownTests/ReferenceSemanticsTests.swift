@@ -1,9 +1,10 @@
-import Foundation
 import CryptoKit
+import Foundation
 import Testing
+
 @testable import KasumiMarkdown
 
-private struct CoreSnapshot: Decodable {
+fileprivate struct CoreSnapshot: Decodable {
     var blocks: Int
     var fixture_sha256: String
     var items: [Item]
@@ -21,11 +22,15 @@ private struct CoreSnapshot: Decodable {
 func parserSemanticsMatchNativeReference(fixture: String) throws {
     let root = testRepositoryURL
     let input = try Data(contentsOf: root.appendingPathComponent("fixtures/\(fixture).md"))
-    let snapshot = try JSONDecoder().decode(CoreSnapshot.self, from: Data(contentsOf: root.appendingPathComponent("fixtures/reference/\(fixture).core.json")))
+    let snapshot = try JSONDecoder().decode(
+        CoreSnapshot.self,
+        from: Data(contentsOf: root.appendingPathComponent("fixtures/reference/\(fixture).core.json")))
     #expect(SHA256.hash(data: input).map { String(format: "%02x", $0) }.joined() == snapshot.fixture_sha256)
     let document = DocumentParser.parse(String(decoding: input, as: UTF8.self))
     #expect(document.blocks.count == snapshot.blocks)
-    let kinds: [DocumentBlock.Kind: Int] = [.paragraph: 0, .quote: 0, .heading: 1, .code: 2, .diagram: 2, .rule: 4, .table: 6, .math: 7]
+    let kinds: [DocumentBlock.Kind: Int] = [
+        .paragraph: 0, .quote: 0, .heading: 1, .code: 2, .diagram: 2, .rule: 4, .table: 6, .math: 7
+    ]
     for (index, pair) in zip(document.blocks, snapshot.items).enumerated() {
         let (block, expected) = pair
         let kind = block.prefix.isEmpty ? kinds[block.kind] : 3
@@ -41,20 +46,22 @@ func parserSemanticsMatchNativeReference(fixture: String) throws {
 @Test func extensionProtectionPreservesCodeAndMathSource() {
     let parsed = DocumentParser.parse("`$x_i$` and $x_i + \\{a\\} + \\frac{1}{2}\\,dx$.")
     #expect(parsed.blocks[0].runs.contains { $0.text == "$x_i$" && $0.traits.contains(.code) })
-    #expect(parsed.blocks[0].runs.contains { $0.text == "x_i + \\{a\\} + \\frac{1}{2}\\,dx" && $0.traits.contains(.math) })
+    #expect(
+        parsed.blocks[0].runs.contains { $0.text == "x_i + \\{a\\} + \\frac{1}{2}\\,dx" && $0.traits.contains(.math) })
     #expect(parsed.blocks[0].runs.allSatisfy { !$0.traits.contains(.emphasis) })
 }
 
 @Test func backslashDelimitersMatchDollarMath() {
-    let parsed = DocumentParser.parse(#"""
-    Inline \(x_i + \{a\}\), $y_j$, `\(code\)`, \\(not math\\), \(unclosed, and \[x\] mid-line.
+    let parsed = DocumentParser.parse(
+        #"""
+        Inline \(x_i + \{a\}\), $y_j$, `\(code\)`, \\(not math\\), \(unclosed, and \[x\] mid-line.
 
-    \[
-    \int_0^1 x^2\,dx
-    \]
+        \[
+        \int_0^1 x^2\,dx
+        \]
 
-    \[unclosed
-    """#)
+        \[unclosed
+        """#)
     #expect(parsed.blocks[0].runs.filter { $0.traits.contains(.math) }.map(\.text) == [#"x_i + \{a\}"#, "y_j"])
     #expect(parsed.blocks[0].runs.contains { $0.text == #"\(code\)"# && $0.traits.contains(.code) })
     #expect(parsed.blocks[0].text.hasSuffix(#", \(not math\), (unclosed, and [x] mid-line."#))

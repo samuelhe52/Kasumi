@@ -1,4 +1,5 @@
 import Testing
+
 @testable import KasumiMarkdown
 
 @Test func nestedFormattingPreservesTextAndTraits() {

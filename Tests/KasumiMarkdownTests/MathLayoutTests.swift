@@ -1,15 +1,17 @@
-#if canImport(AppKit)
-import AppKit
-#else
-import UIKit
-#endif
 import CoreText
 import CryptoKit
 import Foundation
 import Testing
+
 @testable import KasumiMarkdown
 
-private struct MathSnapshot: Decodable {
+#if canImport(AppKit)
+    import AppKit
+#else
+    import UIKit
+#endif
+
+fileprivate struct MathSnapshot: Decodable {
     var font_sha256: String
     var items: [Item]
     struct Item: Decodable {
@@ -26,13 +28,26 @@ private struct MathSnapshot: Decodable {
         var glyphs: [Glyph]
         var rules: [Rule]
     }
-    struct Glyph: Decodable { var glyph: UInt16; var size: Double; var x: Double; var y: Double; var color: UInt32 }
-    struct Rule: Decodable { var x: Double; var y: Double; var width: Double; var height: Double; var color: UInt32 }
+    struct Glyph: Decodable {
+        var glyph: UInt16
+        var size: Double
+        var x: Double
+        var y: Double
+        var color: UInt32
+    }
+    struct Rule: Decodable {
+        var x: Double
+        var y: Double
+        var width: Double
+        var height: Double
+        var color: UInt32
+    }
 }
 
 @Test func nativeMathGeometry() throws {
     let root = testRepositoryURL
-    let snapshot = try JSONDecoder().decode(MathSnapshot.self, from: Data(contentsOf: root.appendingPathComponent("fixtures/reference/Math.core.json")))
+    let snapshot = try JSONDecoder().decode(
+        MathSnapshot.self, from: Data(contentsOf: root.appendingPathComponent("fixtures/reference/Math.core.json")))
     let font = try Data(contentsOf: MathFont.resourceURL)
     #expect(SHA256.hash(data: font).map { String(format: "%02x", $0) }.joined() == snapshot.font_sha256)
     for item in snapshot.items {
@@ -42,13 +57,18 @@ private struct MathSnapshot: Decodable {
         #expect(abs(actual.box.ascent - item.result.ascent) < 0.0001, "\(label) ascent")
         #expect(abs(actual.box.descent - item.result.descent) < 0.0001, "\(label) descent")
         #expect(actual.diagnostics.isEmpty == (item.result.status == 0), "\(label) parsing status")
-        var glyphs: [MathSnapshot.Glyph] = [], rules: [MathSnapshot.Rule] = []
+        var glyphs: [MathSnapshot.Glyph] = []
+        var rules: [MathSnapshot.Rule] = []
         func collect(_ drawings: [MathDrawing], color: UInt32 = 0) {
             for drawing in drawings {
                 switch drawing {
-                case let .glyph(font, g, p): glyphs.append(.init(glyph: g, size: CTFontGetSize(font), x: p.x, y: actual.box.ascent - p.y, color: color))
-                case let .rule(r): rules.append(.init(x: r.minX, y: actual.box.ascent - r.maxY, width: r.width, height: r.height, color: color))
-                case let .colored(rgba, children): collect(children, color: rgba)
+                case .glyph(let font, let g, let p):
+                    glyphs.append(
+                        .init(glyph: g, size: CTFontGetSize(font), x: p.x, y: actual.box.ascent - p.y, color: color))
+                case .rule(let r):
+                    rules.append(
+                        .init(x: r.minX, y: actual.box.ascent - r.maxY, width: r.width, height: r.height, color: color))
+                case .colored(let rgba, let children): collect(children, color: rgba)
                 case .text: Issue.record("Unexpected text paint in native glyph comparison")
                 }
             }
@@ -56,13 +76,20 @@ private struct MathSnapshot: Decodable {
         collect(actual.box.drawings)
         #expect(glyphs.count == item.result.glyphs.count, "\(label) glyph count")
         for expected in item.result.glyphs {
-            let found = glyphs.firstIndex { $0.glyph == expected.glyph && abs($0.size - expected.size) < 0.0001 && abs($0.x - expected.x) < 0.0001 && abs($0.y - expected.y) < 0.0001 && $0.color == expected.color }
+            let found = glyphs.firstIndex {
+                $0.glyph == expected.glyph && abs($0.size - expected.size) < 0.0001 && abs($0.x - expected.x) < 0.0001
+                    && abs($0.y - expected.y) < 0.0001 && $0.color == expected.color
+            }
             #expect(found != nil, "\(label) glyph \(expected.glyph) at (\(expected.x), \(expected.y))")
             if let found { glyphs.remove(at: found) }
         }
         #expect(rules.count == item.result.rules.count, "\(label) rule count")
         for expected in item.result.rules {
-            let found = rules.firstIndex { abs($0.x - expected.x) < 0.0001 && abs($0.y - expected.y) < 0.0001 && abs($0.width - expected.width) < 0.0001 && abs($0.height - expected.height) < 0.0001 && $0.color == expected.color }
+            let found = rules.firstIndex {
+                abs($0.x - expected.x) < 0.0001 && abs($0.y - expected.y) < 0.0001
+                    && abs($0.width - expected.width) < 0.0001 && abs($0.height - expected.height) < 0.0001
+                    && $0.color == expected.color
+            }
             #expect(found != nil, "\(label) rule at (\(expected.x), \(expected.y))")
             if let found { rules.remove(at: found) }
         }

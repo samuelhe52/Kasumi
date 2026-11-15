@@ -13,8 +13,9 @@ struct ReadingSurface: UIViewRepresentable {
 
     func makeUIView(context: Context) -> ReaderScrollView { ReaderScrollView() }
     func updateUIView(_ view: ReaderScrollView, context: Context) {
-        view.update(document: document, revision: revision, style: style, outline: outline,
-                    fileURL: fileURL, viewport: viewport, openLink: openLink)
+        view.update(
+            document: document, revision: revision, style: style, outline: outline,
+            fileURL: fileURL, viewport: viewport, openLink: openLink)
     }
     static func dismantleUIView(_ view: ReaderScrollView, coordinator: ()) { view.finish() }
 }
@@ -65,14 +66,27 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     deinit { layoutTask?.cancel() }
 
-    func update(document: MarkdownDocument, revision: UUID, style: RenderStyle, outline: [OutlineItem],
-                fileURL: URL?, viewport: ReaderViewport, openLink: @escaping (URL) -> Void) {
-        self.viewport = viewport; self.openLink = openLink; self.fileURL = fileURL
+    func update(
+        document: MarkdownDocument, revision: UUID, style: RenderStyle, outline: [OutlineItem],
+        fileURL: URL?, viewport: ReaderViewport, openLink: @escaping (URL) -> Void
+    ) {
+        self.viewport = viewport
+        self.openLink = openLink
+        self.fileURL = fileURL
         let persisted = viewport.prepare(fileURL: fileURL)
-        if rendered == nil { restoreAnchor = persisted; setPaper(style.theme) }
+        if rendered == nil {
+            restoreAnchor = persisted
+            setPaper(style.theme)
+        }
         let changed = self.revision != revision || self.style != style
-        self.document = document; self.outline = outline; self.revision = revision; self.style = style
-        if changed { requestedWidth = 0; rebuildIfNeeded() }
+        self.document = document
+        self.outline = outline
+        self.revision = revision
+        self.style = style
+        if changed {
+            requestedWidth = 0
+            rebuildIfNeeded()
+        }
         jumpIfNeeded()
     }
 
@@ -88,7 +102,10 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
     }
 
     override func willMove(toWindow newWindow: UIWindow?) {
-        if newWindow == nil { reportPosition(); viewport?.flush() }
+        if newWindow == nil {
+            reportPosition()
+            viewport?.flush()
+        }
         super.willMove(toWindow: newWindow)
     }
 
@@ -106,7 +123,8 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
         let anchor = rendered?.readingAnchor(atY: topY) ?? restoreAnchor
         requestedWidth = width
         layoutTask?.cancel()
-        let token = UUID(); generation = token
+        let token = UUID()
+        generation = token
         // Continue displaying the previous snapshot at the new measure while its
         // replacement is built; preserve its semantic anchor, not its raw offset.
         if let rendered, let page {
@@ -125,13 +143,17 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
         }
         layoutTask = Task { [weak self] in
             do {
-                let next = try await withTaskCancellationHandler { try await worker.value } onCancel: { worker.cancel() }
+                let next = try await withTaskCancellationHandler {
+                    try await worker.value
+                } onCancel: {
+                    worker.cancel()
+                }
                 guard !Task.isCancelled, let self, self.generation == token else { return }
                 // A user can continue scrolling during the build; prefer the
                 // latest old-snapshot anchor over the one captured at kickoff.
                 let latest = self.rendered?.readingAnchor(atY: self.topY) ?? anchor
                 self.install(next, restoring: latest)
-            } catch { /* Cancellation leaves the previous snapshot visible. */ }
+            } catch { /* Cancellation leaves the previous snapshot visible. */  }
         }
     }
 
@@ -140,7 +162,9 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
         let firstLayout = rendered == nil
         let nextPage = ReaderPageView(rendered: next, scale: max(1, traitCollection.displayScale))
         page?.removeFromSuperview()
-        rendered = next; page = nextPage; pageScale = 1
+        rendered = next
+        page = nextPage
+        pageScale = 1
         addSubview(nextPage)
         backgroundColor = UIColor(cgColor: next.backgroundColor)
         window?.backgroundColor = backgroundColor
@@ -175,9 +199,12 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
 
     private func jumpIfNeeded() {
         guard let viewport, lastJump != viewport.jumpRevision, let id = viewport.jumpID,
-              let rendered, let rect = rendered.rect(forAnchor: id) else { return }
+            let rendered, let rect = rendered.rect(forAnchor: id)
+        else { return }
         lastJump = viewport.jumpRevision
-        adjusting = true; setTop(max(0, rect.minY * pageScale - headingTopInset), animated: !UIAccessibility.isReduceMotionEnabled); adjusting = false
+        adjusting = true
+        setTop(max(0, rect.minY * pageScale - headingTopInset), animated: !UIAccessibility.isReduceMotionEnabled)
+        adjusting = false
         reportPosition()
     }
 
@@ -191,27 +218,42 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
         let heading = headings.last { $0.1 <= y + headingTopInset / pageScale }?.0 ?? headings.first?.0
         viewport?.moved(anchor: rendered.readingAnchor(atY: y), heading: heading)
     }
-    func finish() { viewport?.flush(); layoutTask?.cancel() }
+    func finish() {
+        viewport?.flush()
+        layoutTask?.cancel()
+    }
 
     @objc private func tapped(_ gesture: UITapGestureRecognizer) {
         guard let rendered, let page else { return }
         let point = gesture.location(in: page)
         guard let url = rendered.link(at: point) else { return }
         if let fragment = url.fragment, url.scheme == nil || (url.isFileURL && url.path == fileURL?.path),
-           let rect = rendered.rect(forAnchor: fragment) {
-            adjusting = true; setTop(max(0, rect.minY * pageScale - 8)); adjusting = false; reportPosition()
-        } else { openLink?(url) }
+            let rect = rendered.rect(forAnchor: fragment)
+        {
+            adjusting = true
+            setTop(max(0, rect.minY * pageScale - 8))
+            adjusting = false
+            reportPosition()
+        } else {
+            openLink?(url)
+        }
     }
-    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool { true }
+    func gestureRecognizer(
+        _ gestureRecognizer: UIGestureRecognizer,
+        shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
+    ) -> Bool { true }
 }
 
-private final class ReaderPageView: UIView {
+fileprivate final class ReaderPageView: UIView {
     init(rendered: RenderedDocument, scale: CGFloat) {
         super.init(frame: CGRect(origin: .zero, size: rendered.size))
-        layer.anchorPoint = .zero; layer.position = .zero
+        layer.anchorPoint = .zero
+        layer.position = .zero
         backgroundColor = UIColor(cgColor: rendered.backgroundColor)
         let tiles = ReaderTileLayer(rendered: rendered)
-        tiles.frame = bounds; tiles.contentsScale = scale; tiles.tileSize = CGSize(width: 512, height: 512)
+        tiles.frame = bounds
+        tiles.contentsScale = scale
+        tiles.tileSize = CGSize(width: 512, height: 512)
         layer.addSublayer(tiles)
         isAccessibilityElement = true
         accessibilityLabel = rendered.text(in: rendered.documentRange)
@@ -219,10 +261,16 @@ private final class ReaderPageView: UIView {
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 }
 
-private final class ReaderTileLayer: CATiledLayer {
+fileprivate final class ReaderTileLayer: CATiledLayer {
     private let rendered: RenderedDocument?
-    init(rendered: RenderedDocument) { self.rendered = rendered; super.init() }
-    override init(layer: Any) { rendered = (layer as? ReaderTileLayer)?.rendered; super.init(layer: layer) }
+    init(rendered: RenderedDocument) {
+        self.rendered = rendered
+        super.init()
+    }
+    override init(layer: Any) {
+        rendered = (layer as? ReaderTileLayer)?.rendered
+        super.init(layer: layer)
+    }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     override class func fadeDuration() -> CFTimeInterval { 0 }
     override func draw(in context: CGContext) { rendered?.draw(in: context, rect: context.boundingBoxOfClipPath) }

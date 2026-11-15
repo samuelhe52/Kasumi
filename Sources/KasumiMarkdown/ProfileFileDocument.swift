@@ -4,7 +4,8 @@ import Foundation
 /// a separate namespace; every other section contributes profile overrides.
 /// This deliberately does not interpret a profile as a strict TOML document.
 struct ProfileFileDocument: Sendable {
-    enum FileError: LocalizedError { case tooLarge
+    enum FileError: LocalizedError {
+        case tooLarge
         var errorDescription: String? { "The preset exceeds the 4 MiB size limit." }
     }
     private(set) var source: String
@@ -27,11 +28,13 @@ struct ProfileFileDocument: Sendable {
         return nil
     }
     func values(anchor: Bool = false) -> ProfileValues {
-        var result = ProfileValues(), inAnchor = false
+        var result = ProfileValues()
+        var inAnchor = false
         for line in lines {
             if let header = Self.header(line) { inAnchor = header == "anchor" }
             guard inAnchor == anchor, let assignment = Self.assignment(line),
-                  let field = ProfileField(rawValue: assignment.key) else { continue }
+                let field = ProfileField(rawValue: assignment.key)
+            else { continue }
             let token = Self.trim(Self.beforeComment(assignment.value))
             let value = Self.parse(token, field: field)
             switch field.specification.kind {
@@ -44,14 +47,19 @@ struct ProfileFileDocument: Sendable {
     }
     mutating func set(_ value: ProfileValue?, for field: ProfileField, anchor: Bool = false) throws {
         var edited = lines
-        var inAnchor = false, matches: [Int] = [], template: Int?
+        var inAnchor = false
+        var matches: [Int] = []
+        var template: Int?
         for (index, line) in edited.enumerated() {
             if let header = Self.header(line) { inAnchor = header == "anchor" }
             guard inAnchor == anchor else { continue }
             if Self.assignment(line)?.key == field.rawValue { matches.append(index) }
             let trimmed = Self.trim(line)
             if template == nil, trimmed.hasPrefix("#"),
-               Self.assignment(Self.trim(String(trimmed.dropFirst())))?.key == field.rawValue { template = index }
+                Self.assignment(Self.trim(String(trimmed.dropFirst())))?.key == field.rawValue
+            {
+                template = index
+            }
         }
         let serialized: String?
         switch value {
@@ -61,7 +69,9 @@ struct ProfileFileDocument: Sendable {
         }
         if let serialized {
             if let last = matches.last {
-                for index in matches.dropLast() { edited[index] = "# " + Self.trim(edited[index]) + "  " + Self.duplicateMarker }
+                for index in matches.dropLast() {
+                    edited[index] = "# " + Self.trim(edited[index]) + "  " + Self.duplicateMarker
+                }
                 edited[last] = Self.replacement(edited[last], key: field.rawValue, value: serialized)
             } else if let template {
                 edited[template] = field.rawValue + " = " + serialized + Self.inlineComment(edited[template])
@@ -72,16 +82,20 @@ struct ProfileFileDocument: Sendable {
                     edited.insert(line, at: header + 1)
                 } else if anchor {
                     let block = ["[anchor]", line, ""]
-                    if let profile = edited.firstIndex(where: { Self.header($0) == "profile" }) { edited.insert(contentsOf: block, at: profile) }
-                    else {
+                    if let profile = edited.firstIndex(where: { Self.header($0) == "profile" }) {
+                        edited.insert(contentsOf: block, at: profile)
+                    } else {
                         if edited.last?.isEmpty == false { edited.append("") }
                         edited.append(contentsOf: block)
                     }
-                } else { edited.append(contentsOf: ["[profile]", line]) }
+                } else {
+                    edited.append(contentsOf: ["[profile]", line])
+                }
             }
         } else {
             for index in matches {
-                edited[index] = "# " + Self.trim(edited[index]) + (index == matches.last ? "" : "  " + Self.duplicateMarker)
+                edited[index] =
+                    "# " + Self.trim(edited[index]) + (index == matches.last ? "" : "  " + Self.duplicateMarker)
             }
         }
         try commit(edited)
@@ -93,13 +107,17 @@ struct ProfileFileDocument: Sendable {
             edited[index] = Self.replacement(edited[index], key: "name", value: value)
         } else if let index = edited.firstIndex(where: { Self.trim($0) == "[meta]" }) {
             edited.insert("name = " + value, at: index + 1)
-        } else { edited.insert(contentsOf: ["[meta]", "name = " + value, ""], at: 0) }
+        } else {
+            edited.insert(contentsOf: ["[meta]", "name = " + value, ""], at: 0)
+        }
         try commit(edited)
     }
     static func template(name: String) -> String {
-        "[meta]\nname = " + quote(name) + "\n\n[profile]\n" + ProfileField.allCases.map { field in
-            "# " + field.rawValue + " = " + field.specification.defaultValue.profileText + "  # " + field.specification.label
-        }.joined(separator: "\n") + "\n"
+        "[meta]\nname = " + quote(name) + "\n\n[profile]\n"
+            + ProfileField.allCases.map { field in
+                "# " + field.rawValue + " = " + field.specification.defaultValue.profileText + "  # "
+                    + field.specification.label
+            }.joined(separator: "\n") + "\n"
     }
     private mutating func commit(_ lines: [String]) throws {
         let result = lines.joined(separator: "\n")
@@ -112,11 +130,18 @@ struct ProfileFileDocument: Sendable {
         return (trim(String(line[..<equals])), String(line[line.index(after: equals)...]))
     }
     private static func commentIndex(_ text: String) -> String.Index? {
-        var quoted = false, escaped = false
+        var quoted = false
+        var escaped = false
         for index in text.indices {
             let character = text[index]
-            if quoted && escaped { escaped = false; continue }
-            if quoted && character == "\\" { escaped = true; continue }
+            if quoted && escaped {
+                escaped = false
+                continue
+            }
+            if quoted && character == "\\" {
+                escaped = true
+                continue
+            }
             if character == "\"" { quoted.toggle() }
             if character == "#" && !quoted { return index }
         }
@@ -142,11 +167,17 @@ struct ProfileFileDocument: Sendable {
     }
     private static func quoted(_ token: String) -> String? {
         guard token.count >= 2, token.first == "\"", token.last == "\"" else { return nil }
-        var result = "", escaped = false
+        var result = ""
+        var escaped = false
         for character in token.dropFirst().dropLast() {
-            if escaped { result.append(character == "n" ? "\n" : character); escaped = false }
-            else if character == "\\" { escaped = true }
-            else { result.append(character) }
+            if escaped {
+                result.append(character == "n" ? "\n" : character)
+                escaped = false
+            } else if character == "\\" {
+                escaped = true
+            } else {
+                result.append(character)
+            }
         }
         return result
     }
@@ -160,7 +191,9 @@ struct ProfileFileDocument: Sendable {
             return quoted(token).flatMap { field.specification.normalized(.string($0)) }
         case .numbers, .strings:
             guard token.hasPrefix("["), token.hasSuffix("]") else { return nil }
-            let parts = token.dropFirst().dropLast().split(separator: ",", omittingEmptySubsequences: true).map { trim(String($0)) }
+            let parts = token.dropFirst().dropLast().split(separator: ",", omittingEmptySubsequences: true).map {
+                trim(String($0))
+            }
             guard !parts.isEmpty else { return nil }
             if field.specification.kind == .numbers {
                 let values = parts.compactMap(Double.init)
@@ -171,9 +204,15 @@ struct ProfileFileDocument: Sendable {
         }
     }
     static func quote(_ value: String) -> String {
-        "\"" + value.map { character -> String in
-            switch character { case "\\": "\\\\"; case "\"": "\\\""; case "\n": "\\n"; default: String(character) }
-        }.joined() + "\""
+        "\""
+            + value.map { character -> String in
+                switch character {
+                case "\\": "\\\\"
+                case "\"": "\\\""
+                case "\n": "\\n"
+                default: String(character)
+                }
+            }.joined() + "\""
     }
 }
 
@@ -182,7 +221,9 @@ extension ProfileValue {
         func number(_ value: Double) -> String {
             // Native values are bounded except heading arrays. Avoid its Int
             // conversion trap for enormous finite integral array entries.
-            if value.isFinite && value.rounded() == value && value >= Double(Int.min) && value < Double(Int.max) { return String(Int(value)) }
+            if value.isFinite && value.rounded() == value && value >= Double(Int.min) && value < Double(Int.max) {
+                return String(Int(value))
+            }
             return String(value)
         }
         switch self {

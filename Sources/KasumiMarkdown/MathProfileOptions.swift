@@ -18,10 +18,13 @@ struct MathProfileOptions: Equatable, Sendable {
     init(font: MathFontChoice = .newCMRegular, radicalGap: CGFloat = 1, fractionBarOverhang: CGFloat = 0) {
         self.font = font
         self.radicalGap = radicalGap.isFinite && (0...4).contains(radicalGap) ? radicalGap : 1
-        self.fractionBarOverhang = fractionBarOverhang.isFinite && (0...0.5).contains(fractionBarOverhang) ? fractionBarOverhang : 0
+        self.fractionBarOverhang =
+            fractionBarOverhang.isFinite && (0...0.5).contains(fractionBarOverhang) ? fractionBarOverhang : 0
     }
 
     init(fontName: String, radicalGap: CGFloat = 1, fractionBarOverhang: CGFloat = 0) {
-        self.init(font: MathFontChoice(rawValue: fontName) ?? .newCMRegular, radicalGap: radicalGap, fractionBarOverhang: fractionBarOverhang)
+        self.init(
+            font: MathFontChoice(rawValue: fontName) ?? .newCMRegular, radicalGap: radicalGap,
+            fractionBarOverhang: fractionBarOverhang)
     }
 }

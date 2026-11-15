@@ -22,7 +22,8 @@ final class ReaderViewport {
         }
         guard key != identity else { return latestAnchor }
         flush()
-        identity = key; latestAnchor = nil
+        identity = key
+        latestAnchor = nil
         if let key, let data = UserDefaults.standard.data(forKey: key) {
             latestAnchor = try? JSONDecoder().decode(ReadingAnchor.self, from: data)
         }
@@ -40,18 +41,22 @@ final class ReaderViewport {
     }
 
     func jump(to id: String) {
-        jumpID = id; jumpRevision = UUID()
+        jumpID = id
+        jumpRevision = UUID()
     }
 
     /// Drops the saved position, for a document that is being deleted.
     func forget() {
-        saveTask?.cancel(); saveTask = nil
+        saveTask?.cancel()
+        saveTask = nil
         if let identity { UserDefaults.standard.removeObject(forKey: identity) }
-        identity = nil; latestAnchor = nil
+        identity = nil
+        latestAnchor = nil
     }
 
     func flush() {
-        saveTask?.cancel(); saveTask = nil
+        saveTask?.cancel()
+        saveTask = nil
         guard let identity, let latestAnchor, let data = try? JSONEncoder().encode(latestAnchor) else { return }
         UserDefaults.standard.set(data, forKey: identity)
     }

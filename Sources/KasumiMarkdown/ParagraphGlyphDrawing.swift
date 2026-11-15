@@ -1,9 +1,10 @@
-#if canImport(AppKit)
-import AppKit
-#else
-import UIKit
-#endif
 import CoreText
+
+#if canImport(AppKit)
+    import AppKit
+#else
+    import UIKit
+#endif
 
 /// Draw the existing shaped glyphs at the paragraph engine's positions. Keeping
 /// compatible adjacent glyphs in one PDF text operation avoids splitting a
@@ -12,8 +13,8 @@ enum ParagraphGlyphDrawing {
     static func draw(_ line: ShapedLine, attributed: NSAttributedString, in context: CGContext) {
         var batchFont: CTFont?
         var batchColor: CGColor?
-        var glyphs = [CGGlyph]()
-        var positions = [CGPoint]()
+        var glyphs: [CGGlyph] = []
+        var positions: [CGPoint] = []
 
         func flush() {
             guard let font = batchFont, let color = batchColor, !glyphs.isEmpty else { return }
@@ -34,10 +35,13 @@ enum ParagraphGlyphDrawing {
 
         func append(_ text: CTLine, at x: CGFloat, usesSourceAttributes: Bool) {
             let runs = CTLineGetGlyphRuns(text) as! [CTRun]
-            let containsDelegate = runs.contains { (CTRunGetAttributes($0) as NSDictionary)[kCTRunDelegateAttributeName] != nil }
+            let containsDelegate = runs.contains {
+                (CTRunGetAttributes($0) as NSDictionary)[kCTRunDelegateAttributeName] != nil
+            }
             let requiresLinePaint = runs.contains { run in
                 let range = CTRunGetStringRange(run)
-                let source = usesSourceAttributes && range.location >= 0 && range.location < attributed.length
+                let source =
+                    usesSourceAttributes && range.location >= 0 && range.location < attributed.length
                     ? attributed.attributes(at: range.location, effectiveRange: nil) : [:]
                 return hasUnsupportedPaint(source, values: CTRunGetAttributes(run) as NSDictionary)
             }
@@ -62,16 +66,21 @@ enum ParagraphGlyphDrawing {
                 let source: [NSAttributedString.Key: Any]
                 if usesSourceAttributes, range.location >= 0, range.location < attributed.length {
                     source = attributed.attributes(at: range.location, effectiveRange: nil)
-                } else { source = [:] }
+                } else {
+                    source = [:]
+                }
 
                 let fontValue = values[kCTFontAttributeName] ?? values[NSAttributedString.Key.font.rawValue]
-                let color = resolvedColor(source[.foregroundColor])
+                let color =
+                    resolvedColor(source[.foregroundColor])
                     ?? resolvedColor(values[NSAttributedString.Key.foregroundColor.rawValue])
                     ?? resolvedColor(values[kCTForegroundColorAttributeName])
                     ?? CGColor(gray: 0, alpha: 1)
-                let requiresDelegation = !CTRunGetTextMatrix(run).isIdentity
+                let requiresDelegation =
+                    !CTRunGetTextMatrix(run).isIdentity
                     || hasUnsupportedPaint(source, values: values)
-                guard let fontValue, CFGetTypeID(fontValue as CFTypeRef) == CTFontGetTypeID(), !requiresDelegation else {
+                guard let fontValue, CFGetTypeID(fontValue as CFTypeRef) == CTFontGetTypeID(), !requiresDelegation
+                else {
                     flush()
                     context.saveGState()
                     context.textPosition = CGPoint(x: x, y: 0)
@@ -84,7 +93,10 @@ enum ParagraphGlyphDrawing {
                 }
                 let font = fontValue as! CTFont
                 if let previous = batchFont,
-                   !CFEqual(previous, font) || batchColor != color { flush() }
+                    !CFEqual(previous, font) || batchColor != color
+                {
+                    flush()
+                }
                 batchFont = font
                 batchColor = color
                 var runGlyphs = [CGGlyph](repeating: 0, count: count)
@@ -122,8 +134,10 @@ enum ParagraphGlyphDrawing {
             .verticalGlyphForm, NSAttributedString.Key("NSSuperscript"), .textEffect
         ]
         if keys.contains(where: { source[$0] != nil || values[$0.rawValue] != nil }) { return true }
-        return [kCTStrokeWidthAttributeName, kCTStrokeColorAttributeName, kCTUnderlineStyleAttributeName,
-                kCTUnderlineColorAttributeName, kCTForegroundColorFromContextAttributeName,
-                kCTVerticalFormsAttributeName].contains { values[$0] != nil }
+        return [
+            kCTStrokeWidthAttributeName, kCTStrokeColorAttributeName, kCTUnderlineStyleAttributeName,
+            kCTUnderlineColorAttributeName, kCTForegroundColorFromContextAttributeName,
+            kCTVerticalFormsAttributeName
+        ].contains { values[$0] != nil }
     }
 }

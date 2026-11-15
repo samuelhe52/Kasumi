@@ -1,11 +1,13 @@
-#if canImport(AppKit)
-import AppKit
-#else
-import UIKit
-#endif
 import PDFKit
 import Testing
+
 @testable import KasumiMarkdown
+
+#if canImport(AppKit)
+    import AppKit
+#else
+    import UIKit
+#endif
 
 @Test func diagramsFitReadingMeasureAndRemainAtomicOnPDFPages() throws {
     let source = "pie title A wide legend\n\"A substantially wider category\" : 70\n\"Other\" : 30"
@@ -14,13 +16,16 @@ import Testing
     for width: CGFloat in [240, 400, 800] {
         let layout = DocumentTypesetter.layout(document, width: width, style: Typography())
         var attachment: MermaidAttachment?
-        layout.text.enumerateAttribute(.kasumiDiagram, in: NSRange(location: 0, length: layout.text.length)) { value, _, _ in
+        layout.text.enumerateAttribute(.kasumiDiagram, in: NSRange(location: 0, length: layout.text.length)) {
+            value, _, _ in
             attachment = value as? MermaidAttachment ?? attachment
         }
         let diagram = try #require(attachment)
         #expect(diagram.size.width <= width - 80 + 0.001)
         #expect(diagram.size.height > 0 && diagram.size.height.isFinite)
-        if let priorSize { #expect(abs(diagram.size.width / diagram.size.height - priorSize.width / priorSize.height) < 0.0001) }
+        if let priorSize {
+            #expect(abs(diagram.size.width / diagram.size.height - priorSize.width / priorSize.height) < 0.0001)
+        }
         priorSize = diagram.size
         let group = try #require(layout.paginationGroups.first)
         let pages = try DocumentPaginator.pages(for: layout, contentHeight: 150)
@@ -51,6 +56,8 @@ import Testing
         try MermaidTypesetter.layout("\n\n%% prefix\ngraph LR\nA[", size: 16, fontFamily: "Helvetica", dark: false)
     }
     #expect(throws: MermaidError.syntax(line: 3)) {
-        try MermaidTypesetter.layout("\u{FEFF}\n%% prefix\n---\ntitle: A diagram\n---\ngraph LR\nA[", size: 16, fontFamily: "Helvetica", dark: false)
+        try MermaidTypesetter.layout(
+            "\u{FEFF}\n%% prefix\n---\ntitle: A diagram\n---\ngraph LR\nA[", size: 16, fontFamily: "Helvetica",
+            dark: false)
     }
 }

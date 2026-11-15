@@ -14,12 +14,15 @@ public struct TypographyPreset: Identifiable, Equatable, Sendable {
     public static let `default` = builtin[0]
 
     public init(id: String, name: String, toml: String) throws {
-        self.id = id; self.name = name
+        self.id = id
+        self.name = name
         values = try ProfileValues.parse(toml)
     }
 
     private init(id: String, name: String, values: ProfileValues) {
-        self.id = id; self.name = name; self.values = values
+        self.id = id
+        self.name = name
+        self.values = values
     }
 }
 
@@ -38,10 +41,15 @@ public struct RenderStyle: Sendable, Equatable {
     public var widthLimit: CGFloat?
     public var insets: DocumentInsets
 
-    public init(preset: TypographyPreset = .default, theme: DocumentTheme = .default,
-                fontSize: CGFloat? = nil, widthLimit: CGFloat? = 960, insets: DocumentInsets = .reader) {
-        self.preset = preset; self.theme = theme
-        self.fontSize = fontSize; self.widthLimit = widthLimit; self.insets = insets
+    public init(
+        preset: TypographyPreset = .default, theme: DocumentTheme = .default,
+        fontSize: CGFloat? = nil, widthLimit: CGFloat? = 960, insets: DocumentInsets = .reader
+    ) {
+        self.preset = preset
+        self.theme = theme
+        self.fontSize = fontSize
+        self.widthLimit = widthLimit
+        self.insets = insets
     }
 
     var typography: Typography {
@@ -50,7 +58,8 @@ public struct RenderStyle: Sendable, Equatable {
         result.dark = appearance == .dark
         let base = DocumentThemeCatalog.theme(id: "default-" + appearance.rawValue, dark: result.dark)
         // Sparse themes inherit Classic from the selected theme's appearance.
-        result.explicitTheme = DocumentTheme(id: theme.id, name: theme.name, appearance: appearance,
+        result.explicitTheme = DocumentTheme(
+            id: theme.id, name: theme.name, appearance: appearance,
             document: base.document.merging(theme.document) { _, selected in selected },
             chrome: theme.chrome, syntax: theme.syntax)
         if let fontSize, fontSize.isFinite, fontSize > 0 { result.size = fontSize }
@@ -70,10 +79,13 @@ public enum FontAvailability {
         let values = style.preset.values
         let latin = values[.latinFamily]?.string ?? ""
         let han = values[.hanFamily]?.string ?? ""
-        let families = [latin.isEmpty ? "New York" : latin,
-                        han.isEmpty ? "Songti SC" : han,
-                        values[.codeFamily]?.string ?? ""]
-        var seen = Set<String>(), missing: [String] = []
+        let families = [
+            latin.isEmpty ? "New York" : latin,
+            han.isEmpty ? "Songti SC" : han,
+            values[.codeFamily]?.string ?? ""
+        ]
+        var seen = Set<String>()
+        var missing: [String] = []
         for name in families where !name.isEmpty && seen.insert(name).inserted {
             if !FontFamilyResolver.isAvailable(name) { missing.append(name) }
         }

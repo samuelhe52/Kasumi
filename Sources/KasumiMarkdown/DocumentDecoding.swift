@@ -1,5 +1,5 @@
-import Foundation
 import CoreFoundation
+import Foundation
 
 public enum DocumentTextEncoding: String, Codable, CaseIterable, Hashable, Sendable {
     case automatic, utf8, gb18030, big5, shiftJIS, eucKR, utf16
@@ -42,7 +42,8 @@ enum DocumentDecodingError: LocalizedError {
     case invalidData(DocumentTextEncoding)
     var errorDescription: String? {
         switch self {
-        case let .invalidData(encoding): "The document cannot be decoded as \(encoding.title). Choose another text encoding."
+        case .invalidData(let encoding):
+            "The document cannot be decoded as \(encoding.title). Choose another text encoding."
         }
     }
 }
@@ -59,36 +60,53 @@ enum DocumentDecoder {
             if encoding == .utf16 {
                 let decoded = utf16(Data(data.dropFirst(littleBOM || bigBOM ? 2 : 0)), littleEndian: littleBOM)
                 guard !decoded.lossy else { throw DocumentDecodingError.invalidData(encoding) }
-                return DecodedDocumentText(text: decoded.text, encoding: .utf16, isLossy: false, isGuessed: false, hadByteOrderMark: littleBOM || bigBOM)
+                return DecodedDocumentText(
+                    text: decoded.text, encoding: .utf16, isLossy: false, isGuessed: false,
+                    hadByteOrderMark: littleBOM || bigBOM)
             }
             let input = encoding == .utf8 && utf8BOM ? Data(data.dropFirst(3)) : data
-            guard let selected = encoding.foundationEncoding, let text = String(data: input, encoding: selected) else { throw DocumentDecodingError.invalidData(encoding) }
-            return DecodedDocumentText(text: text, encoding: encoding, isLossy: false, isGuessed: false, hadByteOrderMark: (encoding == .utf8 && utf8BOM) || (encoding == .utf16 && (littleBOM || bigBOM)))
+            guard let selected = encoding.foundationEncoding, let text = String(data: input, encoding: selected) else {
+                throw DocumentDecodingError.invalidData(encoding)
+            }
+            return DecodedDocumentText(
+                text: text, encoding: encoding, isLossy: false, isGuessed: false,
+                hadByteOrderMark: (encoding == .utf8 && utf8BOM) || (encoding == .utf16 && (littleBOM || bigBOM)))
         }
         if utf8BOM {
             let input = Data(data.dropFirst(3))
             let strict = String(data: input, encoding: .utf8)
-            return DecodedDocumentText(text: strict ?? String(decoding: input, as: UTF8.self), encoding: .utf8, isLossy: strict == nil, isGuessed: false, hadByteOrderMark: true)
+            return DecodedDocumentText(
+                text: strict ?? String(decoding: input, as: UTF8.self), encoding: .utf8, isLossy: strict == nil,
+                isGuessed: false, hadByteOrderMark: true)
         }
         if littleBOM || bigBOM {
             let decoded = utf16(Data(data.dropFirst(2)), littleEndian: littleBOM)
-            return DecodedDocumentText(text: decoded.text, encoding: .utf16, isLossy: decoded.lossy, isGuessed: false, hadByteOrderMark: true)
+            return DecodedDocumentText(
+                text: decoded.text, encoding: .utf16, isLossy: decoded.lossy, isGuessed: false, hadByteOrderMark: true)
         }
         if let text = String(data: data, encoding: .utf8) {
-            return DecodedDocumentText(text: text, encoding: .utf8, isLossy: false, isGuessed: false, hadByteOrderMark: false)
+            return DecodedDocumentText(
+                text: text, encoding: .utf8, isLossy: false, isGuessed: false, hadByteOrderMark: false)
         }
-        if let selected = DocumentTextEncoding.gb18030.foundationEncoding, let text = String(data: data, encoding: selected) {
-            return DecodedDocumentText(text: text, encoding: .gb18030, isLossy: false, isGuessed: true, hadByteOrderMark: false)
+        if let selected = DocumentTextEncoding.gb18030.foundationEncoding,
+            let text = String(data: data, encoding: selected)
+        {
+            return DecodedDocumentText(
+                text: text, encoding: .gb18030, isLossy: false, isGuessed: true, hadByteOrderMark: false)
         }
-        return DecodedDocumentText(text: String(decoding: data, as: UTF8.self), encoding: .utf8, isLossy: true, isGuessed: false, hadByteOrderMark: false)
+        return DecodedDocumentText(
+            text: String(decoding: data, as: UTF8.self), encoding: .utf8, isLossy: true, isGuessed: false,
+            hadByteOrderMark: false)
     }
 
     private static func utf16(_ data: Data, littleEndian: Bool) -> (text: String, lossy: Bool) {
         let input = [UInt8](data)
-        var units: [UInt16] = [], index = 0
+        var units: [UInt16] = []
+        var index = 0
         units.reserveCapacity((input.count + 1) / 2)
         while index + 1 < input.count {
-            let a = UInt16(input[index]), b = UInt16(input[index + 1])
+            let a = UInt16(input[index])
+            let b = UInt16(input[index + 1])
             units.append(littleEndian ? a | b << 8 : a << 8 | b)
             index += 2
         }
@@ -97,9 +115,14 @@ enum DocumentDecoder {
         index = 0
         while index < units.count {
             if (0xD800...0xDBFF).contains(units[index]) {
-                if index + 1 < units.count, (0xDC00...0xDFFF).contains(units[index + 1]) { index += 2; continue }
+                if index + 1 < units.count, (0xDC00...0xDFFF).contains(units[index + 1]) {
+                    index += 2
+                    continue
+                }
                 lossy = true
-            } else if (0xDC00...0xDFFF).contains(units[index]) { lossy = true }
+            } else if (0xDC00...0xDFFF).contains(units[index]) {
+                lossy = true
+            }
             index += 1
         }
         return (String(decoding: units, as: UTF16.self), lossy)

@@ -1,6 +1,6 @@
-import Foundation
-import CoreText
 import CoreGraphics
+import CoreText
+import Foundation
 
 /// A source-backed text fragment. Box geometry and glyph origin are distinct:
 /// compressed opening punctuation can draw to the left of its selection box.
@@ -61,8 +61,12 @@ struct ShapedLine {
         // Glue can separate two boxes without adding a source character.
         // A selection start belongs to the following box, its end to the
         // preceding box; a single caret coordinate cannot represent both.
-        if affinity == .followingFragment, let fragment = visible.first(where: { $0.range.location == index }) { return fragment.x }
-        if affinity == .precedingFragment, let fragment = visible.last(where: { NSMaxRange($0.range) == index }) { return fragment.x + fragment.width }
+        if affinity == .followingFragment, let fragment = visible.first(where: { $0.range.location == index }) {
+            return fragment.x
+        }
+        if affinity == .precedingFragment, let fragment = visible.last(where: { NSMaxRange($0.range) == index }) {
+            return fragment.x + fragment.width
+        }
         var previous = first
         for fragment in visible {
             if index >= fragment.range.location && index <= NSMaxRange(fragment.range) {
@@ -81,9 +85,11 @@ struct ShapedLine {
     func stringIndex(forPosition position: CGPoint) -> Int {
         guard !fragments.isEmpty else { return CTLineGetStringIndexForPosition(line, position) }
         let visible = fragments.filter { $0.range.length > 0 }
-        guard let nearest = visible.min(by: {
-            distance(position.x, from: $0) < distance(position.x, from: $1)
-        }) else { return range.location }
+        guard
+            let nearest = visible.min(by: {
+                distance(position.x, from: $0) < distance(position.x, from: $1)
+            })
+        else { return range.location }
         return nearest.index(at: position.x)
     }
 

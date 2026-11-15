@@ -14,10 +14,17 @@ public struct ReadingAnchor: Codable, Equatable, Sendable {
     var blockCount: Int
     var verticalFraction: Double
 
-    init(blockKey: String, blockIndex: Int, offset: Int, previousKeys: [String] = [], nextKeys: [String] = [], blockCount: Int, verticalFraction: Double) {
-        self.blockKey = blockKey; self.blockIndex = blockIndex; self.offset = offset
-        self.previousKeys = previousKeys; self.nextKeys = nextKeys
-        self.blockCount = blockCount; self.verticalFraction = verticalFraction
+    init(
+        blockKey: String, blockIndex: Int, offset: Int, previousKeys: [String] = [], nextKeys: [String] = [],
+        blockCount: Int, verticalFraction: Double
+    ) {
+        self.blockKey = blockKey
+        self.blockIndex = blockIndex
+        self.offset = offset
+        self.previousKeys = previousKeys
+        self.nextKeys = nextKeys
+        self.blockCount = blockCount
+        self.verticalFraction = verticalFraction
     }
 }
 
@@ -44,7 +51,8 @@ struct ReadingPositionIndex {
     private let indicesByKey: [String: [Int]]
 
     init(layout: DocumentLayout) {
-        var blocks: [Block] = [], lines: [Line] = []
+        var blocks: [Block] = []
+        var lines: [Line] = []
         var indices: [String: [Int]] = [:]
         for (index, item) in layout.paragraphs.enumerated() {
             let paragraph = item.paragraph
@@ -55,7 +63,9 @@ struct ReadingPositionIndex {
                 let bottom = item.origin.y + line.origin.y + line.descent
                 guard top.isFinite, bottom.isFinite, bottom >= top else { return nil }
                 let start = min(paragraph.attributed.length, max(0, line.range.location))
-                return Line(block: index, range: line.range, semanticOffset: map.semanticOffset(forRenderedOffset: start), top: top, bottom: bottom, x: item.origin.x + line.origin.x)
+                return Line(
+                    block: index, range: line.range, semanticOffset: map.semanticOffset(forRenderedOffset: start),
+                    top: top, bottom: bottom, x: item.origin.x + line.origin.x)
             }
             blocks.append(Block(key: key, textMap: map, lines: blockLines))
             indices[key, default: []].append(index)
@@ -67,14 +77,22 @@ struct ReadingPositionIndex {
             if $0.block != $1.block { return $0.block < $1.block }
             return $0.range.location < $1.range.location
         }
-        var maximum = -CGFloat.infinity, prefix: [CGFloat] = []
-        for line in lines { maximum = max(maximum, line.bottom); prefix.append(maximum) }
-        self.blocks = blocks; self.lines = lines; prefixBottoms = prefix; indicesByKey = indices
+        var maximum = -CGFloat.infinity
+        var prefix: [CGFloat] = []
+        for line in lines {
+            maximum = max(maximum, line.bottom)
+            prefix.append(maximum)
+        }
+        self.blocks = blocks
+        self.lines = lines
+        prefixBottoms = prefix
+        indicesByKey = indices
     }
 
     func capture(y: CGFloat) -> ReadingAnchor? {
         guard y.isFinite, !lines.isEmpty else { return nil }
-        var lower = 0, upper = prefixBottoms.count
+        var lower = 0
+        var upper = prefixBottoms.count
         while lower < upper {
             let middle = lower + (upper - lower) / 2
             if prefixBottoms[middle] > y { upper = middle } else { lower = middle + 1 }
@@ -82,19 +100,28 @@ struct ReadingPositionIndex {
         let line = lines[min(lower, lines.count - 1)]
         let block = line.block
         let previous = (1...2).compactMap { distance in block >= distance ? blocks[block - distance].key : nil }
-        let following = (1...2).compactMap { distance in block + distance < blocks.count ? blocks[block + distance].key : nil }
-        return ReadingAnchor(blockKey: blocks[block].key, blockIndex: block, offset: line.semanticOffset, previousKeys: previous, nextKeys: following, blockCount: blocks.count, verticalFraction: Double((y - line.top) / line.height))
+        let following = (1...2).compactMap { distance in
+            block + distance < blocks.count ? blocks[block + distance].key : nil
+        }
+        return ReadingAnchor(
+            blockKey: blocks[block].key, blockIndex: block, offset: line.semanticOffset, previousKeys: previous,
+            nextKeys: following, blockCount: blocks.count, verticalFraction: Double((y - line.top) / line.height))
     }
 
     func y(for anchor: ReadingAnchor) -> CGFloat? {
-        guard anchor.verticalFraction.isFinite, let index = relocatedBlock(for: anchor), !blocks[index].lines.isEmpty else { return nil }
+        guard anchor.verticalFraction.isFinite, let index = relocatedBlock(for: anchor), !blocks[index].lines.isEmpty
+        else { return nil }
         let block = blocks[index]
         let semanticLength = block.textMap.string.utf16.count
         let offset = min(max(0, anchor.offset), max(0, semanticLength - 1))
-        let rendered = block.textMap.renderedRange(for: NSRange(location: offset, length: semanticLength > 0 ? 1 : 0))?.location ?? 0
-        guard let line = block.lines.first(where: { NSLocationInRange(rendered, $0.range) })
-            ?? block.lines.first(where: { $0.range.location >= rendered })
-            ?? block.lines.last else { return nil }
+        let rendered =
+            block.textMap.renderedRange(for: NSRange(location: offset, length: semanticLength > 0 ? 1 : 0))?.location
+            ?? 0
+        guard
+            let line = block.lines.first(where: { NSLocationInRange(rendered, $0.range) })
+                ?? block.lines.first(where: { $0.range.location >= rendered })
+                ?? block.lines.last
+        else { return nil }
         let result = line.top + CGFloat(anchor.verticalFraction) * line.height
         return result.isFinite ? result : nil
     }
@@ -106,13 +133,19 @@ struct ReadingPositionIndex {
         let expected = ratio * Double(max(0, blocks.count - 1))
         func closest(_ candidates: [Int], score: (Int) -> Int) -> Int? {
             candidates.filter { blocks[$0].lines.count > 0 }.min { a, b in
-                let aScore = score(a), bScore = score(b)
+                let aScore = score(a)
+                let bScore = score(b)
                 if aScore != bScore { return aScore > bScore }
-                let aDistance = abs(Double(a) - expected), bDistance = abs(Double(b) - expected)
+                let aDistance = abs(Double(a) - expected)
+                let bDistance = abs(Double(b) - expected)
                 return aDistance == bDistance ? a < b : aDistance < bDistance
             }
         }
-        if let matches = indicesByKey[anchor.blockKey], let match = closest(matches, score: { neighborScore(at: $0, anchor: anchor) }) { return match }
+        if let matches = indicesByKey[anchor.blockKey],
+            let match = closest(matches, score: { neighborScore(at: $0, anchor: anchor) })
+        {
+            return match
+        }
 
         var votes: [Int: Int] = [:]
         for (distance, key) in anchor.previousKeys.prefix(2).enumerated() {

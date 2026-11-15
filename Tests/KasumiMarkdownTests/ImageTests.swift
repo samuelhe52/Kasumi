@@ -1,17 +1,19 @@
-#if canImport(AppKit)
-import AppKit
-#else
-import UIKit
-#endif
 import CoreGraphics
 import CryptoKit
 import Foundation
 import ImageIO
 import Testing
 import UniformTypeIdentifiers
+
 @testable import KasumiMarkdown
 
-private let imageFixtureDirectory = testRepositoryURL.appendingPathComponent("fixtures")
+#if canImport(AppKit)
+    import AppKit
+#else
+    import UIKit
+#endif
+
+fileprivate let imageFixtureDirectory = testRepositoryURL.appendingPathComponent("fixtures")
 
 @Test func imageParserPreservesSourcesLinksAndNativeBlockKinds() throws {
     let source = try String(contentsOf: imageFixtureDirectory.appendingPathComponent("Images.md"), encoding: .utf8)
@@ -19,7 +21,9 @@ private let imageFixtureDirectory = testRepositoryURL.appendingPathComponent("fi
     let raw = try Data(contentsOf: imageFixtureDirectory.appendingPathComponent("reference/Images.core.json"))
     let snapshot = try #require(JSONSerialization.jsonObject(with: raw) as? [String: Any])
     let native = try #require(snapshot["items"] as? [[String: Any]])
-    #expect(snapshot["fixture_sha256"] as? String == SHA256.hash(data: Data(source.utf8)).map { String(format: "%02x", $0) }.joined())
+    #expect(
+        snapshot["fixture_sha256"] as? String
+            == SHA256.hash(data: Data(source.utf8)).map { String(format: "%02x", $0) }.joined())
     #expect(document.blocks.count == native.count)
     for (block, observation) in zip(document.blocks, native) {
         let kind = block.kind == .heading ? 1 : block.kind == .image ? 5 : block.kind == .table ? 6 : 0
@@ -33,7 +37,10 @@ private let imageFixtureDirectory = testRepositoryURL.appendingPathComponent("fi
     #expect(linked.runs[0].traits.contains(.link))
     let inline = try #require(document.blocks.first { $0.text.hasPrefix("Inline image:") })
     #expect(inline.kind == .paragraph)
-    #expect(inline.runs.contains { $0.traits.contains(.image) && $0.imageSource == "images/tiny.png" && $0.text == "Checkerboard" })
+    #expect(
+        inline.runs.contains {
+            $0.traits.contains(.image) && $0.imageSource == "images/tiny.png" && $0.text == "Checkerboard"
+        })
 }
 
 @Test func localDataAndPercentEncodedImagesResolveAndFitWithoutUpscaling() throws {
@@ -57,7 +64,10 @@ private let imageFixtureDirectory = testRepositoryURL.appendingPathComponent("fi
 }
 
 @Test func imageOrientationAndTallLineGeometryRemainCorrect() throws {
-    let context = try #require(CGContext(data: nil, width: 12, height: 8, bitsPerComponent: 8, bytesPerRow: 0, space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+    let context = try #require(
+        CGContext(
+            data: nil, width: 12, height: 8, bitsPerComponent: 8, bytesPerRow: 0, space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
     let original = try #require(context.makeImage())
     let data = NSMutableData()
     let destination = try #require(CGImageDestinationCreateWithData(data, UTType.jpeg.identifier as CFString, 1, nil))
@@ -67,7 +77,8 @@ private let imageFixtureDirectory = testRepositoryURL.appendingPathComponent("fi
     #expect(decoded.size == CGSize(width: 8, height: 12))
     #expect(decoded.bitmap.width == 8 && decoded.bitmap.height == 12)
 
-    let document = DocumentParser.parse("Before ![Tall](images/wide%20sample.png) after.\n", baseURL: imageFixtureDirectory)
+    let document = DocumentParser.parse(
+        "Before ![Tall](images/wide%20sample.png) after.\n", baseURL: imageFixtureDirectory)
     let layout = DocumentTypesetter.layout(document, width: 400, style: Typography())
     let image = try #require(layout.imageBounds.first)
     #expect(image.width == 320 && image.height == 160)
@@ -79,7 +90,8 @@ private let imageFixtureDirectory = testRepositoryURL.appendingPathComponent("fi
 }
 
 @Test func imagePaintOrientationAndMissingAltSemantics() throws {
-    let document = DocumentParser.parse("![Sample](images/wide%20sample.png)\n\n![Missing](images/no.png)", baseURL: imageFixtureDirectory)
+    let document = DocumentParser.parse(
+        "![Sample](images/wide%20sample.png)\n\n![Missing](images/no.png)", baseURL: imageFixtureDirectory)
     let style = Typography()
     let layout = DocumentTypesetter.layout(document, width: 400, style: style)
     let imageRect = try #require(layout.imageBounds.first)
@@ -96,25 +108,34 @@ private let imageFixtureDirectory = testRepositoryURL.appendingPathComponent("fi
     func pixel(_ x: Int, _ y: Int) throws -> [UInt8] {
         let crop = try #require(bitmap.cropping(to: CGRect(x: x, y: y, width: 1, height: 1)))
         var bytes = [UInt8](repeating: 0, count: 4)
-        let context = try #require(CGContext(data: &bytes, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4, space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+        let context = try #require(
+            CGContext(
+                data: &bytes, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4,
+                space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
         context.draw(crop, in: CGRect(x: 0, y: 0, width: 1, height: 1))
         return bytes
     }
-    let top = try pixel(200, 48), bottom = try pixel(200, 168), corner = try pixel(48, 36)
+    let top = try pixel(200, 48)
+    let bottom = try pixel(200, 168)
+    let corner = try pixel(48, 36)
     #expect(top[0] > 180 && top[1] < 80)
     #expect(bottom[0] < 80 && bottom[1] > 120)
     #expect(corner[0] > 240 && corner[1] > 240 && corner[2] > 240)
 }
 
-private final class ImageFixtureProtocol: URLProtocol, @unchecked Sendable {
+fileprivate final class ImageFixtureProtocol: URLProtocol, @unchecked Sendable {
     override class func canInit(with request: URLRequest) -> Bool { request.url?.host == "image-fixture.invalid" }
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
     override func startLoading() {
         guard let url = request.url else { return }
         let large = url.lastPathComponent == "oversized.png"
-        let response = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: ["Content-Length": large ? "30000000" : "128", "Content-Type": "image/png"])!
+        let response = HTTPURLResponse(
+            url: url, statusCode: 200, httpVersion: "HTTP/1.1",
+            headerFields: ["Content-Length": large ? "30000000" : "128", "Content-Type": "image/png"])!
         client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-        if !large, let data = try? Data(contentsOf: imageFixtureDirectory.appendingPathComponent("images/tiny.png")) { client?.urlProtocol(self, didLoad: data) }
+        if !large, let data = try? Data(contentsOf: imageFixtureDirectory.appendingPathComponent("images/tiny.png")) {
+            client?.urlProtocol(self, didLoad: data)
+        }
         client?.urlProtocolDidFinishLoading(self)
     }
     override func stopLoading() {}

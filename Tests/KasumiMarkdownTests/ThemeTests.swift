@@ -1,12 +1,14 @@
-#if canImport(AppKit)
-import AppKit
-#else
-import UIKit
-#endif
 import CryptoKit
 import Foundation
 import Testing
+
 @testable import KasumiMarkdown
+
+#if canImport(AppKit)
+    import AppKit
+#else
+    import UIKit
+#endif
 
 @Test func themeResourcePreservesEveryBundledColor() throws {
     let expected = [
@@ -17,7 +19,8 @@ import Testing
         "solarized-dark": "09a21ad00752094348f76fdd3ec6159f373a6a2c2b12a5f1827eff75131a05d7",
         "solarized-light": "b22967146a158c189c67125f5215db28df19aa91d9f5da8c88aa150cf159c5cc"
     ]
-    let object = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: DocumentThemeCatalog.resourceURL)) as? [String: Any])
+    let object = try #require(
+        JSONSerialization.jsonObject(with: Data(contentsOf: DocumentThemeCatalog.resourceURL)) as? [String: Any])
     let rows = try #require(object["themes"] as? [[String: Any]])
     #expect(rows.count == 8)
     #expect(Set(DocumentThemeCatalog.themes.map(\.id)).count == 8)
@@ -29,7 +32,8 @@ import Testing
             let values = try #require(row[section] as? [String: String])
             facts += values.keys.sorted().map { "\(section).\($0)=\(values[$0]!)" }
         }
-        let hash = SHA256.hash(data: Data(facts.joined(separator: "\n").utf8)).map { String(format: "%02x", $0) }.joined()
+        let hash = SHA256.hash(data: Data(facts.joined(separator: "\n").utf8)).map { String(format: "%02x", $0) }
+            .joined()
         #expect(hash == colorHash, "All authored color facts for \(id)")
         let theme = DocumentThemeCatalog.theme(id: id, dark: false)
         #expect(theme.document.count == (id.hasPrefix("mono-") ? 46 : 45))
@@ -58,37 +62,45 @@ import Testing
         #expect(classic.syntax.count == 5)
         #expect(classic.chrome.isEmpty)
         #if canImport(AppKit)
-        let appearance = try #require(NSAppearance(named: dark ? .darkAqua : .aqua))
-        let semantic: [String: PlatformColor] = ["paper": .textBackgroundColor, "text": .textColor,
-            "heading": .textColor, "inline_code": .textColor, "link": .linkColor,
-            "secondary_text": .secondaryLabelColor, "rule": .separatorColor]
-        for (key, native) in semantic {
-            var expected: PlatformColor?
-            appearance.performAsCurrentDrawingAppearance { expected = native.kasumiSRGB }
-            let expectedColor = try #require(expected)
-            let actual = try #require(classic.color(key))
-            #expect(abs(actual.redComponent - expectedColor.redComponent) < 1e-12)
-            #expect(abs(actual.greenComponent - expectedColor.greenComponent) < 1e-12)
-            #expect(abs(actual.blueComponent - expectedColor.blueComponent) < 1e-12)
-            #expect(actual.alphaComponent == expectedColor.alphaComponent)
-        }
+            let appearance = try #require(NSAppearance(named: dark ? .darkAqua : .aqua))
+            let semantic: [String: PlatformColor] = [
+                "paper": .textBackgroundColor, "text": .textColor,
+                "heading": .textColor, "inline_code": .textColor, "link": .linkColor,
+                "secondary_text": .secondaryLabelColor, "rule": .separatorColor
+            ]
+            for (key, native) in semantic {
+                var expected: PlatformColor?
+                appearance.performAsCurrentDrawingAppearance { expected = native.kasumiSRGB }
+                let expectedColor = try #require(expected)
+                let actual = try #require(classic.color(key))
+                #expect(abs(actual.redComponent - expectedColor.redComponent) < 1e-12)
+                #expect(abs(actual.greenComponent - expectedColor.greenComponent) < 1e-12)
+                #expect(abs(actual.blueComponent - expectedColor.blueComponent) < 1e-12)
+                #expect(actual.alphaComponent == expectedColor.alphaComponent)
+            }
         #else
-        let traits = UITraitCollection(userInterfaceStyle: dark ? .dark : .light)
-        let semantic: [String: UIColor] = ["paper": .systemBackground, "text": .label,
-            "heading": .label, "inline_code": .label, "link": .link,
-            "secondary_text": .secondaryLabel, "rule": .separator]
-        for (key, native) in semantic {
-            let expected = PlatformColors.srgb(native.resolvedColor(with: traits).cgColor)
-            #expect(classic.document[key] == expected)
-        }
+            let traits = UITraitCollection(userInterfaceStyle: dark ? .dark : .light)
+            let semantic: [String: UIColor] = [
+                "paper": .systemBackground, "text": .label,
+                "heading": .label, "inline_code": .label, "link": .link,
+                "secondary_text": .secondaryLabel, "rule": .separator
+            ]
+            for (key, native) in semantic {
+                let expected = PlatformColors.srgb(native.resolvedColor(with: traits).cgColor)
+                #expect(classic.document[key] == expected)
+            }
         #endif
         let codeBackground = try #require(classic.document["code_block_background"])
-        #expect(codeBackground == (dark
-            ? DocumentColor(red: 0.145, green: 0.15, blue: 0.165)
-            : DocumentColor(red: 0.958, green: 0.961, blue: 0.969)))
+        #expect(
+            codeBackground
+                == (dark
+                    ? DocumentColor(red: 0.145, green: 0.15, blue: 0.165)
+                    : DocumentColor(red: 0.958, green: 0.961, blue: 0.969)))
         // The table initializer explicitly uses Generic RGB, unlike code blocks.
         let component: CGFloat = dark ? 0.1259303879737854 : 0.96
-        let generic = CGColor(colorSpace: CGColorSpace(name: "kCGColorSpaceGenericRGB" as CFString)!, components: [component, component, component, 1])!
+        let generic = CGColor(
+            colorSpace: CGColorSpace(name: "kCGColorSpaceGenericRGB" as CFString)!,
+            components: [component, component, component, 1])!
         let converted = PlatformColors.srgb(generic)
         let table = try #require(classic.color("table_header_background"))
         #expect(abs(table.redComponent - converted.red) < 1e-12)

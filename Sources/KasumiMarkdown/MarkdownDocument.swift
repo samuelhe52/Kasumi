@@ -12,11 +12,16 @@ public struct MarkdownDocument: Sendable {
         parsed = DocumentParser.parse(plainText, plainText: true, baseURL: baseURL, plainTextOptions: options)
     }
 
-    public init(data: Data, fileExtension: String, encoding: DocumentTextEncoding = .automatic, baseURL: URL? = nil) throws {
+    public init(data: Data, fileExtension: String, encoding: DocumentTextEncoding = .automatic, baseURL: URL? = nil)
+        throws
+    {
         let source = try DocumentDecoder.decode(data, encoding: encoding).text
         let ext = fileExtension.lowercased().trimmingCharacters(in: CharacterSet(charactersIn: "."))
-        if ext == "txt" || ext == "text" { self.init(plainText: source, baseURL: baseURL) }
-        else { self.init(markdown: source, baseURL: baseURL) }
+        if ext == "txt" || ext == "text" {
+            self.init(plainText: source, baseURL: baseURL)
+        } else {
+            self.init(markdown: source, baseURL: baseURL)
+        }
     }
 
     public var outline: [OutlineItem] {
@@ -25,8 +30,9 @@ public struct MarkdownDocument: Sendable {
             let slug = DocumentTypesetter.anchorSlug(heading.text)
             let duplicate = counts[slug, default: 0]
             counts[slug] = duplicate + 1
-            return OutlineItem(level: heading.level, title: heading.text,
-                               id: slug + (duplicate == 0 ? "" : "-\(duplicate)"))
+            return OutlineItem(
+                level: heading.level, title: heading.text,
+                id: slug + (duplicate == 0 ? "" : "-\(duplicate)"))
         }
     }
 }

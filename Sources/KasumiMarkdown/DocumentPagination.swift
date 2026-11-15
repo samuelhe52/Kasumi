@@ -34,7 +34,10 @@ enum DocumentPaginator {
 
     static func pages(bands: [PaginationBand], height: CGFloat, contentHeight: CGFloat) throws -> [DocumentPageSlice] {
         guard height.isFinite, height >= 0, contentHeight.isFinite, contentHeight > 0,
-              bands.allSatisfy({ $0.range.lowerBound.isFinite && $0.range.upperBound.isFinite && $0.range.lowerBound >= 0 }) else { throw DocumentExportError.invalidGeometry }
+            bands.allSatisfy({
+                $0.range.lowerBound.isFinite && $0.range.upperBound.isFinite && $0.range.lowerBound >= 0
+            })
+        else { throw DocumentExportError.invalidGeometry }
         let sorted = bands.sorted { $0.range.lowerBound < $1.range.lowerBound }
         var indivisible: [Range<CGFloat>] = []
         var pendingKeep = false
@@ -42,13 +45,16 @@ enum DocumentPaginator {
             let overlaps = indivisible.last.map { band.range.lowerBound < $0.upperBound } ?? false
             if let prior = indivisible.last, pendingKeep || overlaps {
                 indivisible[indivisible.count - 1] = prior.lowerBound..<max(prior.upperBound, band.range.upperBound)
-            } else { indivisible.append(band.range) }
+            } else {
+                indivisible.append(band.range)
+            }
             pendingKeep = (overlaps && pendingKeep) || band.keepWithNext
         }
         // Ignore trailing paragraph separation so it cannot create a blank page.
         let end = indivisible.last?.upperBound ?? 0
         guard end > 0 else { return [] }
-        var start: CGFloat = 0, pages: [DocumentPageSlice] = []
+        var start: CGFloat = 0
+        var pages: [DocumentPageSlice] = []
         while start < end {
             var cut = min(end, start + contentHeight)
             if let band = indivisible.first(where: { $0.lowerBound < cut && $0.upperBound > cut }) {

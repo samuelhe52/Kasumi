@@ -1,17 +1,21 @@
-#if canImport(AppKit)
-import AppKit
-#else
-import UIKit
-#endif
 import CoreText
 import Foundation
-import PDFKit
 import ImageIO
+import PDFKit
 import Testing
+
 @testable import KasumiMarkdown
 
+#if canImport(AppKit)
+    import AppKit
+#else
+    import UIKit
+#endif
+
 @Test func typographyProfileMathOptionsReachInlineAndDisplayAttachments() throws {
-    let values = ProfileValues([.mathFont: .string("newcm-book"), .mathRadicalGap: .number(2), .mathFracBarOverhang: .number(0.1)])
+    let values = ProfileValues([
+        .mathFont: .string("newcm-book"), .mathRadicalGap: .number(2), .mathFracBarOverhang: .number(0.1)
+    ])
     let style = Typography().applying(values)
     let source = "\\frac{x}{y}+\\sqrt{z}"
     let inline = style.attributed([InlineRun(source, traits: [.math])])
@@ -19,13 +23,17 @@ import Testing
     let expected = MathTypesetter.layout(source, size: 16, display: false, options: style.mathOptions)
     #expect(attachment.result.box.width == expected.box.width && attachment.result.box.ascent == expected.box.ascent)
     for drawing in attachment.result.box.drawings {
-        if case let .glyph(font, _, _) = drawing { #expect(CTFontCopyPostScriptName(font) as String == "NewCMMath-Book") }
+        if case .glyph(let font, _, _) = drawing {
+            #expect(CTFontCopyPostScriptName(font) as String == "NewCMMath-Book")
+        }
     }
     let document = DocumentParser.parse("$$\n" + source + "\n$$")
     let layout = DocumentTypesetter.layout(document, width: 500, style: style)
     let display = try #require(layout.text.attribute(.kasumiMath, at: 0, effectiveRange: nil) as? MathAttachment)
     let displayExpected = MathTypesetter.layout(source, size: 16, display: true, options: style.mathOptions)
-    #expect(display.result.box.width == displayExpected.box.width && display.result.box.ascent == displayExpected.box.ascent)
+    #expect(
+        display.result.box.width == displayExpected.box.width && display.result.box.ascent == displayExpected.box.ascent
+    )
 }
 
 @Test func typographyPagellaMissingSymbolShowsCompleteSearchableSource() throws {
@@ -49,9 +57,11 @@ import Testing
     let reader = DocumentTypesetter.layout(document, width: 500, style: style)
     #expect((reader.text.attribute(.font, at: 0, effectiveRange: nil) as? PlatformFont)?.pointSize == 30)
     let url = directory.appendingPathComponent("printed.pdf")
-    var options = PDFExportOptions(); options.pageNumbers = false
+    var options = PDFExportOptions()
+    options.pageNumbers = false
     try DocumentExporter.writePDF(document, style: style, options: options, to: url)
-    let pdf = try #require(PDFDocument(url: url)), page = try #require(pdf.page(at: 0))
+    let pdf = try #require(PDFDocument(url: url))
+    let page = try #require(pdf.page(at: 0))
     let printed = try #require(page.attributedString)
     let position = (printed.string as NSString).range(of: "Printed").location
     #expect(position != NSNotFound)

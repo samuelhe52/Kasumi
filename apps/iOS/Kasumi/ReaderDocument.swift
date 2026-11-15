@@ -5,7 +5,8 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 extension UTType {
-    static let kasumiMarkdown = UTType("net.daringfireball.markdown")
+    static let kasumiMarkdown =
+        UTType("net.daringfireball.markdown")
         ?? UTType(importedAs: "net.daringfireball.markdown", conformingTo: .plainText)
 }
 
@@ -48,7 +49,8 @@ final class ReaderDocument: ReadableDocument, Identifiable {
         @concurrent
         func read(from source: sending URL, progress: consuming Subprogress) async throws -> sending ReaderSnapshot {
             let data = try Data(contentsOf: source)
-            return ReaderSnapshot(data: data, fileExtension: source.pathExtension, baseURL: source.deletingLastPathComponent())
+            return ReaderSnapshot(
+                data: data, fileExtension: source.pathExtension, baseURL: source.deletingLastPathComponent())
         }
     }
 

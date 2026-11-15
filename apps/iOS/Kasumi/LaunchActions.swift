@@ -6,7 +6,8 @@ import UIKit
 /// Pasted and fetched documents are saved as ordinary files, one folder per
 /// kind, and open through the system document browser like any other file.
 enum ImportFolder: String {
-    case pasted = "Pasted", downloaded = "Downloaded"
+    case pasted = "Pasted"
+    case downloaded = "Downloaded"
 
     var url: URL { URL.documentsDirectory.appending(path: rawValue, directoryHint: .isDirectory) }
 
@@ -21,10 +22,13 @@ enum ImportFolder: String {
     /// Writes `data` under `name`, adding " 2", " 3", … rather than replacing a file.
     func save(_ data: Data, as name: String) throws -> URL {
         try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
-        let stem = (name as NSString).deletingPathExtension, ext = (name as NSString).pathExtension
-        var target = url.appending(path: name), suffix = 2
+        let stem = (name as NSString).deletingPathExtension
+        let ext = (name as NSString).pathExtension
+        var target = url.appending(path: name)
+        var suffix = 2
         while FileManager.default.fileExists(atPath: target.path(percentEncoded: false)) {
-            target = url.appending(path: "\(stem) \(suffix).\(ext)"); suffix += 1
+            target = url.appending(path: "\(stem) \(suffix).\(ext)")
+            suffix += 1
         }
         try data.write(to: target, options: .withoutOverwriting)
         return target
@@ -62,7 +66,8 @@ final class LaunchStore {
     static func installWelcomeIfNeeded() {
         let key = "launch.welcome-installed"
         guard !UserDefaults.standard.bool(forKey: key),
-              let source = Bundle.main.url(forResource: "Welcome", withExtension: "md") else { return }
+            let source = Bundle.main.url(forResource: "Welcome", withExtension: "md")
+        else { return }
         let target = URL.documentsDirectory.appending(path: "Welcome.md")
         if !FileManager.default.fileExists(atPath: target.path(percentEncoded: false)) {
             guard (try? FileManager.default.copyItem(at: source, to: target)) != nil else { return }
@@ -77,7 +82,11 @@ final class LaunchStore {
             return pasteFailed(String(localized: "The clipboard contains no text to paste."))
         }
         guard let text = pasteboard.string else {
-            return pasteFailed(String(localized: "Kasumi can't read the clipboard. Allow it in Settings > Apps > Kasumi > Paste from Other Apps."))
+            return pasteFailed(
+                String(
+                    localized:
+                        "Kasumi can't read the clipboard. Allow it in Settings > Apps > Kasumi > Paste from Other Apps."
+                ))
         }
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             return pasteFailed(String(localized: "The clipboard contains no text to paste."))
@@ -134,33 +143,33 @@ final class LaunchStore {
     }
 
     #if DEBUG
-    /// Debug convenience: `-KasumiOpen <path>` copies that file into
-    /// Documents/Debug and opens it on launch. Works from `simctl launch` and
-    /// Xcode scheme arguments, since launch arguments land in UserDefaults.
-    func openDebugDocumentIfRequested() async {
-        guard let path = UserDefaults.standard.string(forKey: "KasumiOpen"), !path.isEmpty else { return }
-        let source = URL(fileURLWithPath: path)
-        let folder = URL.documentsDirectory.appending(path: "Debug", directoryHint: .isDirectory)
-        let target = folder.appending(path: source.lastPathComponent)
-        do {
-            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-            try? FileManager.default.removeItem(at: target)
-            try FileManager.default.copyItem(at: source, to: target)
-        } catch {
-            NSLog("KasumiOpen: cannot read %@", path)
-            return
+        /// Debug convenience: `-KasumiOpen <path>` copies that file into
+        /// Documents/Debug and opens it on launch. Works from `simctl launch` and
+        /// Xcode scheme arguments, since launch arguments land in UserDefaults.
+        func openDebugDocumentIfRequested() async {
+            guard let path = UserDefaults.standard.string(forKey: "KasumiOpen"), !path.isEmpty else { return }
+            let source = URL(fileURLWithPath: path)
+            let folder = URL.documentsDirectory.appending(path: "Debug", directoryHint: .isDirectory)
+            let target = folder.appending(path: source.lastPathComponent)
+            do {
+                try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+                try? FileManager.default.removeItem(at: target)
+                try FileManager.default.copyItem(at: source, to: target)
+            } catch {
+                NSLog("KasumiOpen: cannot read %@", path)
+                return
+            }
+            // The browser installs itself after the launch overlay appears.
+            for _ in 0..<50 where window.flatMap(Self.browser(in:)) == nil {
+                try? await Task.sleep(for: .milliseconds(100))
+            }
+            open(target)
         }
-        // The browser installs itself after the launch overlay appears.
-        for _ in 0..<50 where window.flatMap(Self.browser(in:)) == nil {
-            try? await Task.sleep(for: .milliseconds(100))
-        }
-        open(target)
-    }
     #endif
 }
 
 /// Reports the window hosting the launch overlay.
-private struct WindowReader: UIViewRepresentable {
+fileprivate struct WindowReader: UIViewRepresentable {
     let found: (UIWindow) -> Void
     func makeUIView(context: Context) -> Probe { Probe(found: found) }
     func updateUIView(_ view: Probe, context: Context) {}
@@ -186,7 +195,7 @@ struct LaunchPresenter: View {
             .allowsHitTesting(false)
             .background(WindowReader { store.window = $0 })
             #if DEBUG
-            .task { await store.openDebugDocumentIfRequested() }
+                .task { await store.openDebugDocumentIfRequested() }
             #endif
             .sheet(isPresented: $store.showURLImport, onDismiss: store.urlImportDismissed) {
                 NavigationStack {
@@ -324,10 +333,12 @@ struct URLImportView: View {
     private func fetch() {
         guard !loading else { return }
         guard let url = URL(string: trimmedURL), url.scheme?.lowercased() == "https", url.host != nil else {
-            fail("Enter a complete HTTPS URL."); return
+            fail("Enter a complete HTTPS URL.")
+            return
         }
         urlFocused = false
-        loading = true; errorMessage = nil
+        loading = true
+        errorMessage = nil
         Task {
             do {
                 let (data, finalURL) = try await TextURLLoader.load(url)
@@ -341,32 +352,40 @@ struct URLImportView: View {
     }
 }
 
-private enum TextURLLoader {
+fileprivate enum TextURLLoader {
     struct Failure: LocalizedError {
         let message: String
         var errorDescription: String? { message }
     }
     final class HTTPSRedirects: NSObject, URLSessionTaskDelegate, Sendable {
-        func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse,
-                        newRequest request: URLRequest, completionHandler: @escaping @Sendable (URLRequest?) -> Void) {
+        func urlSession(
+            _ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse,
+            newRequest request: URLRequest, completionHandler: @escaping @Sendable (URLRequest?) -> Void
+        ) {
             completionHandler(request.url?.scheme?.lowercased() == "https" ? request : nil)
         }
     }
     @concurrent static func load(_ url: URL) async throws -> (Data, URL) {
         let limit = 5 * 1024 * 1024
         let configuration = URLSessionConfiguration.ephemeral
-        configuration.timeoutIntervalForRequest = 20; configuration.timeoutIntervalForResource = 45
+        configuration.timeoutIntervalForRequest = 20
+        configuration.timeoutIntervalForResource = 45
         let session = URLSession(configuration: configuration, delegate: HTTPSRedirects(), delegateQueue: nil)
         defer { session.invalidateAndCancel() }
         let (bytes, response) = try await session.bytes(from: url)
         defer { bytes.task.cancel() }
         guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode),
-              let finalURL = response.url, finalURL.scheme?.lowercased() == "https" else { throw Failure(message: "The server did not return an HTTPS document.") }
+            let finalURL = response.url, finalURL.scheme?.lowercased() == "https"
+        else { throw Failure(message: "The server did not return an HTTPS document.") }
         let mime = (response.mimeType ?? "").lowercased()
         guard mime.hasPrefix("text/") || ["application/markdown", "application/x-markdown"].contains(mime) else {
-            throw Failure(message: "The URL must return text or Markdown, not \(mime.isEmpty ? "an unknown content type" : mime).")
+            throw Failure(
+                message: "The URL must return text or Markdown, not \(mime.isEmpty ? "an unknown content type" : mime)."
+            )
         }
-        guard response.expectedContentLength <= limit else { throw Failure(message: "The document exceeds the 5 MB limit.") }
+        guard response.expectedContentLength <= limit else {
+            throw Failure(message: "The document exceeds the 5 MB limit.")
+        }
         var data = Data()
         for try await byte in bytes {
             try Task.checkCancellation()

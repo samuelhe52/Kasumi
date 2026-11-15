@@ -7,7 +7,10 @@ struct DagreNode: Sendable, Equatable {
     var height: Double
     var parentID: String?
     init(id: String, width: Double, height: Double, parentID: String? = nil) {
-        self.id = id; self.width = width; self.height = height; self.parentID = parentID
+        self.id = id
+        self.width = width
+        self.height = height
+        self.parentID = parentID
     }
 }
 
@@ -22,13 +25,20 @@ struct DagreEdge: Sendable, Equatable {
     var weight: Int
     var labelPosition: LabelPosition
     var labelOffset: Double
-    init(id: String, source: String, target: String, labelWidth: Double = 0,
-                labelHeight: Double = 0, minLength: Int = 1, weight: Int = 1,
-                labelPosition: LabelPosition = .center, labelOffset: Double = 10) {
-        self.id = id; self.source = source; self.target = target
-        self.labelWidth = labelWidth; self.labelHeight = labelHeight
-        self.minLength = minLength; self.weight = weight
-        self.labelPosition = labelPosition; self.labelOffset = labelOffset
+    init(
+        id: String, source: String, target: String, labelWidth: Double = 0,
+        labelHeight: Double = 0, minLength: Int = 1, weight: Int = 1,
+        labelPosition: LabelPosition = .center, labelOffset: Double = 10
+    ) {
+        self.id = id
+        self.source = source
+        self.target = target
+        self.labelWidth = labelWidth
+        self.labelHeight = labelHeight
+        self.minLength = minLength
+        self.weight = weight
+        self.labelPosition = labelPosition
+        self.labelOffset = labelOffset
     }
 }
 
@@ -48,15 +58,23 @@ struct DagreOptions: Sendable, Equatable {
     var alignment: Alignment
     var rankAlignment: RankAlignment
     var greedyAcyclicer: Bool
-    init(direction: Direction = .topToBottom, nodeSeparation: Double = 50,
-                rankSeparation: Double = 50, edgeSeparation: Double = 20,
-                marginX: Double = 0, marginY: Double = 0, tieKeepFirst: Bool = false,
-                ranker: Ranker = .networkSimplex, alignment: Alignment = .automatic,
-                rankAlignment: RankAlignment = .center, greedyAcyclicer: Bool = false) {
-        self.direction = direction; self.nodeSeparation = nodeSeparation
-        self.rankSeparation = rankSeparation; self.edgeSeparation = edgeSeparation
-        self.marginX = marginX; self.marginY = marginY; self.tieKeepFirst = tieKeepFirst
-        self.ranker = ranker; self.alignment = alignment; self.rankAlignment = rankAlignment
+    init(
+        direction: Direction = .topToBottom, nodeSeparation: Double = 50,
+        rankSeparation: Double = 50, edgeSeparation: Double = 20,
+        marginX: Double = 0, marginY: Double = 0, tieKeepFirst: Bool = false,
+        ranker: Ranker = .networkSimplex, alignment: Alignment = .automatic,
+        rankAlignment: RankAlignment = .center, greedyAcyclicer: Bool = false
+    ) {
+        self.direction = direction
+        self.nodeSeparation = nodeSeparation
+        self.rankSeparation = rankSeparation
+        self.edgeSeparation = edgeSeparation
+        self.marginX = marginX
+        self.marginY = marginY
+        self.tieKeepFirst = tieKeepFirst
+        self.ranker = ranker
+        self.alignment = alignment
+        self.rankAlignment = rankAlignment
         self.greedyAcyclicer = greedyAcyclicer
     }
 }
@@ -103,27 +121,36 @@ enum DagreLayout {
         let nativeNodes = try nodes.map { node -> TDNodeInput in
             let parent: Int32
             if let parentID = node.parentID {
-                guard let i = indices[parentID] else { throw DagreLayoutError.invalidInput("Missing parent: \(parentID)") }
+                guard let i = indices[parentID] else {
+                    throw DagreLayoutError.invalidInput("Missing parent: \(parentID)")
+                }
                 parent = Int32(i)
-            } else { parent = -1 }
+            } else {
+                parent = -1
+            }
             return TDNodeInput(width: node.width, height: node.height, parent_index: parent)
         }
         var edgeIDs = Set<String>()
         let nativeEdges = try edges.map { edge -> TDEdgeInput in
-            guard edgeIDs.insert(edge.id).inserted else { throw DagreLayoutError.invalidInput("Duplicate edge ID: \(edge.id)") }
+            guard edgeIDs.insert(edge.id).inserted else {
+                throw DagreLayoutError.invalidInput("Duplicate edge ID: \(edge.id)")
+            }
             guard let source = indices[edge.source], let target = indices[edge.target],
-                  let minLength = Int32(exactly: edge.minLength), let weight = Int32(exactly: edge.weight) else {
+                let minLength = Int32(exactly: edge.minLength), let weight = Int32(exactly: edge.weight)
+            else {
                 throw DagreLayoutError.invalidInput("Invalid edge endpoints or integer options: \(edge.id)")
             }
-            return TDEdgeInput(source: UInt32(source), target: UInt32(target), label_width: edge.labelWidth,
-                               label_height: edge.labelHeight, label_offset: edge.labelOffset,
-                               min_length: minLength, weight: weight, label_position: edge.labelPosition.rawValue)
+            return TDEdgeInput(
+                source: UInt32(source), target: UInt32(target), label_width: edge.labelWidth,
+                label_height: edge.labelHeight, label_offset: edge.labelOffset,
+                min_length: minLength, weight: weight, label_position: edge.labelPosition.rawValue)
         }
-        var nativeOptions = TDOptions(node_separation: options.nodeSeparation, edge_separation: options.edgeSeparation,
-                                      rank_separation: options.rankSeparation, margin_x: options.marginX, margin_y: options.marginY,
-                                      direction: options.direction.rawValue, tie_keep_first: options.tieKeepFirst ? 1 : 0,
-                                      ranker: options.ranker.rawValue, alignment: options.alignment.rawValue,
-                                      rank_alignment: options.rankAlignment.rawValue, greedy_acyclicer: options.greedyAcyclicer ? 1 : 0)
+        var nativeOptions = TDOptions(
+            node_separation: options.nodeSeparation, edge_separation: options.edgeSeparation,
+            rank_separation: options.rankSeparation, margin_x: options.marginX, margin_y: options.marginY,
+            direction: options.direction.rawValue, tie_keep_first: options.tieKeepFirst ? 1 : 0,
+            ranker: options.ranker.rawValue, alignment: options.alignment.rawValue,
+            rank_alignment: options.rankAlignment.rawValue, greedy_acyclicer: options.greedyAcyclicer ? 1 : 0)
         var result: OpaquePointer?
         let status = nativeNodes.withUnsafeBufferPointer { n in
             nativeEdges.withUnsafeBufferPointer { e in
@@ -131,7 +158,9 @@ enum DagreLayout {
             }
         }
         guard status == 0, let result else {
-            if status == 1 { throw DagreLayoutError.invalidInput("Invalid dimensions, options, or parent relationships") }
+            if status == 1 {
+                throw DagreLayoutError.invalidInput("Invalid dimensions, options, or parent relationships")
+            }
             throw DagreLayoutError.nativeFailure(status)
         }
         defer { td_dagre_result_free(result) }
@@ -152,7 +181,8 @@ enum DagreLayout {
                 guard td_dagre_result_point(result, i, j, &p) == 1 else { throw DagreLayoutError.nativeFailure(3) }
                 points.append(CGPoint(x: p.x, y: p.y))
             }
-            outputEdges[edge.id] = DagreEdgeLayout(points: points, labelCenter: e.has_label_center != 0 ? CGPoint(x: e.label_x, y: e.label_y) : nil)
+            outputEdges[edge.id] = DagreEdgeLayout(
+                points: points, labelCenter: e.has_label_center != 0 ? CGPoint(x: e.label_x, y: e.label_y) : nil)
         }
         var size = TDPoint()
         guard td_dagre_result_size(result, &size) == 1 else { throw DagreLayoutError.nativeFailure(3) }

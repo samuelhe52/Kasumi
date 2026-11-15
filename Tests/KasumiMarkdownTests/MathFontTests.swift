@@ -1,6 +1,7 @@
 import CoreText
 import Foundation
 import Testing
+
 @testable import KasumiMarkdown
 
 @Test func bundledMathFaceUsesReferenceFontMetrics() {
@@ -35,13 +36,13 @@ import Testing
     #expect(tall.advance == 35.86)
     let largest = try #require(MathFont.verticalVariant(glyph: glyph, minimumHeight: 500, size: 20))
     #expect(largest.advance == 59.82)
-    #expect(largest.advance < 500) // Signals that a glyph assembly is required.
+    #expect(largest.advance < 500)  // Signals that a glyph assembly is required.
     #expect(MathFont.verticalVariant(glyph: glyph, minimumHeight: .infinity, size: 20) == nil)
 }
 
 @Test func malformedMathTablesFailWithoutOutOfBoundsReads() throws {
     let face = MathFont.font(size: 20)
-    let original = try #require(CTFontCopyTable(face, CTFontTableTag(0x4D415448), []) as Data?)
+    let original = try #require(CTFontCopyTable(face, CTFontTableTag(0x4D41_5448), []) as Data?)
     for size in [0, 1, 4, 9, 64, 213] {
         #expect(OpenTypeMathTable(data: original.prefix(size)) == nil)
     }

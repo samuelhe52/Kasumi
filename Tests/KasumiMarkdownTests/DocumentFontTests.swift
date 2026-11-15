@@ -1,13 +1,15 @@
-#if canImport(AppKit)
-import AppKit
-#else
-import UIKit
-#endif
 import CoreText
 import CryptoKit
 import Foundation
 import Testing
+
 @testable import KasumiMarkdown
+
+#if canImport(AppKit)
+    import AppKit
+#else
+    import UIKit
+#endif
 
 @Test func bundledDocumentFacesPreserveReferenceBytesAndResolveWithoutFallback() throws {
     let faces = try DocumentFonts.registerBundledFonts()

@@ -1,26 +1,32 @@
-#if canImport(AppKit)
-import AppKit
-#else
-import UIKit
-#endif
 import CoreGraphics
 import CoreText
 import Foundation
 import ImageIO
 import PDFKit
 import Testing
+
 @testable import KasumiMarkdown
 
-private func facadeIsWorkerThread() -> Bool { !Thread.isMainThread }
+#if canImport(AppKit)
+    import AppKit
+#else
+    import UIKit
+#endif
 
-private func facadeBitmap(size: CGSize, draw: (CGContext) -> Void) throws -> [UInt8] {
-    let width = Int(ceil(size.width)), height = Int(ceil(size.height))
+fileprivate func facadeIsWorkerThread() -> Bool { !Thread.isMainThread }
+
+fileprivate func facadeBitmap(size: CGSize, draw: (CGContext) -> Void) throws -> [UInt8] {
+    let width = Int(ceil(size.width))
+    let height = Int(ceil(size.height))
     var pixels = [UInt8](repeating: 0, count: width * height * 4)
     try pixels.withUnsafeMutableBytes { bytes in
-        let context = try #require(CGContext(data: bytes.baseAddress, width: width, height: height,
-            bitsPerComponent: 8, bytesPerRow: width * 4, space: CGColorSpace(name: CGColorSpace.sRGB)!,
-            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
-        context.translateBy(x: 0, y: CGFloat(height)); context.scaleBy(x: 1, y: -1)
+        let context = try #require(
+            CGContext(
+                data: bytes.baseAddress, width: width, height: height,
+                bitsPerComponent: 8, bytesPerRow: width * 4, space: CGColorSpace(name: CGColorSpace.sRGB)!,
+                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+        context.translateBy(x: 0, y: CGFloat(height))
+        context.scaleBy(x: 1, y: -1)
         draw(context)
     }
     return pixels
@@ -33,14 +39,17 @@ private func facadeBitmap(size: CGSize, draw: (CGContext) -> Void) throws -> [UI
         let document = MarkdownDocument(markdown: source, baseURL: url.deletingLastPathComponent())
         let style = RenderStyle()
         let rendered = RenderedDocument(document, width: 540, style: style)
-        let internalLayout = DocumentTypesetter.layout(document.parsed, width: 540, style: style.typography, insets: style.insets)
+        let internalLayout = DocumentTypesetter.layout(
+            document.parsed, width: 540, style: style.typography, insets: style.insets)
         #expect(rendered.size == CGSize(width: internalLayout.width, height: internalLayout.height))
         let reference = try facadeBitmap(size: rendered.size) { context in
             context.setFillColor(style.typography.paperColor.cgColor)
             context.fill(CGRect(origin: .zero, size: rendered.size))
             DocumentTypesetter.draw(internalLayout, in: context)
         }
-        let full = try facadeBitmap(size: rendered.size) { rendered.draw(in: $0, rect: CGRect(origin: .zero, size: rendered.size)) }
+        let full = try facadeBitmap(size: rendered.size) {
+            rendered.draw(in: $0, rect: CGRect(origin: .zero, size: rendered.size))
+        }
         // Compare each path with the same graphics clip. Core Graphics can
         // quantize clipped vector curves differently from an unclipped pass.
         let tiles = stride(from: CGFloat(0), to: rendered.size.height, by: 117).flatMap { y in
@@ -72,7 +81,9 @@ private func facadeBitmap(size: CGSize, draw: (CGContext) -> Void) throws -> [UI
     }
 
     @Test func semanticSelectionSearchAndCaretRoundTrips() throws {
-        let rendered = RenderedDocument(MarkdownDocument(markdown: "Café 中文 $x_i+1$ and **bold**.\n\nNext 👩‍👩‍👧‍👦 line."), width: 260, style: RenderStyle())
+        let rendered = RenderedDocument(
+            MarkdownDocument(markdown: "Café 中文 $x_i+1$ and **bold**.\n\nNext 👩‍👩‍👧‍👦 line."), width: 260,
+            style: RenderStyle())
         #expect(rendered.text(in: rendered.documentRange) == "Café 中文 x_i+1 and bold.\nNext 👩‍👩‍👧‍👦 line.")
         let cjkMath = try #require(rendered.ranges(matching: "中文 x_i+1").first)
         #expect(rendered.text(in: cjkMath) == "中文 x_i+1")
@@ -84,7 +95,9 @@ private func facadeBitmap(size: CGSize, draw: (CGContext) -> Void) throws -> [UI
         #expect(rendered.ranges(matching: "CAFE", options: [.caseSensitive]).isEmpty)
         #expect(rendered.ranges(matching: "Cafe", options: [.diacriticSensitive]).isEmpty)
         #expect(rendered.ranges(matching: "").isEmpty)
-        for range in rendered.ranges(matching: "Café") + rendered.ranges(matching: "bold") + rendered.ranges(matching: "👩‍👩‍👧‍👦") {
+        for range in rendered.ranges(matching: "Café") + rendered.ranges(matching: "bold")
+            + rendered.ranges(matching: "👩‍👩‍👧‍👦")
+        {
             for position in [range.lowerBound, range.upperBound] {
                 let caret = rendered.caretRect(for: position)
                 #expect(rendered.position(closestTo: CGPoint(x: caret.minX, y: caret.midY)) == position)
@@ -100,7 +113,9 @@ private func facadeBitmap(size: CGSize, draw: (CGContext) -> Void) throws -> [UI
     }
 
     @Test func outlineLinksAndReadingAnchorsUseStableDocumentCoordinates() throws {
-        let source = "# Same 标题\n\n[Outside](https://example.com) [Inside](#same-标题-1)\n\n## Same 标题\n\n" + String(repeating: "Reading words across reflow.\n\n", count: 12)
+        let source =
+            "# Same 标题\n\n[Outside](https://example.com) [Inside](#same-标题-1)\n\n## Same 标题\n\n"
+            + String(repeating: "Reading words across reflow.\n\n", count: 12)
         let document = MarkdownDocument(markdown: source)
         #expect(document.outline.map(\.id) == ["same-标题", "same-标题-1"])
         let rendered = RenderedDocument(document, width: 400, style: .init())
@@ -123,8 +138,14 @@ private func facadeBitmap(size: CGSize, draw: (CGContext) -> Void) throws -> [UI
         #expect(reflowed.y(for: anchor) != nil)
         #expect(try JSONDecoder().decode(ReadingAnchor.self, from: JSONEncoder().encode(anchor)) == anchor)
         let encoded = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(anchor)) as? [String: Any])
-        #expect(Set(encoded.keys) == Set(["blockKey", "blockIndex", "offset", "previousKeys", "nextKeys", "blockCount", "verticalFraction"]))
-        let legacyData = Data(#"{"blockKey":"persisted-key","blockIndex":3,"offset":42,"previousKeys":["before"],"nextKeys":["after"],"blockCount":8,"verticalFraction":0.25}"#.utf8)
+        #expect(
+            Set(encoded.keys)
+                == Set([
+                    "blockKey", "blockIndex", "offset", "previousKeys", "nextKeys", "blockCount", "verticalFraction"
+                ]))
+        let legacyData = Data(
+            #"{"blockKey":"persisted-key","blockIndex":3,"offset":42,"previousKeys":["before"],"nextKeys":["after"],"blockCount":8,"verticalFraction":0.25}"#
+                .utf8)
         let legacy = try JSONDecoder().decode(ReadingAnchor.self, from: legacyData)
         let reencoded = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(legacy)) as? NSDictionary)
         #expect(reencoded == (try JSONSerialization.jsonObject(with: legacyData) as? NSDictionary))
@@ -158,15 +179,20 @@ private func facadeBitmap(size: CGSize, draw: (CGContext) -> Void) throws -> [UI
         let pageSize = CGSize(width: 300, height: 220)
         let margins = DocumentInsets(top: 20, left: 20, bottom: 20, right: 20)
         let style = RenderStyle()
-        var internalOptions = PDFExportOptions(); internalOptions.paperSize = pageSize; internalOptions.margins = margins
-        let expected = try #require(PDFDocument(data: DocumentExporter.pdfData(long.parsed, style: style.typography, options: internalOptions)))
-        let multi = try #require(PDFDocument(data: DocumentExport.pdf(long, style: style, pageSize: pageSize, margins: margins)))
+        var internalOptions = PDFExportOptions()
+        internalOptions.paperSize = pageSize
+        internalOptions.margins = margins
+        let expected = try #require(
+            PDFDocument(data: DocumentExporter.pdfData(long.parsed, style: style.typography, options: internalOptions)))
+        let multi = try #require(
+            PDFDocument(data: DocumentExport.pdf(long, style: style, pageSize: pageSize, margins: margins)))
         #expect(multi.pageCount == expected.pageCount && multi.pageCount > 1)
         #expect(multi.page(at: 0)?.bounds(for: .mediaBox).size == pageSize)
     }
 
     @Test func detachedBuildAndConcurrentSnapshotUseAreSafe() async throws {
-        let document = MarkdownDocument(markdown: "# Worker\n\n中文 $x^2$ and `code`.\n\n```mermaid\ngraph LR\n A --> B\n```\n")
+        let document = MarkdownDocument(
+            markdown: "# Worker\n\n中文 $x^2$ and `code`.\n\n```mermaid\ngraph LR\n A --> B\n```\n")
         let rendered = await Task.detached {
             #expect(facadeIsWorkerThread())
             return RenderedDocument(document, width: 400, style: .init())
@@ -188,41 +214,48 @@ private func facadeBitmap(size: CGSize, draw: (CGContext) -> Void) throws -> [UI
 
     @Test func explicitStyleOverridesAndInstalledMacFamiliesArePreserved() throws {
         let paper = try #require(DocumentColor(hex: "#102030"))
-        let theme = DocumentTheme(id: "client", name: "Client palette", appearance: .dark,
-                                  document: ["paper": paper])
+        let theme = DocumentTheme(
+            id: "client", name: "Client palette", appearance: .dark,
+            document: ["paper": paper])
         let insets = DocumentInsets(top: 12, left: 13, bottom: 14, right: 15)
         let style = RenderStyle(theme: theme, fontSize: 21, widthLimit: nil, insets: insets)
         #expect(style.typography.size == 21)
         #expect(!style.typography.limitWidth && style.typography.dark)
         #expect(style.typography.documentTheme.appearance == theme.appearance)
-        #expect(style.typography.documentTheme.document["rule"] == DocumentThemeCatalog.theme(id: "default-dark", dark: true).document["rule"])
+        #expect(
+            style.typography.documentTheme.document["rule"]
+                == DocumentThemeCatalog.theme(id: "default-dark", dark: true).document["rule"])
         #expect(style.typography.documentTheme.id == "client")
         let rendered = RenderedDocument(MarkdownDocument(markdown: "Explicit style"), width: 300, style: style)
         #expect(PlatformColors.srgb(rendered.backgroundColor) == paper)
         #expect(rendered.size.width == 300)
         #expect(style == RenderStyle(theme: theme, fontSize: 21, widthLimit: nil, insets: insets))
         #if os(macOS)
-        for preset in TypographyPreset.builtin {
-            let legacy = Typography().applying(preset.values)
-            let mapped = RenderStyle(preset: preset).typography
-            #expect(mapped.latinFamily == legacy.latinFamily)
-            #expect(mapped.hanFamily == legacy.hanFamily)
-            #expect(mapped.codeFamily == legacy.codeFamily)
-            #expect(mapped.font().fontName == legacy.font().fontName)
-            #expect(mapped.font(cjk: true).fontName == legacy.font(cjk: true).fontName)
-            #expect(mapped.documentTheme == legacy.documentTheme)
-        }
+            for preset in TypographyPreset.builtin {
+                let legacy = Typography().applying(preset.values)
+                let mapped = RenderStyle(preset: preset).typography
+                #expect(mapped.latinFamily == legacy.latinFamily)
+                #expect(mapped.hanFamily == legacy.hanFamily)
+                #expect(mapped.codeFamily == legacy.codeFamily)
+                #expect(mapped.font().fontName == legacy.font().fontName)
+                #expect(mapped.font(cjk: true).fontName == legacy.font(cjk: true).fontName)
+                #expect(mapped.documentTheme == legacy.documentTheme)
+            }
         #endif
     }
 
     @Test func missingFamilyUsesOrderedFallbackWithoutDownloads() throws {
-        let preset = try TypographyPreset(id: "missing", name: "Missing family", toml: "[profile]\nhan_family = \"KasumiDeliberatelyMissingFamily\"\n")
+        let preset = try TypographyPreset(
+            id: "missing", name: "Missing family", toml: "[profile]\nhan_family = \"KasumiDeliberatelyMissingFamily\"\n"
+        )
         let style = RenderStyle(preset: preset)
         #expect(FontAvailability.missingFamilies(for: style).contains("KasumiDeliberatelyMissingFamily"))
         let bundled = try #require(TypographyPreset.builtin.first { $0.id == "serif-pagella" })
         #expect(!FontAvailability.missingFamilies(for: RenderStyle(preset: bundled)).contains("TeX Gyre Pagella"))
         #expect(style.typography.hanFamily != "KasumiDeliberatelyMissingFamily")
-        #expect(FontFamilyResolver.firstAvailable(in: ["Missing", "Fallback", "Later"], available: { $0 != "Missing" }) == "Fallback")
+        #expect(
+            FontFamilyResolver.firstAvailable(in: ["Missing", "Fallback", "Later"], available: { $0 != "Missing" })
+                == "Fallback")
         #expect(FontFamilyResolver.firstAvailable(in: ["Missing"], available: { _ in false }) == nil)
         let rendered = RenderedDocument(MarkdownDocument(markdown: "汉字与 fallback"), width: 300, style: style)
         #expect(rendered.text(in: rendered.documentRange) == "汉字与 fallback")

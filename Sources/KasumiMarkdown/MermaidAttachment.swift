@@ -1,9 +1,10 @@
-#if canImport(AppKit)
-import AppKit
-#else
-import UIKit
-#endif
 import CoreText
+
+#if canImport(AppKit)
+    import AppKit
+#else
+    import UIKit
+#endif
 
 extension NSAttributedString.Key {
     static let kasumiDiagram = NSAttributedString.Key("KasumiDiagramAttachment")
@@ -18,9 +19,15 @@ final class MermaidAttachment: NSObject {
     let scale: CGFloat
     let size: CGSize
 
-    init(source: String, scene: MermaidScene, fontSize: CGFloat, fontFamily: String, dark: Bool, maximumWidth: CGFloat, renderScale: CGFloat = 1) {
-        self.source = source; self.scene = scene
-        self.fontSize = fontSize; self.fontFamily = fontFamily; self.dark = dark
+    init(
+        source: String, scene: MermaidScene, fontSize: CGFloat, fontFamily: String, dark: Bool, maximumWidth: CGFloat,
+        renderScale: CGFloat = 1
+    ) {
+        self.source = source
+        self.scene = scene
+        self.fontSize = fontSize
+        self.fontFamily = fontFamily
+        self.dark = dark
         // Include stroke ink so fitting/cropping cannot remove a border.
         let bounds = scene.bounds.insetBy(dx: -1, dy: -1)
         scale = min(renderScale, maximumWidth / max(1, bounds.width))
@@ -28,19 +35,23 @@ final class MermaidAttachment: NSObject {
     }
     func attributed() -> NSAttributedString {
         let pointer = Unmanaged.passRetained(self).toOpaque()
-        var callbacks = CTRunDelegateCallbacks(version: kCTRunDelegateVersion1, dealloc: {
-            Unmanaged<MermaidAttachment>.fromOpaque($0).release()
-        }, getAscent: { Unmanaged<MermaidAttachment>.fromOpaque($0).takeUnretainedValue().size.height },
-           getDescent: { _ in 0 },
-           getWidth: { Unmanaged<MermaidAttachment>.fromOpaque($0).takeUnretainedValue().size.width })
+        var callbacks = CTRunDelegateCallbacks(
+            version: kCTRunDelegateVersion1,
+            dealloc: {
+                Unmanaged<MermaidAttachment>.fromOpaque($0).release()
+            }, getAscent: { Unmanaged<MermaidAttachment>.fromOpaque($0).takeUnretainedValue().size.height },
+            getDescent: { _ in 0 },
+            getWidth: { Unmanaged<MermaidAttachment>.fromOpaque($0).takeUnretainedValue().size.width })
         guard let delegate = CTRunDelegateCreate(&callbacks, pointer) else {
             Unmanaged<MermaidAttachment>.fromOpaque(pointer).release()
             return NSAttributedString(string: source)
         }
-        return NSAttributedString(string: "\u{FFFC}", attributes: [
-            NSAttributedString.Key(kCTRunDelegateAttributeName as String): delegate,
-            .kasumiDiagram: self, .kasumiSemanticText: source, .foregroundColor: PlatformColor.clear
-        ])
+        return NSAttributedString(
+            string: "\u{FFFC}",
+            attributes: [
+                NSAttributedString.Key(kCTRunDelegateAttributeName as String): delegate,
+                .kasumiDiagram: self, .kasumiSemanticText: source, .foregroundColor: PlatformColor.clear
+            ])
     }
     /// Called in the upward-positive baseline coordinates used by CTLine.
     func draw(in context: CGContext) {

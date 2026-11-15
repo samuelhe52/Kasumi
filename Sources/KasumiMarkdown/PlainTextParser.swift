@@ -3,7 +3,12 @@ import Foundation
 public enum TXTParagraphMode: String, Codable, CaseIterable, Hashable, Sendable {
     case automatic, line, blank, indent
     public var title: String {
-        switch self { case .automatic: "Automatic"; case .line: "One per line"; case .blank: "Blank line"; case .indent: "Indent" }
+        switch self {
+        case .automatic: "Automatic"
+        case .line: "One per line"
+        case .blank: "Blank line"
+        case .indent: "Indent"
+        }
     }
 }
 
@@ -11,8 +16,12 @@ public struct PlainTextOptions: Codable, Equatable, Sendable {
     public var paragraphMode: TXTParagraphMode
     public var detectChapters: Bool
     public var parseAsMarkdown: Bool
-    public init(paragraphMode: TXTParagraphMode = .automatic, detectChapters: Bool = true, parseAsMarkdown: Bool = false) {
-        self.paragraphMode = paragraphMode; self.detectChapters = detectChapters; self.parseAsMarkdown = parseAsMarkdown
+    public init(
+        paragraphMode: TXTParagraphMode = .automatic, detectChapters: Bool = true, parseAsMarkdown: Bool = false
+    ) {
+        self.paragraphMode = paragraphMode
+        self.detectChapters = detectChapters
+        self.parseAsMarkdown = parseAsMarkdown
     }
 }
 
@@ -28,7 +37,9 @@ enum PlainTextParser {
 
     static func resolvedParagraphMode(for source: String) -> TXTParagraphMode { automaticMode(lines(source)) }
 
-    static func parse(_ source: String, options: PlainTextOptions = PlainTextOptions(), baseURL: URL? = nil) -> ParsedDocument {
+    static func parse(_ source: String, options: PlainTextOptions = PlainTextOptions(), baseURL: URL? = nil)
+        -> ParsedDocument
+    {
         let input = lines(source)
         let mode = options.paragraphMode == .automatic ? automaticMode(input) : options.paragraphMode
         var blocks: [DocumentBlock] = []
@@ -42,10 +53,14 @@ enum PlainTextParser {
             }
             var block = DocumentBlock(id: blocks.count, kind: .paragraph, runs: [InlineRun(text)])
             block.sourceLines = first.number...last.number
-            blocks.append(block); parts.removeAll(keepingCapacity: true)
+            blocks.append(block)
+            parts.removeAll(keepingCapacity: true)
         }
         for line in input {
-            if line.text.isEmpty { flush(); continue }
+            if line.text.isEmpty {
+                flush()
+                continue
+            }
             if options.detectChapters, let level = line.chapter {
                 flush()
                 var block = DocumentBlock(id: blocks.count, kind: .heading, runs: [InlineRun(line.text)], level: level)
@@ -70,7 +85,9 @@ enum PlainTextParser {
         return normalized.components(separatedBy: "\n").enumerated().map { index, raw in
             let text = raw.trimmingCharacters(in: edgeSpaces)
             let scalars = Array(raw.unicodeScalars.prefix(2))
-            let indented = scalars.first == "\t" || scalars.first == "\u{3000}" || (scalars.first == " " && scalars.count > 1 && [" ", "\t", "\u{3000}"].contains(scalars[1]))
+            let indented =
+                scalars.first == "\t" || scalars.first == "\u{3000}"
+                || (scalars.first == " " && scalars.count > 1 && [" ", "\t", "\u{3000}"].contains(scalars[1]))
             return Line(text: text, number: index + 1, indented: indented, chapter: chapterLevel(text))
         }
     }
@@ -79,7 +96,11 @@ enum PlainTextParser {
         let sample = Array(lines.lazy.filter { !$0.text.isEmpty && $0.chapter == nil }.prefix(400))
         guard !sample.isEmpty else { return .line }
         if Double(sample.filter(\.indented).count) / Double(sample.count) >= 0.6 { return .indent }
-        if Double(sample.filter { $0.text.last.map { terminalPunctuation.contains($0) } ?? false }.count) / Double(sample.count) >= 0.7 { return .line }
+        if Double(sample.filter { $0.text.last.map { terminalPunctuation.contains($0) } ?? false }.count)
+            / Double(sample.count) >= 0.7
+        {
+            return .line
+        }
         return .blank
     }
 
@@ -105,7 +126,8 @@ enum PlainTextParser {
                     if let level, index + 1 == scalars.count || separators.contains(scalars[index + 1]) { return level }
                 }
             }
-            for prefix in ["序章", "序言", "前言", "楔子", "引子", "番外", "尾声", "尾聲", "后记", "後記", "终章", "終章", "序"] where text.hasPrefix(prefix) {
+            for prefix in ["序章", "序言", "前言", "楔子", "引子", "番外", "尾声", "尾聲", "后记", "後記", "终章", "終章", "序"]
+            where text.hasPrefix(prefix) {
                 let count = prefix.unicodeScalars.count
                 if scalars.count == count || separators.contains(scalars[count]) { return 2 }
             }
@@ -115,12 +137,20 @@ enum PlainTextParser {
             while end < scalars.count, scalars[end].isASCII, CharacterSet.letters.contains(scalars[end]) { end += 1 }
             let word = String(String.UnicodeScalarView(scalars.prefix(end))).lowercased()
             let level: Int?
-            switch word { case "part", "book": level = 1; case "chapter", "prologue", "epilogue": level = 2; default: level = nil }
+            switch word {
+            case "part", "book": level = 1
+            case "chapter", "prologue", "epilogue": level = 2
+            default: level = nil
+            }
             if let level {
                 if end == scalars.count { return level }
                 if edgeSpaces.contains(scalars[end]) {
                     while end < scalars.count, edgeSpaces.contains(scalars[end]) { end += 1 }
-                    if end == scalars.count || (scalars[end].isASCII && CharacterSet.alphanumerics.contains(scalars[end])) { return level }
+                    if end == scalars.count
+                        || (scalars[end].isASCII && CharacterSet.alphanumerics.contains(scalars[end]))
+                    {
+                        return level
+                    }
                 }
             }
         }

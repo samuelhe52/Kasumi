@@ -1,24 +1,27 @@
-#if canImport(AppKit)
-import AppKit
-#else
-import UIKit
-#endif
 import CoreGraphics
 import CoreText
 import Foundation
 import PDFKit
 import Testing
+
 @testable import KasumiMarkdown
 
-private func drawingParagraph(_ attributed: NSAttributedString, width: CGFloat = 650) -> ParagraphLayout {
-    ParagraphTypesetter.layout(attributed, width: width, fontSize: 22, alignment: .justified,
-                               profileValues: ProfileValues([.autoRaggedNarrow: .flag(false)]))
+#if canImport(AppKit)
+    import AppKit
+#else
+    import UIKit
+#endif
+
+fileprivate func drawingParagraph(_ attributed: NSAttributedString, width: CGFloat = 650) -> ParagraphLayout {
+    ParagraphTypesetter.layout(
+        attributed, width: width, fontSize: 22, alignment: .justified,
+        profileValues: ProfileValues([.autoRaggedNarrow: .flag(false)]))
 }
 
 /// The former renderer is the independent paint reference: retain the existing
 /// CTLines and place each at the engine's actual fragment origin. It neither
 /// rebuilds glyph batches nor substitutes normalized source text.
-private func priorParagraphPaint(_ line: ShapedLine, in context: CGContext) {
+fileprivate func priorParagraphPaint(_ line: ShapedLine, in context: CGContext) {
     for fragment in line.fragments {
         context.textPosition = CGPoint(x: fragment.x + fragment.drawOffset, y: 0)
         CTLineDraw(fragment.line, context)
@@ -29,14 +32,18 @@ private func priorParagraphPaint(_ line: ShapedLine, in context: CGContext) {
     }
 }
 
-private func paragraphBitmap(_ paragraph: ParagraphLayout, batched: Bool) throws -> [UInt8] {
-    let width = 1400, height = 600, scale: CGFloat = 2
+fileprivate func paragraphBitmap(_ paragraph: ParagraphLayout, batched: Bool) throws -> [UInt8] {
+    let width = 1400
+    let height = 600
+    let scale: CGFloat = 2
     var pixels = [UInt8](repeating: 255, count: width * height * 4)
     try pixels.withUnsafeMutableBytes { storage in
-        let context = try #require(CGContext(data: storage.baseAddress, width: width, height: height,
-                                           bitsPerComponent: 8, bytesPerRow: width * 4,
-                                           space: CGColorSpace(name: CGColorSpace.sRGB)!,
-                                           bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+        let context = try #require(
+            CGContext(
+                data: storage.baseAddress, width: width, height: height,
+                bitsPerComponent: 8, bytesPerRow: width * 4,
+                space: CGColorSpace(name: CGColorSpace.sRGB)!,
+                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
         context.setFillColor(CGColor(gray: 1, alpha: 1))
         context.fill(CGRect(x: 0, y: 0, width: width, height: height))
         context.setShouldAntialias(true)
@@ -51,26 +58,31 @@ private func paragraphBitmap(_ paragraph: ParagraphLayout, batched: Bool) throws
         for line in paragraph.lines {
             context.saveGState()
             context.translateBy(x: line.origin.x, y: -line.origin.y)
-            if batched { ParagraphGlyphDrawing.draw(line, attributed: paragraph.attributed, in: context) }
-            else { priorParagraphPaint(line, in: context) }
+            if batched {
+                ParagraphGlyphDrawing.draw(line, attributed: paragraph.attributed, in: context)
+            } else {
+                priorParagraphPaint(line, in: context)
+            }
             context.restoreGState()
         }
     }
     return pixels
 }
 
-private func differingParagraphPixels(_ a: [UInt8], _ b: [UInt8]) -> Int {
+fileprivate func differingParagraphPixels(_ a: [UInt8], _ b: [UInt8]) -> Int {
     stride(from: 0, to: a.count, by: 4).reduce(0) { count, index in
         count + (a[index..<(index + 4)].elementsEqual(b[index..<(index + 4)]) ? 0 : 1)
     }
 }
 
-private func inkParagraphPixels(_ pixels: [UInt8]) -> Int {
-    stride(from: 0, to: pixels.count, by: 4).filter { pixels[$0] < 250 || pixels[$0 + 1] < 250 || pixels[$0 + 2] < 250 }.count
+fileprivate func inkParagraphPixels(_ pixels: [UInt8]) -> Int {
+    stride(from: 0, to: pixels.count, by: 4).filter { pixels[$0] < 250 || pixels[$0 + 1] < 250 || pixels[$0 + 2] < 250 }
+        .count
 }
 
-private func paragraphPDF(_ paragraph: ParagraphLayout) throws -> Data {
-    let directory = FileManager.default.temporaryDirectory.appendingPathComponent("ParagraphDrawing-" + UUID().uuidString)
+fileprivate func paragraphPDF(_ paragraph: ParagraphLayout) throws -> Data {
+    let directory = FileManager.default.temporaryDirectory.appendingPathComponent(
+        "ParagraphDrawing-" + UUID().uuidString)
     try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     defer { try? FileManager.default.removeItem(at: directory) }
     let url = directory.appendingPathComponent("authored.pdf")
@@ -91,23 +103,30 @@ private func paragraphPDF(_ paragraph: ParagraphLayout) throws -> Data {
     return try Data(contentsOf: url)
 }
 
-private func mixedFontDrawingText() -> NSMutableAttributedString {
+fileprivate func mixedFontDrawingText() -> NSMutableAttributedString {
     var values = BuiltinProfiles.all[0].effective
     values[.baseSize] = .number(22)
     values[.hanScale] = .number(1.15)
     values[.hanBaseline] = .number(0.12)
     let style = Typography().applying(values)
-    let text = NSMutableAttributedString(attributedString: style.attributed([
-        InlineRun("Latin office "), InlineRun("汉，字。（"),
-        InlineRun("Link_20", traits: [.link], destination: "https://example.invalid/authored"),
-        InlineRun("） raised"), InlineRun(" tail", traits: [.emphasis]),
-        InlineRun(" 🙂 👩‍👩‍👧‍👦 emoji")
-    ]))
+    let text = NSMutableAttributedString(
+        attributedString: style.attributed([
+            InlineRun("Latin office "), InlineRun("汉，字。（"),
+            InlineRun("Link_20", traits: [.link], destination: "https://example.invalid/authored"),
+            InlineRun("） raised"), InlineRun(" tail", traits: [.emphasis]),
+            InlineRun(" 🙂 👩‍👩‍👧‍👦 emoji")
+        ]))
     let source = text.string as NSString
-    text.addAttributes([.foregroundColor: PlatformColor(srgbRed: 0.85, green: 0.05, blue: 0.1, alpha: 1),
-                        .baselineOffset: 4.25], range: source.range(of: "Latin office"))
-    text.addAttributes([.foregroundColor: PlatformColor(srgbRed: 0.05, green: 0.15, blue: 0.85, alpha: 1),
-                        .baselineOffset: -2.5], range: source.range(of: "raised"))
+    text.addAttributes(
+        [
+            .foregroundColor: PlatformColor(srgbRed: 0.85, green: 0.05, blue: 0.1, alpha: 1),
+            .baselineOffset: 4.25
+        ], range: source.range(of: "Latin office"))
+    text.addAttributes(
+        [
+            .foregroundColor: PlatformColor(srgbRed: 0.05, green: 0.15, blue: 0.85, alpha: 1),
+            .baselineOffset: -2.5
+        ], range: source.range(of: "raised"))
     return text
 }
 
@@ -164,14 +183,19 @@ private func mixedFontDrawingText() -> NSMutableAttributedString {
         let previous = try paragraphBitmap(paragraph, batched: false)
         let current = try paragraphBitmap(paragraph, batched: true)
         #expect(differingParagraphPixels(previous, current) == 0)
-        let red = stride(from: 0, to: previous.count, by: 4).filter { Int(previous[$0]) > Int(previous[$0 + 2]) + 30 && previous[$0 + 1] < 150 }.count
-        let blue = stride(from: 0, to: previous.count, by: 4).filter { Int(previous[$0 + 2]) > Int(previous[$0]) + 30 && previous[$0 + 1] < 150 }.count
+        let red = stride(from: 0, to: previous.count, by: 4).filter {
+            Int(previous[$0]) > Int(previous[$0 + 2]) + 30 && previous[$0 + 1] < 150
+        }.count
+        let blue = stride(from: 0, to: previous.count, by: 4).filter {
+            Int(previous[$0 + 2]) > Int(previous[$0]) + 30 && previous[$0 + 1] < 150
+        }.count
         #expect(red > 25 && blue > 25)
     }
 
     @Test func decoratedMiddleFragmentFlushesAndPreservesFollowingGlyphPositions() throws {
         let font = PlatformFont.systemFont(ofSize: 22)
-        let base = NSAttributedString(string: "before underlined after", attributes: [.font: font, .foregroundColor: PlatformColor.black])
+        let base = NSAttributedString(
+            string: "before underlined after", attributes: [.font: font, .foregroundColor: PlatformColor.black])
         let range = (base.string as NSString).range(of: "underlined")
         let decorations: [[NSAttributedString.Key: Any]] = [
             [.underlineStyle: NSUnderlineStyle.single.rawValue, .underlineColor: PlatformColor.red],
@@ -194,18 +218,28 @@ private func mixedFontDrawingText() -> NSMutableAttributedString {
     @Test func attachmentDelegatesProduceNeitherPlaceholderInkNorPDFText() throws {
         let math = MathAttachment(source: "\\frac{1}{2}", size: 22, display: false)
         #expect(math.result.diagnostics.isEmpty)
-        let bitmap = try #require(CGContext(data: nil, width: 8, height: 6, bitsPerComponent: 8, bytesPerRow: 32,
-                                           space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
-        bitmap.setFillColor(PlatformColor.red.cgColor); bitmap.fill(CGRect(x: 0, y: 0, width: 8, height: 6))
+        let bitmap = try #require(
+            CGContext(
+                data: nil, width: 8, height: 6, bitsPerComponent: 8, bytesPerRow: 32,
+                space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+        bitmap.setFillColor(PlatformColor.red.cgColor)
+        bitmap.fill(CGRect(x: 0, y: 0, width: 8, height: 6))
         let image = DocumentImage(bitmap: try #require(bitmap.makeImage()), size: CGSize(width: 8, height: 6))
-        let objects = [math.attributed(color: .black), ImageAttachment(image: image, maximumWidth: 100, altText: "Authored image").attributed()]
+        let objects = [
+            math.attributed(color: .black),
+            ImageAttachment(image: image, maximumWidth: 100, altText: "Authored image").attributed()
+        ]
         for object in objects {
             #expect(object.string == "\u{FFFC}")
-            #expect(object.attribute(NSAttributedString.Key(kCTRunDelegateAttributeName as String), at: 0, effectiveRange: nil) != nil)
+            #expect(
+                object.attribute(
+                    NSAttributedString.Key(kCTRunDelegateAttributeName as String), at: 0, effectiveRange: nil) != nil)
             let visible = NSMutableAttributedString(attributedString: object)
             // Make an accidental placeholder visible; skipping cannot pass only
             // because the attachment's usual foreground color is transparent.
-            visible.addAttributes([.font: PlatformFont.systemFont(ofSize: 32), .foregroundColor: PlatformColor.magenta], range: NSRange(location: 0, length: 1))
+            visible.addAttributes(
+                [.font: PlatformFont.systemFont(ofSize: 32), .foregroundColor: PlatformColor.magenta],
+                range: NSRange(location: 0, length: 1))
             let paragraph = drawingParagraph(visible)
             #expect(!paragraph.lines.isEmpty && !paragraph.lines[0].fragments.isEmpty)
             #expect(inkParagraphPixels(try paragraphBitmap(paragraph, batched: true)) == 0)

@@ -34,28 +34,40 @@ enum MathFont {
     /// First ready-made variant meeting the requested height, or the largest
     /// available variant. Compare `advance` with the request before deciding
     /// whether a glyph assembly is needed. Measurements use the supplied size.
-    static func verticalVariant(glyph: CGGlyph, minimumHeight: CGFloat, size: CGFloat, face: MathFontChoice = .newCMRegular) -> MathGlyphVariant? {
+    static func verticalVariant(
+        glyph: CGGlyph, minimumHeight: CGFloat, size: CGFloat, face: MathFontChoice = .newCMRegular
+    ) -> MathGlyphVariant? {
         guard minimumHeight.isFinite, size.isFinite, size > 0 else { return nil }
-        let asset = asset(for: face), scale = size / CGFloat(asset.unitsPerEm)
+        let asset = asset(for: face)
+        let scale = size / CGFloat(asset.unitsPerEm)
         let variants = asset.table.variants(glyph: glyph, vertical: true)
-        guard let chosen = variants.first(where: { CGFloat($0.advance) * scale >= minimumHeight }) ?? variants.last else { return nil }
+        guard let chosen = variants.first(where: { CGFloat($0.advance) * scale >= minimumHeight }) ?? variants.last
+        else { return nil }
         return MathGlyphVariant(glyph: chosen.glyph, advance: CGFloat(chosen.advance) * scale)
     }
 
-    static func horizontalVariant(glyph: CGGlyph, minimumWidth: CGFloat, size: CGFloat, face: MathFontChoice = .newCMRegular) -> MathGlyphVariant? {
+    static func horizontalVariant(
+        glyph: CGGlyph, minimumWidth: CGFloat, size: CGFloat, face: MathFontChoice = .newCMRegular
+    ) -> MathGlyphVariant? {
         guard minimumWidth.isFinite, size.isFinite, size > 0 else { return nil }
-        let asset = asset(for: face), scale = size / CGFloat(asset.unitsPerEm)
+        let asset = asset(for: face)
+        let scale = size / CGFloat(asset.unitsPerEm)
         let variants = asset.table.variants(glyph: glyph, vertical: false)
-        guard let chosen = variants.first(where: { CGFloat($0.advance) * scale >= minimumWidth }) ?? variants.last else { return nil }
+        guard let chosen = variants.first(where: { CGFloat($0.advance) * scale >= minimumWidth }) ?? variants.last
+        else { return nil }
         return MathGlyphVariant(glyph: chosen.glyph, advance: CGFloat(chosen.advance) * scale)
     }
 
     /// Accents use the widest ready-made glyph that fits over their nucleus.
-    static func horizontalVariant(glyph: CGGlyph, maximumWidth: CGFloat, size: CGFloat, face: MathFontChoice = .newCMRegular) -> MathGlyphVariant? {
+    static func horizontalVariant(
+        glyph: CGGlyph, maximumWidth: CGFloat, size: CGFloat, face: MathFontChoice = .newCMRegular
+    ) -> MathGlyphVariant? {
         guard maximumWidth.isFinite, size.isFinite, size > 0 else { return nil }
-        let asset = asset(for: face), scale = size / CGFloat(asset.unitsPerEm)
+        let asset = asset(for: face)
+        let scale = size / CGFloat(asset.unitsPerEm)
         let variants = asset.table.variants(glyph: glyph, vertical: false)
-        guard let chosen = variants.last(where: { CGFloat($0.advance) * scale <= maximumWidth }) ?? variants.first else { return nil }
+        guard let chosen = variants.last(where: { CGFloat($0.advance) * scale <= maximumWidth }) ?? variants.first
+        else { return nil }
         return MathGlyphVariant(glyph: chosen.glyph, advance: CGFloat(chosen.advance) * scale)
     }
 
@@ -71,7 +83,9 @@ enum MathFont {
 
     static func topAccentAttachment(glyph: CGGlyph, size: CGFloat, face: MathFontChoice = .newCMRegular) -> CGFloat? {
         let asset = asset(for: face)
-        return asset.table.glyphValue(glyph: glyph, infoOffset: 2).map { CGFloat($0) * size / CGFloat(asset.unitsPerEm) }
+        return asset.table.glyphValue(glyph: glyph, infoOffset: 2).map {
+            CGFloat($0) * size / CGFloat(asset.unitsPerEm)
+        }
     }
 
     // Immutable after construction. Keep each provider and face alive together,
@@ -84,7 +98,9 @@ enum MathFont {
         let scriptVariants: OpenTypeScriptVariants
 
         init(choice: MathFontChoice) {
-            guard let provider = CGDataProvider(url: MathFont.resourceURL(for: choice) as CFURL), let face = CGFont(provider) else {
+            guard let provider = CGDataProvider(url: MathFont.resourceURL(for: choice) as CFURL),
+                let face = CGFont(provider)
+            else {
                 preconditionFailure("Invalid bundled math font: \(choice.rawValue)")
             }
             let font = CTFontCreateWithGraphicsFont(face, 1000, nil, nil)
@@ -92,13 +108,17 @@ enum MathFont {
                 guard let raw = CTFontCopyTable(font, tag, []), let bytes = CFDataGetBytePtr(raw) else { return nil }
                 return Data(bytes: bytes, count: CFDataGetLength(raw))
             }
-            guard let math = ownedTable(CTFontTableTag(0x4D415448)), let table = OpenTypeMathTable(data: math),
-                  let gsub = ownedTable(CTFontTableTag(0x47535542)), let scriptVariants = OpenTypeScriptVariants(data: gsub) else {
+            guard let math = ownedTable(CTFontTableTag(0x4D41_5448)), let table = OpenTypeMathTable(data: math),
+                let gsub = ownedTable(CTFontTableTag(0x4753_5542)),
+                let scriptVariants = OpenTypeScriptVariants(data: gsub)
+            else {
                 preconditionFailure("Invalid bundled math font tables: \(choice.rawValue)")
             }
-            self.provider = provider; self.face = face
+            self.provider = provider
+            self.face = face
             self.unitsPerEm = CTFontGetUnitsPerEm(font)
-            self.table = table; self.scriptVariants = scriptVariants
+            self.table = table
+            self.scriptVariants = scriptVariants
         }
     }
 
@@ -202,8 +222,9 @@ struct OpenTypeMathTable: Sendable {
 
     init?(data: Data) {
         guard Self.u16(data, 0) == 1, Self.u16(data, 2) == 0,
-              let constants = Self.u16(data, 4), constants > 0,
-              Int(constants) <= data.count - 214 else { return nil }
+            let constants = Self.u16(data, 4), constants > 0,
+            Int(constants) <= data.count - 214
+        else { return nil }
         self.data = data
         self.constants = Int(constants)
     }
@@ -219,14 +240,16 @@ struct OpenTypeMathTable: Sendable {
 
     func variants(glyph: CGGlyph, vertical: Bool) -> [(glyph: CGGlyph, advance: UInt16)] {
         guard let base = offset(at: 8, from: 0),
-              let coverage = offset(at: base + (vertical ? 2 : 4), from: base),
-              let index = coverageIndex(glyph: glyph, at: coverage),
-              let verticalCount = u16(base + 6), let horizontalCount = u16(base + 8),
-              index < Int(vertical ? verticalCount : horizontalCount) else { return [] }
+            let coverage = offset(at: base + (vertical ? 2 : 4), from: base),
+            let index = coverageIndex(glyph: glyph, at: coverage),
+            let verticalCount = u16(base + 6), let horizontalCount = u16(base + 8),
+            index < Int(vertical ? verticalCount : horizontalCount)
+        else { return [] }
         let entry = base + 10 + (vertical ? 0 : Int(verticalCount) * 2) + index * 2
         guard let construction = offset(at: entry, from: base),
-              let count = u16(construction + 2),
-              hasBytes(at: construction + 4, count: Int(count) * 4) else { return [] }
+            let count = u16(construction + 2),
+            hasBytes(at: construction + 4, count: Int(count) * 4)
+        else { return [] }
         var result: [(CGGlyph, UInt16)] = []
         for item in 0..<Int(count) {
             let cursor = construction + 4 + item * 4
@@ -241,13 +264,14 @@ struct OpenTypeMathTable: Sendable {
 
     func glyphValue(glyph: CGGlyph, infoOffset: Int) -> Int16? {
         guard infoOffset == 0 || infoOffset == 2,
-              let info = offset(at: 6, from: 0),
-              let values = offset(at: info + infoOffset, from: info),
-              let coverage = offset(at: values, from: values),
-              let index = coverageIndex(glyph: glyph, at: coverage),
-              let count = u16(values + 2), index < Int(count),
-              hasBytes(at: values + 4, count: Int(count) * 4),
-              let value = u16(values + 4 + index * 4) else { return nil }
+            let info = offset(at: 6, from: 0),
+            let values = offset(at: info + infoOffset, from: info),
+            let coverage = offset(at: values, from: values),
+            let index = coverageIndex(glyph: glyph, at: coverage),
+            let count = u16(values + 2), index < Int(count),
+            hasBytes(at: values + 4, count: Int(count) * 4),
+            let value = u16(values + 4 + index * 4)
+        else { return nil }
         return Int16(bitPattern: value)
     }
 
@@ -256,15 +280,16 @@ struct OpenTypeMathTable: Sendable {
         switch format {
         case 1:
             guard hasBytes(at: base + 4, count: Int(count) * 2) else { return nil }
-            for index in 0..<Int(count) {
-                if u16(base + 4 + index * 2) == glyph { return index }
+            for index in 0..<Int(count) where u16(base + 4 + index * 2) == glyph {
+                return index
             }
         case 2:
             guard hasBytes(at: base + 4, count: Int(count) * 6) else { return nil }
             for index in 0..<Int(count) {
                 let cursor = base + 4 + index * 6
                 guard let first = u16(cursor), let last = u16(cursor + 2),
-                      let coverageStart = u16(cursor + 4), first <= last else { return nil }
+                    let coverageStart = u16(cursor + 4), first <= last
+                else { return nil }
                 if glyph >= first && glyph <= last { return Int(coverageStart) + Int(glyph - first) }
             }
         default: break
@@ -274,7 +299,8 @@ struct OpenTypeMathTable: Sendable {
 
     private func offset(at address: Int, from base: Int) -> Int? {
         guard let relative = u16(address), relative > 0,
-              base >= 0, base <= data.count, Int(relative) <= data.count - base else { return nil }
+            base >= 0, base <= data.count, Int(relative) <= data.count - base
+        else { return nil }
         let result = base + Int(relative)
         return result < data.count ? result : nil
     }
@@ -311,42 +337,50 @@ struct OpenTypeScriptVariants: Sendable {
     init?(data: Data) {
         let reader = Reader(data: data)
         guard reader.u16(0) == 1,
-              let features = reader.offset16(6, from: 0),
-              let featureCount = reader.u16(features),
-              reader.contains(features + 2, Int(featureCount) * 6),
-              let lookupList = reader.offset16(8, from: 0),
-              let lookupCount = reader.u16(lookupList),
-              reader.contains(lookupList + 2, Int(lookupCount) * 2) else { return nil }
+            let features = reader.offset16(6, from: 0),
+            let featureCount = reader.u16(features),
+            reader.contains(features + 2, Int(featureCount) * 6),
+            let lookupList = reader.offset16(8, from: 0),
+            let lookupCount = reader.u16(lookupList),
+            reader.contains(lookupList + 2, Int(lookupCount) * 2)
+        else { return nil }
         var results: [[CGGlyph: [CGGlyph]]] = []
         for featureIndex in 0..<Int(featureCount) {
             let record = features + 2 + featureIndex * 6
             guard reader.u16(record) == 0x7373, reader.u16(record + 2) == 0x7479,
-                  let feature = reader.offset16(record + 4, from: features),
-                  let count = reader.u16(feature + 2),
-                  reader.contains(feature + 4, Int(count) * 2) else { continue }
+                let feature = reader.offset16(record + 4, from: features),
+                let count = reader.u16(feature + 2),
+                reader.contains(feature + 4, Int(count) * 2)
+            else { continue }
             for index in 0..<Int(count) {
                 guard let lookupIndex = reader.u16(feature + 4 + index * 2), lookupIndex < lookupCount,
-                      let lookup = reader.offset16(lookupList + 2 + Int(lookupIndex) * 2, from: lookupList),
-                      let type = reader.u16(lookup), let subCount = reader.u16(lookup + 4),
-                      reader.contains(lookup + 6, Int(subCount) * 2) else { continue }
+                    let lookup = reader.offset16(lookupList + 2 + Int(lookupIndex) * 2, from: lookupList),
+                    let type = reader.u16(lookup), let subCount = reader.u16(lookup + 4),
+                    reader.contains(lookup + 6, Int(subCount) * 2)
+                else { continue }
                 var substitutions: [CGGlyph: [CGGlyph]] = [:]
                 for subIndex in 0..<Int(subCount) {
                     guard var subtable = reader.offset16(lookup + 6 + subIndex * 2, from: lookup) else { continue }
                     if type == 7 {
                         guard reader.u16(subtable) == 1, reader.u16(subtable + 2) == 3,
-                              let extensionOffset = reader.u32(subtable + 4),
-                              Int(extensionOffset) <= data.count - subtable else { continue }
+                            let extensionOffset = reader.u32(subtable + 4),
+                            Int(extensionOffset) <= data.count - subtable
+                        else { continue }
                         subtable += Int(extensionOffset)
-                    } else if type != 3 { continue }
+                    } else if type != 3 {
+                        continue
+                    }
                     guard reader.u16(subtable) == 1,
-                          let coverage = reader.offset16(subtable + 2, from: subtable),
-                          let glyphs = reader.coverage(coverage), let setCount = reader.u16(subtable + 4),
-                          glyphs.count == Int(setCount),
-                          reader.contains(subtable + 6, Int(setCount) * 2) else { continue }
+                        let coverage = reader.offset16(subtable + 2, from: subtable),
+                        let glyphs = reader.coverage(coverage), let setCount = reader.u16(subtable + 4),
+                        glyphs.count == Int(setCount),
+                        reader.contains(subtable + 6, Int(setCount) * 2)
+                    else { continue }
                     for glyphIndex in glyphs.indices {
                         guard let set = reader.offset16(subtable + 6 + glyphIndex * 2, from: subtable),
-                              let alternateCount = reader.u16(set),
-                              reader.contains(set + 2, Int(alternateCount) * 2) else { continue }
+                            let alternateCount = reader.u16(set),
+                            reader.contains(set + 2, Int(alternateCount) * 2)
+                        else { continue }
                         let alternates = (0..<Int(alternateCount)).compactMap { reader.u16(set + 2 + $0 * 2) }
                         if substitutions[glyphs[glyphIndex]] == nil { substitutions[glyphs[glyphIndex]] = alternates }
                     }
@@ -372,7 +406,8 @@ struct OpenTypeScriptVariants: Sendable {
         }
         func offset16(_ offset: Int, from base: Int) -> Int? {
             guard let relative = u16(offset), relative > 0, base >= 0, base <= data.count,
-                  Int(relative) < data.count - base else { return nil }
+                Int(relative) < data.count - base
+            else { return nil }
             return base + Int(relative)
         }
         func coverage(_ base: Int) -> [CGGlyph]? {
@@ -387,8 +422,9 @@ struct OpenTypeScriptVariants: Sendable {
                 for index in 0..<Int(count) {
                     let cursor = base + 4 + index * 6
                     guard let start = u16(cursor), let end = u16(cursor + 2), let coverageStart = u16(cursor + 4),
-                          start <= end, result.count == Int(coverageStart),
-                          result.count + Int(end) - Int(start) + 1 <= 65536 else { return nil }
+                        start <= end, result.count == Int(coverageStart),
+                        result.count + Int(end) - Int(start) + 1 <= 65536
+                    else { return nil }
                     result.append(contentsOf: (Int(start)...Int(end)).map(CGGlyph.init))
                 }
                 return result

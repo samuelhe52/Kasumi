@@ -17,12 +17,20 @@ let package = Package(
         .binaryTarget(name: "KasumiDagreNative", path: "\(native)/kasumi_dagre.xcframework"),
         .binaryTarget(name: "KasumiLineBreakNative", path: "\(native)/kasumi_linebreak.xcframework"),
         .binaryTarget(name: "KasumiHyphenationNative", path: "\(native)/kasumi_hyphenation.xcframework"),
-        .target(name: "CDagre", dependencies: ["KasumiDagreNative"], path: "packages/NativeDagre/Bridge", publicHeadersPath: "include"),
-        .target(name: "CLineBreak", dependencies: ["KasumiLineBreakNative"], path: "packages/NativeLineBreak/Bridge", publicHeadersPath: "include"),
-        .target(name: "CHyphenation", dependencies: ["KasumiHyphenationNative"], path: "packages/NativeHyphenation/Bridge", publicHeadersPath: "include"),
+        .target(
+            name: "CDagre", dependencies: ["KasumiDagreNative"], path: "packages/NativeDagre/Bridge",
+            publicHeadersPath: "include"),
+        .target(
+            name: "CLineBreak", dependencies: ["KasumiLineBreakNative"], path: "packages/NativeLineBreak/Bridge",
+            publicHeadersPath: "include"),
+        .target(
+            name: "CHyphenation", dependencies: ["KasumiHyphenationNative"], path: "packages/NativeHyphenation/Bridge",
+            publicHeadersPath: "include"),
         .target(
             name: "KasumiMarkdown",
-            dependencies: ["CDagre", "CLineBreak", "CHyphenation", .product(name: "Markdown", package: "swift-markdown")],
+            dependencies: [
+                "CDagre", "CLineBreak", "CHyphenation", .product(name: "Markdown", package: "swift-markdown")
+            ],
             resources: [.copy("Bundled")]
         ),
         .executableTarget(name: "KasumiRender", dependencies: ["KasumiMarkdown"]),

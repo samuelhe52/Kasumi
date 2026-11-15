@@ -1,12 +1,14 @@
-#if canImport(AppKit)
-import AppKit
-#else
-import UIKit
-#endif
 import CoreText
 import Foundation
 import Testing
+
 @testable import KasumiMarkdown
+
+#if canImport(AppKit)
+    import AppKit
+#else
+    import UIKit
+#endif
 
 @Test func profileFontSizesMatchNativeNearestAwayRoundingBeforeFaceScaling() throws {
     // Nearest-away rounding: 14.96 rounds up, and 22.5 rounds away from zero.
@@ -15,22 +17,28 @@ import Testing
         let text = style.attributed([InlineRun("code", traits: [.code])])
         #expect((text.attribute(.font, at: 0, effectiveRange: nil) as? PlatformFont)?.pointSize == CGFloat(expected))
     }
-    let style = Typography().applying(ProfileValues([.baseSize: .number(15), .latinScale: .number(0.97),
-        .scriptScale: .number(0.5), .headingScale: .numbers([1.6,1.5,1.4,1.3,1.2,1.1])]))
+    let style = Typography().applying(
+        ProfileValues([
+            .baseSize: .number(15), .latinScale: .number(0.97),
+            .scriptScale: .number(0.5), .headingScale: .numbers([1.6, 1.5, 1.4, 1.3, 1.2, 1.1])
+        ]))
     let page = DocumentTypesetter.layout(DocumentParser.parse("## Heading\n\nBody"), width: 500, style: style)
     let heading = try #require(page.paragraphs.first)
     let body = try #require(page.paragraphs.last)
-    let headingFont = try #require(heading.paragraph.attributed.attribute(.font, at: 0, effectiveRange: nil) as? PlatformFont)
+    let headingFont = try #require(
+        heading.paragraph.attributed.attribute(.font, at: 0, effectiveRange: nil) as? PlatformFont)
     let bodyFont = try #require(body.paragraph.attributed.attribute(.font, at: 0, effectiveRange: nil) as? PlatformFont)
-    #expect(abs(headingFont.pointSize - 22.31) < 1e-8) // round(15×1.5)×.97
-    #expect(abs(bodyFont.pointSize - 14.55) < 1e-8) // ordinary body stays unrounded
+    #expect(abs(headingFont.pointSize - 22.31) < 1e-8)  // round(15×1.5)×.97
+    #expect(abs(bodyFont.pointSize - 14.55) < 1e-8)  // ordinary body stays unrounded
     #expect(style.font(size: 14.5, code: true).pointSize == 15)
 }
 
-private func checkProfileEmphasisFaces(_ emphasis: [(String, String, Bool, String, Double)]) throws {
+fileprivate func checkProfileEmphasisFaces(_ emphasis: [(String, String, Bool, String, Double)]) throws {
     for (family, italic, strong, postScript, trim) in emphasis {
-        let values = ProfileValues([.hanFamily: .string(family), .cjkItalicFace: .string(italic),
-                                    .hanBaseline: .number(0.04), .latinScale: .number(0.97), .hanScale: .number(1.2)])
+        let values = ProfileValues([
+            .hanFamily: .string(family), .cjkItalicFace: .string(italic),
+            .hanBaseline: .number(0.04), .latinScale: .number(0.97), .hanScale: .number(1.2)
+        ])
         let style = Typography().applying(values)
         let traits: Set<InlineRun.Trait> = strong ? [.emphasis, .strong] : [.emphasis]
         let text = style.attributed([InlineRun("汉", traits: traits)])
@@ -42,7 +50,10 @@ private func checkProfileEmphasisFaces(_ emphasis: [(String, String, Bool, Strin
     }
 }
 
-@Test(requiresReferenceFaces("STKaitiSC-Regular", "STKaitiSC-Bold", "STFangsong", "STXihei", "STHeiti", "STSongti-SC-Regular", "STSongti-SC-Black"))
+@Test(
+    requiresReferenceFaces(
+        "STKaitiSC-Regular", "STKaitiSC-Bold", "STFangsong", "STXihei", "STHeiti", "STSongti-SC-Regular",
+        "STSongti-SC-Black"))
 func profileFontsUseReferenceSCFacesAndLatinRelativeBaselines() throws {
     // Independent native FaceSpec observations, including the nil trim on
     // PingFang Fangsong/Xihei and Songti's negative Fangsong correction.
@@ -83,7 +94,10 @@ func profileFontsUseReferenceSCFacesAndLatinRelativeBaselines() throws {
 
 @Test(requiresReferenceFaces("STSongti-SC-Bold"))
 func profileHeadingAndTraditionalFacesStaySeparateFromBodySubstitution() throws {
-    let style = Typography().applying(ProfileValues([.hanFamily: .string("Songti SC"), .cjkStrongFace: .string("hei"), .headingHanBaseline: .number(0.06)]))
+    let style = Typography().applying(
+        ProfileValues([
+            .hanFamily: .string("Songti SC"), .cjkStrongFace: .string("hei"), .headingHanBaseline: .number(0.06)
+        ]))
     let heading = style.attributed([InlineRun("汉")], size: 24, heading: true, headingLevel: 2)
     #expect((heading.attribute(.font, at: 0, effectiveRange: nil) as? PlatformFont)?.fontName == "STSongti-SC-Bold")
     #expect(abs((heading.attribute(.baselineOffset, at: 0, effectiveRange: nil) as? Double ?? 0) - 1.44) < 1e-10)
@@ -94,7 +108,9 @@ func profileHeadingAndTraditionalFacesStaySeparateFromBodySubstitution() throws 
     let plain = Typography().attributed([run])
     let style = Typography().applying(ProfileValues([.codeCapsule: .flag(true), .codeCapsulePad: .number(0.3)]))
     let capsule = style.attributed([run])
-    func width(_ text: NSAttributedString) -> Double { CTLineGetTypographicBounds(CTLineCreateWithAttributedString(text), nil, nil, nil) }
+    func width(_ text: NSAttributedString) -> Double {
+        CTLineGetTypographicBounds(CTLineCreateWithAttributedString(text), nil, nil, nil)
+    }
     #expect(abs(width(capsule) - width(plain) - 2 * 14 * 0.3) < 1e-8)
     let mapping = DocumentTextMap(capsule)
     #expect(mapping.string == "code()")
@@ -107,7 +123,9 @@ func profileHeadingAndTraditionalFacesStaySeparateFromBodySubstitution() throws 
 }
 
 @Test func profileListColumnsQuoteBarsAndTableGridRespondToOverrides() throws {
-    let document = DocumentParser.parse("9. Nine\n10. Ten\n\n- Bullet\n- More\n\n> A quotation with enough text to wrap onto multiple lines in a very narrow column.\n\n| A | B |\n| - | - |\n| C | D |\n")
+    let document = DocumentParser.parse(
+        "9. Nine\n10. Ten\n\n- Bullet\n- More\n\n> A quotation with enough text to wrap onto multiple lines in a very narrow column.\n\n| A | B |\n| - | - |\n| C | D |\n"
+    )
     var values = BuiltinProfiles.all[0].effective
     let plain = DocumentTypesetter.layout(document, width: 300, style: Typography().applying(values), insets: .zero)
     let nine = try #require(plain.paragraphs.first { $0.paragraph.attributed.string == "Nine" })
@@ -128,7 +146,9 @@ func profileHeadingAndTraditionalFacesStaySeparateFromBodySubstitution() throws 
     let bar = try #require(changed.rules.first { $0.width == 3 })
     #expect(bar.end.y - bar.start.y == quote.paragraph.height)
     #expect(quote.paragraph.lines.count > 1)
-    #expect(changed.rules.filter { $0.start.x == $0.end.x }.count == plain.rules.filter { $0.start.x == $0.end.x }.count + 3)
+    #expect(
+        changed.rules.filter { $0.start.x == $0.end.x }.count == plain.rules.filter { $0.start.x == $0.end.x }.count + 3
+    )
 }
 
 @Test func profileThemeHighlightsAndCapsulesReachTheRaster() throws {
@@ -136,10 +156,16 @@ func profileHeadingAndTraditionalFacesStaySeparateFromBodySubstitution() throws 
     var style = Typography().applying(ProfileValues([.codeCapsule: .flag(true)]))
     style.lightThemeID = "solarized-light"
     let layout = DocumentTypesetter.layout(document, width: 400, style: style)
-    let width = 400, height = Int(ceil(layout.height))
-    let context = try #require(CGContext(data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: width * 4, space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
-    context.translateBy(x: 0, y: CGFloat(height)); context.scaleBy(x: 1, y: -1)
-    context.setFillColor(style.paperColor.cgColor); context.fill(CGRect(x: 0, y: 0, width: width, height: height))
+    let width = 400
+    let height = Int(ceil(layout.height))
+    let context = try #require(
+        CGContext(
+            data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: width * 4,
+            space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+    context.translateBy(x: 0, y: CGFloat(height))
+    context.scaleBy(x: 1, y: -1)
+    context.setFillColor(style.paperColor.cgColor)
+    context.fill(CGRect(x: 0, y: 0, width: width, height: height))
     DocumentTypesetter.draw(layout, in: context)
     let data = try #require(context.data).assumingMemoryBound(to: UInt8.self)
     for key in ["mark_background", "code_capsule_background"] {
@@ -152,7 +178,9 @@ func profileHeadingAndTraditionalFacesStaySeparateFromBodySubstitution() throws 
     }
     let mono = DocumentTypesetter.layout(document, width: 400, style: Typography().applying(style.profileValues))
     #expect(layout.height == mono.height)
-    #expect(layout.paragraphs.map { $0.paragraph.lines.map(\.width) } == mono.paragraphs.map { $0.paragraph.lines.map(\.width) })
+    #expect(
+        layout.paragraphs.map { $0.paragraph.lines.map(\.width) }
+            == mono.paragraphs.map { $0.paragraph.lines.map(\.width) })
 }
 
 @Test(requiresReferenceFaces("PingFangSC-Regular", "PingFangSC-Semibold"))
@@ -164,10 +192,15 @@ func profilePingFangFacesKeepLatinRelativeBaselines() throws {
 }
 
 @Test func profileTraditionalFacesStaySeparateFromBodySubstitution() throws {
-    var style = Typography().applying(ProfileValues([.hanFamily: .string("Songti SC"), .cjkStrongFace: .string("hei"), .headingHanBaseline: .number(0.06)]))
+    var style = Typography().applying(
+        ProfileValues([
+            .hanFamily: .string("Songti SC"), .cjkStrongFace: .string("hei"), .headingHanBaseline: .number(0.06)
+        ]))
     style.hanFamily = "Songti TC"
     let normal = style.attributed([InlineRun("漢")])
     let italic = style.attributed([InlineRun("漢", traits: [.emphasis])])
-    #expect((italic.attribute(.font, at: 0, effectiveRange: nil) as? PlatformFont)?.fontName == (normal.attribute(.font, at: 0, effectiveRange: nil) as? PlatformFont)?.fontName)
+    #expect(
+        (italic.attribute(.font, at: 0, effectiveRange: nil) as? PlatformFont)?.fontName
+            == (normal.attribute(.font, at: 0, effectiveRange: nil) as? PlatformFont)?.fontName)
     #expect((italic.attribute(.baselineOffset, at: 0, effectiveRange: nil) as? Double) == 0)
 }

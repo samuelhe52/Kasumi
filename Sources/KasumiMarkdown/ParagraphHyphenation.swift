@@ -17,12 +17,16 @@ enum ParagraphHyphenation {
             word = String.UnicodeScalarView()
         }
         for scalar in text.unicodeScalars {
-            let belongs = selection.automatic ? asciiLetter(scalar.value) :
-                (scalar.properties.isAlphabetic || (48...57).contains(scalar.value) || combining(scalar.value))
+            let belongs =
+                selection.automatic
+                ? asciiLetter(scalar.value)
+                : (scalar.properties.isAlphabetic || (48...57).contains(scalar.value) || combining(scalar.value))
             if belongs {
                 if word.isEmpty { wordStart = position }
                 word.append(scalar)
-            } else { flush() }
+            } else {
+                flush()
+            }
             position += scalar.utf8.count
         }
         flush()
@@ -54,9 +58,8 @@ enum ParagraphHyphenation {
     }
 
     private static func combining(_ value: UInt32) -> Bool {
-        (0x0300...0x036F).contains(value) || (0x1AB0...0x1AFF).contains(value) ||
-        (0x1DC0...0x1DFF).contains(value) || (0x20D0...0x20FF).contains(value) ||
-        (0xFE20...0xFE2F).contains(value)
+        (0x0300...0x036F).contains(value) || (0x1AB0...0x1AFF).contains(value) || (0x1DC0...0x1DFF).contains(value)
+            || (0x20D0...0x20FF).contains(value) || (0xFE20...0xFE2F).contains(value)
     }
 
     private static func breaks(in word: String.UnicodeScalarView, selection: Selection) -> [Int] {
@@ -71,8 +74,10 @@ enum ParagraphHyphenation {
                 guard asciiLetter(value) else { return [] }
             } else {
                 guard !combining(value), !(48...57).contains(value) else { return [] }
-                let supported = selection.russian ? (0x0400...0x04FF).contains(value) :
-                    (asciiLetter(value) || (0x00C0...0x024F).contains(value) || (0x1E00...0x1EFF).contains(value))
+                let supported =
+                    selection.russian
+                    ? (0x0400...0x04FF).contains(value)
+                    : (asciiLetter(value) || (0x00C0...0x024F).contains(value) || (0x1E00...0x1EFF).contains(value))
                 guard supported else { return [] }
             }
             let mapped = String(scalar).lowercased()
@@ -83,14 +88,17 @@ enum ParagraphHyphenation {
             lowerOffset += mapped.utf8.count
             sourceBoundaries[lowerOffset] = sourceOffset
         }
-        let bytes = Array(lowercase.utf8), tag = Array(selection.tag.utf8)
+        let bytes = Array(lowercase.utf8)
+        let tag = Array(selection.tag.utf8)
         return bytes.withUnsafeBufferPointer { input in
             tag.withUnsafeBufferPointer { language in
-                let required = kasumi_hyphenate(input.baseAddress, input.count, language.baseAddress, language.count, nil, 0)
+                let required = kasumi_hyphenate(
+                    input.baseAddress, input.count, language.baseAddress, language.count, nil, 0)
                 guard let count = Int(exactly: required), count > 0, count < input.count else { return [] }
                 var output = [Int](repeating: 0, count: count)
                 let written = output.withUnsafeMutableBufferPointer {
-                    kasumi_hyphenate(input.baseAddress, input.count, language.baseAddress, language.count, $0.baseAddress, $0.count)
+                    kasumi_hyphenate(
+                        input.baseAddress, input.count, language.baseAddress, language.count, $0.baseAddress, $0.count)
                 }
                 guard Int(exactly: written) == count else { return [] }
                 return output.compactMap { offset in

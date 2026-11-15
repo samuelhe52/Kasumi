@@ -1,6 +1,7 @@
-import Foundation
 import CoreText
+import Foundation
 import Testing
+
 @testable import KasumiMarkdown
 
 @Test func paragraphOptimizationLooksBeyondGreedyLine() {
@@ -56,7 +57,9 @@ import Testing
 @Test func indentOnlyNarrowsFirstLine() {
     let source = "aaa bb cc ddd"
     let ns = source as NSString
-    let lines = ParagraphBreaker.ranges(in: source, width: 9, alignment: .leading, firstLineIndent: 4) { Double($0.length) }
+    let lines = ParagraphBreaker.ranges(in: source, width: 9, alignment: .leading, firstLineIndent: 4) {
+        Double($0.length)
+    }
     #expect(ns.substring(with: lines[0]) == "aaa")
     #expect(lines.dropFirst().contains { $0.length > 5 })
 }

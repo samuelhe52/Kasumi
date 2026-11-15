@@ -1,14 +1,16 @@
-#if canImport(AppKit)
-import AppKit
-#else
-import UIKit
-#endif
 import Foundation
 import Testing
+
 @testable import KasumiMarkdown
 
+#if canImport(AppKit)
+    import AppKit
+#else
+    import UIKit
+#endif
+
 // Independent authored expectations for the built-in presets and schema.
-private struct ProfileFactoryExpectation {
+fileprivate struct ProfileFactoryExpectation {
     let id: String
     let name: String
     let latin: String
@@ -26,15 +28,24 @@ private struct ProfileFactoryExpectation {
         return result
     }
 }
-private let nativeProfileFactories: [ProfileFactoryExpectation] = [
+fileprivate let nativeProfileFactories: [ProfileFactoryExpectation] = [
     .init(id: "serif", name: "Serif", latin: "New York", han: "Songti SC", bodyBaseline: 0.04, headingBaseline: 0.06),
-    .init(id: "serif-pagella", name: "Pagella Serif", latin: "TeX Gyre Pagella", han: "Songti SC", bodyBaseline: 0.04, headingBaseline: 0.06, extra: [.latinScale: .number(0.97)]),
+    .init(
+        id: "serif-pagella", name: "Pagella Serif", latin: "TeX Gyre Pagella", han: "Songti SC", bodyBaseline: 0.04,
+        headingBaseline: 0.06, extra: [.latinScale: .number(0.97)]),
     .init(id: "sans", name: "Sans", latin: "SF Pro", han: "PingFang SC", bodyBaseline: 0.02, headingBaseline: 0.04),
-    .init(id: "serif-charter", name: "Charter Serif", latin: "Charter", han: "Songti SC", bodyBaseline: 0.04, headingBaseline: 0.02),
-    .init(id: "sans-avenir", name: "Avenir Sans", latin: "Avenir Next", han: "PingFang SC", bodyBaseline: 0, headingBaseline: 0.02),
-    .init(id: "serif-tc", name: "Traditional Chinese Serif", latin: "New York", han: "Songti TC", bodyBaseline: 0.04, headingBaseline: 0.06),
-    .init(id: "book", name: "Book", latin: "New York", han: "Songti SC", bodyBaseline: 0.04, headingBaseline: 0.06,
-          extra: [.paraSeparation: .string("indent"), .cjkItalicFace: .string("kai"), .hangingPunctuation: .flag(true)])
+    .init(
+        id: "serif-charter", name: "Charter Serif", latin: "Charter", han: "Songti SC", bodyBaseline: 0.04,
+        headingBaseline: 0.02),
+    .init(
+        id: "sans-avenir", name: "Avenir Sans", latin: "Avenir Next", han: "PingFang SC", bodyBaseline: 0,
+        headingBaseline: 0.02),
+    .init(
+        id: "serif-tc", name: "Traditional Chinese Serif", latin: "New York", han: "Songti TC", bodyBaseline: 0.04,
+        headingBaseline: 0.06),
+    .init(
+        id: "book", name: "Book", latin: "New York", han: "Songti SC", bodyBaseline: 0.04, headingBaseline: 0.06,
+        extra: [.paraSeparation: .string("indent"), .cjkItalicFace: .string("kai"), .hangingPunctuation: .flag(true)])
 ]
 
 @Test func profileFactoriesPreserveAllSevenNativeSparseBundles() throws {
@@ -64,11 +75,12 @@ private let nativeProfileFactories: [ProfileFactoryExpectation] = [
         .baseSize: .number(16), .lineSpacing: .number(1.6),
         .paraSpaceBefore: .number(0), .paraSpaceAfter: .number(0.75),
         .headingSpaceBefore: .number(0.8), .headingSpaceAfter: .number(0.4),
-        .headingScale: .numbers([1.6,1.5,1.4,1.3,1.2,1.1]),
+        .headingScale: .numbers([1.6, 1.5, 1.4, 1.3, 1.2, 1.1]),
         .headingWeight: .strings(Array(repeating: "semibold", count: 6)),
         .compactness: .number(0.5), .punctSqueeze: .number(0.5), .cjkLatinGap: .number(0.25),
         .interCjkStretch: .number(0.05), .interCjkShrink: .number(0.04), .interCjkNatural: .number(0),
-        .scriptScale: .number(0.699999988079071), .superscriptShift: .number(0.3630000054836273), .subscriptShift: .number(0.24699999392032623),
+        .scriptScale: .number(0.699999988079071), .superscriptShift: .number(0.3630000054836273),
+        .subscriptShift: .number(0.24699999392032623),
         .hanScale: .number(1), .latinScale: .number(1), .codeScale: .number(1),
         .codeCapsulePad: .number(0.2), .codeCapsule: .flag(false), .tableStyle: .string("booktabs"),
         .raggedCodeFraction: .number(0.45), .hanBaseline: .number(0), .headingHanBaseline: .number(0),
@@ -97,42 +109,56 @@ private let nativeProfileFactories: [ProfileFactoryExpectation] = [
         .printBodySize: 6...24, .autoRaggedMeasureEm: 4...60, .markerInset: 0...2,
         .listMarkerGap: 0...64, .listBulletSize: 0.1...1, .quoteBarGap: 0...64
     ]
-    for field: ProfileField in [.paraSpaceBefore,.paraSpaceAfter,.headingSpaceBefore,.headingSpaceAfter,.firstLineIndent,.paraSpaceBetween,.mathRadicalGap] { ranges[field] = 0...4 }
-    for field: ProfileField in [.compactness,.punctSqueeze,.cjkLatinGap,.interCjkStretch,.interCjkShrink,.superscriptShift,.subscriptShift,.raggedCodeFraction,.footnoteMarkSep] { ranges[field] = 0...1 }
+    for field: ProfileField in [
+        .paraSpaceBefore, .paraSpaceAfter, .headingSpaceBefore, .headingSpaceAfter, .firstLineIndent, .paraSpaceBetween,
+        .mathRadicalGap
+    ] { ranges[field] = 0...4 }
+    for field: ProfileField in [
+        .compactness, .punctSqueeze, .cjkLatinGap, .interCjkStretch, .interCjkShrink, .superscriptShift,
+        .subscriptShift, .raggedCodeFraction, .footnoteMarkSep
+    ] { ranges[field] = 0...1 }
     #expect(ranges.count == 33)
     for (field, range) in ranges {
-        #expect(ProfileValues([field: .number(range.lowerBound-10)])[field] == .number(range.lowerBound))
-        #expect(ProfileValues([field: .number(range.upperBound+10)])[field] == .number(range.upperBound))
-        for invalid in [Double.nan, .infinity, -.infinity] { #expect(ProfileValues([field: .number(invalid)])[field] == nil) }
+        #expect(ProfileValues([field: .number(range.lowerBound - 10)])[field] == .number(range.lowerBound))
+        #expect(ProfileValues([field: .number(range.upperBound + 10)])[field] == .number(range.upperBound))
+        for invalid in [Double.nan, .infinity, -.infinity] {
+            #expect(ProfileValues([field: .number(invalid)])[field] == nil)
+        }
         #expect(ProfileValues([field: .flag(true)])[field] == nil)
         #expect(ProfileValues([field: .string("1")])[field] == nil)
     }
-    let fractional = ProfileValues([.baseSize: .number(17.125), .hanBaseline: .number(0.0137), .autoRaggedMeasureEm: .number(19.25), .interCjkNatural: .number(0.4)])
+    let fractional = ProfileValues([
+        .baseSize: .number(17.125), .hanBaseline: .number(0.0137), .autoRaggedMeasureEm: .number(19.25),
+        .interCjkNatural: .number(0.4)
+    ])
     #expect(fractional[.baseSize] == .number(17.125))
     #expect(fractional[.hanBaseline] == .number(0.0137))
     #expect(fractional[.autoRaggedMeasureEm] == .number(19.25))
     #expect(fractional[.interCjkNatural] == .number(0.4))
-    #expect(ProfileField.interCjkNatural.specification.guiRange == [0,0.2])
+    #expect(ProfileField.interCjkNatural.specification.guiRange == [0, 0.2])
 }
 
 @Test func profileHeadingArraysRemainSparseInputsUntilNativeStyleResolution() throws {
-    let scales: [Double] = [-1,0,0.5,1,5,100]
-    let values = ProfileValues([.headingScale: .numbers(scales), .headingWeight: .strings(["regular","medium","semibold","bold","regular","bold"])])
+    let scales: [Double] = [-1, 0, 0.5, 1, 5, 100]
+    let values = ProfileValues([
+        .headingScale: .numbers(scales),
+        .headingWeight: .strings(["regular", "medium", "semibold", "bold", "regular", "bold"])
+    ])
     #expect(values[.headingScale] == .numbers(scales))
     #expect(try ProfileValues.parse(values.source()) == values)
     let typography = Typography().applying(values)
-    #expect((1...6).map { typography.headingScale($0) } == [0.5,0.5,0.5,1,4,4])
-    #expect((1...6).map { typography.headingWeight($0) } == [.regular,.medium,.semibold,.bold,.regular,.bold])
-    let wrongCount = ProfileValues([.headingScale: .numbers([2,3]), .headingWeight: .strings(["bold"])])
-    #expect(wrongCount[.headingScale] == .numbers([2,3]))
-    #expect((1...6).map { Typography().applying(wrongCount).headingScale($0) } == [1.6,1.5,1.4,1.3,1.2,1.1])
-    for badName in ["unknown","Regular","SEMIBOLD"] {
-        let weights = ["regular","medium","semibold","bold",badName,"bold"]
+    #expect((1...6).map { typography.headingScale($0) } == [0.5, 0.5, 0.5, 1, 4, 4])
+    #expect((1...6).map { typography.headingWeight($0) } == [.regular, .medium, .semibold, .bold, .regular, .bold])
+    let wrongCount = ProfileValues([.headingScale: .numbers([2, 3]), .headingWeight: .strings(["bold"])])
+    #expect(wrongCount[.headingScale] == .numbers([2, 3]))
+    #expect((1...6).map { Typography().applying(wrongCount).headingScale($0) } == [1.6, 1.5, 1.4, 1.3, 1.2, 1.1])
+    for badName in ["unknown", "Regular", "SEMIBOLD"] {
+        let weights = ["regular", "medium", "semibold", "bold", badName, "bold"]
         let stored = ProfileValues([.headingWeight: .strings(weights)])
         #expect(stored[.headingWeight] == .strings(weights))
         #expect((1...6).allSatisfy { Typography().applying(stored).headingWeight($0) == .semibold })
     }
-    for invalid: ProfileValue in [.numbers([]), .numbers([1,.nan]), .numbers([.infinity])] {
+    for invalid: ProfileValue in [.numbers([]), .numbers([1, .nan]), .numbers([.infinity])] {
         #expect(ProfileValues([.headingScale: invalid])[.headingScale] == nil)
     }
     #expect(ProfileValues([.headingWeight: .strings([])])[.headingWeight] == nil)
@@ -148,7 +174,8 @@ private let nativeProfileFactories: [ProfileFactoryExpectation] = [
     #expect(typography.lineSpacing == 1.7)
     #expect(typography.headingSpaceBefore == 0.8 && typography.headingSpaceAfter == 0.4)
     #expect(typography.codeFamily.isEmpty)
-    let explicit = book.effective.merging(ProfileValues([.firstLineIndent: .number(0.5), .paraSpaceBetween: .number(0.4)]))
+    let explicit = book.effective.merging(
+        ProfileValues([.firstLineIndent: .number(0.5), .paraSpaceBetween: .number(0.4)]))
     let overridden = Typography().applying(explicit)
     #expect(overridden.firstLineIndent == 0.5 && overridden.paraSpaceBetween == 0.4)
     #expect(overridden.indentFirstParagraph)
@@ -162,7 +189,8 @@ private let nativeProfileFactories: [ProfileFactoryExpectation] = [
 
 @Test func profileSwitchRestoresInheritedSizeRatherThanLeakingPreviousProfile() throws {
     let serif = try #require(BuiltinProfiles.all.first { $0.id == "serif" })
-    var prior = Typography().applying(ProfileValues([.baseSize: .number(36), .codeFamily: .string("Menlo"), .bodyAlign: .string("left")]))
+    var prior = Typography().applying(
+        ProfileValues([.baseSize: .number(36), .codeFamily: .string("Menlo"), .bodyAlign: .string("left")]))
     prior.dark = true
     prior.widthLimit = 720
     let switched = prior.applying(serif.effective)
@@ -174,20 +202,20 @@ private let nativeProfileFactories: [ProfileFactoryExpectation] = [
 
 @Test func profileFileUsesNativeTypesAndNonAnchorNamespace() throws {
     let source = """
-    [profile]
-    base_size = nan
-    line_spacing = 8
-    han_scale = 0.125
-    cjk_latin_gap = true
-    code_capsule = true
-    table_style = "GRID"
-    heading_scale = [1, 2, nan]
-    heading_weight = ["bold", "Unrecognized"]
-    code_family = 'Custom Mono'
-    unknown_key = 99
-    [other]
-    base_size = 25
-    """
+        [profile]
+        base_size = nan
+        line_spacing = 8
+        han_scale = 0.125
+        cjk_latin_gap = true
+        code_capsule = true
+        table_style = "GRID"
+        heading_scale = [1, 2, nan]
+        heading_weight = ["bold", "Unrecognized"]
+        code_family = 'Custom Mono'
+        unknown_key = 99
+        [other]
+        base_size = 25
+        """
     let values = try ProfileValues.parse(source)
     #expect(values[.baseSize] == .number(25))
     #expect(values[.lineSpacing] == .number(3))
@@ -196,8 +224,8 @@ private let nativeProfileFactories: [ProfileFactoryExpectation] = [
     #expect(values[.codeCapsule] == .flag(true))
     #expect(values[.tableStyle] == nil)
     #expect(values[.headingScale] == nil)
-    #expect(values[.headingWeight] == .strings(["bold","Unrecognized"]))
-    #expect(values[.codeFamily] == nil) // Native strings require double quotes.
+    #expect(values[.headingWeight] == .strings(["bold", "Unrecognized"]))
+    #expect(values[.codeFamily] == nil)  // Native strings require double quotes.
     let normalized = try values.source()
     #expect(try ProfileValues.parse(normalized) == values)
     #expect(!normalized.contains("unknown_key"))
@@ -206,21 +234,21 @@ private let nativeProfileFactories: [ProfileFactoryExpectation] = [
 
 @Test func profileImportAndTargetedEditsPreserveCommentsUnknownKeysAndEnvelope() throws {
     let source = """
-    # authored external profile — preserve this header
-    [meta] # envelope
-    name = "Imported Reader"
-    author = 'Authored fixture'
-    [anchor]
-    base_size = 14
-    latin_family = "Charter"
-    future_anchor = { enabled = true }
-    [profile] # overrides
-      base_size   =  999  # reading size
-    code_capsule = true
-    future_feature = ['one', 'two'] # preserve unknown setting
-    [extension.vendor]
-    literal = '中文 # not a comment'
-    """ + "\n"
+        # authored external profile — preserve this header
+        [meta] # envelope
+        name = "Imported Reader"
+        author = 'Authored fixture'
+        [anchor]
+        base_size = 14
+        latin_family = "Charter"
+        future_anchor = { enabled = true }
+        [profile] # overrides
+          base_size   =  999  # reading size
+        code_capsule = true
+        future_feature = ['one', 'two'] # preserve unknown setting
+        [extension.vendor]
+        literal = '中文 # not a comment'
+        """ + "\n"
     var library = ProfileLibrary()
     let id = try library.importProfile(source, suggestedName: "Wrong fallback")
     #expect(library.selectedID == id)
@@ -304,11 +332,12 @@ private let nativeProfileFactories: [ProfileFactoryExpectation] = [
     #expect(library.selected.isModified)
     library.selectedID = "serif"
     try library.set(.number(1.7), for: .lineSpacing)
-    #expect(!library.selected.isModified) // Redundant delta is not a native modification.
+    #expect(!library.selected.isModified)  // Redundant delta is not a native modification.
 }
 
 @Test func profileAnchorResetRenamePreserveUserDocumentExtensions() throws {
-    let source = "# retained header\n[meta]\nname = 'Marked'\nextra = 'meta' # retained\n[anchor]\nbase_size = 14\nfuture = 'anchor' # retained\n[profile]\nbase_size = 20\nfuture = 'delta' # retained\n[vendor]\nkeep = 'verbatim' # retained\n"
+    let source =
+        "# retained header\n[meta]\nname = 'Marked'\nextra = 'meta' # retained\n[anchor]\nbase_size = 14\nfuture = 'anchor' # retained\n[profile]\nbase_size = 20\nfuture = 'delta' # retained\n[vendor]\nkeep = 'verbatim' # retained\n"
     var library = ProfileLibrary()
     _ = try library.importProfile(source, suggestedName: "Unused")
     try library.setAsAnchor()
@@ -319,7 +348,10 @@ private let nativeProfileFactories: [ProfileFactoryExpectation] = [
     try library.rename("Renamed")
     let output = try library.selected.exportedSource()
     #expect(output.hasPrefix("# retained header\n"))
-    for line in ["extra = 'meta' # retained", "future = 'anchor' # retained", "future = 'delta' # retained", "keep = 'verbatim' # retained"] { #expect(output.contains(line)) }
+    for line in [
+        "extra = 'meta' # retained", "future = 'anchor' # retained", "future = 'delta' # retained",
+        "keep = 'verbatim' # retained"
+    ] { #expect(output.contains(line)) }
     #expect(try ProfileValues.parse(output, table: "anchor")[.baseSize] == .number(20))
     #expect(try ProfileValues.parse(output)[.baseSize] == nil)
 }
@@ -338,7 +370,10 @@ private let nativeProfileFactories: [ProfileFactoryExpectation] = [
     try library.reset()
     #expect(library.selected.delta.isEmpty)
     #expect(library.selected.factory == original.factory)
-    for (name, expected) in [("Serif","serif-2"),("Serif","serif-3"),("reference","reference"),("default","default-2"),("???","profile")] {
+    for (name, expected) in [
+        ("Serif", "serif-2"), ("Serif", "serif-3"), ("reference", "reference"), ("default", "default-2"),
+        ("???", "profile")
+    ] {
         let id = try library.importProfile("[meta]\nname = \"\(name)\"\n[profile]\n", suggestedName: "Unused")
         #expect(id == expected)
     }
@@ -357,8 +392,11 @@ private let nativeProfileFactories: [ProfileFactoryExpectation] = [
     var stale = try #require(BuiltinProfiles.all.first { $0.id == "serif-pagella" })
     stale.factory[.latinFamily] = .string("Stale shipped font")
     stale.delta[.baseSize] = .number(21)
-    let user = TypographyProfile(id: "personal", name: "Personal", factory: ProfileValues([.baseSize: .number(14)]), delta: ProfileValues([.lineSpacing: .number(2)]), importedSource: "# original\n[meta]\nname='Personal'\n[anchor]\nbase_size=14\n[profile]\nline_spacing=2\n")
-    var library = ProfileLibrary(profiles: [stale,user], selectedID: "personal")
+    let user = TypographyProfile(
+        id: "personal", name: "Personal", factory: ProfileValues([.baseSize: .number(14)]),
+        delta: ProfileValues([.lineSpacing: .number(2)]),
+        importedSource: "# original\n[meta]\nname='Personal'\n[anchor]\nbase_size=14\n[profile]\nline_spacing=2\n")
+    var library = ProfileLibrary(profiles: [stale, user], selectedID: "personal")
     library = try JSONDecoder().decode(ProfileLibrary.self, from: JSONEncoder().encode(library))
     #expect(library.selected == user)
     library.rebaseBuiltins()
@@ -372,7 +410,8 @@ private let nativeProfileFactories: [ProfileFactoryExpectation] = [
 }
 
 @Test func profileRebaseDiscardsUserRecordsCollidingWithReservedBuiltinIDs() throws {
-    let collision = TypographyProfile(id: "serif", name: "User collision", delta: ProfileValues([.baseSize: .number(48)]))
+    let collision = TypographyProfile(
+        id: "serif", name: "User collision", delta: ProfileValues([.baseSize: .number(48)]))
     var library = ProfileLibrary(profiles: [collision] + BuiltinProfiles.all, selectedID: "serif")
     library.rebaseBuiltins()
     #expect(library.profiles.count == 7)
@@ -384,11 +423,11 @@ private let nativeProfileFactories: [ProfileFactoryExpectation] = [
 @Test func profileDocumentMutationFailuresCannotPartiallyChangeLibraryState() throws {
     // Native profiles ignore this unknown scalar. It must not prevent adding
     // an anchor header or updating the recognized fields/name later.
-    let source = "anchor = 17 # opaque, not a native profile key\n[meta]\nname = \"Recovery\"\n[profile]\nbase_size = 20\n"
+    let source =
+        "anchor = 17 # opaque, not a native profile key\n[meta]\nname = \"Recovery\"\n[profile]\nbase_size = 20\n"
     var library = ProfileLibrary()
     let initial = library
-    do { _ = try library.importProfile(source, suggestedName: "Recovery") }
-    catch {
+    do { _ = try library.importProfile(source, suggestedName: "Recovery") } catch {
         #expect(library == initial)
         return
     }
@@ -402,7 +441,9 @@ private let nativeProfileFactories: [ProfileFactoryExpectation] = [
         do {
             try operation(&edited)
             let exported = try edited.selected.exportedSource()
-            #expect(try ProfileValues.parse(exported, table: "anchor") == edited.selected.factory, "\(name) anchor/model coherence")
+            #expect(
+                try ProfileValues.parse(exported, table: "anchor") == edited.selected.factory,
+                "\(name) anchor/model coherence")
             #expect(try ProfileValues.parse(exported) == edited.selected.delta, "\(name) delta/model coherence")
             #expect(try ProfileFileDocument(exported).name == edited.selected.name)
             #expect(exported.contains("anchor = 17 # opaque, not a native profile key"))
