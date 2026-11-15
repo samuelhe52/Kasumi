@@ -171,10 +171,10 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
         window?.backgroundColor = backgroundColor
     }
 
-    private func setTop(_ y: CGFloat) {
+    private func setTop(_ y: CGFloat, animated: Bool = false) {
         let minimum = -adjustedContentInset.top
         let maximum = max(minimum, contentSize.height - bounds.height + adjustedContentInset.bottom)
-        setContentOffset(CGPoint(x: 0, y: min(maximum, max(minimum, y - adjustedContentInset.top))), animated: false)
+        setContentOffset(CGPoint(x: 0, y: min(maximum, max(minimum, y - adjustedContentInset.top))), animated: animated)
         previousOffset = contentOffset.y
     }
 
@@ -182,7 +182,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
         guard let viewport, lastJump != viewport.jumpRevision, let id = viewport.jumpID,
               let rendered, let rect = rendered.rect(forAnchor: id) else { return }
         lastJump = viewport.jumpRevision
-        adjusting = true; setTop(max(0, rect.minY * pageScale - 8)); adjusting = false
+        adjusting = true; setTop(max(0, rect.minY * pageScale - 8), animated: !UIAccessibility.isReduceMotionEnabled); adjusting = false
         viewport.barsHidden = false
         reportPosition()
     }

@@ -31,7 +31,7 @@ Working:
   Reduce Motion). Appearance controls cover preset, size, and theme. Outline
   uses a full-height sheet on iPhone and sidebar on iPad, with heading search,
   wrapping labels, shallow indentation, and a rounded current-section marker.
-  Reading position is saved per file.
+  Section jumps animate unless Reduce Motion is enabled. Reading position is saved per file.
   Outline search omits the section gap above its first visible result.
 - Native-launch validation on the iPhone 18 Pro iOS 27.2 simulator:
   `make run-sim` succeeds. One tap imports external Markdown and Japanese text
