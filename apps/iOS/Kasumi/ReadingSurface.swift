@@ -23,6 +23,10 @@ struct ReadingSurface: UIViewRepresentable {
 final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecognizerDelegate {
     private let headingTopInset: CGFloat = 15
 
+    // Pages swap inside a permanent container so the scroll view's own subviews
+    // never change; replacing them directly drops the soft top edge effect until
+    // the next scroll.
+    private let content = UIView()
     private var page: ReaderPageView?
     private var rendered: RenderedDocument?
     private let openingIndicator = UIActivityIndicatorView(style: .medium)
@@ -48,6 +52,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
         alwaysBounceVertical = true
         contentInsetAdjustmentBehavior = .automatic
         topEdgeEffect.style = .soft
+        addSubview(content)
         openingIndicator.hidesWhenStopped = true
         openingIndicator.translatesAutoresizingMaskIntoConstraints = false
         addSubview(openingIndicator)
@@ -113,6 +118,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
         guard let rendered else { return }
         let size = CGSize(width: bounds.width, height: rendered.size.height * pageScale)
         if contentSize != size { contentSize = size }
+        content.frame = CGRect(origin: .zero, size: size)
     }
 
     private var topY: CGFloat { max(0, (contentOffset.y + adjustedContentInset.top) / max(0.001, pageScale)) }
@@ -161,11 +167,11 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
         adjusting = true
         let firstLayout = rendered == nil
         let nextPage = ReaderPageView(rendered: next, scale: max(1, traitCollection.displayScale))
+        content.addSubview(nextPage)
         page?.removeFromSuperview()
         rendered = next
         page = nextPage
         pageScale = 1
-        addSubview(nextPage)
         backgroundColor = UIColor(cgColor: next.backgroundColor)
         window?.backgroundColor = backgroundColor
         indicatorStyle = style?.theme.appearance == .dark ? .white : .black
