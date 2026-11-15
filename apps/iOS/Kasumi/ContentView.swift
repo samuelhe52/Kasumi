@@ -15,101 +15,146 @@ struct ReaderScreen: View {
     @State private var showAppearance = false
     @State private var showOutline = false
     @State private var confirmDelete = false
-    @State private var columns: NavigationSplitViewVisibility = .detailOnly
+    @State private var showInspector = false
 
     private var regular: Bool { horizontalSizeClass == .regular }
-    private var pair: DocumentThemePair { DocumentThemePair.builtin.first { $0.id == pairID } ?? DocumentThemePair.builtin.first { $0.id == "mono" }! }
+    private var pair: DocumentThemePair {
+        DocumentThemePair.builtin.first { $0.id == pairID } ?? DocumentThemePair.builtin.first {
+            $0.id == "mono"
+        }!
+    }
     private var theme: DocumentTheme { colorScheme == .dark ? pair.dark : pair.light }
-    private var preset: TypographyPreset { TypographyPreset.builtin.first { $0.id == presetID } ?? .default }
+    private var preset: TypographyPreset {
+        TypographyPreset.builtin.first { $0.id == presetID } ?? .default
+    }
     private var style: RenderStyle {
-        var style = RenderStyle(preset: preset, theme: theme, fontSize: fontSize > 0 ? min(28, max(12, fontSize)) : nil)
-        style.insets.left = regular ? 40 : 20; style.insets.right = regular ? 40 : 20
+        var style = RenderStyle(
+            preset: preset, theme: theme, fontSize: fontSize > 0 ? min(28, max(12, fontSize)) : nil)
+        style.insets.left = regular ? 40 : 20
+        style.insets.right = regular ? 40 : 20
         return style
     }
     private var paper: Color {
         if let rendered = viewport.rendered { return Color(cgColor: rendered.backgroundColor) }
-        return theme.document["paper"].map { Color(.sRGB, red: $0.red, green: $0.green, blue: $0.blue, opacity: $0.alpha) } ?? Color(.sRGB, white: colorScheme == .dark ? 0.15 : 0.98, opacity: 1)
+        return theme.document["paper"].map {
+            Color(.sRGB, red: $0.red, green: $0.green, blue: $0.blue, opacity: $0.alpha)
+        } ?? Color(.sRGB, white: colorScheme == .dark ? 0.15 : 0.98, opacity: 1)
     }
 
     var body: some View {
-        Group {
-            if regular {
-                NavigationSplitView(columnVisibility: $columns) {
+        reader
+            // On iPad the outline is a trailing inspector beside the text. Compact
+            // widths use the full-height sheet below instead of the inspector's
+            // own sheet, which has no Done button or paper background.
+            .inspector(
+                isPresented: Binding(get: { showInspector && regular }, set: { showInspector = $0 })
+            ) {
+                // Built only on iPad: even closed, the outline's search field
+                // otherwise lands in the iPhone reader's bar.
+                if regular {
+                    outline
+                        .inspectorColumnWidth(min: 260, ideal: 320, max: 420)
+                }
+            }
+            // Items declared on the content inside an inspector don't reach the
+            // DocumentGroup bar, so the toolbar is attached outside it.
+            .toolbar {
+                if regular {
+                    // iPad has room for every item, so Delete needn't be pinned,
+                    // and the inspector toggle keeps the trailing edge.
+                    if isImport {
+                        ToolbarItem(placement: .topBarTrailing) { deleteButton }
+                        ToolbarSpacer(.fixed, placement: .topBarTrailing)
+                    }
+                    ToolbarItemGroup(placement: .topBarTrailing) {
+                        appearanceButton
+                        Button("Outline", systemImage: "sidebar.trailing") {
+                            withAnimation { showInspector.toggle() }
+                        }
+                        .keyboardShortcut("0", modifiers: [.command, .option])
+                        .accessibilityIdentifier("reader-outline")
+                    }
+                } else {
+                    if isImport {
+                        // Pinned items never move into the overflow menu, which long
+                        // pasted-text titles would otherwise force.
+                        ToolbarItem(placement: .topBarPinnedTrailing) { deleteButton }
+                    }
+                    ToolbarItemGroup(placement: .topBarTrailing) {
+                        Button("Outline", systemImage: "list.bullet.indent") { showOutline = true }
+                            .accessibilityIdentifier("reader-outline")
+                        appearanceButton
+                    }
+                }
+            }
+            .background(paper.ignoresSafeArea())
+            .sheet(isPresented: $showOutline) {
+                NavigationStack {
                     outline
                         .navigationTitle("Outline")
-                        .toolbar(removing: .sidebarToggle)
-                } detail: { reader }
-                .toolbar(removing: .sidebarToggle)
-            } else {
-                reader
+                        .navigationBarTitleDisplayMode(.inline)
+                        .navigationBarBackButtonHidden()
+                        .toolbar {
+                            ToolbarItem(placement: .confirmationAction) { Button("Done") { showOutline = false } }
+                        }
+                }
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+                .presentationBackground(paper)
             }
-        }
-        .background(paper.ignoresSafeArea())
-        .sheet(isPresented: $showOutline) {
-            NavigationStack {
-                outline
-                    .navigationTitle("Outline")
-                    .navigationBarTitleDisplayMode(.inline)
-                    .navigationBarBackButtonHidden()
-                    .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { showOutline = false } } }
+            .sheet(
+                isPresented: Binding(get: { showAppearance && !regular }, set: { showAppearance = $0 })
+            ) {
+                AppearanceSettings(presetID: $presetID, pairID: $pairID, fontSize: $fontSize)
             }
-            .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
-            .presentationBackground(paper)
-        }
-        .sheet(isPresented: Binding(get: { showAppearance && !regular }, set: { showAppearance = $0 })) {
-            AppearanceSettings(presetID: $presetID, pairID: $pairID, fontSize: $fontSize)
-        }
-        .onChange(of: presetID) { _, _ in fontSize = 0 }
-        .onChange(of: scenePhase) { _, phase in if phase != .active { viewport.flush() } }
-        .onDisappear { viewport.flush() }
+            .onChange(of: presetID) { _, _ in fontSize = 0 }
+            .onChange(of: scenePhase) { _, phase in if phase != .active { viewport.flush() } }
+            .onDisappear { viewport.flush() }
     }
 
     private var reader: some View {
         Group {
             if let snapshot = document.snapshot, let parsed = snapshot.parsed {
-                ReadingSurface(document: parsed, revision: snapshot.revision, style: style,
+                ReadingSurface(
+                    document: parsed, revision: snapshot.revision, style: style,
                     outline: parsed.outline, fileURL: document.fileURL, viewport: viewport,
-                    openLink: { url in openURL(url) })
-                    .ignoresSafeArea(.container, edges: [.top, .bottom])
+                    openLink: { url in openURL(url) }
+                )
+                .ignoresSafeArea(.container, edges: [.top, .bottom])
             } else if let error = document.snapshot?.error {
-                ContentUnavailableView("Could Not Decode Document", systemImage: "doc.badge.exclamationmark", description: Text(error))
+                ContentUnavailableView(
+                    "Could Not Decode Document", systemImage: "doc.badge.exclamationmark",
+                    description: Text(error))
             } else {
                 ProgressView("Opening document…").frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .background(paper.ignoresSafeArea())
-        .toolbar(removing: .sidebarToggle)
         .navigationTitle(document.title)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            if isImport {
-                // Pinned items never move into the overflow menu, which long
-                // pasted-text titles would otherwise force.
-                ToolbarItem(placement: .topBarPinnedTrailing) {
-                    Button("Delete", systemImage: "trash") { confirmDelete = true }
-                        .accessibilityIdentifier("reader-delete")
-                        .confirmationDialog("Delete \(document.title)?", isPresented: $confirmDelete, titleVisibility: .visible) {
-                            Button("Delete", role: .destructive, action: delete)
-                        } message: {
-                            Text("This can't be undone.")
-                        }
-                }
+    }
+
+    private var deleteButton: some View {
+        Button("Delete", systemImage: "trash") { confirmDelete = true }
+            .accessibilityIdentifier("reader-delete")
+            .confirmationDialog(
+                "Delete \(document.title)?", isPresented: $confirmDelete, titleVisibility: .visible
+            ) {
+                Button("Delete", role: .destructive, action: delete)
+            } message: {
+                Text("This can't be undone.")
             }
-            ToolbarItemGroup(placement: .topBarTrailing) {
-                Button("Outline", systemImage: "list.bullet.indent") {
-                    if regular { withAnimation { columns = columns == .detailOnly ? .all : .detailOnly } }
-                    else { showOutline = true }
-                }
-                .accessibilityIdentifier("reader-outline")
-                Button("Appearance", systemImage: "textformat.size") { showAppearance = true }
-                    .accessibilityIdentifier("reader-appearance")
-                    .popover(isPresented: Binding(get: { showAppearance && regular }, set: { showAppearance = $0 })) {
-                        AppearanceSettings(presetID: $presetID, pairID: $pairID, fontSize: $fontSize)
-                            .frame(width: 360)
-                    }
+    }
+
+    private var appearanceButton: some View {
+        Button("Appearance", systemImage: "textformat.size") { showAppearance = true }
+            .accessibilityIdentifier("reader-appearance")
+            .popover(
+                isPresented: Binding(get: { showAppearance && regular }, set: { showAppearance = $0 })
+            ) {
+                AppearanceSettings(presetID: $presetID, pairID: $pairID, fontSize: $fontSize)
+                    .frame(width: 360)
             }
-        }
     }
 
     private var isImport: Bool { document.fileURL.map(ImportFolder.contains) ?? false }
@@ -123,25 +168,36 @@ struct ReaderScreen: View {
         dismiss()
         Task.detached {
             var coordinationError: NSError?
-            NSFileCoordinator().coordinate(writingItemAt: url, options: .forDeleting, error: &coordinationError) { target in
-                do { try FileManager.default.removeItem(at: target) }
-                catch { NSLog("Delete failed %@: %@", target.lastPathComponent, error.localizedDescription) }
+            NSFileCoordinator().coordinate(
+                writingItemAt: url, options: .forDeleting, error: &coordinationError
+            ) { target in
+                do { try FileManager.default.removeItem(at: target) } catch {
+                    NSLog("Delete failed %@: %@", target.lastPathComponent, error.localizedDescription)
+                }
             }
-            if let coordinationError { NSLog("Delete failed %@: %@", url.lastPathComponent, coordinationError.localizedDescription) }
+            if let coordinationError {
+                NSLog("Delete failed %@: %@", url.lastPathComponent, coordinationError.localizedDescription)
+            }
         }
     }
 
     private var outline: some View {
-        ReaderOutline(items: document.snapshot?.parsed?.outline ?? [], currentID: viewport.headingID) { item in
+        ReaderOutline(
+            items: document.snapshot?.parsed?.outline ?? [], currentID: viewport.headingID,
+            searchable: !regular
+        ) { item in
             viewport.jump(to: item.id)
             showOutline = false
         }
     }
 }
 
-private struct ReaderOutline: View {
+fileprivate struct ReaderOutline: View {
     let items: [OutlineItem]
     let currentID: String?
+    /// `.searchable` renders nothing in the iPad inspector, so the outline
+    /// there has no search.
+    let searchable: Bool
     let select: (OutlineItem) -> Void
     @State private var query = ""
 
@@ -158,7 +214,9 @@ private struct ReaderOutline: View {
                     ForEach(filteredItems) { item in
                         let current = currentID == item.id
                         let depth = min(3, max(0, item.level - baseLevel))
-                        Button { select(item) } label: {
+                        Button {
+                            select(item)
+                        } label: {
                             HStack(spacing: 10) {
                                 Capsule()
                                     .fill(current ? Color.accentColor : .clear)
@@ -174,7 +232,10 @@ private struct ReaderOutline: View {
                             .padding(.trailing, 12)
                             .padding(.vertical, 12)
                             .frame(minHeight: 44)
-                            .background(current ? Color.accentColor.opacity(0.1) : .clear, in: RoundedRectangle(cornerRadius: 12))
+                            .background(
+                                current ? Color.accentColor.opacity(0.1) : .clear,
+                                in: RoundedRectangle(cornerRadius: 12)
+                            )
                             .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
@@ -191,7 +252,9 @@ private struct ReaderOutline: View {
             .scrollEdgeEffectStyle(.soft, for: .top)
             .overlay {
                 if items.isEmpty {
-                    ContentUnavailableView("No Headings", systemImage: "list.bullet.indent", description: Text("Headings in this document appear here."))
+                    ContentUnavailableView(
+                        "No Headings", systemImage: "list.bullet.indent",
+                        description: Text("Headings in this document appear here."))
                 } else if filteredItems.isEmpty {
                     ContentUnavailableView.search(text: query)
                 }
@@ -201,7 +264,16 @@ private struct ReaderOutline: View {
                 if let currentID { proxy.scrollTo(currentID, anchor: .center) }
             }
         }
-        .searchable(text: $query, prompt: "Find a heading")
+        .modifier(OutlineSearch(query: $query, enabled: searchable))
+    }
+}
+
+fileprivate struct OutlineSearch: ViewModifier {
+    @Binding var query: String
+    let enabled: Bool
+
+    func body(content: Content) -> some View {
+        if enabled { content.searchable(text: $query, prompt: "Find a heading") } else { content }
     }
 }
 

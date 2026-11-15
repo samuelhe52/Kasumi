@@ -8,7 +8,9 @@ or is reordered; record the work itself in a numbered entry.
 1. Document app shell and reading view —
    [004](004-ios-reader/000-plan.md), in progress. Remaining: the checks listed
    under its Validation and Open questions, and the open questions in
-   [004.002](004-ios-reader/002-saved-imports.md), starting with the iPad bar.
+   [004.002](004-ios-reader/002-saved-imports.md) and
+   [004.003](004-ios-reader/003-ipad-inspector.md), starting with the blank
+   iPad open.
 2. Selection through UIKit text interaction, find bar with match navigation,
    links.
 3. Export: PDF, long PNG, print, share sheet.

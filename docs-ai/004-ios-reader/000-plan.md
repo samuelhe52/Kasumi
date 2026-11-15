@@ -40,7 +40,8 @@ source editor, settings and font store.
 - `apps/iOS/Kasumi/ReadingSurface.swift`: lays out on a background task and draws
   with `CATiledLayer`; keeps the toolbar visible while scrolling; animated section jumps.
 - `apps/iOS/Kasumi/ContentView.swift`: reader screen, appearance controls (preset,
-  size, theme), outline as a full-height sheet on iPhone and a sidebar on iPad.
+  size, theme), outline as a full-height sheet on iPhone and a sidebar on iPad (an inspector
+  since [004.003](003-ipad-inspector.md)).
 
 ## Alternatives & decisions
 

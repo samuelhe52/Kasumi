@@ -28,8 +28,8 @@ document presentation. Closing the cover discarded the content.
   provides it.
 - Open URL is a sheet over the launch scene. The reader no longer has a URL
   entry state, a standalone mode, a Close button, or its own navigation
-  container on iPhone. On iPad it keeps its `NavigationSplitView` for the
-  outline sidebar.
+  container on iPhone. On iPad it kept a `NavigationSplitView` for the outline
+  sidebar until [004.003](003-ipad-inspector.md) replaced it with an inspector.
 - Debug `-KasumiOpen <path>` copies the file into `Documents/Debug/` and opens
   it the same way.
 - Fetched documents resolve relative links and images against their local
@@ -77,9 +77,8 @@ devices.
 
 ## Open questions
 
-- iPad: the reader no longer hides the system bar, because Back is now the only
-  exit. The split view brings its own bar, so iPad probably shows two bars
-  (inference; not run).
+- iPad bar: resolved by [004.003](003-ipad-inspector.md), which removed the
+  split view.
 - A long title moves Outline and Appearance into the system More menu on
   iPhone. `Typography-11.md` and `README.md` fit; every pasted-text name
   overflows, and so did the shorter `Pasted 2026-11-15 20.35.md`.
