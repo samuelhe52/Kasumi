@@ -15,6 +15,7 @@ struct ReaderScreen: View {
     @State private var showAppearance = false
     @State private var showOutline = false
     @State private var showInspector = false
+    @State private var showDeleteConfirmation = false
     @State private var handoffID = UUID()
     @State private var windowScene: UIWindowScene?
 
@@ -51,9 +52,13 @@ struct ReaderScreen: View {
                         .inspectorColumnWidth(min: 260, ideal: 320, max: 420)
                 }
             }
-            // Items declared on the content inside an inspector don't reach the
-            // DocumentGroup bar, so the toolbar is attached outside it.
-            .toolbar { toolbarItems }
+            // Attach outside the inspector so the DocumentGroup receives the toolbar.
+            .toolbar {
+                ToolbarItemGroup(placement: .bottomBar) {
+                    Spacer()
+                    readerMenu
+                }
+            }
             .background(paper.ignoresSafeArea())
             .sheet(isPresented: $showOutline) { outlineSheet }
             .sheet(
@@ -78,34 +83,44 @@ struct ReaderScreen: View {
             }
     }
 
-    @ToolbarContentBuilder
-    private var toolbarItems: some ToolbarContent {
-        if regular {
-            // iPad has room for every item, so Delete needn't be pinned,
-            // and the inspector toggle keeps the trailing edge.
-            if isImport {
-                ToolbarItem(placement: .topBarTrailing) { deleteButton }
-                ToolbarSpacer(.fixed, placement: .topBarTrailing)
-            }
-            ToolbarItemGroup(placement: .topBarTrailing) {
-                appearanceButton
+    private var readerMenu: some View {
+        Menu("Reader Actions", systemImage: "ellipsis") {
+            if regular {
                 Button("Outline", systemImage: "sidebar.trailing") {
                     withAnimation { showInspector.toggle() }
                 }
                 .keyboardShortcut("0", modifiers: [.command, .option])
                 .accessibilityIdentifier("reader-outline")
-            }
-        } else {
-            if isImport {
-                // Pinned items never move into the overflow menu, which long
-                // pasted-text titles would otherwise force.
-                ToolbarItem(placement: .topBarPinnedTrailing) { deleteButton }
-            }
-            ToolbarItemGroup(placement: .topBarTrailing) {
+            } else {
                 Button("Outline", systemImage: "list.bullet.indent") { showOutline = true }
                     .accessibilityIdentifier("reader-outline")
-                appearanceButton
             }
+            Button("Appearance", systemImage: "textformat.size") { showAppearance = true }
+                .accessibilityIdentifier("reader-appearance")
+            if isImport {
+                Section {
+                    Button("Delete", systemImage: "trash", role: .destructive) {
+                        showDeleteConfirmation = true
+                    }
+                    .accessibilityIdentifier("reader-delete")
+                }
+            }
+        }
+        .labelStyle(.iconOnly)
+        .accessibilityIdentifier("reader-actions")
+        // Present from the persistent menu control, not its transient menu items.
+        .popover(
+            isPresented: Binding(get: { showAppearance && regular }, set: { showAppearance = $0 })
+        ) {
+            AppearanceSettings(presetID: $presetID, pairID: $pairID, fontSize: $fontSize)
+                .frame(width: 360)
+        }
+        .confirmationDialog(
+            "Delete \(document.title)?", isPresented: $showDeleteConfirmation, titleVisibility: .visible
+        ) {
+            Button("Delete", role: .destructive, action: delete)
+        } message: {
+            Text("This can't be undone.")
         }
     }
 
@@ -146,16 +161,6 @@ struct ReaderScreen: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 
-    private var deleteButton: some View {
-        ReaderDeleteButton(title: document.title, onConfirm: delete)
-    }
-
-    private var appearanceButton: some View {
-        ReaderAppearanceButton(
-            isPresented: $showAppearance, regular: regular,
-            presetID: $presetID, pairID: $pairID, fontSize: $fontSize)
-    }
-
     private var outline: some View {
         ReaderOutline(
             items: document.snapshot?.parsed?.outline ?? [], currentID: viewport.headingID,
@@ -168,9 +173,9 @@ struct ReaderScreen: View {
 
     private var isImport: Bool { document.fileURL.map(ImportFolder.contains) ?? false }
 
-    /// Pasted and downloaded documents can be deleted from the toolbar after a
-    /// confirmation. The file is removed after closing; coordination waits for
-    /// the document's file session to let go.
+    /// Pasted and downloaded documents can be deleted from the reader controls
+    /// after a confirmation. The file is removed after closing; coordination
+    /// waits for the document's file session to let go.
     private func delete() {
         guard let url = document.fileURL else { return }
         viewport.forget()

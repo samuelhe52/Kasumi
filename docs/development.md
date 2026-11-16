@@ -25,6 +25,11 @@ targets.
   `titleViewFrame` spans everything above the browser sheet, not the title, so
   the wordmark sits at a fixed offset from its top. `scenePhase` reads
   `background` inside the accessory views.
+- Reader actions live in a single trailing ellipsis menu in the native bottom
+  toolbar: Outline, Appearance, and Delete for imports. Present the appearance
+  popover and delete confirmation from the persistent menu control, not its
+  transient menu items. Attach the toolbar outside the iPad inspector so the
+  `DocumentGroup` receives it. Back and the title remain in the navigation bar.
 
 ## Simulator and device notes
 
