@@ -40,3 +40,5 @@ Retained after milestone closure; not prerequisites for starting Reader 2:
 - Bundle license notices into the app.
 - Standard TOML profile files.
 - Known limitations: [renderer gaps](002-rendering-engine/renderer-gaps.md).
+  Ligature-span and Han combining-mark width repairs shipped on 2026-11-16;
+  see [002.002](002-rendering-engine/002-shaped-cluster-integrity.md).

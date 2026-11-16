@@ -46,6 +46,7 @@ extension InlineRun {
 }
 
 struct ShapedParagraphInput {
+    /// Whole graphemes, coalesced when one shaped glyph consumes several.
     var clusters: [ParagraphInputCluster]
     var ranges: [NSRange]
     var metrics: [ParagraphRunMetrics]
@@ -55,7 +56,7 @@ struct ShapedParagraphInput {
 enum ParagraphShaper {
     static func shape(_ attributed: NSAttributedString, fallbackSize: CGFloat) -> ShapedParagraphInput {
         var result = ShapedParagraphInput(clusters: [], ranges: [], metrics: [], fonts: [])
-        var accumulated: [CGFloat] = []
+        var measurements: [(advance: CGFloat, hasGlyph: Bool, preserveAdvance: Bool)] = []
         let full = NSRange(location: 0, length: attributed.length)
         attributed.enumerateAttribute(.kasumiParagraphRun, in: full) { value, range, _ in
             let style = value as? ParagraphRunStyle
@@ -70,6 +71,7 @@ enum ParagraphShaper {
                     em: Float(CTFontGetSize(font)), isCode: style?.isCode ?? false, flags: style?.flags ?? 0))
             result.fonts.append(font)
             let substring = attributed.attributedSubstring(from: range)
+            let line = CTLineCreateWithAttributedString(substring)
             var starts: [Int] = []
             var clusterIndices: [Int?] = []
             var offset = 0
@@ -89,11 +91,25 @@ enum ParagraphShaper {
                     clusterIndices.append(result.clusters.count)
                     result.clusters.append(ParagraphInputCluster(text: text, run: runIndex, advance: 0))
                     result.ranges.append(global)
-                    accumulated.append(0)
+                    let preserveAdvance = text.unicodeScalars.contains { scalar in
+                        switch scalar.properties.generalCategory {
+                        case .nonspacingMark, .spacingMark, .enclosingMark:
+                            return !scalar.properties.isVariationSelector
+                        default: return false
+                        }
+                    }
+                    // Fallback mark runs can overlap their base run. Caret
+                    // boundaries measure the whole grapheme without double-counting.
+                    let advance =
+                        preserveAdvance
+                        ? abs(
+                            CTLineGetOffsetForStringIndex(line, offset + length, nil)
+                                - CTLineGetOffsetForStringIndex(line, offset, nil))
+                        : 0
+                    measurements.append((advance, false, preserveAdvance))
                 }
                 offset += length
             }
-            let line = CTLineCreateWithAttributedString(substring)
             var scalarAt: [Int: UInt32] = [:]
             var scalarOffset = 0
             for scalar in substring.string.unicodeScalars {
@@ -118,6 +134,8 @@ enum ParagraphShaper {
                         if starts[middle] <= index { lower = middle + 1 } else { upper = middle }
                     }
                     guard lower > 0, let cluster = clusterIndices[lower - 1] else { continue }
+                    measurements[cluster].hasGlyph = true
+                    guard !measurements[cluster].preserveAdvance else { continue }
                     let scalar = scalarAt[index]
                     let normalized =
                         scalar.map {
@@ -125,11 +143,34 @@ enum ParagraphShaper {
                                 $0, font: actualFont, han: style?.hanFont, punctuation: style?.punctuationFont)
                         } ?? false
                     let width = normalized ? CTFontGetSize(actualFont) : advances[glyph].width
-                    accumulated[cluster] += width
+                    measurements[cluster].advance += width
                 }
             }
         }
-        for index in result.clusters.indices { result.clusters[index].advance = Float(accumulated[index]) }
+        // Ligatures charge their advance to the first source grapheme. Absorb
+        // the consumed graphemes so neither hyphenation nor emergency breaking
+        // can split and reshape only part of that glyph.
+        var count = 0
+        for index in result.clusters.indices {
+            let cluster = result.clusters[index]
+            let range = result.ranges[index]
+            let advance = Float(measurements[index].advance)
+            if !measurements[index].hasGlyph, count > 0,
+                result.clusters[count - 1].run == cluster.run,
+                NSMaxRange(result.ranges[count - 1]) == range.location
+            {
+                result.clusters[count - 1].text += cluster.text
+                result.clusters[count - 1].advance += advance
+                result.ranges[count - 1].length += range.length
+            } else {
+                result.clusters[count] = cluster
+                result.clusters[count].advance = advance
+                result.ranges[count] = range
+                count += 1
+            }
+        }
+        result.clusters.removeSubrange(count...)
+        result.ranges.removeSubrange(count...)
         return result
     }
 

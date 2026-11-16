@@ -23,6 +23,11 @@ targets.
   boxes before creating Core Text drawing fragments. Core Text can add internal
   spacing around curly quotes (`主线“感知`) that its glyph advances omit;
   painting a combined fragment otherwise overlaps the following character.
+- `ParagraphShaper` keeps ligatures in atomic source spans, but the drawing
+  adapter retains their interior grapheme carets. Combining-mark widths use
+  shaped caret boundaries: fallback mark runs can overlap their base run, so
+  their advances cannot simply be summed. See
+  [002.002](../docs-ai/002-rendering-engine/002-shaped-cluster-integrity.md).
 - `DocumentGroupLaunchScene` draws the title and action buttons from plain
   strings and drops fonts and colors. A `nil` title falls back to the app name,
   so the scene gets a one-space title and `LaunchLogotype` draws the wordmark.

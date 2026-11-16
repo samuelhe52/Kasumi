@@ -81,7 +81,7 @@ func paragraphPunctuationDrawingAndHitTestingShareSourceBackedBoxes() throws {
     let source = "fi👩‍👩‍👧‍👦e\u{301}"
     let text = Typography().attributed([InlineRun(source)])
     let input = ParagraphShaper.shape(text, fallbackSize: 16)
-    #expect(input.clusters.map(\.text) == source.map(String.init))
+    #expect(input.clusters.map(\.text).joined() == source)
     let shaped = Float(CTLineGetTypographicBounds(CTLineCreateWithAttributedString(text), nil, nil, nil))
     #expect(abs(input.clusters.reduce(0) { $0 + $1.advance } - shaped) < 0.0001)
     let boundaries = Set(source.indices.map { $0.utf16Offset(in: source) } + [(source as NSString).length])
@@ -234,4 +234,78 @@ func chineseAfterCurlyQuoteKeepsMeasuredGlyphSpacing(source: String) throws {
     // Link selection and caret geometry must follow the actual glyph origins.
     #expect(abs(line.offset(forStringIndex: first) - firstX) < 0.001)
     #expect(abs(line.offset(forStringIndex: second) - secondX) < 0.001)
+}
+
+@Suite struct ShapedClusterIntegrityTests {
+    @Test(arguments: ["officeaffinity", "ToffeeOfficeIdentifier"])
+    func ligaturesKeepGlyphPositionsAndInteriorCarets(source: String) throws {
+        let profile = try #require(BuiltinProfiles.all.first { $0.id == "serif-pagella" })
+        let style = Typography().applying(profile.effective)
+        let text = style.attributed([InlineRun(source)])
+        func glyphs(_ line: CTLine, offset: CGFloat = 0) -> [(glyph: CGGlyph, index: Int, x: CGFloat)] {
+            var result: [(glyph: CGGlyph, index: Int, x: CGFloat)] = []
+            for run in CTLineGetGlyphRuns(line) as! [CTRun] {
+                let count = CTRunGetGlyphCount(run)
+                var glyphs = [CGGlyph](repeating: 0, count: count)
+                var indices = [CFIndex](repeating: 0, count: count)
+                var positions = [CGPoint](repeating: .zero, count: count)
+                CTRunGetGlyphs(run, CFRange(), &glyphs)
+                CTRunGetStringIndices(run, CFRange(), &indices)
+                CTRunGetPositions(run, CFRange(), &positions)
+                for index in 0..<count {
+                    result.append((glyphs[index], indices[index], positions[index].x + offset))
+                }
+            }
+            return result
+        }
+        let reference = CTLineCreateWithAttributedString(text)
+        let expected = glyphs(reference)
+        let wide = ParagraphTypesetter.layout(text, width: 400, fontSize: 16, alignment: .leading)
+        let line = try #require(wide.lines.first)
+        let actual = line.fragments.flatMap {
+            glyphs($0.line, offset: $0.x + $0.drawOffset - $0.glyphInset)
+        }
+        #expect(actual.map(\.glyph) == expected.map(\.glyph))
+        #expect(actual.map(\.index) == expected.map(\.index))
+        #expect(zip(actual, expected).allSatisfy { abs($0.x - $1.x) < 0.001 })
+        #expect(abs(line.width - CGFloat(CTLineGetTypographicBounds(reference, nil, nil, nil))) < 0.001)
+        for index in 0..<text.length {
+            let expectedX = CTLineGetOffsetForStringIndex(reference, index, nil)
+            let x = line.offset(forStringIndex: index)
+            #expect(abs(x - expectedX) < 0.001)
+            #expect(line.stringIndex(forPosition: CGPoint(x: x, y: 0)) == index)
+        }
+        // A narrow measure must not recreate half a ligature in a smaller box.
+        let narrow = ParagraphTypesetter.layout(text, width: 70, fontSize: 16, alignment: .leading)
+        #expect(narrow.lines.count > 1)
+        for line in narrow.lines {
+            #expect(line.width <= 70.001)
+            for fragment in line.fragments {
+                let natural =
+                    CGFloat(CTLineGetTypographicBounds(fragment.line, nil, nil, nil)) - fragment.glyphInset
+                #expect(abs(natural - fragment.width) < 0.001)
+            }
+        }
+    }
+
+    @Test(arguments: ["\u{0301}", "\u{302A}", "\u{0301}\u{0327}"])
+    func hanCombiningMarksKeepWholeGraphemeAdvance(mark: String) throws {
+        let marked = "字" + mark
+        let text = Typography().attributed([InlineRun(marked + "汉")])
+        let range = NSRange(location: 0, length: marked.utf16.count)
+        let reference = CTLineCreateWithAttributedString(text.attributedSubstring(from: range))
+        let expected = CGFloat(CTLineGetTypographicBounds(reference, nil, nil, nil))
+        let input = ParagraphShaper.shape(text, fallbackSize: 16)
+        let cluster = try #require(input.ranges.firstIndex(of: range))
+        #expect(abs(CGFloat(input.clusters[cluster].advance) - expected) < 0.001)
+        let following = try #require(input.clusters.last?.advance)
+        let layout = ParagraphTypesetter.layout(
+            text, width: expected + CGFloat(following) + 0.1, fontSize: 16, alignment: .leading)
+        #expect(layout.lines.count == 1)
+        let line = try #require(layout.lines.first)
+        let fragment = try #require(line.fragments.first { $0.range == range })
+        #expect(abs(fragment.width - expected) < 0.001)
+        #expect(abs(line.offset(forStringIndex: range.length) - expected) < 0.001)
+        #expect(fragment.boundaries == [0, range.length])
+    }
 }

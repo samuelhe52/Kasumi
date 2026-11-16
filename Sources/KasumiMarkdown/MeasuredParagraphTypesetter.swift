@@ -20,6 +20,7 @@ enum MeasuredParagraphTypesetter {
             outerWidth: Float(outerWidth ?? width), baseEm: Float(baseEm ?? fontSize),
             alignment: alignment == .trailing ? .leading : alignment, indent: Float(indent), options: options)
         let typesetter = CTTypesetterCreateWithAttributedString(attributed)
+        let source = attributed.string as NSString
         func sourceRange(_ clusters: Range<Int>) -> NSRange {
             guard let first = input.ranges[safe: clusters.lowerBound], !clusters.isEmpty,
                 let last = input.ranges[safe: clusters.upperBound - 1]
@@ -52,9 +53,15 @@ enum MeasuredParagraphTypesetter {
                 var x = fragment.x
                 func append(_ clusters: Range<Int>, width: Float) {
                     let range = sourceRange(clusters)
-                    let boundaries =
-                        clusters.compactMap { input.ranges[safe: $0]?.location }
-                        + (range.length > 0 ? [NSMaxRange(range)] : [])
+                    // A shaping span may contain a ligature. Keep its interior
+                    // grapheme carets even though line breaking treats it atomically.
+                    var boundaries: [Int] = []
+                    var boundary = range.location
+                    while boundary < NSMaxRange(range) {
+                        boundaries.append(boundary)
+                        boundary = NSMaxRange(source.rangeOfComposedCharacterSequence(at: boundary))
+                    }
+                    if range.length > 0 { boundaries.append(NSMaxRange(range)) }
                     let line = textLine(range)
                     fragments.append(
                         ShapedFragment(
