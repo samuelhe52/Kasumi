@@ -9,7 +9,8 @@ or is reordered; record the work itself in a numbered entry.
    [004](004-ios-reader/000-plan.md), completed; closed by maintainer decision
    on 2026-11-16. See [closure](004-ios-reader/001-action.md#milestone-closure-2026-11-16).
 2. Selection through UIKit text interaction, find bar with match navigation,
-   links — [007](007-reader-interactions/000-plan.md), implemented 2026-11-16.
+   links — [007](007-reader-interactions/000-plan.md), closed 2026-11-16 by
+   maintainer decision; implemented with the validation limits noted below.
    Native selection handles, Copy/Select All, find highlights and wrapping match
    navigation, external-link confirmation, and opening-failure feedback are in
    place. [System Find](007-reader-interactions/002-system-find-navigator.md) now
