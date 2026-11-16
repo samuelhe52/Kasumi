@@ -49,17 +49,47 @@ enum MeasuredParagraphTypesetter {
             let range = sourceRange(selected.clusterRange)
             var fragments: [ShapedFragment] = []
             for fragment in selected.fragments {
-                let range = sourceRange(fragment.clusterRange)
-                let boundaries =
-                    fragment.clusterRange.compactMap { input.ranges[safe: $0]?.location }
-                    + (range.length > 0 ? [NSMaxRange(range)] : [])
-                let line = textLine(range)
-                fragments.append(
-                    ShapedFragment(
-                        range: range, line: line, x: CGFloat(fragment.x), width: CGFloat(fragment.width),
-                        drawOffset: CGFloat(fragment.drawDx), glyphInset: leadingGlyphInset(line),
-                        capsuleLeft: CGFloat(fragment.capsuleLeft), capsuleRight: CGFloat(fragment.capsuleRight),
-                        boundaries: boundaries))
+                var x = fragment.x
+                func append(_ clusters: Range<Int>, width: Float) {
+                    let range = sourceRange(clusters)
+                    let boundaries =
+                        clusters.compactMap { input.ranges[safe: $0]?.location }
+                        + (range.length > 0 ? [NSMaxRange(range)] : [])
+                    let line = textLine(range)
+                    fragments.append(
+                        ShapedFragment(
+                            range: range, line: line, x: CGFloat(x), width: CGFloat(width),
+                            drawOffset: CGFloat(fragment.drawDx), glyphInset: leadingGlyphInset(line),
+                            capsuleLeft: clusters.lowerBound == fragment.clusterRange.lowerBound
+                                ? CGFloat(fragment.capsuleLeft) : 0,
+                            capsuleRight: clusters.upperBound == fragment.clusterRange.upperBound
+                                ? CGFloat(fragment.capsuleRight) : 0,
+                            boundaries: boundaries))
+                    x += width
+                }
+                guard fragment.clusterRange.count > 1 else {
+                    append(fragment.clusterRange, width: fragment.width)
+                    continue
+                }
+                // The engine may coalesce an unbreakable mixed-script box such
+                // as `线“感`. Core Text adds internal spacing absent from its
+                // glyph advances; isolate Han at the measured cluster positions.
+                var start = fragment.clusterRange.lowerBound
+                var width: Float = 0
+                for index in fragment.clusterRange {
+                    let cluster = input.clusters[index]
+                    if cluster.text.first.map(CJKFontRole.usesHanFont) == true {
+                        if start < index { append(start..<index, width: width) }
+                        append(index..<(index + 1), width: cluster.advance)
+                        start = index + 1
+                        width = 0
+                    } else {
+                        width += cluster.advance
+                    }
+                }
+                if start < fragment.clusterRange.upperBound {
+                    append(start..<fragment.clusterRange.upperBound, width: fragment.width - (x - fragment.x))
+                }
             }
             let logical = textLine(range)
             var ascent: CGFloat = 0

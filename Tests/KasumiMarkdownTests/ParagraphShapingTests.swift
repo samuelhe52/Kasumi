@@ -204,3 +204,34 @@ func paragraphGlyphEmNormalizationUsesScalarAndExactSelectedFaces() throws {
     let space = try kInk("薄雾 Kasumi 处理")
     #expect(CGFloat(punctuation.ink) - punctuation.x.rounded(.down) == CGFloat(space.ink) - space.x.rounded(.down))
 }
+
+@Test(arguments: ["主线“感知—传输”", "主线‘感知—传输’"])
+func chineseAfterCurlyQuoteKeepsMeasuredGlyphSpacing(source: String) throws {
+    let text = Typography().attributed([InlineRun(source, traits: [.link], destination: "#target")])
+    let input = ParagraphShaper.shape(text, fallbackSize: 16)
+    let line = try #require(
+        ParagraphTypesetter.layout(text, width: 400, fontSize: 16, alignment: .leading).lines.first)
+    let first = (source as NSString).range(of: "感").location
+    let second = (source as NSString).range(of: "知").location
+    func glyphX(at index: Int) throws -> CGFloat {
+        let fragment = try #require(line.fragments.first { NSLocationInRange(index, $0.range) })
+        for run in CTLineGetGlyphRuns(fragment.line) as! [CTRun] {
+            let count = CTRunGetGlyphCount(run)
+            var indices = [CFIndex](repeating: 0, count: count)
+            var positions = [CGPoint](repeating: .zero, count: count)
+            CTRunGetStringIndices(run, CFRange(location: 0, length: 0), &indices)
+            CTRunGetPositions(run, CFRange(location: 0, length: 0), &positions)
+            if let glyph = indices.firstIndex(of: index) {
+                return fragment.x + fragment.drawOffset - fragment.glyphInset + positions[glyph].x
+            }
+        }
+        throw CocoaError(.coderValueNotFound)
+    }
+    let cluster = try #require(input.ranges.firstIndex { $0.location == first })
+    let firstX = try glyphX(at: first)
+    let secondX = try glyphX(at: second)
+    #expect(abs(secondX - firstX - CGFloat(input.clusters[cluster].advance)) < 0.001)
+    // Link selection and caret geometry must follow the actual glyph origins.
+    #expect(abs(line.offset(forStringIndex: first) - firstX) < 0.001)
+    #expect(abs(line.offset(forStringIndex: second) - secondX) < 0.001)
+}

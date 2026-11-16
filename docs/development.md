@@ -19,6 +19,10 @@ targets.
   symlink, which is what lets them run on the simulator.
 - `swift run KasumiRender <input> <output.png|pdf> [width]` renders a document
   from the command line; see its options for preset, theme, profile, and dark.
+- `MeasuredParagraphTypesetter` isolates Han clusters inside coalesced engine
+  boxes before creating Core Text drawing fragments. Core Text can add internal
+  spacing around curly quotes (`主线“感知`) that its glyph advances omit;
+  painting a combined fragment otherwise overlaps the following character.
 - `DocumentGroupLaunchScene` draws the title and action buttons from plain
   strings and drops fonts and colors. A `nil` title falls back to the app name,
   so the scene gets a one-space title and `LaunchLogotype` draws the wordmark.
