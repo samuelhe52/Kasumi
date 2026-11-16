@@ -176,3 +176,31 @@ func paragraphGlyphEmNormalizationUsesScalarAndExactSelectedFaces() throws {
     #expect(layout.lines.count == 2)
     #expect(abs(layout.lines[1].origin.y - layout.lines[0].origin.y - 16 * 1.2) < 0.001)
 }
+
+@Test func latinAfterCJKPunctuationDrawsAtEngineOrigin() throws {
+    // Core Text adds its own space before Latin after `。` when a line is cut from the
+    // paragraph typesetter; drawing must not stack it on the engine's spacing.
+    func kInk(_ source: String) throws -> (ink: Int, x: CGFloat) {
+        let text = Typography().attributed([InlineRun(source)])
+        let line = try #require(ParagraphTypesetter.layout(text, width: 400, fontSize: 16).lines.first)
+        let latin = try #require(
+            line.fragments.first { (text.string as NSString).substring(with: $0.range).hasPrefix("K") })
+        let context = try #require(
+            CGContext(
+                data: nil, width: 400, height: 40, bitsPerComponent: 8, bytesPerRow: 400,
+                space: CGColorSpaceCreateDeviceGray(), bitmapInfo: CGImageAlphaInfo.none.rawValue))
+        context.setFillColor(gray: 1, alpha: 1)
+        context.fill(CGRect(x: 0, y: 0, width: 400, height: 40))
+        context.translateBy(x: 0, y: 12)
+        ParagraphGlyphDrawing.draw(line, attributed: text, in: context)
+        let pixels = try #require(context.data).assumingMemoryBound(to: UInt8.self)
+        let start = Int(latin.x.rounded(.down)) - 2
+        let ink = try #require((start..<400).first { x in (0..<40).contains { pixels[$0 * 400 + x] < 128 } })
+        // Also check hit testing: the caret after `K` sits one K-advance (10.76) in.
+        #expect(latin.offset(for: latin.range.location + 1) - latin.x < 11)
+        return (ink, latin.x)
+    }
+    let punctuation = try kInk("薄雾。Kasumi 处理")
+    let space = try kInk("薄雾 Kasumi 处理")
+    #expect(CGFloat(punctuation.ink) - punctuation.x.rounded(.down) == CGFloat(space.ink) - space.x.rounded(.down))
+}

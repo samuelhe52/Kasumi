@@ -10,6 +10,8 @@ struct ShapedFragment {
     let x: CGFloat
     let width: CGFloat
     let drawOffset: CGFloat
+    /// Space Core Text put before the line's first glyph; drawing and hit testing remove it.
+    let glyphInset: CGFloat
     let capsuleLeft: CGFloat
     let capsuleRight: CGFloat
     let boundaries: [Int]
@@ -18,9 +20,10 @@ struct ShapedFragment {
         guard range.length > 0 else { return x }
         if index <= range.location { return x }
         if index >= NSMaxRange(range) { return x + width }
-        let natural = CGFloat(CTLineGetTypographicBounds(line, nil, nil, nil))
+        let natural = CGFloat(CTLineGetTypographicBounds(line, nil, nil, nil)) - glyphInset
         guard natural > 0 else { return x }
-        return x + min(width, max(0, CTLineGetOffsetForStringIndex(line, index, nil) / natural * width))
+        let offset = CTLineGetOffsetForStringIndex(line, index, nil) - glyphInset
+        return x + min(width, max(0, offset / natural * width))
     }
 
     func index(at position: CGFloat) -> Int {

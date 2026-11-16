@@ -112,7 +112,8 @@ enum ParagraphGlyphDrawing {
         }
 
         for fragment in line.fragments {
-            append(fragment.line, at: fragment.x + fragment.drawOffset, usesSourceAttributes: true)
+            append(
+                fragment.line, at: fragment.x + fragment.drawOffset - fragment.glyphInset, usesSourceAttributes: true)
         }
         if let hyphen = line.hyphen { append(hyphen.line, at: hyphen.x, usesSourceAttributes: false) }
         flush()

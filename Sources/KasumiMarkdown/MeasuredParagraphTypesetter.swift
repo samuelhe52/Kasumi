@@ -29,6 +29,15 @@ enum MeasuredParagraphTypesetter {
             }
             return NSRange(location: first.location, length: NSMaxRange(last) - first.location)
         }
+        // A line cut from the paragraph typesetter sees its neighbors, and Core Text
+        // adds its own CJK-Latin space (1/8 em after `。`, for example) before the
+        // first glyph. The engine already spaced the fragment, so that inset is removed.
+        func leadingGlyphInset(_ line: CTLine) -> CGFloat {
+            guard let run = (CTLineGetGlyphRuns(line) as! [CTRun]).first, CTRunGetGlyphCount(run) > 0 else { return 0 }
+            var position = CGPoint.zero
+            CTRunGetPositions(run, CFRange(location: 0, length: 1), &position)
+            return max(0, position.x)
+        }
         func textLine(_ range: NSRange) -> CTLine {
             range.length == 0
                 ? CTLineCreateWithAttributedString(NSAttributedString(string: ""))
@@ -44,11 +53,13 @@ enum MeasuredParagraphTypesetter {
                 let boundaries =
                     fragment.clusterRange.compactMap { input.ranges[safe: $0]?.location }
                     + (range.length > 0 ? [NSMaxRange(range)] : [])
+                let line = textLine(range)
                 fragments.append(
                     ShapedFragment(
-                        range: range, line: textLine(range), x: CGFloat(fragment.x), width: CGFloat(fragment.width),
-                        drawOffset: CGFloat(fragment.drawDx), capsuleLeft: CGFloat(fragment.capsuleLeft),
-                        capsuleRight: CGFloat(fragment.capsuleRight), boundaries: boundaries))
+                        range: range, line: line, x: CGFloat(fragment.x), width: CGFloat(fragment.width),
+                        drawOffset: CGFloat(fragment.drawDx), glyphInset: leadingGlyphInset(line),
+                        capsuleLeft: CGFloat(fragment.capsuleLeft), capsuleRight: CGFloat(fragment.capsuleRight),
+                        boundaries: boundaries))
             }
             let logical = textLine(range)
             var ascent: CGFloat = 0
