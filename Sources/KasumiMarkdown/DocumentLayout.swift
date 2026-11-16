@@ -270,16 +270,21 @@ enum DocumentTypesetter {
                     isCode
                     ? 14 : block.kind == .quote ? quoteStep * CGFloat(max(1, block.level)) : listInsets[blockIndex] ?? 0
                 if let label = block.footnoteLabel, let display = block.footnoteDisplay {
-                    let marker = attributed([InlineRun(display)], size: style.size * style.scriptScale)
+                    // Styled like the in-text reference: script size, raised by the superscript shift.
+                    let marker = attributed([InlineRun(display, traits: [.footnote])])
+                    var markerAscent: CGFloat = 0
                     let markerWidth = CGFloat(
-                        CTLineGetTypographicBounds(CTLineCreateWithAttributedString(marker), nil, nil, nil))
-                    inset = max(
-                        inset, markerWidth + style.size * style.profileValues.resolved(.footnoteMarkSep).number!)
+                        CTLineGetTypographicBounds(CTLineCreateWithAttributedString(marker), &markerAscent, nil, nil))
+                    // Footnote text shares the quote text column; the marker hangs before it.
+                    let markerSep = style.size * style.profileValues.resolved(.footnoteMarkSep).number!
+                    inset = max(inset, quoteStep, markerWidth + markerSep)
                     if anchors["fn-" + label] == nil {
                         anchors["fn-" + label] = y
+                        // Lines set their baseline at max(ascent, size); the raised marker's
+                        // ascent can exceed the size, so lift it to share the body baseline.
                         _ = place(
-                            marker, x: left, y: y + style.size * 0.3, width: max(1, markerWidth + 1),
-                            size: style.size * style.scriptScale, alignment: .leading)
+                            marker, x: left + inset - markerSep - markerWidth, y: y - max(0, markerAscent - style.size),
+                            width: max(1, markerWidth + 1), size: style.size, alignment: .leading)
                     }
                 }
                 let contentWidth = max(12, measure - inset - (isCode ? 14 : 0))
@@ -336,13 +341,21 @@ enum DocumentTypesetter {
                 y += place(
                     attr, x: left + inset, y: y, width: contentWidth, size: style.size * (isCode ? 0.88 : 1),
                     alignment: alignment, indent: indent, verbatim: isCode)
-                if block.kind == .quote {
+                if block.kind == .quote, let placed = paragraphs.last, let first = placed.paragraph.lines.first,
+                    let last = placed.paragraph.lines.last
+                {
+                    // Lines put all their leading below the baseline, so center the bar
+                    // on the body font's cap height instead, one line height per line.
+                    let capMiddle = style.font().capHeight / 2
+                    let halfLine = style.size * style.lineSpacing / 2
+                    let barTop = placed.origin.y + first.origin.y - capMiddle - halfLine
+                    let barBottom = placed.origin.y + last.origin.y - capMiddle + halfLine
                     for depth in 0..<max(1, block.level) {
                         let x = left + CGFloat(depth) * quoteStep + markerInset + 1.5
                         rules.append(
                             PaintedRule(
-                                start: CGPoint(x: x, y: top), end: CGPoint(x: x, y: y), color: style.secondaryColor,
-                                width: 3))
+                                start: CGPoint(x: x, y: barTop), end: CGPoint(x: x, y: barBottom),
+                                color: style.ruleColor, width: 3))
                     }
                 }
                 if bodyParagraph { firstBodyParagraph = false }

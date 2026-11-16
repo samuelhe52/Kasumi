@@ -144,7 +144,11 @@ func profileHeadingAndTraditionalFacesStaySeparateFromBodySubstitution() throws 
     let quote = try #require(changed.paragraphs.first { $0.paragraph.attributed.string.hasPrefix("A quotation") })
     #expect(quote.origin.x == 41)
     let bar = try #require(changed.rules.first { $0.width == 3 })
-    #expect(bar.end.y - bar.start.y == quote.paragraph.height)
+    // The bar is centered on the cap-height band, one line height per line.
+    let capHeight = Typography().applying(values).font().capHeight
+    let firstBaseline = quote.origin.y + quote.paragraph.lines.first!.origin.y
+    let lastBaseline = quote.origin.y + quote.paragraph.lines.last!.origin.y
+    #expect(abs((bar.start.y + bar.end.y) / 2 - (firstBaseline + lastBaseline - capHeight) / 2) < 0.001)
     #expect(quote.paragraph.lines.count > 1)
     #expect(
         changed.rules.filter { $0.start.x == $0.end.x }.count == plain.rules.filter { $0.start.x == $0.end.x }.count + 3

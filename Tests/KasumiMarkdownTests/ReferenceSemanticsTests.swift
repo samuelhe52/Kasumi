@@ -87,6 +87,12 @@ func parserSemanticsMatchNativeReference(fixture: String) throws {
     #expect((attributed.attribute(.baselineOffset, at: 4, effectiveRange: nil) as? Double ?? 0) > 0)
     let layout = DocumentTypesetter.layout(parsed, width: 600, style: style)
     #expect(layout.anchorPositions["fn-key"] != nil)
+    // The definition's marker is raised like the in-text reference.
+    let marker = layout.paragraphs.first { $0.paragraph.attributed.string == "1" }!
+    let note = layout.paragraphs.first { $0.paragraph.attributed.string == "Note body." }!
+    #expect((marker.paragraph.attributed.attribute(.baselineOffset, at: 0, effectiveRange: nil) as? Double ?? 0) > 0)
+    let markerBaseline = marker.origin.y + marker.paragraph.lines[0].origin.y
+    #expect(abs(markerBaseline - (note.origin.y + note.paragraph.lines[0].origin.y)) < 0.001)
     #expect(layout.anchorPositions["a-heading"] != nil)
     #expect(layout.anchorPositions["a-heading-1"] != nil)
     #expect((layout.anchorPositions["a-heading-1"] ?? 0) > (layout.anchorPositions["a-heading"] ?? 0))
