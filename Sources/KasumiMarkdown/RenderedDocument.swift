@@ -124,7 +124,24 @@ public final class RenderedDocument: @unchecked Sendable {
     }
 
     public var documentRange: TextRange {
-        TextRange(position(0), position(semanticText.utf16.count))
+        TextRange(position(0), position((semanticBoundaries.last ?? 0)))
+    }
+
+    /// Moves by semantic UTF-16 code units, as required by UIKit text input.
+    /// Returns nil for a foreign snapshot, overflow, or an out-of-document offset.
+    /// Hit testing snaps to graphemes; arithmetic intentionally preserves exact
+    /// UTF-16 offsets so tokenizer distances and substring ranges round-trip.
+    public func position(from start: TextPosition, offset: Int) -> TextPosition? {
+        guard start.owner == owner else { return nil }
+        let (next, overflow) = start.offset.addingReportingOverflow(offset)
+        guard !overflow, next >= 0, next <= (semanticBoundaries.last ?? 0) else { return nil }
+        return position(next)
+    }
+
+    /// The signed semantic UTF-16 distance, or nil for positions from another layout.
+    public func offset(from start: TextPosition, to end: TextPosition) -> Int? {
+        guard start.owner == owner, end.owner == owner else { return nil }
+        return end.offset - start.offset
     }
 
     public func position(closestTo point: CGPoint) -> TextPosition {
@@ -270,7 +287,7 @@ public final class RenderedDocument: @unchecked Sendable {
     }
     private func checked(_ range: TextRange) -> NSRange? {
         guard range.lowerBound.owner == owner, range.upperBound.owner == owner else { return nil }
-        let length = semanticText.utf16.count
+        let length = (semanticBoundaries.last ?? 0)
         let lower = min(length, max(0, range.lowerBound.offset))
         let upper = min(length, max(lower, range.upperBound.offset))
         return NSRange(location: lower, length: upper - lower)

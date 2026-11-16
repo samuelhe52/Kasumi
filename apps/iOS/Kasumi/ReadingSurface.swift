@@ -12,6 +12,11 @@ struct ReadingSurface: UIViewRepresentable {
     let outline: [OutlineItem]
     let fileURL: URL?
     let viewport: ReaderViewport
+    let find: ReaderFindState
+    // Explicit inputs make UIKit updates participate in SwiftUI observation.
+    let findPresented: Bool
+    let findRevision: Int
+    let findBarHeight: CGFloat
     let openLink: (URL) -> Void
 
     func makeUIView(context: Context) -> ReaderScrollView { ReaderScrollView() }
@@ -19,11 +24,12 @@ struct ReadingSurface: UIViewRepresentable {
         view.update(
             document: document, revision: revision, style: style, fontRevision: fontRevision, outline: outline,
             fileURL: fileURL, viewport: viewport, openLink: openLink)
+        view.updateFind(find)
     }
     static func dismantleUIView(_ view: ReaderScrollView, coordinator: ()) { view.finish() }
 }
 
-final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecognizerDelegate {
+final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
     private let headingTopInset: CGFloat = 15
 
     // Pages swap inside a permanent container so the scroll view's own subviews
@@ -50,6 +56,9 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
     private var pageScale: CGFloat = 1
     private var lastJump: UUID?
     private var adjusting = false
+    private weak var find: ReaderFindState?
+    private var lastFindRevision: Int?
+    private var finding = false
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -66,10 +75,6 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
             openingIndicator.centerYAnchor.constraint(equalTo: frameLayoutGuide.centerYAnchor)
         ])
         openingIndicator.startAnimating()
-        let tap = UITapGestureRecognizer(target: self, action: #selector(tapped(_:)))
-        tap.cancelsTouchesInView = false
-        tap.delegate = self
-        addGestureRecognizer(tap)
         accessibilityLabel = "Document reading surface"
         accessibilityIdentifier = "reader-surface"
     }
@@ -100,6 +105,15 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
         }
         jumpIfNeeded()
     }
+
+    override var canBecomeFirstResponder: Bool { true }
+    override var keyCommands: [UIKeyCommand]? {
+        let find = UIKeyCommand(input: "f", modifierFlags: .command, action: #selector(presentFind(_:)))
+        find.discoverabilityTitle = String(localized: "Find in Document")
+        find.wantsPriorityOverSystemBehavior = true
+        return [find]
+    }
+    @objc private func presentFind(_ sender: Any?) { find?.isPresented = true }
 
     override func didMoveToWindow() {
         super.didMoveToWindow()
@@ -208,10 +222,12 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
         let nextPage = ReaderPageView(
             rendered: next, scale: max(1, traitCollection.displayScale), preview: preview, previewRect: previewRect)
         content.addSubview(nextPage)
+        page?.clearSelection()
         page?.removeFromSuperview()
         rendered = next
         page = nextPage
         pageScale = 1
+        nextPage.onLink = { [weak self] url in self?.follow(url) }
         backgroundColor = UIColor(cgColor: next.backgroundColor)
         window?.backgroundColor = backgroundColor
         indicatorStyle = style?.theme.appearance == .dark ? .white : .black
@@ -221,7 +237,12 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
         viewport?.rendered = next
         adjusting = false
         jumpIfNeeded()
+        if let find {
+            find.install(next)
+            updateFind(find)
+        }
         openingIndicator.stopAnimating()
+        if firstLayout { becomeFirstResponder() }
         if let overlay {
             overlay.frame = bounds
             overlay.isUserInteractionEnabled = false
@@ -282,13 +303,33 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
         transitionOverlay = nil
     }
 
-    @objc private func tapped(_ gesture: UITapGestureRecognizer) {
-        guard let rendered, let page else { return }
-        let point = gesture.location(in: page)
-        guard let url = rendered.link(at: point) else { return }
-        if let fragment = url.fragment, url.scheme == nil || (url.isFileURL && url.path == fileURL?.path),
-            let rect = rendered.rect(forAnchor: fragment)
-        {
+    func updateFind(_ find: ReaderFindState) {
+        self.find = find
+        let topInset = find.isPresented ? find.barHeight : 0
+        if contentInset.top != topInset {
+            contentInset.top = topInset
+            lastFindRevision = nil
+        }
+        if let rendered { find.install(rendered) }
+        if find.isPresented && !finding { page?.clearSelection() }
+        let wasFinding = finding
+        finding = find.isPresented
+        if wasFinding && !finding { becomeFirstResponder() }
+        page?.highlight(matches: finding ? find.matches : [], current: finding ? find.currentIndex : nil)
+        guard finding else { lastFindRevision = nil; return }
+        guard lastFindRevision != find.navigationRevision, let range = find.currentRange, let rendered else { return }
+        lastFindRevision = find.navigationRevision
+        guard let rect = rendered.selectionRects(for: range).first else { return }
+        // Leave room beneath the find bar and above the keyboard/toolbar. Result
+        // navigation never makes the rendered page first responder.
+        setTop(max(0, rect.minY * pageScale - 24), animated: !UIAccessibility.isReduceMotionEnabled)
+    }
+
+    private func follow(_ url: URL) {
+        guard let rendered else { return }
+        if let fragment = url.fragment, url.scheme == nil || (url.isFileURL && url.path == fileURL?.path) {
+            // An unresolved same-document fragment is not an external URL.
+            guard let rect = rendered.rect(forAnchor: fragment) else { return }
             adjusting = true
             setTop(max(0, rect.minY * pageScale - 8), animated: !UIAccessibility.isReduceMotionEnabled)
             adjusting = false
@@ -297,15 +338,15 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
             openLink?(url)
         }
     }
-    func gestureRecognizer(
-        _ gestureRecognizer: UIGestureRecognizer,
-        shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
-    ) -> Bool { true }
 }
 
-fileprivate final class ReaderPageView: UIView {
+fileprivate final class ReaderPageView: ReaderTextInputView {
+    private let matchHighlights = CAShapeLayer()
+    private let currentHighlight = CAShapeLayer()
+    private var highlightedMatches: [TextRange] = []
+    private var highlightedIndex: Int?
     init(rendered: RenderedDocument, scale: CGFloat, preview: CGImage?, previewRect: CGRect) {
-        super.init(frame: CGRect(origin: .zero, size: rendered.size))
+        super.init(rendered: rendered)
         layer.anchorPoint = .zero
         layer.position = .zero
         backgroundColor = UIColor(cgColor: rendered.backgroundColor)
@@ -321,10 +362,32 @@ fileprivate final class ReaderPageView: UIView {
         tiles.contentsScale = scale
         tiles.tileSize = CGSize(width: 512, height: 512)
         layer.addSublayer(tiles)
+        matchHighlights.fillColor = UIColor.systemYellow.withAlphaComponent(0.3).cgColor
+        currentHighlight.fillColor = UIColor.systemOrange.withAlphaComponent(0.45).cgColor
+        layer.addSublayer(matchHighlights)
+        layer.addSublayer(currentHighlight)
         isAccessibilityElement = true
         accessibilityLabel = rendered.text(in: rendered.documentRange)
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    func highlight(matches: [TextRange], current: Int?) {
+        guard matches != highlightedMatches || current != highlightedIndex else { return }
+        highlightedMatches = matches
+        highlightedIndex = current
+        let others = CGMutablePath()
+        let active = CGMutablePath()
+        for (index, range) in matches.enumerated() {
+            for rect in rendered.selectionRects(for: range) {
+                (index == current ? active : others).addRect(rect)
+            }
+        }
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        matchHighlights.path = others
+        currentHighlight.path = active
+        CATransaction.commit()
+    }
 
     nonisolated static func preview(_ rendered: RenderedDocument, rect: CGRect, scale: CGFloat) -> CGImage? {
         guard !rect.isNull, !rect.isEmpty else { return nil }

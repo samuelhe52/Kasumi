@@ -112,6 +112,34 @@ fileprivate func facadeBitmap(size: CGSize, draw: (CGContext) -> Void) throws ->
         #expect(other.text(in: cjkMath).isEmpty)
     }
 
+    @Test func textInputPositionArithmeticUsesSnapshotOwnedUTF16Offsets() throws {
+        let rendered = RenderedDocument(
+            MarkdownDocument(markdown: "A👩‍👩‍👧‍👦e\u{301} 中文 $x_i$"), width: 260, style: .init())
+        let text = rendered.text(in: rendered.documentRange)
+        let start = rendered.documentRange.lowerBound
+        let end = rendered.documentRange.upperBound
+        #expect(rendered.offset(from: start, to: end) == text.utf16.count)
+        for offset in 0...text.utf16.count {
+            let position = try #require(rendered.position(from: start, offset: offset))
+            #expect(rendered.offset(from: start, to: position) == offset)
+            #expect(rendered.position(from: position, offset: -offset) == start)
+        }
+        let emoji = try #require(rendered.ranges(matching: "👩‍👩‍👧‍👦").first)
+        #expect(rendered.offset(from: emoji.lowerBound, to: emoji.upperBound) == 11)
+        #expect(rendered.text(in: emoji) == "👩‍👩‍👧‍👦")
+        #expect(rendered.position(from: start, offset: -1) == nil)
+        #expect(rendered.position(from: end, offset: 1) == nil)
+        #expect(rendered.position(from: end, offset: Int.max) == nil)
+        #expect(rendered.position(from: start, offset: Int.min) == nil)
+        let foreign = RenderedDocument(MarkdownDocument(markdown: "Other"), width: 260, style: .init())
+        #expect(rendered.position(from: foreign.documentRange.lowerBound, offset: 0) == nil)
+        #expect(rendered.offset(from: start, to: foreign.documentRange.upperBound) == nil)
+        #expect(rendered.offset(from: foreign.documentRange.lowerBound, to: end) == nil)
+        let empty = RenderedDocument(MarkdownDocument(markdown: ""), width: 260, style: .init())
+        #expect(empty.position(from: empty.documentRange.lowerBound, offset: 0) == empty.documentRange.upperBound)
+        #expect(empty.position(from: empty.documentRange.lowerBound, offset: 1) == nil)
+    }
+
     @Test func outlineLinksAndReadingAnchorsUseStableDocumentCoordinates() throws {
         let source =
             "# Same 标题\n\n[Outside](https://example.com) [Inside](#same-标题-1)\n\n## Same 标题\n\n"
@@ -131,6 +159,13 @@ fileprivate func facadeBitmap(size: CGSize, draw: (CGContext) -> Void) throws ->
                 #expect(link.absoluteString.removingPercentEncoding == expected)
             }
         }
+        let footnotes = RenderedDocument(
+            MarkdownDocument(markdown: "Follow this footnote[^reader].\n\n[^reader]: Destination."),
+            width: 400, style: .init())
+        let marker = try #require(footnotes.ranges(matching: "1").first)
+        let markerRect = try #require(footnotes.selectionRects(for: marker).first)
+        #expect(footnotes.link(at: CGPoint(x: markerRect.midX, y: markerRect.midY))?.fragment == "fn-reader")
+        #expect(footnotes.rect(forAnchor: "fn-reader") != nil)
         let y: CGFloat = second.midY
         let anchor = rendered.readingAnchor(atY: y)
         #expect(abs(try #require(rendered.y(for: anchor)) - y) < 1e-8)

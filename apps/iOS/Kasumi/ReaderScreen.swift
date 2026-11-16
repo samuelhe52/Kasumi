@@ -12,6 +12,10 @@ struct ReaderScreen: View {
     @AppStorage("reader.theme-pair") private var pairID = "mono"
     @AppStorage("reader.font-size") private var fontSize: Double = 0
     @State private var viewport = ReaderViewport()
+    @State private var find = ReaderFindState()
+    @State private var pendingLink: URL?
+    @State private var showLinkConfirmation = false
+    @State private var showLinkFailure = false
     @State private var showAppearance = false
     @State private var showOutline = false
     @State private var showInspector = false
@@ -66,6 +70,20 @@ struct ReaderScreen: View {
             ) {
                 AppearanceSettings(presetID: $presetID, pairID: $pairID, fontSize: $fontSize)
             }
+            .confirmationDialog("Open External Link?", isPresented: $showLinkConfirmation, titleVisibility: .visible) {
+                Button("Open Link") {
+                    guard let pendingLink else { return }
+                    openURL(pendingLink) { accepted in showLinkFailure = !accepted }
+                }
+                Button("Cancel", role: .cancel) { pendingLink = nil }
+            } message: {
+                Text(pendingLink?.absoluteString ?? "")
+            }
+            .alert("Could Not Open Link", isPresented: $showLinkFailure) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("No application could open this link.")
+            }
             .fontOnboarding()
             .onChange(of: presetID) { _, _ in fontSize = 0 }
             .onChange(of: scenePhase) { _, phase in if phase != .active { viewport.flush() } }
@@ -95,6 +113,8 @@ struct ReaderScreen: View {
                 Button("Outline", systemImage: "list.bullet.indent") { showOutline = true }
                     .accessibilityIdentifier("reader-outline")
             }
+            Button("Find in Document", systemImage: "magnifyingglass") { find.isPresented = true }
+                .accessibilityIdentifier("reader-find")
             Button("Appearance", systemImage: "textformat.size") { showAppearance = true }
                 .accessibilityIdentifier("reader-appearance")
             if isImport {
@@ -144,8 +164,12 @@ struct ReaderScreen: View {
             if let snapshot = document.snapshot, let parsed = snapshot.parsed {
                 ReadingSurface(
                     document: parsed, revision: snapshot.revision, style: style, fontRevision: fontStore.revision,
-                    outline: parsed.outline, fileURL: document.fileURL, viewport: viewport,
-                    openLink: { url in openURL(url) }
+                    outline: parsed.outline, fileURL: document.fileURL, viewport: viewport, find: find,
+                    findPresented: find.isPresented, findRevision: find.navigationRevision, findBarHeight: find.barHeight,
+                    openLink: { url in
+                        pendingLink = url
+                        showLinkConfirmation = true
+                    }
                 )
                 .ignoresSafeArea(.container, edges: [.top, .bottom])
             } else if let error = document.snapshot?.error {
@@ -157,6 +181,10 @@ struct ReaderScreen: View {
             }
         }
         .background(paper.ignoresSafeArea())
+        .safeAreaInset(edge: .top, spacing: 0) {
+            if find.isPresented { ReaderFindBar(find: find) }
+        }
+        .scrollEdgeEffectStyle(.soft, for: .top)
         .navigationTitle(document.title)
         .navigationBarTitleDisplayMode(.inline)
     }

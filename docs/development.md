@@ -39,6 +39,18 @@ targets.
   popover and delete confirmation from the persistent menu control, not its
   transient menu items. Attach the toolbar outside the iPad inspector so the
   `DocumentGroup` receives it. Back and the title remain in the navigation bar.
+- Reader selection is a read-only `UITextInput` adapter on the tiled page;
+  `UITextInteraction` owns gestures and handles. It must become first responder
+  when interaction starts. Positions belong to one immutable layout: replacing
+  a page clears selection and recomputes find results.
+- Find lives in Reader Actions (or Command-F). Return/Command-G advances,
+  Shift-Command-G goes backward, and Escape/Done closes it. The find bar measures
+  its height into the UIKit scroll inset; the representable takes explicit find
+  revisions so match navigation triggers an update. Exercise these paths with
+  `fixtures/ReaderInteractions.md`, including Unicode/semantic Copy, wrapping
+  match navigation, rotation, and external-link confirmation/failure. Confirm
+  software-keyboard occlusion and iPad layout separately; the initial Reader 2
+  runtime pass used an iPhone 18 Pro on iOS 27.2 with a hardware keyboard.
 - Verify internal-link scrolling with `fixtures/LinkJumps.md` and a screen
   recording, not just settled screenshots: follow heading fragments, return
   upward, and tap a footnote. The fixture also covers duplicate headings and
