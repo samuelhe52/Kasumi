@@ -53,8 +53,7 @@ enum MeasuredParagraphTypesetter {
             let logical = textLine(range)
             var ascent: CGFloat = 0
             var descent: CGFloat = 0
-            var leading: CGFloat = 0
-            CTLineGetTypographicBounds(logical, &ascent, &descent, &leading)
+            CTLineGetTypographicBounds(logical, &ascent, &descent, nil)
             var hyphen: ShapedHyphen?
             if let x = selected.hyphenX, let run = selected.hyphenRun, input.fonts.indices.contains(run) {
                 let source = input.clusters.firstIndex(where: { $0.run == run }).flatMap {
@@ -77,7 +76,9 @@ enum MeasuredParagraphTypesetter {
                     range: range, line: logical, origin: CGPoint(x: offset, y: baseline), ascent: ascent,
                     descent: descent, width: used, fragments: fragments, hyphen: hyphen,
                     adjustmentRatio: selected.storedRatio))
-            y = max(y + fontSize * lineSpacing, baseline + descent + leading)
+            // Font line gap is ignored: line spacing is explicit, and fallback faces
+            // such as Hiragino carry a half-em gap that made their lines taller.
+            y = max(y + fontSize * lineSpacing, baseline + descent)
         }
         return ParagraphLayout(
             attributed: attributed, lines: lines, height: y, autoRagged: result.autoRagged,

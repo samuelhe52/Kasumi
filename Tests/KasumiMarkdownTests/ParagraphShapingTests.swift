@@ -166,3 +166,13 @@ func paragraphGlyphEmNormalizationUsesScalarAndExactSelectedFaces() throws {
     let latin = PlatformFont.systemFont(ofSize: 16)
     #expect(ParagraphShaper.normalizesToEm(0x20000, font: latin as CTFont, han: nil, punctuation: nil))
 }
+
+@Test func fallbackFontLineGapDoesNotStretchLines() throws {
+    // Hiragino carries a half-em line gap; iOS falls back to it for kana.
+    let font = try #require(PlatformFont(name: "HiraginoSans-W3", size: 16))
+    #expect(font.leading > 0)
+    let text = NSAttributedString(string: "かすみ\nかすみ", attributes: [.font: font])
+    let layout = ParagraphTypesetter.layout(text, width: 300, fontSize: 16, lineSpacing: 1.2)
+    #expect(layout.lines.count == 2)
+    #expect(abs(layout.lines[1].origin.y - layout.lines[0].origin.y - 16 * 1.2) < 0.001)
+}
