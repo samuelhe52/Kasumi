@@ -34,6 +34,11 @@ targets.
   popover and delete confirmation from the persistent menu control, not its
   transient menu items. Attach the toolbar outside the iPad inspector so the
   `DocumentGroup` receives it. Back and the title remain in the navigation bar.
+- Verify internal-link scrolling with `fixtures/LinkJumps.md` and a screen
+  recording, not just settled screenshots: follow heading fragments, return
+  upward, and tap a footnote. The fixture also covers duplicate headings and
+  percent-encoded fragments. Repeat with Reduce Motion enabled; jumps should
+  then be immediate. Open the fixture using the debug launch argument below.
 
 ## Simulator and device notes
 

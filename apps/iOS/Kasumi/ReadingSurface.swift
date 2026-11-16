@@ -290,7 +290,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
             let rect = rendered.rect(forAnchor: fragment)
         {
             adjusting = true
-            setTop(max(0, rect.minY * pageScale - 8))
+            setTop(max(0, rect.minY * pageScale - 8), animated: !UIAccessibility.isReduceMotionEnabled)
             adjusting = false
             reportPosition()
         } else {

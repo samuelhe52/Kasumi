@@ -13,6 +13,8 @@ or is reordered; record the work itself in a numbered entry.
    edit menu with Copy, a find bar, and opening external links with confirmation.
    The library APIs already exist: `position(closestTo:)`, `selectionRects`,
    `ranges(matching:)`, and `link(at:)`.
+   Internal heading links and footnotes now animate like outline jumps, unless
+   Reduce Motion is enabled.
 3. Export: PDF, long PNG, print, share sheet.
 4. Source editor with live preview; side by side on iPad.
 5. Settings: default preset, theme, and size. The font store shipped ahead of
