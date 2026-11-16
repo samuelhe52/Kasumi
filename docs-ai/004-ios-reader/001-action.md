@@ -1,7 +1,7 @@
 # 004 — iOS reader: document shell and reading view: Action record
 
-Milestone 1 is in progress; this record covers the slices so far and will be
-finished when the milestone closes.
+Milestone 1 was closed on 2026-11-16 by maintainer decision. Remaining recorded
+issues are non-blocking follow-ups; reader milestone 2 is the current focus.
 
 ## Timeline
 
@@ -19,8 +19,9 @@ finished when the milestone closes.
 | 2026-11-15 | Animated section jumps | `fbb13cb` |
 | 2026-11-15 | Auto-hiding bars follow in-bounds finger travel, not bounce or bar-induced offset changes; drag direction resets for each gesture | — |
 | 2026-11-15 | Keep the reader toolbar visible; remove auto-hide state and drag tracking | — |
+| 2026-11-16 | Maintainer closed milestone 1 and chose to proceed directly to milestone 2; remaining issues retained as non-blocking follow-ups | — |
 
-## Outcome and current state (as of 2026-11-15)
+## Outcome and current state (as of 2026-11-16)
 
 The launch scene, system document browser, paste and URL entry, reading view,
 appearance controls, outline, and per-file reading position exist as described in
@@ -28,6 +29,13 @@ the plan. The outline has heading search, wrapping labels, shallow indentation,
 and a rounded current-section marker; search omits the section gap above its
 first visible result. Paste Markdown reports a denied read separately from an
 empty clipboard.
+
+Subsequent slices saved pasted and fetched documents through the single
+`DocumentGroup` reader ([002](002-saved-imports.md)), replaced the iPad outline
+sidebar with an inspector ([003](003-ipad-inspector.md)), added the share-sheet
+import action ([004](004-import-action.md)), and handled files handed to a running
+app and cold activation imports ([005](005-warm-file-handoff.md)). Their records
+retain the implementation decisions, validation evidence, and limitations.
 
 Key files:
 
@@ -126,6 +134,38 @@ Document-end scrolling fix (2026-11-15):
   reopened the fixture and completed the checks with named scroll gestures.
   Physical devices and iPad were not verified.
 
+### Maintainer-confirmed resolution (2026-11-16)
+
+The maintainer confirmed that all seven numbered Reader 1 items from the review
+are resolved:
+
+1. External file handoff, including warm opens and duplicate navigation bars on
+   cold opens.
+2. In-place file opening on a physical device.
+3. Per-file reading-position restoration.
+4. Link and footnote taps.
+5. iPad layout.
+6. Reduce Motion.
+7. Document-end scrolling and clamping after the fix.
+
+This confirmation supersedes the earlier unverified status for these items.
+No new test or runtime checks were run to record it; device and OS details were
+not supplied. The separately reported intermittent blank iPad open and cold
+share-sheet copies left in `Inbox` are not covered by this seven-item closure.
+
+### Milestone closure (2026-11-16)
+
+The maintainer explicitly closed Reader 1 and chose to proceed directly to
+Reader 2: UIKit selection handles, Copy, a find bar with match navigation, and
+external-link opening with confirmation. This is an acceptance decision, not
+evidence of additional fixes or test runs.
+
+The remaining open questions in [saved imports](002-saved-imports.md#open-questions),
+the [iPad inspector](003-ipad-inspector.md#open-questions), and
+[file handoff](005-warm-file-handoff.md#open-questions) remain recorded as
+non-blocking follow-ups. In particular, the intermittent blank iPad open and cold
+share-sheet files remaining in `Inbox` are not asserted resolved.
+
 ## Open questions
 
 - In the iOS 27.2 simulator the document browser and the Files app show the
@@ -133,8 +173,9 @@ Document-end scrolling fix (2026-11-15):
   created simulator and with every file type accepted. Document Manager logs
   `failed to get a cached domain for FILocalAppContainerNode<Kasumi>` before
   enumerating, which points to the simulator's File Provider, not app
-  configuration. Needs a check on a physical device; it blocks verifying
-  in-place opening on the simulator.
+  configuration. Physical-device in-place opening was subsequently confirmed
+  resolved by the maintainer on 2026-11-16; this simulator observation is not an
+  outstanding physical-device validation requirement.
 - Launch in the simulator stalls a few seconds while UIKit loads accessibility
   bundles; attributed to simulator automation, not the app.
 - Apple's collapsed "Recents" / expanded "Kasumi Recents" titles are unchanged.

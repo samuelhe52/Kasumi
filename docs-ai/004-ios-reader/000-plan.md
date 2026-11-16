@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | In progress (reader milestone 1) |
+| Status | Implemented (reader milestone 1; closed 2026-11-16) |
 | Anchor date | 2026-11-14 |
 | Origin | First reader milestone from the [goal](../001-library-and-reader/goal.md). Reconstructed on 2026-11-15 from Git history and the status document during the docs-ai migration; it did not precede the work. |
 | Related | [003](../003-public-rendering-api/000-plan.md), [roadmap](../roadmap.md), [development notes](../../docs/development.md#simulator-and-device-notes) |
@@ -79,3 +79,6 @@ paste consent prompt on a device (`make run-device`).
   Kasumi" files on a cold launch (004.004's activation import corrected in
   place), and wait for a ready browser before every programmatic open — see
   [005-warm-file-handoff.md](005-warm-file-handoff.md).
+- Updated 2026-11-16: closed reader milestone 1 by maintainer decision and moved
+  directly to milestone 2. Remaining recorded issues are non-blocking follow-ups,
+  not claimed fixes — see [milestone closure](001-action.md#milestone-closure-2026-11-16).
