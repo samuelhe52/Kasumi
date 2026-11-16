@@ -122,6 +122,8 @@ fileprivate struct MathSnapshot: Decodable {
     #expect(!bad.parse().diagnostics.isEmpty)
     var unknown = MathParser(#"\unknown{x}"#)
     #expect(unknown.parse().diagnostics.contains { $0.contains("Unsupported") })
+    var monospace = MathParser(#"\texttt{main.c}\to\texttt{main.o}"#)
+    #expect(monospace.parse().diagnostics.isEmpty)
 }
 
 @Test func adjacentEqualObjectsKeepSeparateSemanticCopiesAndOffsets() {

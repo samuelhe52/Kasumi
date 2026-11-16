@@ -345,7 +345,7 @@ struct MathParser {
     private static let alphabets: [String: MathAlphabet] = [
         "mathrm": .upright, "mathnormal": .italic, "mathit": .italic, "mathbf": .bold, "boldsymbol": .bold,
         "mathbb": .doubleStruck, "mathcal": .script, "mathscr": .script, "mathfrak": .fraktur, "mathsf": .sans,
-        "mathtt": .monospace
+        "mathtt": .monospace, "texttt": .monospace
     ]
     private static let accents: [String: MathAccent] = [
         "hat": .hat, "widehat": .wideHat, "tilde": .tilde, "widetilde": .wideTilde, "bar": .bar, "vec": .vector,
