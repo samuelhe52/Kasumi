@@ -36,7 +36,8 @@ source editor, settings and font store.
 - `apps/iOS/Kasumi/LaunchActions.swift`: paste and URL entry, saved to the
   `Pasted` and `Downloaded` folders ([002](002-saved-imports.md)).
 - `apps/iOS/Kasumi/ReaderDocument.swift`, `ReaderState.swift`: the read-only
-  document and per-file reading position.
+  document and per-file reading position in milestone 1. The document session
+  becomes writable in [009](../009-source-editor/000-plan.md).
 - `apps/iOS/Kasumi/ReadingSurface.swift`: lays out on a background task and draws
   with `CATiledLayer`; keeps the toolbar visible while scrolling; animated section jumps.
 - `apps/iOS/Kasumi/ContentView.swift`: reader screen, appearance controls (preset,
@@ -67,6 +68,8 @@ paste consent prompt on a device (`make run-device`).
 
 ## Amendments
 
+- Updated 2026-11-17: source editing replaces the read-only document session;
+  see [009](../009-source-editor/000-plan.md).
 - Updated 2026-11-15: removed toolbar auto-hiding to avoid bar-driven viewport
   shifts; see [action record](001-action.md#persistent-reader-toolbar-2026-11-15).
 - Updated 2026-11-15: save pasted and fetched documents as files and open every reader through `DocumentGroup`; corrected the Goals and the action record's URL-entry notes — see [002-saved-imports.md](002-saved-imports.md).

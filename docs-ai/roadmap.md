@@ -26,7 +26,14 @@ or is reordered; record the work itself in a numbered entry.
    [008](008-reader-export/000-plan.md), closed 2026-11-17 by maintainer
    decision; file-backed export, image size/quality controls and cancellation. See
    [validation limits](008-reader-export/001-action.md#open-questions).
-4. Source editor with live preview; side by side on iPad.
+4. Source editor with live preview; side by side on iPad —
+   [009](009-source-editor/000-plan.md), implemented 2026-11-17. Writable document sessions,
+   encoding-preserving source edits, coalesced document undo/redo and
+   Source/Preview switching are implemented. The iPad side-by-side layout is
+   deferred until it can be checked on an iPad; see
+   [native editor chrome](009-source-editor/003-native-editor-chrome.md).
+   Validation uses only the iPhone simulator.
+   See [validation limits](009-source-editor/001-action.md#open-questions).
 
 ## Non-blocking Reader 1 follow-ups
 

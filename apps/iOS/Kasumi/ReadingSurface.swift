@@ -13,10 +13,19 @@ struct ReadingSurface: UIViewRepresentable {
     let fileURL: URL?
     let viewport: ReaderViewport
     let findRequest: Int
+    let isActive: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let openLink: (URL) -> Void
 
-    func makeUIView(context: Context) -> ReaderScrollView { ReaderScrollView() }
+    func makeUIView(context: Context) -> ReaderScrollView {
+        let view = ReaderScrollView()
+        view.alpha = isActive ? 1 : 0
+        return view
+    }
     func updateUIView(_ view: ReaderScrollView, context: Context) {
+        ReaderPaneTransition.update(view, visible: isActive, reduceMotion: reduceMotion)
+        view.setActive(isActive)
+        guard isActive else { return }
         view.update(
             document: document, revision: revision, style: style, fontRevision: fontRevision, outline: outline,
             fileURL: fileURL, viewport: viewport, openLink: openLink)
@@ -49,6 +58,8 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
     private var layoutTask: Task<Void, Never>?
     private var generation = UUID()
     private var requestedWidth: CGFloat = 0
+    private var isActive = true
+    private var animateReplacement = true
     private var pageScale: CGFloat = 1
     private var lastJump: UUID?
     private var adjusting = false
@@ -59,6 +70,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
     }
     private var findRequest = 0
     private var presentedFindRequest = 0
+    private var findPresentationTask: Task<Void, Never>?
     private let unobscuredViewport = UILayoutGuide()
     private var currentFindRect: CGRect?
 
@@ -105,7 +117,9 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
             restoreAnchor = persisted
             setPaper(style.theme)
         }
-        let changed = self.revision != revision || self.style != style || self.fontRevision != fontRevision
+        let appearanceChanged = self.style != style || self.fontRevision != fontRevision
+        let changed = self.revision != revision || appearanceChanged
+        if changed { animateReplacement = appearanceChanged }
         self.fontRevision = fontRevision
         self.document = document
         self.outline = outline
@@ -162,7 +176,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
 
     private func rebuildIfNeeded() {
         let width = bounds.width
-        guard width > 0, width != requestedWidth, let document, let style else { return }
+        guard isActive, width > 0, width != requestedWidth, let document, let style else { return }
         let anchor = rendered?.readingAnchor(atY: topY) ?? restoreAnchor
         requestedWidth = width
         layoutTask?.cancel()
@@ -232,7 +246,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         adjusting = true
         let firstLayout = rendered == nil
         let animate = !UIAccessibility.isReduceMotionEnabled && window != nil
-        let overlay = !firstLayout && animate
+        let overlay = !firstLayout && animate && animateReplacement
             ? content.resizableSnapshotView(from: bounds, afterScreenUpdates: false, withCapInsets: .zero) : nil
         transitionOverlay?.removeFromSuperview()
         transitionOverlay = overlay
@@ -312,11 +326,31 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         viewport?.moved(anchor: rendered.readingAnchor(atY: y), heading: heading)
     }
     func finish() {
+        findPresentationTask?.cancel()
         viewport?.flush()
         findInteraction.dismissFindNavigator()
         layoutTask?.cancel()
         transitionOverlay?.removeFromSuperview()
         transitionOverlay = nil
+    }
+
+    func setActive(_ active: Bool) {
+        guard isActive != active else { return }
+        isActive = active
+        // A hidden preview skips layout; catch up on a size change meanwhile.
+        if active { setNeedsLayout() }
+        if !active {
+            reportPosition()
+            findPresentationTask?.cancel()
+            findPresentationTask = nil
+            // Responder changes can ask SwiftUI for its responder graph. Do not
+            // make that reentrant while updateUIView is evaluating that graph.
+            Task { @MainActor [weak self] in
+                guard let self, !self.isActive else { return }
+                self.findInteraction.dismissFindNavigator()
+                self.resignFirstResponder()
+            }
+        }
     }
 
     func requestFind(_ revision: Int) {
@@ -325,9 +359,16 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
     }
 
     private func presentFindIfNeeded() {
-        guard rendered != nil, window != nil, findRequest != presentedFindRequest else { return }
-        presentedFindRequest = findRequest
-        findInteraction.presentFindNavigator(showingReplace: false)
+        guard isActive, rendered != nil, window != nil, findRequest != presentedFindRequest,
+            findPresentationTask == nil else { return }
+        findPresentationTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            self.findPresentationTask = nil
+            guard !Task.isCancelled, self.isActive, self.window != nil,
+                self.findRequest != self.presentedFindRequest else { return }
+            self.presentedFindRequest = self.findRequest
+            self.findInteraction.presentFindNavigator(showingReplace: false)
+        }
     }
 
     func findInteraction(_ interaction: UIFindInteraction, sessionFor view: UIView) -> UIFindSession? {
@@ -346,7 +387,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         // Let UIKit finish resigning its search field, then restore the reader's
         // responder chain so Command-F can start another session.
         Task { @MainActor [weak self] in
-            guard let self, self.window != nil, !self.findInteraction.isFindNavigatorVisible else { return }
+            guard let self, self.isActive, self.window != nil, !self.findInteraction.isFindNavigatorVisible else { return }
             self.becomeFirstResponder()
         }
     }

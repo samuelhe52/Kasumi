@@ -39,3 +39,7 @@ that fixes it; add one when a limitation is found and not fixed.
 - Drawing: tile drawing is serialized by a lock in `RenderedDocument`, because
   Core Text line objects are shared between tiles and Apple limits each to one
   thread at a time.
+- Live preview still parses and lays out the complete document. The app coalesces
+  source edits and skips layout while the preview is hidden; this is not
+  incremental rendering. Source and preview scroll independently. See [009](../009-source-editor/000-plan.md) and
+  [editor continuity](../009-source-editor/002-editor-experience.md).

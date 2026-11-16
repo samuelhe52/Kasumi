@@ -65,6 +65,18 @@ Run the narrowest filter: `make test FILTER=<name>` for package tests and
   `make test-ios FILTER=DocumentSourceTests` (encoding round trips). In the app,
   edit `fixtures/SourceEditing.md`, close and reopen it, and check the saved bytes.
   See [009](../docs-ai/009-source-editor/000-plan.md).
+  Check switching panes while typing: Preview dismisses the keyboard; Source
+  resumes the previous caret and keyboard only if editing was active. The toggle
+  and Done must stay in the bar (not the overflow menu), and both panes must blur
+  softly under the bars, never clip. Type, pause, type again: undo takes two
+  steps and reveals the change. Check Undo/Redo above the keyboard and in the
+  bottom bar, rotating in Source then showing Preview, independent scroll
+  positions, larger text sizes, and Reduce Motion. See
+  [009.003](../docs-ai/009-source-editor/003-native-editor-chrome.md).
+  Keyboard bar commands: `make test FILTER=SourceFormattingTests`. In the app,
+  all seven buttons must fit with Hide Keyboard centered; check the heading
+  long-press menu, and that each command takes one undo step. See
+  [009.004](../docs-ai/009-source-editor/004-markdown-keyboard-bar.md).
 - **Find:** open `fixtures/ReaderInteractions.md` with the keyboard visible. Check
   first and last results, wrapping, Match Case and Whole Words, clear, dismiss and
   reopen, rotation, and selection afterward. Identifiers: `find.searchField`,
