@@ -28,9 +28,10 @@ struct ReaderAppearance {
 
     func theme(dark: Bool) -> DocumentTheme { dark ? pair.dark : pair.light }
 
-    func style(dark: Bool, regular: Bool) -> RenderStyle {
+    func style(dark: Bool, regular: Bool, preferredOpen: Set<String>) -> RenderStyle {
         var style = RenderStyle(
             preset: preset, theme: theme(dark: dark), fontSize: manualSize.map { CGFloat($0) })
+        style.preferredOpenFamilies = preferredOpen
         style.insets.left = regular ? 40 : 20
         style.insets.right = regular ? 40 : 20
         return style

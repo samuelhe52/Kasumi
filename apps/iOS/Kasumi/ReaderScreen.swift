@@ -22,8 +22,12 @@ struct ReaderScreen: View {
     private var appearance: ReaderAppearance {
         ReaderAppearance(presetID: presetID, pairID: pairID, fontSize: fontSize)
     }
+    // Read in `style` so a downloaded face re-resolves the preset's families.
+    private var fontStore: FontStore { .shared }
     private var style: RenderStyle {
-        appearance.style(dark: colorScheme == .dark, regular: regular)
+        _ = fontStore.revision
+        return appearance.style(
+            dark: colorScheme == .dark, regular: regular, preferredOpen: fontStore.preferredOpen)
     }
     private var paper: Color {
         if let rendered = viewport.rendered { return Color(cgColor: rendered.backgroundColor) }
@@ -57,6 +61,7 @@ struct ReaderScreen: View {
             ) {
                 AppearanceSettings(presetID: $presetID, pairID: $pairID, fontSize: $fontSize)
             }
+            .fontOnboarding()
             .onChange(of: presetID) { _, _ in fontSize = 0 }
             .onChange(of: scenePhase) { _, phase in if phase != .active { viewport.flush() } }
             // A file handed to the app while this reader shows closes it first.
@@ -123,7 +128,7 @@ struct ReaderScreen: View {
         Group {
             if let snapshot = document.snapshot, let parsed = snapshot.parsed {
                 ReadingSurface(
-                    document: parsed, revision: snapshot.revision, style: style,
+                    document: parsed, revision: snapshot.revision, style: style, fontRevision: fontStore.revision,
                     outline: parsed.outline, fileURL: document.fileURL, viewport: viewport,
                     openLink: { url in openURL(url) }
                 )

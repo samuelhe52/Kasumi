@@ -9,6 +9,7 @@ struct AppearanceSettings: View {
     @Binding var fontSize: Double
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
+    @State private var showFonts = false
     private var appearance: ReaderAppearance {
         ReaderAppearance(presetID: presetID, pairID: pairID, fontSize: fontSize)
     }
@@ -28,7 +29,12 @@ struct AppearanceSettings: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close", systemImage: "xmark") { dismiss() }
                 }
+                ToolbarItem(placement: .primaryAction) {
+                    Button("Fonts", systemImage: "textformat") { showFonts = true }
+                        .accessibilityIdentifier("appearance-fonts")
+                }
             }
+            .sheet(isPresented: $showFonts) { FontStoreView() }
         }
         .frame(idealHeight: 330)
         .presentationDetents([.height(330)])

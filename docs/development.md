@@ -60,6 +60,13 @@ targets.
   replacing the icon while keeping build 1 left a cached white tile; increasing
   the app and extension build numbers to 2 refreshed it without an uninstall.
   Rebuilding into fresh DerivedData alone did not refresh that installed icon.
+- **CJK fonts.** Apple's downloadable faces are activated per process: the app
+  re-requests them at launch, and `make test-ios` still skips the 10 tests that
+  need them even after the app downloaded them. iOS caches them for the whole
+  simulator, so to see onboarding's open fallbacks again, launch with
+  `-KasumiFailAppleFonts YES -onboarding.fonts-offered NO` (debug builds). The
+  appearance sheet's toolbar buttons are missing from `sim-use ui`; tap the Fonts
+  button by coordinates. See [005](../docs-ai/005-cjk-font-availability/001-action.md).
 - **Open a file at launch (debug builds only).** Pass `-KasumiOpen <path>` to skip
   the launch scene. The file is copied into the app's `Documents/Debug/`
   (replacing an earlier copy) and opened through the document browser, so

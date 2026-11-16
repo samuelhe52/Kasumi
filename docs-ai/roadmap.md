@@ -15,8 +15,10 @@ or is reordered; record the work itself in a numbered entry.
    `ranges(matching:)`, and `link(at:)`.
 3. Export: PDF, long PNG, print, share sheet.
 4. Source editor with live preview; side by side on iPad.
-5. Settings: font store and download screen
-   ([005](005-cjk-font-availability/000-plan.md)), default preset, theme, and size.
+5. Settings: default preset, theme, and size. The font store shipped ahead of
+   Reader 2 on 2026-11-16 in the appearance sheet
+   ([005](005-cjk-font-availability/000-plan.md)); move it here if a Settings
+   screen arrives.
 
 ## Non-blocking Reader 1 follow-ups
 

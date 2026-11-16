@@ -6,6 +6,9 @@ struct ReadingSurface: UIViewRepresentable {
     let document: MarkdownDocument
     let revision: UUID
     let style: RenderStyle
+    /// `FontStore.revision`: a face that became available changes the rendering
+    /// even when the style's resolved families stay the same.
+    let fontRevision: Int
     let outline: [OutlineItem]
     let fileURL: URL?
     let viewport: ReaderViewport
@@ -14,7 +17,7 @@ struct ReadingSurface: UIViewRepresentable {
     func makeUIView(context: Context) -> ReaderScrollView { ReaderScrollView() }
     func updateUIView(_ view: ReaderScrollView, context: Context) {
         view.update(
-            document: document, revision: revision, style: style, outline: outline,
+            document: document, revision: revision, style: style, fontRevision: fontRevision, outline: outline,
             fileURL: fileURL, viewport: viewport, openLink: openLink)
     }
     static func dismantleUIView(_ view: ReaderScrollView, coordinator: ()) { view.finish() }
@@ -33,6 +36,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
     private var document: MarkdownDocument?
     private var revision: UUID?
     private var style: RenderStyle?
+    private var fontRevision = 0
     private var outline: [OutlineItem] = []
     private var headings: [(String, CGFloat)] = []
     private var fileURL: URL?
@@ -72,7 +76,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
     deinit { layoutTask?.cancel() }
 
     func update(
-        document: MarkdownDocument, revision: UUID, style: RenderStyle, outline: [OutlineItem],
+        document: MarkdownDocument, revision: UUID, style: RenderStyle, fontRevision: Int, outline: [OutlineItem],
         fileURL: URL?, viewport: ReaderViewport, openLink: @escaping (URL) -> Void
     ) {
         self.viewport = viewport
@@ -83,7 +87,8 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
             restoreAnchor = persisted
             setPaper(style.theme)
         }
-        let changed = self.revision != revision || self.style != style
+        let changed = self.revision != revision || self.style != style || self.fontRevision != fontRevision
+        self.fontRevision = fontRevision
         self.document = document
         self.outline = outline
         self.revision = revision

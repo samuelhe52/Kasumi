@@ -161,6 +161,7 @@ struct LaunchPresenter: View {
         Color.clear
             .allowsHitTesting(false)
             .background(WindowReader { store.window = $0 })
+            .fontOnboarding()
             #if DEBUG
                 .task { await store.openDebugDocumentIfRequested() }
             #endif

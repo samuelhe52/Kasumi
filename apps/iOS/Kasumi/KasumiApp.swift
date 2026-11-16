@@ -4,7 +4,12 @@ import SwiftUI
 struct KasumiApp: App {
     @UIApplicationDelegateAdaptor private var appDelegate: KasumiAppDelegate
     @State private var launchStore = LaunchStore()
-    init() { LaunchStore.installWelcomeIfNeeded() }
+    init() {
+        LaunchStore.installWelcomeIfNeeded()
+        // Registers downloaded open fonts and re-requests Apple's before the
+        // first document renders.
+        _ = FontStore.shared
+    }
     var body: some Scene {
         DocumentGroupLaunchScene(Text(verbatim: " ")) {
             Button("Paste Markdown") { launchStore.pasteFromClipboard() }
