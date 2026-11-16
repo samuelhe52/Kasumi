@@ -22,7 +22,10 @@ or is reordered; record the work itself in a numbered entry.
    gaps around descenders. See [link decoration](002-rendering-engine/003-link-decoration.md)
    and [glyph clearance](002-rendering-engine/004-underline-clearance.md).
    See the [validation limits](007-reader-interactions/001-action.md#open-questions).
-3. Export: PDF, long PNG, print, share sheet.
+3. Export: PDF, long PNG, long JPG, print, share sheet —
+   [008](008-reader-export/000-plan.md), implemented; file-backed export, image
+   size/quality controls and cancellation. See
+   [validation limits](008-reader-export/001-action.md#open-questions).
 4. Source editor with live preview; side by side on iPad.
 5. Settings: default preset, theme, and size. The font store shipped ahead of
    Reader 2 on 2026-11-16 in the appearance sheet

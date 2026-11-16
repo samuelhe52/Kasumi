@@ -12,7 +12,7 @@ images, themes and typography presets.
 It exposes:
 
 - a headless API: parse, lay out at a width, draw, hit-test and select;
-- export to paginated PDF and PNG;
+- export to paginated PDF, PNG, and JPG;
 - ready-made UIKit/AppKit views with SwiftUI wrappers.
 
 Themes and presets are public values that clients can define. Native
@@ -31,7 +31,7 @@ new features are welcome. The first version includes:
 - reading with selection, search, outline, saved reading position, themes and
   presets;
 - a plain source editor with live preview, side by side on iPad;
-- export to PDF, long PNG, print and the share sheet.
+- export to PDF, long PNG, long JPG, print and the share sheet.
 
 ## Done means
 

@@ -55,10 +55,16 @@ enum DocumentPaginator {
         guard end > 0 else { return [] }
         var start: CGFloat = 0
         var pages: [DocumentPageSlice] = []
+        var bandIndex = 0
         while start < end {
             var cut = min(end, start + contentHeight)
-            if let band = indivisible.first(where: { $0.lowerBound < cut && $0.upperBound > cut }) {
-                cut = band.lowerBound > start + 0.01 ? band.lowerBound : band.upperBound
+            // Page cuts advance monotonically; do not rescan earlier bands for every page.
+            while bandIndex < indivisible.count, indivisible[bandIndex].upperBound <= cut { bandIndex += 1 }
+            if bandIndex < indivisible.count {
+                let band = indivisible[bandIndex]
+                if band.lowerBound < cut && band.upperBound > cut {
+                    cut = band.lowerBound > start + 0.01 ? band.lowerBound : band.upperBound
+                }
             }
             guard cut > start else { throw DocumentExportError.invalidGeometry }
             pages.append(DocumentPageSlice(range: start..<cut, scale: min(1, contentHeight / (cut - start))))

@@ -18,6 +18,7 @@ struct ReaderScreen: View {
     @State private var showLinkFailure = false
     @State private var showAppearance = false
     @State private var showOutline = false
+    @State private var showExport = false
     @State private var showInspector = false
     @State private var showDeleteConfirmation = false
     @State private var handoffID = UUID()
@@ -65,6 +66,11 @@ struct ReaderScreen: View {
             }
             .background(paper.ignoresSafeArea())
             .sheet(isPresented: $showOutline) { outlineSheet }
+            .sheet(isPresented: $showExport) {
+                if let parsed = document.snapshot?.parsed {
+                    ReaderExportSheet(document: parsed, title: document.title, style: style)
+                }
+            }
             .sheet(
                 isPresented: Binding(get: { showAppearance && !regular }, set: { showAppearance = $0 })
             ) {
@@ -117,6 +123,9 @@ struct ReaderScreen: View {
                 .accessibilityIdentifier("reader-find")
             Button("Appearance", systemImage: "textformat.size") { showAppearance = true }
                 .accessibilityIdentifier("reader-appearance")
+            Button("Export", systemImage: "square.and.arrow.up") { showExport = true }
+                .disabled(document.snapshot?.parsed == nil)
+                .accessibilityIdentifier("reader-export")
             if isImport {
                 Section {
                     Button("Delete", systemImage: "trash", role: .destructive) {

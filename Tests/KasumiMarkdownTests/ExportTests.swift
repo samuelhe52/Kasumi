@@ -73,7 +73,7 @@ fileprivate struct PaginationSnapshot: Decodable {
     options.footerTemplate = "{file} · {page} of {pages}"
     options.title = "Authored Export"
     let output = directory.appendingPathComponent("pages.pdf")
-    try DocumentExporter.writePDF(DocumentParser.parse(source), style: Typography(), options: options, to: output)
+    try DocumentExport.writePDF(MarkdownDocument(markdown: source), style: RenderStyle(), options: options, to: output)
     let pdf = try #require(PDFDocument(url: output))
     #expect(pdf.pageCount > 2)
     let allText = (0..<pdf.pageCount).compactMap { pdf.page(at: $0)?.string }.joined(separator: " ")
@@ -135,4 +135,112 @@ fileprivate struct PaginationSnapshot: Decodable {
     context.translateBy(x: -180, y: -(168 - 130))
     context.drawPDFPage(first)
     #expect(pixel[0] >= 247 && pixel[1] >= 247 && pixel[2] >= 247)
+}
+
+@Suite struct ExportFileTests {
+    @Test(arguments: [DocumentImageFormat.png, .jpeg])
+    func fileImagesHaveCorrectEncodingGeometryAndPaper(format: DocumentImageFormat) throws {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let output = folder.appendingPathComponent("image")
+        let document = MarkdownDocument(
+            markdown: "# Export\n\nTop text\n\n" + String(repeating: "Another paragraph.\n\n", count: 30) + "Last line")
+        let style = RenderStyle(
+            theme: DocumentTheme(
+                id: "export-paper", name: "Export Paper", appearance: .light,
+                document: ["paper": DocumentColor(red: 1, green: 0, blue: 0, alpha: 0.5)]))
+        var options = ImageExportOptions()
+        options.format = format
+        options.scale = 1.5
+        // Also exercise replacing a destination: the format does not depend on its extension.
+        try Data("previous".utf8).write(to: output)
+        try DocumentExport.writeImage(document, style: style, width: 320, options: options, to: output)
+        let source = try #require(CGImageSourceCreateWithURL(output as CFURL, nil))
+        #expect(CGImageSourceGetType(source) as String? == (format == .png ? "public.png" : "public.jpeg"))
+        let image = try #require(CGImageSourceCreateImageAtIndex(source, 0, nil))
+        let rendered = RenderedDocument(document, width: 320, style: style)
+        #expect(image.width == 480)
+        #expect(image.height == Int(ceil(rendered.size.height * options.scale)))
+        #expect(image.height > image.width)
+        // A paper corner must be filled, not JPEG's otherwise undefined alpha backdrop.
+        var pixel = [UInt8](repeating: 0, count: 4)
+        let context = try #require(
+            CGContext(
+                data: &pixel, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4,
+                space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+        // Rounded-up fractional-height edge rows must have full paper coverage too.
+        context.draw(image, in: CGRect(x: 0, y: 0, width: image.width, height: image.height))
+        if format == .jpeg {
+            #expect(
+                pixel[0] >= 250 && abs(Int(pixel[1]) - 128) <= 4 && abs(Int(pixel[2]) - 128) <= 4,
+                "Paper pixel: \(pixel)")
+            #expect(pixel[3] == 255)
+        } else {
+            #expect(abs(Int(pixel[0]) - 128) <= 1 && pixel[1] == 0 && pixel[2] == 0, "Paper pixel: \(pixel)")
+            #expect(abs(Int(pixel[3]) - 128) <= 1)
+        }
+        #expect(try FileManager.default.contentsOfDirectory(atPath: folder.path) == ["image"])
+    }
+
+    @Test func imageBudgetAndInvalidQualityPreserveDestination() throws {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let output = folder.appendingPathComponent("keep.png")
+        let original = Data("keep this file".utf8)
+        try original.write(to: output)
+        let document = MarkdownDocument(markdown: "# Too large")
+        var options = ImageExportOptions()
+        options.maximumBitmapBytes = 4
+        do {
+            try DocumentExport.writeImage(document, style: RenderStyle(), width: 320, options: options, to: output)
+            Issue.record("Expected the raw bitmap budget to reject this export")
+        } catch DocumentExportError.imageTooLarge(let width, let height) {
+            #expect(width == 640 && height > 0)
+        }
+        options.maximumBitmapBytes = 128 * 1024 * 1024
+        options.jpegQuality = .nan
+        #expect(throws: DocumentExportError.self) {
+            try DocumentExport.writeImage(document, style: RenderStyle(), width: 320, options: options, to: output)
+        }
+        options.jpegQuality = 0.9
+        #expect(throws: CocoaError.self) {
+            try DocumentExport.writeImage(document, style: RenderStyle(), width: 320, options: options, to: folder)
+        }
+        #expect(try Data(contentsOf: output) == original)
+        #expect(try FileManager.default.contentsOfDirectory(atPath: folder.path) == ["keep.png"])
+    }
+
+    @Test(arguments: [true, false])
+    func cancellationDuringDrawingPreservesDestination(pdf: Bool) async throws {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let output = folder.appendingPathComponent("keep")
+        let original = Data("keep this file".utf8)
+        try original.write(to: output)
+        let document = MarkdownDocument(markdown: String(repeating: "Paragraph for cancellation.\n\n", count: 100))
+        let task = Task.detached {
+            let cancelOnProgress: DocumentExportProgressHandler = { progress in
+                if case .rendering = progress { withUnsafeCurrentTask { $0?.cancel() } }
+            }
+            if pdf {
+                var options = PDFExportOptions()
+                options.paperSize = CGSize(width: 320, height: 200)
+                options.margins = DocumentInsets(top: 20, left: 20, bottom: 20, right: 20)
+                try DocumentExport.writePDF(
+                    document, style: RenderStyle(), options: options, to: output, progress: cancelOnProgress)
+            } else {
+                try DocumentExport.writeImage(
+                    document, style: RenderStyle(), width: 320, to: output, progress: cancelOnProgress)
+            }
+        }
+        do {
+            try await task.value
+            Issue.record("Expected cancellation during drawing")
+        } catch is CancellationError {}
+        #expect(try Data(contentsOf: output) == original)
+        #expect(try FileManager.default.contentsOfDirectory(atPath: folder.path) == ["keep"])
+    }
 }

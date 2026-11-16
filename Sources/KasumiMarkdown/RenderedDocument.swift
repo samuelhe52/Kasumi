@@ -270,14 +270,17 @@ public final class RenderedDocument: @unchecked Sendable {
         return readingIndex.y(for: anchor)
     }
 
-    // The PNG exporter must use the same snapshot, not re-layout mutable inputs.
-    func imageData(scale: CGFloat, region: CGRect?) throws -> Data {
+    // Snapshot image export must not re-layout mutable inputs.
+    func imageData(
+        scale: CGFloat, region: CGRect?, format: DocumentImageFormat = .png, quality: CGFloat = 0.9
+    ) throws -> Data {
         try layoutLock.withLock {
             var style = Typography()
             style.explicitTheme = DocumentTheme(
                 id: "snapshot", name: "Snapshot", appearance: .light,
                 document: ["paper": PlatformColors.srgb(backgroundColor)])
-            return try DocumentExporter.imageData(layout, style: style, scale: scale, region: region)
+            return try DocumentExporter.imageData(
+                layout, style: style, scale: scale, region: region, format: format, quality: quality)
         }
     }
 

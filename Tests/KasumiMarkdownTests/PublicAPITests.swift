@@ -206,6 +206,12 @@ fileprivate func facadeBitmap(size: CGSize, draw: (CGContext) -> Void) throws ->
         let image = try #require(CGImageSourceCreateImageAtIndex(source, 0, nil))
         #expect(image.width == 200 && image.height == 160)
         #expect(!png.isEmpty)
+        let jpeg = try DocumentExport.jpeg(
+            rendered, scale: 1.5, quality: 0.8, region: CGRect(x: 20, y: 10, width: 100, height: 80))
+        let jpegSource = try #require(CGImageSourceCreateWithData(jpeg as CFData, nil))
+        let jpegImage = try #require(CGImageSourceCreateImageAtIndex(jpegSource, 0, nil))
+        #expect(CGImageSourceGetType(jpegSource) as String? == "public.jpeg")
+        #expect(jpegImage.width == 150 && jpegImage.height == 120)
         let pdfData = try DocumentExport.pdf(markdown, style: .init())
         let pdf = try #require(PDFDocument(data: pdfData))
         #expect(pdf.pageCount == 1)

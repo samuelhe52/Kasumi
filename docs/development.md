@@ -17,8 +17,18 @@ targets.
   `Resources` folder breaks iOS resource-bundle signing.
 - Tests reach `fixtures/` through the `Tests/KasumiMarkdownTests/fixtures`
   symlink, which is what lets them run on the simulator.
-- `swift run KasumiRender <input> <output.png|pdf> [width]` renders a document
+- `swift run KasumiRender <input> <output.png|jpg|jpeg|pdf> [width]` renders a document
   from the command line; see its options for preset, theme, profile, and dark.
+- Reader Actions > Export offers PDF, long PNG/JPG, sharing (including Save to
+  Files), and native PDF printing. PDF uses print body size; images use the
+  current reading style with independent layout width and pixel scale. Work runs
+  off-main with cooperative cancellation and one worker per sheet. File APIs use
+  staging files and direct encoding; bitmap construction ends before encoding
+  starts. The raw bitmap guard defaults to 128 MiB and 32,768 pixels per axis,
+  separate from layout and encoder memory. Lower resolution or use PDF for longer
+  documents. Check `make test FILTER='Export|Pagination|PublicAPITests'` for export
+  changes. See [008](../docs-ai/008-reader-export/001-action.md) for measurements
+  and runtime validation limits.
 - `fixtures/LinkIndicators.md` covers visible link styling in
   `--theme mono-light` and `--theme mono-dark`, without launching the app.
   Link indicators are cached rectangles, not native underline attributes:
