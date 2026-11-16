@@ -38,3 +38,12 @@ that fixes it; add one when a limitation is found and not fixed.
 - Drawing: tile drawing is serialized by a lock in `RenderedDocument`, because
   Core Text line objects are shared between tiles and Apple limits each to one
   thread at a time.
+- Reflow: each immutable snapshot still typesets the complete document; resize
+  requests are coalesced by the reader, but publication cadence depends on
+  document complexity. `DocumentReflowSession` retains attributed text and measured
+  input between widths, and active break candidates accumulate totals rather
+  than rescanning each line. Image/math paragraphs bypass preparation reuse to
+  preserve width-dependent attachments and independent Core Text ownership.
+  Full layout, drawing, and indices still scale with document length; this is
+  not viewport-only layout. See [reflow preparation](006-reflow-preparation.md)
+  and [live reflow](../004-ios-reader/006-live-reflow.md).

@@ -9,6 +9,7 @@ DERIVED_DATA ?= build/DerivedData
 APP_NAME ?= Kasumi
 BUNDLE_ID ?= com.samuelhe.Kasumi
 CONFIGURATION ?= Debug
+SWIFT_CONFIGURATION ?= debug
 SIM_APP_PATH = $(DERIVED_DATA)/Build/Products/$(CONFIGURATION)-iphonesimulator/$(APP_NAME).app
 DEVICE_APP_PATH = $(DERIVED_DATA)/Build/Products/$(CONFIGURATION)-iphoneos/$(APP_NAME).app
 # run-device picks a connected device unless DEVICE=<UDID> is given: USB before
@@ -45,10 +46,10 @@ $(NATIVE_STAMP): $(NATIVE_INPUTS)
 	@touch $@
 
 build: native ## Build the Swift package
-	swift build
+	swift build -c $(SWIFT_CONFIGURATION)
 
 test: native ## Run swift test (optionally FILTER=<name>)
-	swift test $(if $(FILTER),--filter '$(FILTER)')
+	swift test -c $(SWIFT_CONFIGURATION) $(if $(FILTER),--filter '$(FILTER)')
 
 # Xcode suite identifiers omit (), while function identifiers include it.
 # Selecting both forms lets FILTER accept either kind of name.
@@ -58,6 +59,7 @@ test-ios: native ## Run package tests on iOS Simulator (optionally FILTER=<name>
 
 app: native ## Build the iOS app for the simulator
 	xcodebuild -project apps/iOS/Kasumi.xcodeproj -scheme Kasumi \
+		-configuration $(CONFIGURATION) \
 		-destination 'platform=iOS Simulator,name=$(SIMULATOR)' \
 		-derivedDataPath $(DERIVED_DATA) build
 

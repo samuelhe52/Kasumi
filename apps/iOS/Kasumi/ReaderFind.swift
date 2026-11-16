@@ -21,10 +21,10 @@ final class ReaderFindSession: UIFindSession {
     override var highlightedResultIndex: Int { currentIndex }
     override var supportsReplacement: Bool { false }
 
-    func install(_ rendered: RenderedDocument) {
+    func install(_ rendered: RenderedDocument, scroll: Bool = true) {
         guard self.rendered !== rendered else { return }
         self.rendered = rendered
-        if active { rebuild(resetIndex: false) }
+        if active { rebuild(resetIndex: false, scroll: scroll) }
     }
 
     func begin() {
@@ -62,14 +62,14 @@ final class ReaderFindSession: UIFindSession {
         update([], nil, false)
     }
 
-    private func rebuild(resetIndex: Bool) {
+    private func rebuild(resetIndex: Bool, scroll: Bool = true) {
         guard active, let rendered else { return }
         matches = matchingRanges(in: rendered)
         // UIKit requests the initial highlight after performSearch. Leave it
         // unset here so that request selects result 1 rather than skipping it.
         currentIndex = matches.isEmpty || resetIndex ? NSNotFound :
             (currentIndex == NSNotFound ? 0 : min(currentIndex, matches.count - 1))
-        update(matches, currentIndex == NSNotFound ? nil : currentIndex, !resetIndex)
+        update(matches, currentIndex == NSNotFound ? nil : currentIndex, scroll && !resetIndex)
     }
 
     private func matchingRanges(in rendered: RenderedDocument) -> [TextRange] {

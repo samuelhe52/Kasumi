@@ -30,6 +30,15 @@ or is reordered; record the work itself in a numbered entry.
 
 ## Non-blocking Reader 1 follow-ups
 
+Live window-resize reflow was implemented on 2026-11-17 with one background
+layout/viewport-paint pipeline and coalesced pending widths. See
+[004.006](004-ios-reader/006-live-reflow.md) for validation and performance limits.
+Mac reproduction confirms that whole-document reflow still stalls on longer
+English and especially Chinese text. [Retained preparation and incremental
+break totals](002-rendering-engine/006-reflow-preparation.md) now reduce repeated
+work in the reader; viewport measurement with estimated heights remains the next
+architectural step for long documents.
+
 Retained after milestone closure; not prerequisites for starting Reader 2:
 
 - Saved-import open questions in [004.002](004-ios-reader/002-saved-imports.md#open-questions).

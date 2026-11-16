@@ -64,7 +64,7 @@ struct DocumentLayout {
 enum DocumentTypesetter {
     static func layout(
         _ document: ParsedDocument, width: CGFloat, style: Typography, insets: DocumentInsets = .reader,
-        scrollableTables: Bool = false
+        scrollableTables: Bool = false, preparation: ReflowPreparation? = nil
     )
         -> DocumentLayout
     {
@@ -126,13 +126,22 @@ enum DocumentTypesetter {
         paragraphValues[.hangingPunctuation] = .flag(style.hangingPunctuation)
         paragraphValues[.autoRaggedNarrow] = .flag(style.narrowMeasureRagged)
         paragraphValues[.autoRaggedMeasureEm] = .number(style.narrowMeasureEm)
+        var preparationBlock = -1
+        var preparationSlot = 0
         func attributed(
             _ runs: [InlineRun], size: Double? = nil, heading: Bool = false, code: Bool = false,
             headingLevel: Int? = nil, imageMaxWidth: CGFloat? = nil
         ) -> NSAttributedString {
-            style.attributed(
-                runs, size: size, heading: heading, code: code, headingLevel: headingLevel, baseURL: document.baseURL,
-                imageMaxWidth: imageMaxWidth ?? measure)
+            let slot = preparationSlot
+            preparationSlot += 1
+            func build() -> NSAttributedString {
+                style.attributed(
+                    runs, size: size, heading: heading, code: code, headingLevel: headingLevel,
+                    baseURL: document.baseURL, imageMaxWidth: imageMaxWidth ?? measure)
+            }
+            return preparation?.attributed(
+                block: preparationBlock, slot: slot, runs: runs, size: size, heading: heading, code: code,
+                level: headingLevel, build: build) ?? build()
         }
         func place(
             _ attributed: NSAttributedString, x: CGFloat, y: CGFloat, width: CGFloat, size: CGFloat,
@@ -144,7 +153,7 @@ enum DocumentTypesetter {
             let paragraph = ParagraphTypesetter.layout(
                 attributed, width: max(1, width), fontSize: size, lineSpacing: style.lineSpacing, alignment: alignment,
                 indent: indent, verbatim: verbatim, profileValues: paragraphValues, outerWidth: measure,
-                baseEm: style.size)
+                baseEm: style.size, preparation: preparation?.paragraph(attributed, fontSize: size, verbatim: verbatim))
             paragraphs.append(PlacedText(paragraph: paragraph, origin: CGPoint(x: x, y: y), textOffset: offset))
             for line in paragraph.lines {
                 attributed.enumerateAttribute(.kasumiImage, in: line.range) { value, range, _ in
@@ -165,6 +174,8 @@ enum DocumentTypesetter {
         }
         var firstBodyParagraph = true
         for (blockIndex, block) in document.blocks.enumerated() {
+            preparationBlock = blockIndex
+            preparationSlot = 0
             if block.kind == .heading {
                 let size = style.size * style.headingScale(block.level)
                 let fontSize = style.headingSize(block.level)
@@ -280,10 +291,11 @@ enum DocumentTypesetter {
                 for index in paragraphStart..<paragraphs.count { paragraphs[index].tableIndex = tableIndex }
                 for index in backgroundStart..<backgrounds.count { backgrounds[index].tableIndex = tableIndex }
                 for index in ruleStart..<rules.count { rules[index].tableIndex = tableIndex }
-                tables.append(RenderedTable(
-                    id: tableIndex,
-                    frame: CGRect(x: left, y: top - 1, width: min(measure, tableWidth), height: y - top + 2),
-                    contentWidth: tableWidth))
+                tables.append(
+                    RenderedTable(
+                        id: tableIndex,
+                        frame: CGRect(x: left, y: top - 1, width: min(measure, tableWidth), height: y - top + 2),
+                        contentWidth: tableWidth))
                 y += style.size
             } else {
                 let isCode = block.kind == .code || block.kind == .diagram

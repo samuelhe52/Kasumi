@@ -78,3 +78,4 @@ Library tests pass on macOS and the iOS simulator, including comparisons against
   document decorations — see [003-link-decoration.md](003-link-decoration.md).
 - Updated 2026-11-16: Unify ordinary and link underline rendering, including
   glyph-outline descender clearance — see [004-underline-clearance.md](004-underline-clearance.md).
+- Updated 2026-11-17: Retain reflow preparation and remove repeated break scans — see [006-reflow-preparation.md](006-reflow-preparation.md).

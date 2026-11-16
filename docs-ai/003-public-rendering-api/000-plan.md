@@ -40,6 +40,11 @@ Public types (`d44143f`, `377d584`):
 - `DocumentExport` returns PDF and PNG data.
 - `FontAvailability` reports missing font families.
 
+`DocumentReflowSession` adds a document/style-scoped actor that reuses
+width-independent preparation while returning ordinary immutable snapshots.
+Clients recreate the session when fonts or external resources change. See
+[reflow preparation](../002-rendering-engine/006-reflow-preparation.md).
+
 Everything else in `Sources/KasumiMarkdown/` is internal. Font roles resolve
 through fallback chains. `Tests/KasumiMarkdownTests/PublicAPITests.swift` covers
 the surface (`f26987c`).
@@ -66,4 +71,4 @@ simulator through `make test-ios FILTER=PublicAPITests`.
 
 ## Amendments
 
-None yet.
+- Updated 2026-11-17: Added document-scoped reflow sessions — see [002.006](../002-rendering-engine/006-reflow-preparation.md).

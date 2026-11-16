@@ -82,3 +82,5 @@ paste consent prompt on a device (`make run-device`).
 - Updated 2026-11-16: closed reader milestone 1 by maintainer decision and moved
   directly to milestone 2. Remaining recorded issues are non-blocking follow-ups,
   not claimed fixes — see [milestone closure](001-action.md#milestone-closure-2026-11-16).
+- Updated 2026-11-17: bounded background reflow during window resizing, stable
+  semantic anchors, and non-scrolling Find remaps — see [006-live-reflow.md](006-live-reflow.md).

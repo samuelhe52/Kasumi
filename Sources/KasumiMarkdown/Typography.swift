@@ -272,6 +272,13 @@ struct Typography: Codable, Equatable, Sendable {
             if !isCode {
                 var offset = 0
                 var resolvedHan: (font: PlatformFont, trim: Double)?
+                var pending: (font: PlatformFont, baseline: CGFloat, range: NSRange)?
+                func flushHan() {
+                    guard let span = pending else { return }
+                    piece.addAttributes(
+                        [.font: span.font, .baselineOffset: span.baseline], range: span.range)
+                    pending = nil
+                }
                 for character in displayed {
                     let length = String(character).utf16.count
                     if CJKFontRole.usesHanFont(character) {
@@ -293,14 +300,22 @@ struct Typography: Codable, Equatable, Sendable {
                         selectedHan = han.font
                         if let punctuation { selectedPunctuation = punctuation }
                         let trim = punctuation == nil ? han.trim : -0.055
-                        piece.addAttributes(
-                            [
-                                .font: punctuation ?? han.font,
-                                .baselineOffset: base.pointSize * ((heading ? headingHanBaseline : hanBaseline) + trim)
-                            ], range: NSRange(location: offset, length: length))
+                        let face = punctuation ?? han.font
+                        let baseline = base.pointSize * ((heading ? headingHanBaseline : hanBaseline) + trim)
+                        if let span = pending, span.font == face, span.baseline == baseline,
+                            NSMaxRange(span.range) == offset
+                        {
+                            pending!.range.length += length
+                        } else {
+                            flushHan()
+                            pending = (face, baseline, NSRange(location: offset, length: length))
+                        }
+                    } else {
+                        flushHan()
                     }
                     offset += length
                 }
+                flushHan()
             }
             if isCode && !code && profileValues.resolved(.codeCapsule).flag! {
                 let capsule = InlineCodeCapsule(
@@ -330,30 +345,29 @@ enum ParagraphTypesetter {
     static func layout(
         _ attributed: NSAttributedString, width: CGFloat, fontSize: CGFloat, lineSpacing: CGFloat = 1.7,
         alignment: ParagraphAlignment = .justified, indent: CGFloat = 0, verbatim: Bool = false,
-        profileValues: ProfileValues? = nil, outerWidth: CGFloat? = nil, baseEm: CGFloat? = nil
+        profileValues: ProfileValues? = nil, outerWidth: CGFloat? = nil, baseEm: CGFloat? = nil,
+        preparation: ParagraphPreparation? = nil
     ) -> ParagraphLayout {
-        let attributed = TextUnderline.normalized(attributed)
+        let prepared = preparation ?? ParagraphPreparation(attributed, fontSize: fontSize, verbatim: verbatim)
+        let attributed = prepared.attributed
         guard attributed.length > 0, width > 0 else {
             return ParagraphLayout(attributed: attributed, lines: [], height: 0)
         }
         // RTL text keeps Core Text's visual ordering; the paragraph engine does
         // not implement bidi painting yet.
-        let hasRTL = attributed.string.unicodeScalars.contains {
-            (0x0590...0x08ff).contains($0.value) || (0xfb1d...0xfdff).contains($0.value)
-                || (0xfe70...0xfefc).contains($0.value)
-        }
+        let hasRTL = prepared.hasRTL
         if !verbatim && !hasRTL {
             let paragraph = MeasuredParagraphTypesetter.layout(
                 attributed, width: width, fontSize: fontSize, lineSpacing: lineSpacing,
                 alignment: alignment, indent: indent, profileValues: profileValues, outerWidth: outerWidth,
-                baseEm: baseEm)
+                baseEm: baseEm, preparedInput: prepared.input)
             return TextUnderline.applying(to: paragraph, fontSize: fontSize)
         }
         var legacyAlignment = alignment
         var legacyAutoRagged = false
         if !verbatim && alignment == .justified {
             let options = profileValues.map(ParagraphProfileOptions.init(values:)) ?? .init()
-            let input = ParagraphShaper.shape(attributed, fallbackSize: fontSize)
+            let input = prepared.input ?? ParagraphShaper.shape(attributed, fallbackSize: fontSize)
             let total = input.clusters.reduce(Float(0)) { $0 + $1.advance }
             let code = input.clusters.reduce(Float(0)) { $0 + (input.metrics[$1.run].isCode ? $1.advance : 0) }
             let codeRagged = options.raggedCodeFraction > 0 && total > 0 && code / total >= options.raggedCodeFraction

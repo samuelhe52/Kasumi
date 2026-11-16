@@ -99,6 +99,8 @@ enum ParagraphEngine {
         var flagged: Bool
         var ratio: Float
         var start: Int
+        var scannedTo: Int = 0
+        var accumulated = Totals()
     }
     private struct Totals {
         var width: Float = 0
@@ -406,6 +408,8 @@ enum ParagraphEngine {
     ) -> [Break] {
         var nodes = [Node(end: 0, predecessor: -1, cost: 0, fitness: 1, flagged: false, ratio: 0, start: 0)]
         var active = [0]
+        var remaining: [Int] = []
+        var best = [Node?](repeating: nil, count: 4)
         var deferredRescue: Int?
         let tolerance = max(0.1, o.tolerance)
         let hardLimit = max(15, tolerance)
@@ -416,14 +420,27 @@ enum ParagraphEngine {
                     || item.kind == .glue && end > 0 && items[end - 1].kind == .box
             else { continue }
             let forced = item.kind == .penalty && item.penalty <= -10_000
-            let previousActive = active.isEmpty ? deferredRescue.map { [$0] } ?? [] : active
+            if active.isEmpty, let deferredRescue { active.append(deferredRescue) }
             deferredRescue = nil
-            var best = [Node?](repeating: nil, count: 4)
-            var remaining: [Int] = []
-            for prior in previousActive {
+            for index in best.indices { best[index] = nil }
+            remaining.removeAll(keepingCapacity: true)
+            for prior in active {
                 let start = prior == 0 ? 0 : postBreak(nodes[prior].end, items)
                 guard start <= end else { continue }
-                let t = totals(items, start..<end)
+                // Extend from the previous candidate instead of rescanning the
+                // whole line. The additions retain their original order exactly.
+                var t = nodes[prior].accumulated
+                for index in nodes[prior].scannedTo..<end {
+                    let next = items[index]
+                    if next.kind != .penalty { t.width += next.width }
+                    if next.kind == .glue {
+                        t.stretch += next.stretch
+                        t.shrink += next.shrink
+                        if next.stretch >= 1_000_000 { t.infinite += next.stretch }
+                    }
+                }
+                nodes[prior].scannedTo = end
+                nodes[prior].accumulated = t
                 let r = ratio(t, item.kind == .penalty ? item.width : 0, width, raggedStretch, ragged, o)
                 if r >= -1 && !forced { remaining.append(prior) }
                 let accepted = r >= -1 && (r <= hardLimit || r == 10_000 || forced)
@@ -451,25 +468,26 @@ enum ParagraphEngine {
                 if best[fitness] == nil || cost < best[fitness]!.cost {
                     best[fitness] = Node(
                         end: end, predecessor: prior, cost: cost, fitness: fitness, flagged: item.flagged, ratio: r,
-                        start: start)
+                        start: start, scannedTo: postBreak(end, items))
                 }
             }
-            active = remaining
-            for value in best.compactMap({ $0 }) {
-                active.append(nodes.count)
+            for case let value? in best {
+                remaining.append(nodes.count)
                 nodes.append(value)
             }
-            if active.isEmpty,
-                let prior = previousActive.max(by: {
+            let rescue =
+                remaining.isEmpty
+                ? active.max(by: {
                     nodes[$0].end == nodes[$1].end ? nodes[$0].cost > nodes[$1].cost : nodes[$0].end < nodes[$1].end
-                })
-            {
+                }) : nil
+            swap(&active, &remaining)
+            if let prior = rescue {
                 let start = prior == 0 ? 0 : postBreak(nodes[prior].end, items)
                 var next = end + 1
                 while items.indices.contains(next), items[next].kind == .glue { next += 1 }
                 let nextIsForced =
                     items.indices.contains(next) && items[next].kind == .penalty && items[next].penalty <= -10_000
-                let total = totals(items, min(start, end)..<end)
+                let total = start <= end ? nodes[prior].accumulated : Totals()
                 // Native defers a discretionary break when only its hyphen
                 // would overflow an otherwise shrinkable/fitting prefix.
                 let hyphenWouldOverflow =
@@ -488,7 +506,7 @@ enum ParagraphEngine {
                     nodes.append(
                         Node(
                             end: end, predecessor: prior, cost: nodes[prior].cost, fitness: fitness,
-                            flagged: item.flagged, ratio: raw, start: start))
+                            flagged: item.flagged, ratio: raw, start: start, scannedTo: postBreak(end, items)))
                 }
             }
             if active.isEmpty {

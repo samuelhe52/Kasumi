@@ -1,6 +1,7 @@
 import KasumiMarkdown
 import SwiftUI
 import UIKit
+import os
 
 struct ReadingSurface: UIViewRepresentable {
     let document: MarkdownDocument
@@ -26,6 +27,7 @@ struct ReadingSurface: UIViewRepresentable {
 }
 
 final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteractionDelegate {
+    nonisolated private static let signposter = OSSignposter(subsystem: "com.samuelhe.Kasumi", category: "ReaderReflow")
     private let headingTopInset: CGFloat = 15
 
     // Pages swap inside a permanent container so the scroll view's own subviews
@@ -34,6 +36,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
     private let content = UIView()
     private var page: ReaderPageView?
     private var rendered: RenderedDocument?
+    private var reflowSession: DocumentReflowSession?
     private var transitionOverlay: UIView?
     private let openingIndicator = UIActivityIndicatorView(style: .medium)
     private var document: MarkdownDocument?
@@ -48,8 +51,10 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
     private var restoreAnchor: ReadingAnchor?
     private var layoutTask: Task<Void, Never>?
     private var generation = UUID()
-    private var requestedWidth: CGFloat = 0
-    private var pageScale: CGFloat = 1
+    private var reflow = ReaderReflowState()
+    private var reflowAnchor: ReadingAnchor?
+    private var installedGeneration: UUID?
+    private var finished = false
     private var lastJump: UUID?
     private var adjusting = false
     private lazy var findInteraction = UIFindInteraction(sessionDelegate: self)
@@ -112,7 +117,8 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         self.revision = revision
         self.style = style
         if changed {
-            requestedWidth = 0
+            generation = UUID()
+            reflowSession = DocumentReflowSession(document, style: style, scrollableTables: true)
             rebuildIfNeeded()
         }
         jumpIfNeeded()
@@ -125,10 +131,13 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
     }
 
     override func layoutSubviews() {
+        let wasAdjusting = adjusting
+        adjusting = true
         super.layoutSubviews()
         rebuildIfNeeded()
         updateScrollExtent()
         updateKeyboardInset()
+        adjusting = wasAdjusting
     }
 
     private func updateKeyboardInset() {
@@ -139,7 +148,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         contentInset.bottom = inset
         verticalScrollIndicatorInsets.bottom = inset
         if let currentFindRect {
-            setTop(max(0, currentFindRect.minY * pageScale - 24))
+            setTop(max(0, currentFindRect.minY - 24))
         }
     }
 
@@ -153,67 +162,75 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
 
     private func updateScrollExtent() {
         guard let rendered else { return }
-        let size = CGSize(width: bounds.width, height: rendered.size.height * pageScale)
+        let size = CGSize(width: bounds.width, height: rendered.size.height)
         if contentSize != size { contentSize = size }
         content.frame = CGRect(origin: .zero, size: size)
     }
 
-    private var topY: CGFloat { max(0, (contentOffset.y + adjustedContentInset.top) / max(0.001, pageScale)) }
+    private var topY: CGFloat { max(0, contentOffset.y + adjustedContentInset.top) }
 
     private func rebuildIfNeeded() {
-        let width = bounds.width
-        guard width > 0, width != requestedWidth, let document, let style else { return }
-        let anchor = rendered?.readingAnchor(atY: topY) ?? restoreAnchor
-        requestedWidth = width
-        layoutTask?.cancel()
-        let token = UUID()
-        generation = token
-        // Continue displaying the previous snapshot at the new measure while its
-        // replacement is built; preserve its semantic anchor, not its raw offset.
-        if let rendered, let page {
-            adjusting = true
-            pageScale = width / rendered.size.width
-            page.transform = CGAffineTransform(scaleX: pageScale, y: pageScale)
-            updateScrollExtent()
-            if let anchor, let y = rendered.y(for: anchor) { setTop(y * pageScale) }
-            adjusting = false
-        }
-        let worker = Task.detached(priority: .userInitiated) {
-            try Task.checkCancellation()
-            let rendered = RenderedDocument(document, width: width, style: style, scrollableTables: true)
-            try Task.checkCancellation()
-            return rendered
-        }
+        guard !finished, bounds.width.isFinite, bounds.width > 0, document != nil, style != nil else { return }
+        reflow.request(width: bounds.width, generation: generation)
+        guard layoutTask == nil, reflow.needsLayout else { return }
+        // Do not cancel on width or style changes: synchronous typesetting cannot
+        // stop midway. Drain the newest request after the current pipeline ends.
         layoutTask = Task { [weak self] in
-            do {
-                let next = try await withTaskCancellationHandler {
-                    try await worker.value
-                } onCancel: {
-                    worker.cancel()
+            while let self, let request = self.reflow.begin(), let session = self.reflowSession {
+                if self.reflowAnchor == nil {
+                    self.reflowAnchor = self.rendered?.readingAnchor(atY: self.topY) ?? self.restoreAnchor
                 }
-                guard !Task.isCancelled, let self, self.generation == token else { return }
-                // A user can continue scrolling during the build; prefer the
-                // latest old-snapshot anchor over the one captured at kickoff.
-                let latest = self.rendered?.readingAnchor(atY: self.topY) ?? anchor
-                let rect = self.visibleRect(in: next, restoring: latest)
-                let scale = max(1, self.traitCollection.displayScale)
-                // CATiledLayer paints asynchronously. Seed only the viewport,
-                // off the main actor, so swapping pages never exposes empty tiles.
-                let painter = Task.detached(priority: .userInitiated) {
+                let worker = Task.detached(priority: .userInitiated) {
+                    let interval = Self.signposter.beginInterval("Layout", id: Self.signposter.makeSignpostID())
+                    defer { Self.signposter.endInterval("Layout", interval) }
                     try Task.checkCancellation()
-                    let image = ReaderPageView.preview(next, rect: rect, scale: scale)
+                    let next = await session.render(width: request.width)
                     try Task.checkCancellation()
-                    return image
+                    return next
                 }
-                let preview = try await withTaskCancellationHandler {
-                    try await painter.value
-                } onCancel: {
-                    painter.cancel()
+                do {
+                    let next = try await withTaskCancellationHandler {
+                        try await worker.value
+                    } onCancel: {
+                        worker.cancel()
+                    }
+                    guard !Task.isCancelled else { break }
+                    guard self.reflow.accepts(request) else {
+                        _ = self.reflow.complete(request)
+                        continue
+                    }
+                    let rect = self.visibleRect(in: next, restoring: self.reflowAnchor)
+                    let scale = max(1, self.traitCollection.displayScale)
+                    // Prepaint only the viewport, off-main, before publishing.
+                    // Painting and layout share one worker slot, even during drag.
+                    let painter = Task.detached(priority: .userInitiated) {
+                        let interval = Self.signposter.beginInterval(
+                            "ViewportPaint", id: Self.signposter.makeSignpostID())
+                        defer { Self.signposter.endInterval("ViewportPaint", interval) }
+                        try Task.checkCancellation()
+                        let image = ReaderPageView.preview(next, rect: rect, scale: scale)
+                        try Task.checkCancellation()
+                        return image
+                    }
+                    let preview = try await withTaskCancellationHandler {
+                        try await painter.value
+                    } onCancel: {
+                        painter.cancel()
+                    }
+                    guard !Task.isCancelled else { break }
+                    if self.reflow.complete(request) {
+                        let appearanceChanged = self.installedGeneration != request.generation
+                        self.installedGeneration = request.generation
+                        self.install(
+                            next, restoring: self.reflowAnchor, preview: preview, previewRect: rect,
+                            animateReplacement: appearanceChanged)
+                    }
+                } catch {
+                    _ = self.reflow.complete(request)
+                    break
                 }
-                guard !Task.isCancelled, self.generation == token else { return }
-                let current = self.rendered?.readingAnchor(atY: self.topY) ?? latest
-                self.install(next, restoring: current, preview: preview, previewRect: rect)
-            } catch { /* Cancellation leaves the previous snapshot visible. */  }
+            }
+            self?.layoutTask = nil
         }
     }
 
@@ -227,12 +244,17 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
     }
 
     private func install(
-        _ next: RenderedDocument, restoring anchor: ReadingAnchor?, preview: ReaderPagePreview?, previewRect: CGRect
+        _ next: RenderedDocument, restoring anchor: ReadingAnchor?, preview: ReaderPagePreview?, previewRect: CGRect,
+        animateReplacement: Bool
     ) {
+        let interval = Self.signposter.beginInterval("Install", id: Self.signposter.makeSignpostID())
+        defer { Self.signposter.endInterval("Install", interval) }
         adjusting = true
         let firstLayout = rendered == nil
         let animate = !UIAccessibility.isReduceMotionEnabled && window != nil
-        let overlay = !firstLayout && animate
+        let widthChanged = rendered?.size.width != next.size.width
+        let overlay =
+            !firstLayout && animate && animateReplacement && !widthChanged
             ? content.resizableSnapshotView(from: bounds, afterScreenUpdates: false, withCapInsets: .zero) : nil
         transitionOverlay?.removeFromSuperview()
         transitionOverlay = overlay
@@ -243,7 +265,6 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         page?.removeFromSuperview()
         rendered = next
         page = nextPage
-        pageScale = 1
         nextPage.onLink = { [weak self] url in self?.follow(url) }
         backgroundColor = UIColor(cgColor: next.backgroundColor)
         window?.backgroundColor = backgroundColor
@@ -254,7 +275,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         viewport?.rendered = next
         adjusting = false
         jumpIfNeeded()
-        findSession.install(next)
+        findSession.install(next, scroll: false)
         presentFindIfNeeded()
         openingIndicator.stopAnimating()
         if firstLayout { becomeFirstResponder() }
@@ -295,23 +316,28 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
             let rendered, let rect = rendered.rect(forAnchor: id)
         else { return }
         lastJump = viewport.jumpRevision
+        reflowAnchor = rendered.readingAnchor(atY: max(0, rect.minY - headingTopInset))
         adjusting = true
-        setTop(max(0, rect.minY * pageScale - headingTopInset), animated: !UIAccessibility.isReduceMotionEnabled)
+        setTop(max(0, rect.minY - headingTopInset), animated: !UIAccessibility.isReduceMotionEnabled)
         adjusting = false
         reportPosition()
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         guard !adjusting else { return }
+        reflowAnchor = rendered?.readingAnchor(atY: topY)
         reportPosition()
     }
     private func reportPosition() {
         guard window != nil, let rendered else { return }
         let y = topY
-        let heading = headings.last { $0.1 <= y + headingTopInset / pageScale }?.0 ?? headings.first?.0
-        viewport?.moved(anchor: rendered.readingAnchor(atY: y), heading: heading)
+        let heading = headings.last { $0.1 <= y + headingTopInset }?.0 ?? headings.first?.0
+        viewport?.moved(anchor: reflowAnchor ?? rendered.readingAnchor(atY: y), heading: heading)
     }
     func finish() {
+        finished = true
+        reflow.stop()
+        reflowSession = nil
         viewport?.flush()
         findInteraction.dismissFindNavigator()
         layoutTask?.cancel()
@@ -362,7 +388,8 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
                 ?? rendered.selectionRects(for: matches[index]).first
         }
         guard scroll, let rect = currentFindRect else { return }
-        setTop(max(0, rect.minY * pageScale - 24), animated: !UIAccessibility.isReduceMotionEnabled)
+        reflowAnchor = rendered?.readingAnchor(atY: max(0, rect.minY - 24))
+        setTop(max(0, rect.minY - 24), animated: !UIAccessibility.isReduceMotionEnabled)
     }
 
     private func follow(_ url: URL) {
@@ -370,8 +397,9 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         if let fragment = url.fragment, url.scheme == nil || (url.isFileURL && url.path == fileURL?.path) {
             // An unresolved same-document fragment is not an external URL.
             guard let rect = rendered.rect(forAnchor: fragment) else { return }
+            reflowAnchor = rendered.readingAnchor(atY: max(0, rect.minY - 8))
             adjusting = true
-            setTop(max(0, rect.minY * pageScale - 8), animated: !UIAccessibility.isReduceMotionEnabled)
+            setTop(max(0, rect.minY - 8), animated: !UIAccessibility.isReduceMotionEnabled)
             adjusting = false
             reportPosition()
         } else {
@@ -453,9 +481,11 @@ fileprivate final class ReaderPageView: ReaderTextInputView {
     }
 
     override func viewRect(_ rect: CGRect, clipped: Bool = false) -> CGRect {
-        guard let scroll = tableScrollViews.first(where: {
-            rect.midY >= $0.frame.minY && rect.midY <= $0.frame.maxY
-        }) else { return rect }
+        guard
+            let scroll = tableScrollViews.first(where: {
+                rect.midY >= $0.frame.minY && rect.midY <= $0.frame.maxY
+            })
+        else { return rect }
         let shifted = rect.offsetBy(dx: -scroll.contentOffset.x, dy: 0)
         return clipped ? shifted.intersection(scroll.frame) : shifted
     }
@@ -464,11 +494,15 @@ fileprivate final class ReaderPageView: ReaderTextInputView {
         guard let rect = rendered.selectionRects(for: range).first,
             let scroll = tableScrollViews.first(where: {
                 rect.midY >= $0.frame.minY && rect.midY <= $0.frame.maxY
-            }) else { return }
+            })
+        else { return }
         let left = rect.minX - scroll.frame.minX
         let right = rect.maxX - scroll.frame.minX
-        let offset = max(0, min(scroll.contentSize.width - scroll.bounds.width,
-            min(left, max(scroll.contentOffset.x, right - scroll.bounds.width))))
+        let offset = max(
+            0,
+            min(
+                scroll.contentSize.width - scroll.bounds.width,
+                min(left, max(scroll.contentOffset.x, right - scroll.bounds.width))))
         scroll.setContentOffset(CGPoint(x: offset, y: 0), animated: false)
     }
 

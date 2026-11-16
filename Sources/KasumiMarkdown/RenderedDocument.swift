@@ -67,8 +67,15 @@ public final class RenderedDocument: @unchecked Sendable {
 
     /// Enable table overflow for interactive readers. Headless layouts default
     /// to fitting all columns inside the requested width.
-    public init(
+    public convenience init(
         _ document: MarkdownDocument, width: CGFloat, style: RenderStyle, scrollableTables: Bool = false
+    ) {
+        self.init(document, width: width, style: style, scrollableTables: scrollableTables, preparation: nil)
+    }
+
+    init(
+        _ document: MarkdownDocument, width: CGFloat, style: RenderStyle, scrollableTables: Bool,
+        preparation: ReflowPreparation?
     ) {
         precondition(width.isFinite && width > 0, "Layout width must be finite and positive")
         let insets = style.insets
@@ -77,7 +84,8 @@ public final class RenderedDocument: @unchecked Sendable {
             "Layout insets must be finite and nonnegative")
         let typography = style.typography
         var built = DocumentTypesetter.layout(
-            document.parsed, width: width, style: typography, insets: insets, scrollableTables: scrollableTables)
+            document.parsed, width: width, style: typography, insets: insets, scrollableTables: scrollableTables,
+            preparation: preparation)
         built.text = NSAttributedString(attributedString: built.text)
         layout = built
         size = CGSize(width: built.width, height: built.height)
@@ -136,7 +144,8 @@ public final class RenderedDocument: @unchecked Sendable {
     public func drawTable(at index: Int, in context: CGContext, rect: CGRect) {
         guard layout.tables.indices.contains(index),
             rect.minX.isFinite, rect.minY.isFinite, rect.width.isFinite, rect.height.isFinite,
-            rect.width > 0, rect.height > 0 else { return }
+            rect.width > 0, rect.height > 0
+        else { return }
         let table = layout.tables[index]
         let visible = rect.intersection(CGRect(x: 0, y: 0, width: table.contentWidth, height: table.frame.height))
         guard !visible.isNull, !visible.isEmpty else { return }
