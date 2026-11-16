@@ -47,5 +47,6 @@ Retained after milestone closure; not prerequisites for starting Reader 2:
   Ligature-span and Han combining-mark width repairs shipped on 2026-11-16;
   see [002.002](002-rendering-engine/002-shaped-cluster-integrity.md).
   Content-aware table columns and independent horizontal reader scrolling were
-  implemented on 2026-11-17; see [002.005](002-rendering-engine/005-table-layout.md)
+  implemented on 2026-11-17. Compact tables are centered within the reading
+  measure; overflowing tables remain left-aligned. See [002.005](002-rendering-engine/005-table-layout.md)
   for headless validation and the remaining interactive verification limits.

@@ -44,6 +44,8 @@ targets.
   column alignment, CJK and linked cells. The reader opts into
   `RenderedDocument(..., scrollableTables: true)`: `tables` describes viewport
   and content widths, and `drawTable(at:in:rect:)` paints table-local tiles.
+  Tables narrower than the reading measure are centered; overflowing tables
+  start at its left edge. Column text keeps its Markdown alignment.
   Page tiles omit overflowing tables. Native horizontal scroll views own offsets;
   text interaction and Find translate geometry through those offsets. File exports
   keep the fitted layout; snapshot image exports capture the initial viewport.
