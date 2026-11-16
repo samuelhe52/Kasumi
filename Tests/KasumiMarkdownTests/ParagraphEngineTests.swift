@@ -157,6 +157,20 @@ fileprivate func closeParagraphFloat(_ a: Float, _ b: Float) -> Bool {
         #expect(loose.tolerance == 20 && loose.glueShrink == 1)
     }
 
+    @Test func cjkLatinGapSkipsFullwidthPunctuation() {
+        func latinX(after cjk: String, gap: Float) -> Float? {
+            var options = ParagraphProfileOptions()
+            options.cjkLatinGap = gap
+            let result = ParagraphEngine.layout(
+                clusters: [.init(text: cjk, run: 0, advance: 10), .init(text: "K", run: 0, advance: 6)],
+                runs: [.init(spaceAdvance: 3, hyphenAdvance: 3, em: 10, isCode: false, flags: 0)], width: 100,
+                outerWidth: 100, baseEm: 10, alignment: .leading, options: options)
+            return result.lines.first?.fragments.first { $0.clusterRange.contains(1) }?.x
+        }
+        #expect(latinX(after: "中", gap: 0.25) != latinX(after: "中", gap: 0))
+        #expect(latinX(after: "。", gap: 0.25) == latinX(after: "。", gap: 0))
+    }
+
     @Test func invalidInputDoesNotIndexRunMemory() {
         let result = ParagraphEngine.layout(
             clusters: [.init(text: "a", run: 7, advance: 5)], runs: [], width: 20, outerWidth: 20, baseEm: 10)

@@ -283,8 +283,8 @@ enum ParagraphEngine {
                 let asciiOpening = unit.script == 4 && [0x28, 0x5B, 0x7B].contains(unit.scalar)
                 let asciiClosing = left.script == 4 && [0x29, 0x5D, 0x7D].contains(left.scalar)
                 let cjkLatin =
-                    (left.script == 0 || left.script == 1) && unit.script == 2
-                    || left.script == 2 && (unit.script == 0 || unit.script == 1) || left.script == 0 && asciiOpening
+                    left.script == 0 && unit.script == 2 || left.script == 2 && unit.script == 0
+                    || left.script == 0 && asciiOpening
                     || asciiClosing && unit.script == 0
                 if left.side == 1 && unit.side == 0 {
                     air = (left.air + unit.air) * 0.5
