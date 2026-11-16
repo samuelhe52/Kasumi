@@ -1,167 +1,130 @@
 # Development
 
+Contributor runbook: toolchain setup, build quirks, verification procedures that
+need a fixture or a manual check, and simulator or device notes that are hard to
+find in the Makefile or source.
+
+**Edit this file** in the same commit when a setup requirement, build step, or
+simulator or device quirk changes, or when a non-obvious verification procedure
+is added. Remove an entry when its quirk no longer applies. Each entry should be
+a step, its gotcha, and a link to any record that explains why.
+
+**Don't put these here:**
+
+- Design rationale, measurements, rendering geometry, implementation mechanics,
+  or feature descriptions. Put them in the relevant `docs-ai/` record and link it.
+- Agent rules. Those live in `AGENTS.md`.
+- Full command lists. Use `make help` and the Makefile.
+
+## Setup
+
 Needs Xcode 27, Swift 6.2+, and Rust (edition 2024) with the
-`aarch64-apple-ios` and `aarch64-apple-ios-sim` targets. `make help` lists the
-targets.
+`aarch64-apple-ios` and `aarch64-apple-ios-sim` targets. `make check` reports
+the local toolchain without changing anything.
 
 ## Builds
 
-- Building targets run `make native`, which rebuilds the Rust XCFrameworks in
-  `.build/native/` only when a `packages/Native*` input changed. Calling `swift`
-  or `xcodebuild` directly needs `./scripts/build-native` once first.
+- `make native` rebuilds the Rust XCFrameworks in `.build/native/` only when a
+  `packages/Native*` input changed. Make targets run it; calling `swift` or
+  `xcodebuild` directly needs `./scripts/build-native` first.
 - `make run-sim` and `make test-ios` don't boot a simulator.
 - New files under `apps/iOS/Kasumi/`, `ImportExtension/`, and `Shared/` are
-  picked up without project edits (folder-synchronized groups). `Shared/` is
-  compiled into both the app and the "Import into Kasumi" action extension.
+  picked up without project edits (folder-synchronized groups). `Shared/` compiles
+  into both the app and the "Import into Kasumi" action extension.
 - Package resources live in `Sources/KasumiMarkdown/Bundled/`. A top-level
   `Resources` folder breaks iOS resource-bundle signing.
 - Tests reach `fixtures/` through the `Tests/KasumiMarkdownTests/fixtures`
-  symlink, which is what lets them run on the simulator.
-- `swift run KasumiRender <input> <output.png|jpg|jpeg|pdf> [width]` renders a document
-  from the command line; see its options for preset, theme, profile, and dark.
-- Reader Actions > Export offers PDF, long PNG/JPG, sharing (including Save to
-  Files), and native PDF printing. PDF uses print body size; images use the
-  current reading style with independent layout width and pixel scale. Work runs
-  off-main with cooperative cancellation and one worker per sheet. File APIs use
-  staging files and direct encoding; bitmap construction ends before encoding
-  starts. The raw bitmap guard defaults to 128 MiB and 32,768 pixels per axis,
-  separate from layout and encoder memory. Lower resolution or use PDF for longer
-  documents. Check `make test FILTER='Export|Pagination|PublicAPITests'` for export
-  changes. See [008](../docs-ai/008-reader-export/001-action.md) for measurements
-  and runtime validation limits.
-- `fixtures/LinkIndicators.md` covers visible link styling in
-  `--theme mono-light` and `--theme mono-dark`, without launching the app.
-  Link indicators are cached rectangles, not native underline attributes:
-  0.185 em below the baseline and max(0.5 pt, 0.07 em) thick. Heading/web links
-  are solid at 40% text-color opacity; file/other links are dashed at 70%.
-  Footnote references and images stay unmarked; linked code and math participate.
-  Ordinary attributed underlines use the same cached geometry. Glyph outlines,
-  clipped as control polygons, cut descender gaps with 0.06 em clearance and
-  preserve dash phase.
-  See [002.003](../docs-ai/002-rendering-engine/003-link-decoration.md) and
+  symlink, which lets them run on the simulator.
+- `swift run KasumiRender <input> <output.png|jpg|jpeg|pdf> [width]` renders a
+  document without launching the app. See its options for preset, theme, profile,
+  and dark.
+- Launch scene: a `nil` title falls back to the app name, so the scene passes a
+  one-space title and `LaunchLogotype` draws the wordmark. `titleViewFrame` spans
+  everything above the browser sheet, not just the title.
+- Reader toolbar: Actions is a persistent ellipsis control in the bottom toolbar.
+  Present popovers and confirmations from that control, not from its transient
+  menu items. Attach the toolbar outside the iPad inspector so the `DocumentGroup`
+  receives it.
+
+## Verification
+
+Run the narrowest filter: `make test FILTER=<name>` for package tests and
+`make test-ios FILTER=<name>` for simulator tests.
+
+- **Export:** `make test FILTER='Export|Pagination|PublicAPITests'`. Run it after
+  any export change. Memory guard and measurements:
+  [008](../docs-ai/008-reader-export/001-action.md).
+- **Tables:** `make test FILTER='TableLayoutTests|Export|Pagination|PublicAPITests'`,
+  plus `make test FILTER=ReaderTableEdgeTests` for the edge masks. Visual check:
+  `fixtures/Tables.md`. See [002.005](../docs-ai/002-rendering-engine/005-table-layout.md).
+- **Link styling:** render `fixtures/LinkIndicators.md` with `KasumiRender` in
+  `--theme mono-light` and `--theme mono-dark`. See
+  [002.003](../docs-ai/002-rendering-engine/003-link-decoration.md) and
   [002.004](../docs-ai/002-rendering-engine/004-underline-clearance.md).
-- `fixtures/Tables.md` covers verbose cells, wide comparisons, compact tables,
-  column alignment, CJK and linked cells. The reader opts into
-  `RenderedDocument(..., scrollableTables: true)`: `tables` describes viewport
-  and content widths, and `drawTable(at:in:rect:)` paints table-local tiles.
-  Tables narrower than the reading measure are centered; overflowing tables
-  start at its left edge. Column text keeps its Markdown alignment.
-  Page tiles omit overflowing tables. Native horizontal scroll views own offsets;
-  text interaction and Find translate geometry through those offsets. File exports
-  keep the fitted layout; snapshot image exports capture the initial viewport.
-  Table pan admission stays native so a new touch can interrupt deceleration.
-  The 18 pt edge masks track bounds and fade only where more content is hidden;
-  `make test FILTER=ReaderTableEdgeTests` exercises the app mask headlessly.
-  Run `make test FILTER='TableLayoutTests|Export|Pagination|PublicAPITests'`.
-- `MeasuredParagraphTypesetter` isolates Han clusters inside coalesced engine
-  boxes before creating Core Text drawing fragments. Core Text can add internal
-  spacing around curly quotes (`主线“感知`) that its glyph advances omit;
-  painting a combined fragment otherwise overlaps the following character.
-- `ParagraphShaper` keeps ligatures in atomic source spans, but the drawing
-  adapter retains their interior grapheme carets. Combining-mark widths use
-  shaped caret boundaries: fallback mark runs can overlap their base run, so
-  their advances cannot simply be summed. See
-  [002.002](../docs-ai/002-rendering-engine/002-shaped-cluster-integrity.md).
-- `DocumentGroupLaunchScene` draws the title and action buttons from plain
-  strings and drops fonts and colors. A `nil` title falls back to the app name,
-  so the scene gets a one-space title and `LaunchLogotype` draws the wordmark.
-  `titleViewFrame` spans everything above the browser sheet, not the title, so
-  the wordmark sits at a fixed offset from its top. `scenePhase` reads
-  `background` inside the accessory views.
-- Reader actions live in a single trailing ellipsis menu in the native bottom
-  toolbar: Outline, Appearance, and Delete for imports. Present the appearance
-  popover and delete confirmation from the persistent menu control, not its
-  transient menu items. Attach the toolbar outside the iPad inspector so the
-  `DocumentGroup` receives it. Back and the title remain in the navigation bar.
-- Reader selection is a read-only `UITextInput` adapter on the tiled page;
-  `UITextInteraction` owns gestures and handles. It must become first responder
-  when interaction starts. Positions belong to one immutable layout: replacing
-  a page clears selection and recomputes find results.
-- Find uses `UIFindInteraction` / a read-only `UIFindSession` on the tiled
-  reader. UIKit owns the floating field, result count, options, and shortcuts.
-  The SwiftUI surface ignores keyboard safe areas so text continues behind the
-  glass controls; `UIKeyboardLayoutGuide` supplies the bottom scroll inset so
-  the final result can still move above the keyboard. Do not shrink the reader
-  to the keyboard-safe height: that exposes a blank paper band behind Find.
-  UIKit asks for the initial highlight after `performSearch`; the session must
-  leave the index unset until then or it skips the first result.
-- Exercise Find with `fixtures/ReaderInteractions.md`: keyboard visible, first
-  and last results, wrapping, Match Case/Whole Words, clear, dismissal/reopening,
-  rotation, and selection afterward. The system identifiers are `find.searchField`,
-  `find.previousButton`, `find.nextButton`, and `find.doneButton`. `sim-use` 0.16
-  detects keyboard visibility but has no explicit software-keyboard toggle.
-  Device Hub exposes Device > Keyboard > Toggle Software Keyboard; use the host
-  control only for keyboard setup, then continue device interaction with `sim-use`.
-- Verify internal-link scrolling with `fixtures/LinkJumps.md` and a screen
-  recording, not just settled screenshots: follow heading fragments, return
-  upward, and tap a footnote. The fixture also covers duplicate headings and
-  percent-encoded fragments. Repeat with Reduce Motion enabled; jumps should
-  then be immediate. Open the fixture using the debug launch argument below.
+- **Source editing:** `make test FILTER=DocumentSourceTests` and
+  `make test-ios FILTER=DocumentSourceTests` (encoding round trips). In the app,
+  edit `fixtures/SourceEditing.md`, close and reopen it, and check the saved bytes.
+  See [009](../docs-ai/009-source-editor/000-plan.md).
+- **Find:** open `fixtures/ReaderInteractions.md` with the keyboard visible. Check
+  first and last results, wrapping, Match Case and Whole Words, clear, dismiss and
+  reopen, rotation, and selection afterward. Identifiers: `find.searchField`,
+  `find.previousButton`, `find.nextButton`, `find.doneButton`. `sim-use` 0.16 sees
+  keyboard visibility but can't toggle the software keyboard; use Device Hub >
+  Device > Keyboard > Toggle Software Keyboard for setup, then continue with
+  `sim-use`. See [007.002](../docs-ai/007-reader-interactions/002-system-find-navigator.md).
+- **Internal links:** open `fixtures/LinkJumps.md` and verify with a screen
+  recording, not settled screenshots: heading fragments, returning upward,
+  footnote taps, duplicate headings, percent-encoded fragments. Repeat with
+  Reduce Motion on; jumps should be immediate.
+- **Font transitions:** verify with a screen recording: card selection in both
+  directions, Remove Download from the role toolbar, re-download completion, and
+  reader size or preset changes at a scrolled position. Cards must not move during
+  selection. See [005.002](../docs-ai/005-cjk-font-availability/002-font-management-transitions.md).
 
 ## Simulator and device notes
 
 - **Clipboard prompt.** The iOS 27.2 simulator can't show the Paste from Other
-  Apps > Ask prompt for any app (SpringBoard rejects the `pasted` daemon for
-  lacking `com.apple.springboard.CFUserNotification`), and the read returns nil.
-  Set the permission to Allow on the simulator; test the prompt with
-  `make run-device`.
+  Apps > Ask prompt, and the read returns nil. Set the permission to Allow on the
+  simulator. Test the prompt with `make run-device`.
 - **Share-sheet import.** The action extension and the app share the App Group
-  `group.com.samuelhe.Kasumi` (`Kasumi.entitlements`, `ImportExtension.entitlements`),
-  so a device build needs automatic signing to register it for your team. In a
-  share sheet the action sits under View More until promoted with Edit Actions.
-  The extension then opens `kasumi://import`, and the app imports when it becomes
-  active. If the open is refused the extension's sheet stays, and sharing from
-  inside Kasumi alone doesn't trigger an import: send Kasumi Home and launch it
-  again.
-- **Files handed to the app.** SwiftUI's `DocumentGroup` doesn't open a file
-  shared to a scene that is already running (iOS 27.2), so
-  `DocumentHandoff.swift` opens it through the document browser instead. To
-  test, share from another app with the system share sheet both while Kasumi
-  runs and after terminating it; Files didn't list folder contents on the iOS
-  27.2 simulator. A share within a second or two of launch exercises the wait
-  for the browser's presentation. Any launch URL, including the Import action's
-  `kasumi://import`, makes SwiftUI skip `DocumentGroupLaunchScene` and show its
-  plain browser, so nothing that must run at launch may live in the launch
-  scene's views. On a device, `NSLog` didn't reach `idevicesyslog`; a log file in
-  `Library/Caches`, pulled with `xcrun devicectl device copy from --domain-type
-  appDataContainer`, worked. See
-  [004.005](../docs-ai/004-ios-reader/005-warm-file-handoff.md).
+  `group.com.samuelhe.Kasumi`, so a device build needs automatic signing to
+  register it. In a share sheet the action sits under View More until promoted
+  with Edit Actions. The extension opens `kasumi://import`. If the open is refused,
+  the extension sheet stays; sharing from inside Kasumi alone doesn't trigger an
+  import, so send Kasumi Home and launch it again.
+- **Files handed to the app.** `DocumentGroup` doesn't open a file shared to an
+  already-running scene (iOS 27.2), so `DocumentHandoff.swift` opens it through
+  the document browser. Test by sharing from another app both while Kasumi runs
+  and after terminating it. A share within a second or two of launch exercises the
+  wait for the browser. Files didn't list folder contents on the 27.2 simulator.
+  Any launch URL, including `kasumi://import`, skips `DocumentGroupLaunchScene`,
+  so nothing that must run at launch belongs in that scene's views. On a device,
+  `NSLog` didn't reach `idevicesyslog`; write a log file to `Library/Caches` and
+  pull it with `xcrun devicectl device copy from --domain-type appDataContainer`.
+  See [004.005](../docs-ai/004-ios-reader/005-warm-file-handoff.md).
 - **Action icon.** The extension uses standalone transparent `ActionIcon@2x.png`
-  and `ActionIcon@3x.png`, named by `CFBundleIconFiles`, not a normal image set.
-  Regenerate them with `swift design/icon/make_action_icon.swift`. On iOS 27.2,
-  replacing the icon while keeping build 1 left a cached white tile; increasing
-  the app and extension build numbers to 2 refreshed it without an uninstall.
-  Rebuilding into fresh DerivedData alone did not refresh that installed icon.
-- **CJK fonts.** Apple's downloadable faces are activated per process: the app
-  re-requests them at launch, and `make test-ios` still skips the 10 tests that
-  need them even after the app downloaded them. iOS caches them for the whole
-  simulator. To exercise failed Apple downloads, launch with
-  `-KasumiFailAppleFonts YES -onboarding.fonts-offered NO` (debug builds).
-  The first-run alert opens font management; it does not start downloads.
-  The appearance sheet's toolbar buttons are missing from `sim-use ui`; tap the
-  Fonts button by coordinates. See [005](../docs-ai/005-cjk-font-availability/001-action.md).
-  To see the first-run font offer again on a device, run `make run-device
-  ONBOARDING=reset`. It passes `-onboarding.fonts-offered NO` for that launch only.
-  In debug builds, an explicit reset previews the offer even when every face is
-  cached, without forcing Apple downloads to fail. On the simulator, pass
-  `-onboarding.fonts-offered NO` to `simctl launch` for the same launch-only preview.
-  Font transition checks need a screen recording, not only settled screenshots:
-  exercise card selection in both directions, Remove Download from the role toolbar,
-  re-download completion, and reader size/preset changes at a scrolled position.
-  Cards must not move during selection. List insertion transitions can snap;
-  the font controls use persistent
-  opacity layers instead. Reader replacements prepaint one viewport off-main before
-  fading the old snapshot. See
-  [005.002](../docs-ai/005-cjk-font-availability/002-font-management-transitions.md).
-- **Open a file at launch (debug builds only).** Pass `-KasumiOpen <path>` to skip
-  the launch scene. The file is copied into the app's `Documents/Debug/`
-  (replacing an earlier copy) and opened through the document browser, so
-  relative images resolve against that folder:
+  and `ActionIcon@3x.png`, named by `CFBundleIconFiles`. Regenerate them with
+  `swift design/icon/make_action_icon.swift`. On iOS 27.2, a replaced icon stayed a
+  cached white tile while the build number stayed 1; raising the app and extension
+  build numbers to 2 refreshed it. A fresh DerivedData alone didn't.
+- **CJK fonts.** Apple's downloadable faces activate per process and stay cached
+  for the whole simulator, so `make test-ios` still skips the 10 tests that need
+  them after the app has downloaded them. To exercise failed downloads, launch a
+  debug build with `-KasumiFailAppleFonts YES -onboarding.fonts-offered NO`. To
+  preview the first-run font offer again, run `make run-device ONBOARDING=reset`
+  on a device, or pass `-onboarding.fonts-offered NO` to `simctl launch` on the
+  simulator. The first-run alert opens font management and doesn't start
+  downloads. In the appearance sheet, `sim-use ui` omits the toolbar buttons; tap
+  Fonts by coordinates. See [005](../docs-ai/005-cjk-font-availability/001-action.md).
+- **Open a file at launch (debug builds only).** `-KasumiOpen <path>` skips the
+  launch scene. The file is copied to the app's `Documents/Debug/` (replacing an
+  earlier copy) and opened through the document browser, so relative images
+  resolve against that folder:
 
   ```sh
   xcrun simctl launch --terminate-running-process booted com.samuelhe.Kasumi \
     -KasumiOpen "$PWD/fixtures/Rendering.md"
   ```
 
-  Give it a few seconds before driving the UI. An unreadable path stays on the
-  launch scene and logs `KasumiOpen: cannot read <path>`.
+  Wait a few seconds before driving the UI. An unreadable path stays on the launch
+  scene and logs `KasumiOpen: cannot read <path>`.
