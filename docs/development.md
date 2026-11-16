@@ -40,6 +40,17 @@ targets.
   preserve dash phase.
   See [002.003](../docs-ai/002-rendering-engine/003-link-decoration.md) and
   [002.004](../docs-ai/002-rendering-engine/004-underline-clearance.md).
+- `fixtures/Tables.md` covers verbose cells, wide comparisons, compact tables,
+  column alignment, CJK and linked cells. The reader opts into
+  `RenderedDocument(..., scrollableTables: true)`: `tables` describes viewport
+  and content widths, and `drawTable(at:in:rect:)` paints table-local tiles.
+  Page tiles omit overflowing tables. Native horizontal scroll views own offsets;
+  text interaction and Find translate geometry through those offsets. File exports
+  keep the fitted layout; snapshot image exports capture the initial viewport.
+  Table pan admission stays native so a new touch can interrupt deceleration.
+  The 18 pt edge masks track bounds and fade only where more content is hidden;
+  `make test FILTER=ReaderTableEdgeTests` exercises the app mask headlessly.
+  Run `make test FILTER='TableLayoutTests|Export|Pagination|PublicAPITests'`.
 - `MeasuredParagraphTypesetter` isolates Han clusters inside coalesced engine
   boxes before creating Core Text drawing fragments. Core Text can add internal
   spacing around curly quotes (`主线“感知`) that its glyph advances omit;

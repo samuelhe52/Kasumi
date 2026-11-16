@@ -11,6 +11,7 @@ struct PlacedText {
     let paragraph: ParagraphLayout
     let origin: CGPoint
     let textOffset: Int
+    var tableIndex: Int? = nil
     var bounds: CGRect {
         CGRect(
             x: origin.x, y: origin.y, width: paragraph.lines.map { $0.origin.x + $0.width }.max() ?? 0,
@@ -21,12 +22,14 @@ struct PaintedRect {
     let rect: CGRect
     let color: PlatformColor
     var radius: CGFloat = 0
+    var tableIndex: Int? = nil
 }
 struct PaintedRule {
     let start: CGPoint
     let end: CGPoint
     let color: PlatformColor
     var width: CGFloat = 1
+    var tableIndex: Int? = nil
 }
 public struct DocumentInsets: Sendable, Equatable {
     public var top: CGFloat
@@ -55,10 +58,14 @@ struct DocumentLayout {
     /// Occupied image rectangles, including inline images, for pagination/hit testing.
     var imageBounds: [CGRect]
     var paginationGroups: [Range<CGFloat>]
+    var tables: [RenderedTable] = []
 }
 
 enum DocumentTypesetter {
-    static func layout(_ document: ParsedDocument, width: CGFloat, style: Typography, insets: DocumentInsets = .reader)
+    static func layout(
+        _ document: ParsedDocument, width: CGFloat, style: Typography, insets: DocumentInsets = .reader,
+        scrollableTables: Bool = false
+    )
         -> DocumentLayout
     {
         let available = max(20, width - insets.left - insets.right)
@@ -114,6 +121,7 @@ enum DocumentTypesetter {
         var headingCounts: [String: Int] = [:]
         var imageBounds: [CGRect] = []
         var paginationGroups: [Range<CGFloat>] = []
+        var tables: [RenderedTable] = []
         var paragraphValues = style.profileValues
         paragraphValues[.hangingPunctuation] = .flag(style.hangingPunctuation)
         paragraphValues[.autoRaggedNarrow] = .flag(style.narrowMeasureRagged)
@@ -204,23 +212,27 @@ enum DocumentTypesetter {
             } else if block.kind == .table, let first = block.rows.first, !first.isEmpty {
                 let grid = style.profileValues.resolved(.tableStyle).string == "grid"
                 let columns = first.count
-                var natural = Array(repeating: CGFloat(30), count: columns)
-                for row in block.rows {
-                    for (column, cell) in row.enumerated() where column < columns {
-                        let line = CTLineCreateWithAttributedString(attributed(cell))
-                        natural[column] = max(
-                            natural[column], CGFloat(CTLineGetTypographicBounds(line, nil, nil, nil)) + 24)
-                    }
+                let horizontalPadding = style.size * 0.6
+                let verticalPadding = style.size * 0.3
+                let cells = block.rows.enumerated().map { row, cells in
+                    cells.map { attributed($0, heading: row == 0) }
                 }
-                let total = natural.reduce(0, +)
-                let widths = natural.map { $0 / total * measure }
+                let widths = TableColumns.widths(
+                    cells: cells, count: columns, measure: measure, em: style.size,
+                    padding: horizontalPadding, scrollable: scrollableTables)
+                let tableWidth = widths.reduce(0, +)
+                let paragraphStart = paragraphs.count
+                let backgroundStart = backgrounds.count
+                let ruleStart = rules.count
                 let top = y
                 for (rowIndex, row) in block.rows.enumerated() {
                     let rowTop = y
                     var x = left
-                    var height: CGFloat = style.size * style.lineSpacing + 12
+                    var height: CGFloat = style.size * style.lineSpacing + verticalPadding * 2
                     for (column, cell) in row.enumerated() where column < columns {
-                        let attr = attributed(cell, heading: rowIndex == 0, imageMaxWidth: max(1, widths[column] - 24))
+                        let attr = attributed(
+                            cell, heading: rowIndex == 0,
+                            imageMaxWidth: max(1, widths[column] - horizontalPadding * 2))
                         let alignment: ParagraphAlignment =
                             column < block.alignments.count && block.alignments[column].lowercased().contains("right")
                             ? .trailing
@@ -229,14 +241,15 @@ enum DocumentTypesetter {
                         height = max(
                             height,
                             place(
-                                attr, x: x + 12, y: y + 6, width: widths[column] - 24, size: style.size,
-                                alignment: alignment) + 12)
+                                attr, x: x + horizontalPadding, y: y + verticalPadding,
+                                width: widths[column] - horizontalPadding * 2, size: style.size,
+                                alignment: alignment) + verticalPadding * 2)
                         x += widths[column]
                     }
                     if rowIndex == 0 {
                         backgrounds.append(
                             PaintedRect(
-                                rect: CGRect(x: left, y: y, width: measure, height: height),
+                                rect: CGRect(x: left, y: y, width: tableWidth, height: height),
                                 color: theme.color("table_header_background")!))
                     }
                     y += height
@@ -244,7 +257,7 @@ enum DocumentTypesetter {
                     if rowIndex == 0 || grid {
                         rules.append(
                             PaintedRule(
-                                start: CGPoint(x: left, y: y), end: CGPoint(x: left + measure, y: y),
+                                start: CGPoint(x: left, y: y), end: CGPoint(x: left + tableWidth, y: y),
                                 color: style.ruleColor))
                     }
                 }
@@ -260,9 +273,17 @@ enum DocumentTypesetter {
                 for edge in [top, y] {
                     rules.append(
                         PaintedRule(
-                            start: CGPoint(x: left, y: edge), end: CGPoint(x: left + measure, y: edge),
+                            start: CGPoint(x: left, y: edge), end: CGPoint(x: left + tableWidth, y: edge),
                             color: style.textColor, width: 1.2))
                 }
+                let tableIndex = tables.count
+                for index in paragraphStart..<paragraphs.count { paragraphs[index].tableIndex = tableIndex }
+                for index in backgroundStart..<backgrounds.count { backgrounds[index].tableIndex = tableIndex }
+                for index in ruleStart..<rules.count { rules[index].tableIndex = tableIndex }
+                tables.append(RenderedTable(
+                    id: tableIndex,
+                    frame: CGRect(x: left, y: top - 1, width: min(measure, tableWidth), height: y - top + 2),
+                    contentWidth: tableWidth))
                 y += style.size
             } else {
                 let isCode = block.kind == .code || block.kind == .diagram
@@ -379,7 +400,7 @@ enum DocumentTypesetter {
         return DocumentLayout(
             width: width, height: y + insets.bottom, text: storage, textMap: DocumentTextMap(storage),
             paragraphs: paragraphs, backgrounds: backgrounds, rules: rules, headingPositions: headings,
-            anchorPositions: anchors, imageBounds: imageBounds, paginationGroups: paginationGroups)
+            anchorPositions: anchors, imageBounds: imageBounds, paginationGroups: paginationGroups, tables: tables)
     }
 
     static func anchorSlug(_ text: String) -> String {
@@ -389,9 +410,25 @@ enum DocumentTypesetter {
     }
 
     /// Draw in a top-left, downward-positive graphics coordinate space.
-    static func draw(_ layout: DocumentLayout, in context: CGContext, sourceRange: Range<CGFloat>? = nil) {
+    static func draw(
+        _ layout: DocumentLayout, in context: CGContext, sourceRange: Range<CGFloat>? = nil,
+        excludingScrollableTables: Bool = false, tableIndex: Int? = nil
+    ) {
+        func include(_ index: Int?) -> Bool {
+            if let tableIndex { return index == tableIndex }
+            if excludingScrollableTables, let index { return !layout.tables[index].isScrollable }
+            return true
+        }
+        func clipTable(_ index: Int?) {
+            if tableIndex == nil, let index, layout.tables[index].isScrollable {
+                context.clip(to: layout.tables[index].frame)
+            }
+        }
         let clip = context.boundingBoxOfClipPath
-        for background in layout.backgrounds where background.rect.intersects(clip) {
+        for background in layout.backgrounds where include(background.tableIndex) && background.rect.intersects(clip) {
+            context.saveGState()
+            defer { context.restoreGState() }
+            clipTable(background.tableIndex)
             context.setFillColor(background.color.cgColor)
             if background.radius > 0 {
                 context.addPath(
@@ -403,19 +440,25 @@ enum DocumentTypesetter {
                 context.fill(background.rect)
             }
         }
-        for rule in layout.rules {
+        for rule in layout.rules where include(rule.tableIndex) {
             let bounds = CGRect(
                 x: min(rule.start.x, rule.end.x), y: min(rule.start.y, rule.end.y),
                 width: abs(rule.end.x - rule.start.x), height: abs(rule.end.y - rule.start.y)
             ).insetBy(dx: -rule.width / 2, dy: -rule.width / 2)
             guard bounds.intersects(clip) else { continue }
+            context.saveGState()
+            defer { context.restoreGState() }
+            clipTable(rule.tableIndex)
             context.setStrokeColor(rule.color.cgColor)
             context.setLineWidth(rule.width)
             context.move(to: rule.start)
             context.addLine(to: rule.end)
             context.strokePath()
         }
-        for item in layout.paragraphs {
+        for item in layout.paragraphs where include(item.tableIndex) {
+            context.saveGState()
+            defer { context.restoreGState() }
+            clipTable(item.tableIndex)
             for line in item.paragraph.lines {
                 if let sourceRange {
                     let top = item.origin.y + line.origin.y - line.ascent

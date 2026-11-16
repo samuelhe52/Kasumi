@@ -25,6 +25,11 @@ that fixes it; add one when a limitation is found and not fixed.
   becomes math; `\(...\)` can't span lines.
 - Diagrams: no rich HTML labels; syntax outside the tested corpus may be
   rejected; no links or selection inside diagrams.
+- Tables: document-based exports fit every column to the page and may still wrap
+  heavily at very narrow widths. Snapshot image exports of a scrollable
+  `RenderedDocument` capture its initial table viewport. Reader scrolling is
+  presentation state, separate from the immutable snapshot. See
+  [adaptive tables](005-table-layout.md) for behavior and validation limits.
 - Export: pagination details, PDF links, footnote edge cases, HTML/SVG images.
   Long PNG/JPG require a complete bitmap, bounded by a configurable 128 MiB raw
   pixel default and 32,768 pixels per axis. This does not cap total process memory.

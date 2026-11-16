@@ -47,6 +47,7 @@ public struct SearchOptions: OptionSet, Sendable {
 public final class RenderedDocument: @unchecked Sendable {
     public let size: CGSize
     public let backgroundColor: CGColor
+    public var tables: [RenderedTable] { layout.tables }
     private let owner = UUID()
     private let layout: DocumentLayout
     private let readingIndex: ReadingPositionIndex
@@ -64,14 +65,19 @@ public final class RenderedDocument: @unchecked Sendable {
         let rect: CGRect
     }
 
-    public init(_ document: MarkdownDocument, width: CGFloat, style: RenderStyle) {
+    /// Enable table overflow for interactive readers. Headless layouts default
+    /// to fitting all columns inside the requested width.
+    public init(
+        _ document: MarkdownDocument, width: CGFloat, style: RenderStyle, scrollableTables: Bool = false
+    ) {
         precondition(width.isFinite && width > 0, "Layout width must be finite and positive")
         let insets = style.insets
         precondition(
             [insets.top, insets.left, insets.bottom, insets.right].allSatisfy { $0.isFinite && $0 >= 0 },
             "Layout insets must be finite and nonnegative")
         let typography = style.typography
-        var built = DocumentTypesetter.layout(document.parsed, width: width, style: typography, insets: insets)
+        var built = DocumentTypesetter.layout(
+            document.parsed, width: width, style: typography, insets: insets, scrollableTables: scrollableTables)
         built.text = NSAttributedString(attributedString: built.text)
         layout = built
         size = CGSize(width: built.width, height: built.height)
@@ -105,7 +111,7 @@ public final class RenderedDocument: @unchecked Sendable {
     /// `rect` and the CGContext must use document coordinates (top-left, y down).
     /// Each caller owns its context. The clip protects adjacent tiles, and the
     /// existing sourceRange path excludes off-tile text/attachment drawing.
-    public func draw(in context: CGContext, rect: CGRect) {
+    public func draw(in context: CGContext, rect: CGRect, excludingScrollableTables: Bool = false) {
         guard rect.minX.isFinite, rect.minY.isFinite, rect.width.isFinite, rect.height.isFinite,
             rect.width > 0, rect.height > 0
         else { return }
@@ -119,7 +125,32 @@ public final class RenderedDocument: @unchecked Sendable {
             // Filling the same fractional rect would multiply alpha twice.
             context.setFillColor(backgroundColor)
             context.fill(visible.integral)
-            DocumentTypesetter.draw(layout, in: context, sourceRange: (visible.minY - 4)..<(visible.maxY + 4))
+            DocumentTypesetter.draw(
+                layout, in: context, sourceRange: (visible.minY - 4)..<(visible.maxY + 4),
+                excludingScrollableTables: excludingScrollableTables)
+        }
+    }
+
+    /// Paint one table in table-content coordinates (0,0 at its frame's origin),
+    /// including columns outside the page. Use a native scroll view to clip it.
+    public func drawTable(at index: Int, in context: CGContext, rect: CGRect) {
+        guard layout.tables.indices.contains(index),
+            rect.minX.isFinite, rect.minY.isFinite, rect.width.isFinite, rect.height.isFinite,
+            rect.width > 0, rect.height > 0 else { return }
+        let table = layout.tables[index]
+        let visible = rect.intersection(CGRect(x: 0, y: 0, width: table.contentWidth, height: table.frame.height))
+        guard !visible.isNull, !visible.isEmpty else { return }
+        layoutLock.withLock {
+            context.saveGState()
+            defer { context.restoreGState() }
+            context.clip(to: visible)
+            context.setFillColor(backgroundColor)
+            context.fill(visible.integral)
+            context.translateBy(x: -table.frame.minX, y: -table.frame.minY)
+            DocumentTypesetter.draw(
+                layout, in: context,
+                sourceRange: (visible.minY + table.frame.minY - 4)..<(visible.maxY + table.frame.minY + 4),
+                tableIndex: index)
         }
     }
 

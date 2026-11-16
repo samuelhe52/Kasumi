@@ -180,7 +180,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         }
         let worker = Task.detached(priority: .userInitiated) {
             try Task.checkCancellation()
-            let rendered = RenderedDocument(document, width: width, style: style)
+            let rendered = RenderedDocument(document, width: width, style: style, scrollableTables: true)
             try Task.checkCancellation()
             return rendered
         }
@@ -227,7 +227,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
     }
 
     private func install(
-        _ next: RenderedDocument, restoring anchor: ReadingAnchor?, preview: CGImage?, previewRect: CGRect
+        _ next: RenderedDocument, restoring anchor: ReadingAnchor?, preview: ReaderPagePreview?, previewRect: CGRect
     ) {
         adjusting = true
         let firstLayout = rendered == nil
@@ -352,10 +352,14 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
     }
 
     private func displayFindResults(_ matches: [TextRange], current: Int?, scroll: Bool) {
+        if let current, matches.indices.contains(current) {
+            page?.reveal(matches[current])
+        }
         page?.highlight(matches: matches, current: current)
         currentFindRect = current.flatMap { index in
             guard matches.indices.contains(index), let rendered else { return nil }
-            return rendered.selectionRects(for: matches[index]).first
+            return page?.selectionGeometry(for: matches[index]).first
+                ?? rendered.selectionRects(for: matches[index]).first
         }
         guard scroll, let rect = currentFindRect else { return }
         setTop(max(0, rect.minY * pageScale - 24), animated: !UIAccessibility.isReduceMotionEnabled)
@@ -376,20 +380,26 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
     }
 }
 
+fileprivate struct ReaderPagePreview: Sendable {
+    let image: CGImage?
+    let tables: [Int: ReaderTablePreview]
+}
+
 fileprivate final class ReaderPageView: ReaderTextInputView {
     private let matchHighlights = CAShapeLayer()
     private let currentHighlight = CAShapeLayer()
     private var highlightedMatches: [TextRange] = []
     private var highlightedIndex: Int?
-    init(rendered: RenderedDocument, scale: CGFloat, preview: CGImage?, previewRect: CGRect) {
+    private var tableScrollViews: [ReaderTableScrollView] = []
+    init(rendered: RenderedDocument, scale: CGFloat, preview: ReaderPagePreview?, previewRect: CGRect) {
         super.init(rendered: rendered)
         layer.anchorPoint = .zero
         layer.position = .zero
         backgroundColor = UIColor(cgColor: rendered.backgroundColor)
-        if let preview {
+        if let image = preview?.image {
             let seed = CALayer()
             seed.frame = previewRect
-            seed.contents = preview
+            seed.contents = image
             seed.contentsScale = scale
             layer.addSublayer(seed)
         }
@@ -398,6 +408,14 @@ fileprivate final class ReaderPageView: ReaderTextInputView {
         tiles.contentsScale = scale
         tiles.tileSize = CGSize(width: 512, height: 512)
         layer.addSublayer(tiles)
+        for table in rendered.tables where table.isScrollable {
+            let scroll = ReaderTableScrollView(
+                rendered: rendered, table: table, scale: scale, preview: preview?.tables[table.id])
+            scroll.onScroll = { [weak self] in self?.paintHighlights() }
+            scroll.onBeginDragging = { [weak self] in self?.clearSelection() }
+            tableScrollViews.append(scroll)
+            addSubview(scroll)
+        }
         matchHighlights.fillColor = UIColor.systemYellow.withAlphaComponent(0.3).cgColor
         currentHighlight.fillColor = UIColor.systemOrange.withAlphaComponent(0.45).cgColor
         layer.addSublayer(matchHighlights)
@@ -411,11 +429,15 @@ fileprivate final class ReaderPageView: ReaderTextInputView {
         guard matches != highlightedMatches || current != highlightedIndex else { return }
         highlightedMatches = matches
         highlightedIndex = current
+        paintHighlights()
+    }
+
+    private func paintHighlights() {
         let others = CGMutablePath()
         let active = CGMutablePath()
-        for (index, range) in matches.enumerated() {
-            for rect in rendered.selectionRects(for: range) {
-                (index == current ? active : others).addRect(rect)
+        for (index, range) in highlightedMatches.enumerated() {
+            for rect in selectionGeometry(for: range) {
+                (index == highlightedIndex ? active : others).addRect(rect)
             }
         }
         CATransaction.begin()
@@ -425,15 +447,52 @@ fileprivate final class ReaderPageView: ReaderTextInputView {
         CATransaction.commit()
     }
 
-    nonisolated static func preview(_ rendered: RenderedDocument, rect: CGRect, scale: CGFloat) -> CGImage? {
+    override func documentPoint(_ point: CGPoint) -> CGPoint {
+        guard let scroll = tableScrollViews.first(where: { $0.frame.contains(point) }) else { return point }
+        return CGPoint(x: point.x + scroll.contentOffset.x, y: point.y)
+    }
+
+    override func viewRect(_ rect: CGRect, clipped: Bool = false) -> CGRect {
+        guard let scroll = tableScrollViews.first(where: {
+            rect.midY >= $0.frame.minY && rect.midY <= $0.frame.maxY
+        }) else { return rect }
+        let shifted = rect.offsetBy(dx: -scroll.contentOffset.x, dy: 0)
+        return clipped ? shifted.intersection(scroll.frame) : shifted
+    }
+
+    func reveal(_ range: TextRange) {
+        guard let rect = rendered.selectionRects(for: range).first,
+            let scroll = tableScrollViews.first(where: {
+                rect.midY >= $0.frame.minY && rect.midY <= $0.frame.maxY
+            }) else { return }
+        let left = rect.minX - scroll.frame.minX
+        let right = rect.maxX - scroll.frame.minX
+        let offset = max(0, min(scroll.contentSize.width - scroll.bounds.width,
+            min(left, max(scroll.contentOffset.x, right - scroll.bounds.width))))
+        scroll.setContentOffset(CGPoint(x: offset, y: 0), animated: false)
+    }
+
+    nonisolated static func preview(_ rendered: RenderedDocument, rect: CGRect, scale: CGFloat) -> ReaderPagePreview? {
         guard !rect.isNull, !rect.isEmpty else { return nil }
         let format = UIGraphicsImageRendererFormat()
         format.scale = scale
         format.opaque = true
-        return UIGraphicsImageRenderer(size: rect.size, format: format).image { context in
+        let image = UIGraphicsImageRenderer(size: rect.size, format: format).image { context in
             context.cgContext.translateBy(x: -rect.minX, y: -rect.minY)
-            rendered.draw(in: context.cgContext, rect: rect)
+            rendered.draw(in: context.cgContext, rect: rect, excludingScrollableTables: true)
         }.cgImage
+        var tables: [Int: ReaderTablePreview] = [:]
+        for table in rendered.tables where table.isScrollable {
+            let visible = rect.intersection(table.frame)
+            guard !visible.isNull, !visible.isEmpty else { continue }
+            let local = visible.offsetBy(dx: -table.frame.minX, dy: -table.frame.minY)
+            let seed = UIGraphicsImageRenderer(size: local.size, format: format).image { context in
+                context.cgContext.translateBy(x: -local.minX, y: -local.minY)
+                rendered.drawTable(at: table.id, in: context.cgContext, rect: local)
+            }.cgImage
+            if let seed { tables[table.id] = ReaderTablePreview(image: seed, rect: local) }
+        }
+        return ReaderPagePreview(image: image, tables: tables)
     }
 }
 
@@ -449,5 +508,7 @@ fileprivate final class ReaderTileLayer: CATiledLayer {
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     override class func fadeDuration() -> CFTimeInterval { 0 }
-    override func draw(in context: CGContext) { rendered?.draw(in: context, rect: context.boundingBoxOfClipPath) }
+    override func draw(in context: CGContext) {
+        rendered?.draw(in: context, rect: context.boundingBoxOfClipPath, excludingScrollableTables: true)
+    }
 }

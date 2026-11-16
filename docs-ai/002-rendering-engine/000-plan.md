@@ -66,6 +66,9 @@ Library tests pass on macOS and the iOS simulator, including comparisons against
 
 ## Amendments
 
+- Updated 2026-11-17: Implement adaptive table columns and independent reader scrolling
+  — see [005-table-layout.md](005-table-layout.md).
+
 - Updated 2026-11-14: Ported off AppKit to Core Graphics and Core Text with
   platform color and font aliases (`ccf0bee`); recorded in
   [001](../001-library-and-reader/001-action.md).

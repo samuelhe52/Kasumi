@@ -55,6 +55,13 @@ class ReaderTextInputView: UIView, UITextInput, UITextInteractionDelegate, UIGes
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
+    // ReaderPageView maps native text interaction through table scroll offsets.
+    func documentPoint(_ point: CGPoint) -> CGPoint { point }
+    func viewRect(_ rect: CGRect, clipped: Bool = false) -> CGRect { rect }
+    func selectionGeometry(for range: TextRange) -> [CGRect] {
+        rendered.selectionRects(for: range).map { viewRect($0, clipped: true) }.filter { !$0.isNull && !$0.isEmpty }
+    }
+
     override var canBecomeFirstResponder: Bool { true }
     var isEditable: Bool { false }
     var hasText: Bool { !rendered.documentRange.isEmpty }
@@ -131,7 +138,7 @@ class ReaderTextInputView: UIView, UITextInput, UITextInteractionDelegate, UIGes
             guard offset != Int.min else { return nil }
             return self.position(from: position, offset: direction == .left ? -offset : offset)
         case .up, .down:
-            let caret = rendered.caretRect(for: start)
+            let caret = viewRect(rendered.caretRect(for: start))
             let y = caret.midY + CGFloat(offset) * max(1, caret.height) * (direction == .up ? -1 : 1)
             return closestPosition(to: CGPoint(x: caret.minX, y: y))
         @unknown default: return nil
@@ -166,24 +173,25 @@ class ReaderTextInputView: UIView, UITextInput, UITextInteractionDelegate, UIGes
     }
     func firstRect(for range: UITextRange) -> CGRect {
         guard let range = checkedRange(range) else { return .zero }
-        return rendered.selectionRects(for: range).first ?? rendered.caretRect(for: range.lowerBound)
+        return selectionGeometry(for: range).first ?? viewRect(rendered.caretRect(for: range.lowerBound))
     }
     func caretRect(for position: UITextPosition) -> CGRect {
-        checkedPosition(position).map { rendered.caretRect(for: $0) } ?? .zero
+        checkedPosition(position).map { viewRect(rendered.caretRect(for: $0)) } ?? .zero
     }
     func selectionRects(for range: UITextRange) -> [UITextSelectionRect] {
         guard let range = checkedRange(range) else { return [] }
-        let rects = rendered.selectionRects(for: range)
+        let rects = selectionGeometry(for: range)
         return rects.enumerated().map { index, rect in
             ReaderSelectionRect(rect, first: index == 0, last: index == rects.count - 1)
         }
     }
     func closestPosition(to point: CGPoint) -> UITextPosition? {
-        ReaderTextPosition(rendered.position(closestTo: point))
+        ReaderTextPosition(rendered.position(closestTo: documentPoint(point)))
     }
     func closestPosition(to point: CGPoint, within range: UITextRange) -> UITextPosition? {
         guard let range = checkedRange(range) else { return nil }
-        return ReaderTextPosition(min(range.upperBound, max(range.lowerBound, rendered.position(closestTo: point))))
+        return ReaderTextPosition(min(
+            range.upperBound, max(range.lowerBound, rendered.position(closestTo: documentPoint(point)))))
     }
     func characterRange(at point: CGPoint) -> UITextRange? {
         guard let position = closestPosition(to: point) else { return nil }
@@ -208,11 +216,11 @@ class ReaderTextInputView: UIView, UITextInput, UITextInteractionDelegate, UIGes
         // Native text selection handles double taps and long presses. The link
         // recognizer only participates when a link is actually under the finger.
         dismissingSelection = !(selection?.isEmpty ?? true)
-        return dismissingSelection || rendered.link(at: touch.location(in: self)) != nil
+        return dismissingSelection || rendered.link(at: documentPoint(touch.location(in: self))) != nil
     }
     @objc private func openTappedLink(_ gesture: UITapGestureRecognizer) {
         if dismissingSelection { clearSelection(); return }
-        guard let url = rendered.link(at: gesture.location(in: self)) else { return }
+        guard let url = rendered.link(at: documentPoint(gesture.location(in: self))) else { return }
         onLink?(url)
     }
 
