@@ -99,3 +99,45 @@ fileprivate struct TXTSnapshot: Decodable {
     let oddUTF16 = try DocumentDecoder.decode(Data([0xFF, 0xFE, 0x41, 0, 0x42]))
     #expect(oddUTF16.text == "A�" && oddUTF16.isLossy)
 }
+
+@Suite struct DocumentSourceTests {
+    @Test func unchangedBytesAndUnicodeEdits() throws {
+        let decomposed = "Cafe\u{301}\r\n"
+        let bytes = Data([0xEF, 0xBB, 0xBF]) + Data(decomposed.utf8)
+        let source = try DocumentSource(data: bytes)
+        #expect(source.text.utf8.elementsEqual(decomposed.utf8))
+        #expect(try source.data(replacingText: decomposed) == bytes)
+        // Canonical equivalence is not byte equality: normalization is an edit.
+        #expect(try source.data(replacingText: "Café\r\n") == Data([0xEF, 0xBB, 0xBF]) + Data("Café\r\n".utf8))
+        let plain = DocumentSource(text: "# Title\n")
+        #expect(try plain.data(replacingText: "# 标题 😀\n") == Data("# 标题 😀\n".utf8))
+    }
+
+    @Test func utf16ByteOrderAndLegacyEncodingSurviveEdits() throws {
+        for (prefix, encoding) in [
+            (Data([0xFF, 0xFE]), String.Encoding.utf16LittleEndian),
+            (Data([0xFE, 0xFF]), String.Encoding.utf16BigEndian)
+        ] {
+            let original = prefix + (try #require("A\r\n".data(using: encoding)))
+            let source = try DocumentSource(data: original)
+            #expect(try source.data(replacingText: "A\r\n") == original)
+            let edited = try source.data(replacingText: "B😀\r\n")
+            #expect(edited == prefix + (try #require("B😀\r\n".data(using: encoding))))
+            #expect(try DocumentSource(data: edited).text == "B😀\r\n")
+        }
+        let legacy = try DocumentSource(data: Data([0xD6, 0xD0, 0xCE, 0xC4]))
+        #expect(try legacy.data(replacingText: "中文") == Data([0xD6, 0xD0, 0xCE, 0xC4]))
+        #expect(try legacy.data(replacingText: "中文!") == Data([0xD6, 0xD0, 0xCE, 0xC4, 0x21]))
+        let supplementary = try legacy.data(replacingText: "中文😀")
+        #expect(try DocumentSource(data: supplementary).text == "中文😀")
+    }
+
+    @Test func lossySourceCannotOverwriteUndecodableBytes() throws {
+        for bytes in [Data([0xFF]), Data([0xFF, 0xFE, 0x41, 0, 0x42])] {
+            let source = try DocumentSource(data: bytes)
+            #expect(source.isLossy)
+            #expect(try source.data(replacingText: source.text) == bytes)
+            #expect(throws: (any Error).self) { try source.data(replacingText: source.text + "Edit") }
+        }
+    }
+}
