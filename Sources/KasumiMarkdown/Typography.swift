@@ -53,6 +53,8 @@ struct Typography: Codable, Equatable, Sendable {
         darkThemeID = try values.decodeIfPresent(String.self, forKey: .darkThemeID) ?? darkThemeID
     }
     var explicitTheme: DocumentTheme? = nil
+    /// Use LXGW WenKai Lite ahead of Apple's Kaiti for Kai emphasis.
+    var preferOpenKai = false
     var documentTheme: DocumentTheme {
         explicitTheme ?? DocumentThemeCatalog.resolved(id: dark ? darkThemeID : lightThemeID, dark: dark)
     }
@@ -137,14 +139,24 @@ struct Typography: Codable, Equatable, Sendable {
         // Code font sizes round to nearest, ties away from zero, after scaling.
         let pointSize = code ? requestedSize.rounded(.toNearestOrAwayFromZero) : requestedSize
         let desiredWeight = weight ?? (strong ? PlatformFont.Weight.bold : .regular)
-        if cjk,
+        if cjk {
+            let italic = profileValues.resolved(.cjkItalicFace).string!
             let face = CJKFontFace.resolve(
-                family: hanFamily, strong: strong, emphasis: emphasis, heading: heading,
-                italic: profileValues.resolved(.cjkItalicFace).string!,
-                heavy: profileValues.resolved(.cjkStrongFace).string!),
-            let font = PlatformFonts.named(face.name, size: pointSize)
-        {
-            return font
+                family: hanFamily, strong: strong, emphasis: emphasis, heading: heading, italic: italic,
+                heavy: profileValues.resolved(.cjkStrongFace).string!)
+            var names = face.map { [$0.name] } ?? []
+            let kai =
+                face.map { $0.name.hasPrefix("STKaiti") ? $0.name : nil }
+                ?? (CJKFontFace.openKaiApplies(family: hanFamily, emphasis: emphasis, heading: heading, italic: italic)
+                    ? (strong ? "STKaitiSC-Bold" : "STKaitiSC-Regular") : nil)
+            if let kai {
+                // Apple's Kaiti first unless the caller prefers the open Kai face.
+                let open = CJKFontFace.openKai(strong: strong)
+                names = preferOpenKai ? [open, kai] : [kai, open]
+            }
+            for name in names {
+                if let font = PlatformFonts.named(name, size: pointSize) { return font }
+            }
         }
         let base: PlatformFont
         if code {

@@ -1,7 +1,8 @@
 import CoreText
 import Foundation
 
-/// Ordered, process-local lookup only. No UI font picker or downloadable-font API.
+/// Ordered, process-local lookup only. The library never downloads; a client
+/// that registers or downloads a face makes it available to the next lookup.
 enum FontFamilyResolver {
     enum Role { case latin, han, code }
 
@@ -24,15 +25,26 @@ enum FontFamilyResolver {
         chain.first { !$0.isEmpty && available($0) }
     }
 
-    static func resolve(_ requested: String, role: Role) -> String {
-        let fallbacks: [String]
+    /// Openly licensed faces that stand in for Apple faces iOS only offers as
+    /// an on-demand download. Apps may fetch them; the library never does.
+    static let openSubstitutes = ["Songti SC": "Noto Serif SC", "Songti TC": "Noto Serif TC"]
+
+    static func chain(for requested: String, role: Role, preferring preferred: Set<String> = []) -> [String] {
         switch role {
-        case .latin: fallbacks = ["New York"]
-        case .han: fallbacks = ["Songti SC", "PingFang SC", "Songti TC"]
-        case .code: fallbacks = []
+        case .latin: return [requested, "New York"]
+        case .han:
+            // The requested face and its open substitute, in the caller's order,
+            // before the generic chain, so a Traditional preset stays Traditional.
+            let pair = [requested] + [openSubstitutes[requested]].compactMap { $0 }
+            return (pair.contains(where: preferred.contains) ? pair.reversed() : pair)
+                + ["Songti SC", "Noto Serif SC", "PingFang SC", "Songti TC"]
+        case .code: return [requested]
         }
+    }
+
+    static func resolve(_ requested: String, role: Role, preferring preferred: Set<String> = []) -> String {
         // Empty code family intentionally reaches monospacedSystemFont. The
         // other empty-family defaults have already been applied by Typography.
-        return firstAvailable(in: [requested] + fallbacks) ?? ""
+        firstAvailable(in: chain(for: requested, role: role, preferring: preferred)) ?? ""
     }
 }

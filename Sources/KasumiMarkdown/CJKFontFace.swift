@@ -35,4 +35,14 @@ struct CJKFontFace {
         }
         return .init(name: song ? "STSongti-SC-Regular" : "PingFangSC-Regular", baselineDelta: 0)
     }
+
+    /// The open Kai face that replaces Apple's Kaiti when that on-demand face is
+    /// missing. Medium is the family's heaviest face and stands in for bold.
+    static func openKai(strong: Bool) -> String { strong ? "LXGWWenKaiLite-Medium" : "LXGWWenKaiLite-Regular" }
+
+    /// Kai emphasis also applies over the open Songti substitutes, which have no
+    /// tuned face table; their baseline trim stays zero.
+    static func openKaiApplies(family: String, emphasis: Bool, heading: Bool, italic: String) -> Bool {
+        emphasis && !heading && italic == "kai" && FontFamilyResolver.openSubstitutes.values.contains(family)
+    }
 }

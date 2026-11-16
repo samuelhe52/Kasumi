@@ -257,6 +257,16 @@ fileprivate func facadeBitmap(size: CGSize, draw: (CGContext) -> Void) throws ->
             FontFamilyResolver.firstAvailable(in: ["Missing", "Fallback", "Later"], available: { $0 != "Missing" })
                 == "Fallback")
         #expect(FontFamilyResolver.firstAvailable(in: ["Missing"], available: { _ in false }) == nil)
+        // An open substitute directly follows its Apple face, so Traditional stays Traditional.
+        let traditional = FontFamilyResolver.chain(for: "Songti TC", role: .han)
+        #expect(Array(traditional.prefix(3)) == ["Songti TC", "Noto Serif TC", "Songti SC"])
+        #expect(
+            FontFamilyResolver.firstAvailable(in: traditional, available: { $0.hasPrefix("Noto") }) == "Noto Serif TC")
+        // A preferred open substitute moves ahead of its Apple face only.
+        let preferred = FontFamilyResolver.chain(for: "Songti SC", role: .han, preferring: ["Noto Serif SC"])
+        #expect(Array(preferred.prefix(2)) == ["Noto Serif SC", "Songti SC"])
+        #expect(
+            FontFamilyResolver.chain(for: "Songti TC", role: .han, preferring: ["Noto Serif SC"]).first == "Songti TC")
         let rendered = RenderedDocument(MarkdownDocument(markdown: "汉字与 fallback"), width: 300, style: style)
         #expect(rendered.text(in: rendered.documentRange) == "汉字与 fallback")
         #expect(rendered.size.height > 0)

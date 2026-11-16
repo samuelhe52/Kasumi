@@ -8,7 +8,10 @@ that fixes it; add one when a limitation is found and not fixed.
   test vectors; characters missing from every installed font have no defined
   fallback; hyphenation language is automatic only (US English for ASCII);
   hyphenation splits camelCase and brand names ("Kasum-iMarkdown", "ma-cOS").
-- Fonts: the CJK faces the presets use aren't installed on iOS; see
+- Fonts: the CJK faces the presets use aren't installed on iOS until a client
+  downloads them; without them, Songti falls back to Noto Serif SC/TC when
+  registered, then PingFang. The open substitutes have no tuned face table, so
+  their heavy, Fangsong and Xihei faces stay generic. See
   [005](../005-cjk-font-availability/000-plan.md).
 - Profiles: punctuation strategy and subscript shift are stored but not
   applied. The profile file format is a nonstandard line format; moving to

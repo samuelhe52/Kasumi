@@ -40,6 +40,11 @@ public struct RenderStyle: Sendable, Equatable {
     /// Nil allows the full available width after insets.
     public var widthLimit: CGFloat?
     public var insets: DocumentInsets
+    /// Open families to use ahead of the Apple faces they replace, when the
+    /// client has registered them: "Noto Serif SC" (Songti SC), "Noto Serif TC"
+    /// (Songti TC) and "LXGW WenKai Lite" (Kaiti SC emphasis). Empty uses Apple's
+    /// faces whenever they're available. The library never downloads either.
+    public var preferredOpenFamilies: Set<String> = []
 
     public init(
         preset: TypographyPreset = .default, theme: DocumentTheme = .default,
@@ -66,7 +71,8 @@ public struct RenderStyle: Sendable, Equatable {
         result.limitWidth = widthLimit != nil
         if let widthLimit { result.widthLimit = widthLimit.isFinite ? max(1, widthLimit) : 960 }
         result.latinFamily = FontFamilyResolver.resolve(result.latinFamily, role: .latin)
-        result.hanFamily = FontFamilyResolver.resolve(result.hanFamily, role: .han)
+        result.hanFamily = FontFamilyResolver.resolve(result.hanFamily, role: .han, preferring: preferredOpenFamilies)
+        result.preferOpenKai = preferredOpenFamilies.contains("LXGW WenKai Lite")
         result.codeFamily = FontFamilyResolver.resolve(result.codeFamily, role: .code)
         return result
     }
