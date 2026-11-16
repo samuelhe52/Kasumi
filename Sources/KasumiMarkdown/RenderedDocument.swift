@@ -36,9 +36,11 @@ public struct SearchOptions: OptionSet, Sendable {
 
 /// Owns a frozen layout; callers may build it on a detached task and publish it
 /// to UI/tile threads. No mutable attributed storage is exposed. Core Text layout
-/// objects are confined to construction, then accessed under `layoutLock` for
-/// drawing and geometry queries. Immutable CGImage/CGColor/font-table assets are
-/// retained, not mutated. Global image reads use NSCache's synchronized methods;
+/// objects are created during construction or by snapshot-local lazy fragment
+/// stores. Post-publication Core Text materialization and use are serialized by
+/// `layoutLock`; layout content and geometry stay immutable. Immutable
+/// CGImage/CGColor/font-table assets are retained, not mutated. Global image reads
+/// use NSCache's synchronized methods;
 /// bundled font registration and math assets use Swift's serialized static lets.
 /// The lock protects shared CTLine/CTRun objects, not mutable Kasumi draw state:
 /// Apple's Core Text contract confines layout objects to one operation/queue/thread
@@ -56,6 +58,21 @@ public final class RenderedDocument: @unchecked Sendable {
     private let lines: [Line]
     private let semanticBoundaries: [Int]
     private let semanticText: String
+
+    /// Internal instrumentation reads cache state without materializing fragments.
+    var fragmentStatistics: (total: Int, materialized: Int) {
+        layoutLock.withLock {
+            var total = 0
+            var built = 0
+            for paragraph in layout.paragraphs {
+                for line in paragraph.paragraph.lines {
+                    total += line.fragments.count
+                    for fragment in line.fragments where fragment.isMaterialized { built += 1 }
+                }
+            }
+            return (total, built)
+        }
+    }
 
     private struct Line {
         let paragraph: Int

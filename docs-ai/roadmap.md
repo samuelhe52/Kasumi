@@ -37,9 +37,10 @@ Mac reproduction confirms that whole-document reflow still stalls on longer
 English and especially Chinese text. [Retained preparation and incremental
 break totals](002-rendering-engine/006-reflow-preparation.md) now reduce repeated
 work in the reader. [Semantic/item preparation and decoration filtering](002-rendering-engine/007-reflow-metadata.md)
-remove more repeated width-independent work. Fragment construction remains eager;
-viewport measurement with estimated heights is still needed for document-length
-scaling.
+remove more repeated width-independent work. [Lazy fragments](002-rendering-engine/008-lazy-fragments.md)
+now defer offscreen drawing/caret objects in session-prepared undecorated paragraphs.
+Exact full-document line geometry still builds before publication; viewport
+measurement with estimated heights is still needed for document-length scaling.
 
 Retained after milestone closure; not prerequisites for starting Reader 2:
 

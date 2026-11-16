@@ -347,7 +347,7 @@ enum ParagraphTypesetter {
         _ attributed: NSAttributedString, width: CGFloat, fontSize: CGFloat, lineSpacing: CGFloat = 1.7,
         alignment: ParagraphAlignment = .justified, indent: CGFloat = 0, verbatim: Bool = false,
         profileValues: ProfileValues? = nil, outerWidth: CGFloat? = nil, baseEm: CGFloat? = nil,
-        preparation: ParagraphPreparation? = nil
+        preparation: ParagraphPreparation? = nil, deferFragments: Bool = false
     ) -> ParagraphLayout {
         let prepared = preparation ?? ParagraphPreparation(attributed, fontSize: fontSize, verbatim: verbatim)
         let attributed = prepared.attributed
@@ -369,8 +369,8 @@ enum ParagraphTypesetter {
                 alignment: alignment, indent: indent, profileValues: profileValues, outerWidth: outerWidth,
                 baseEm: baseEm, preparedInput: prepared.input,
                 preparedItems: prepared.items(
-                    indent: Float(indent), options: profileValues.map(ParagraphProfileOptions.init(values:)) ?? .init())
-            )
+                    indent: Float(indent), options: profileValues.map(ParagraphProfileOptions.init(values:)) ?? .init()),
+                deferFragments: deferFragments && !prepared.hasDecorationCandidates)
             return finish(paragraph)
         }
         var legacyAlignment = alignment

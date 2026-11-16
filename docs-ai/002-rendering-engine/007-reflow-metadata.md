@@ -132,3 +132,5 @@ not establish which UI owner performs the final release. Lazy fragment storage,
 viewport-height estimation, active Find work and explicit retirement ownership
 remain separate follow-ups. No interactive frame-rate or on-device smoothness
 claim is established.
+
+The following slice implements [lazy fragment materialization](008-lazy-fragments.md).

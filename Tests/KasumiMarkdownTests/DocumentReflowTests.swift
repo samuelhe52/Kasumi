@@ -1,6 +1,7 @@
 import CoreGraphics
 import CoreText
 import Foundation
+import ImageIO
 import Testing
 
 @testable import KasumiMarkdown
@@ -114,6 +115,85 @@ import Testing
         #expect(changed.size.height != original.size.height)
     }
 
+    @Test func lazyFragmentsMaterializeOnlyAccessedLinesAndStaySnapshotLocal() async throws {
+        let paragraph = String(
+            repeating: "*office* **affinity** 中文𠀀汉\u{0301}、主线“感知—传输” ~~struck words~~ and `code`. ", count: 8)
+        let document = MarkdownDocument(markdown: Array(repeating: paragraph, count: 24).joined(separator: "\n\n"))
+        let style = RenderStyle(fontSize: 16, widthLimit: nil)
+        let session = DocumentReflowSession(document, style: style)
+        let lazy = await session.render(width: 360)
+        let eager = RenderedDocument(document, width: 360, style: style)
+        let initial = lazy.fragmentStatistics
+        #expect(initial.total > 1000 && initial.materialized == 0)
+        #expect(eager.fragmentStatistics.materialized == initial.total)
+        #expect(lazy.size == eager.size)
+        #expect(lazy.text(in: lazy.documentRange) == eager.text(in: eager.documentRange))
+        let anchor = lazy.readingAnchor(atY: lazy.size.height * 0.7)
+        #expect(lazy.y(for: anchor) == eager.y(for: anchor))
+        #expect(lazy.fragmentStatistics.materialized == 0)
+        #expect(try Self.drawPixels(lazy, top: 0) == Self.drawPixels(eager, top: 0))
+        let afterPaint = lazy.fragmentStatistics.materialized
+        #expect(afterPaint > 0 && afterPaint < initial.total)
+        let point = CGPoint(x: 137, y: lazy.size.height * 0.7)
+        let position = lazy.position(closestTo: point)
+        let reference = eager.position(closestTo: point)
+        #expect(
+            lazy.offset(from: lazy.documentRange.lowerBound, to: position)
+                == eager.offset(from: eager.documentRange.lowerBound, to: reference))
+        #expect(lazy.caretRect(for: position) == eager.caretRect(for: reference))
+        #expect(lazy.fragmentStatistics.materialized > afterPaint)
+        let built = lazy.fragmentStatistics.materialized
+        let resized = await session.render(width: 500)
+        #expect(resized.fragmentStatistics.materialized == 0)
+        #expect(lazy.fragmentStatistics.materialized == built)
+
+        // Public draw and caret operations race to access different lazy lines.
+        // All creation and subsequent CTLine use must remain under layoutLock.
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            for fraction: CGFloat in [0.15, 0.4, 0.7, 0.9] {
+                group.addTask { () async throws -> Void in
+                    let top = max(0, min(lazy.size.height - 800, lazy.size.height * fraction))
+                    let actualPixels = try Self.drawPixels(lazy, top: top)
+                    let expectedPixels = try Self.drawPixels(eager, top: top)
+                    #expect(actualPixels == expectedPixels)
+                    let point = CGPoint(x: 101, y: top + 32)
+                    let a = lazy.position(closestTo: point)
+                    let b = eager.position(closestTo: point)
+                    #expect(lazy.caretRect(for: a) == eager.caretRect(for: b))
+                }
+            }
+            try await group.waitForAll()
+        }
+    }
+
+    @Test func deferredTablesAndSnapshotExportsMatchEagerRendering() async throws {
+        let url = testRepositoryURL.appendingPathComponent("fixtures/Tables.md")
+        let document = MarkdownDocument(markdown: try String(contentsOf: url, encoding: .utf8))
+        let style = RenderStyle(fontSize: 16, widthLimit: nil)
+        let session = DocumentReflowSession(document, style: style, scrollableTables: true)
+        let lazy = await session.render(width: 320)
+        let eager = RenderedDocument(document, width: 320, style: style, scrollableTables: true)
+        #expect(lazy.fragmentStatistics.materialized < lazy.fragmentStatistics.total)
+        var overflow = 0
+        for table in lazy.tables where table.isScrollable {
+            overflow += 1
+            for right in [false, true] {
+                let width = min(table.frame.width, table.contentWidth)
+                let rect = CGRect(
+                    x: right ? table.contentWidth - width : 0, y: 0, width: width,
+                    height: min(400, table.frame.height))
+                #expect(
+                    try Self.tablePixels(lazy, index: table.id, rect: rect)
+                        == Self.tablePixels(eager, index: table.id, rect: rect))
+            }
+        }
+        #expect(overflow > 0)
+        let region = CGRect(x: 0, y: max(0, lazy.size.height / 2 - 150), width: 320, height: 300)
+        let a = try DocumentExport.png(lazy, scale: 1, region: region)
+        let b = try DocumentExport.png(eager, scale: 1, region: region)
+        #expect(try Self.decodedPixels(a) == Self.decodedPixels(b))
+    }
+
     @Test func semanticCacheInvalidatesForChangedRenderedOffsetsWithIdenticalText() {
         let cache = ReflowPreparation()
         func mappedContent(_ attributed: NSAttributedString) -> DocumentSemanticContent {
@@ -205,17 +285,46 @@ import Testing
     }
 
     private func pixels(_ snapshot: RenderedDocument) throws -> [UInt8] {
+        try Self.drawPixels(snapshot, top: 0)
+    }
+
+    nonisolated private static func drawPixels(_ snapshot: RenderedDocument, top: CGFloat) throws -> [UInt8] {
         let width = Int(snapshot.size.width)
-        let height = min(800, Int(ceil(snapshot.size.height)))
+        let height = min(800, Int(ceil(snapshot.size.height - top)))
         let context = try #require(
             CGContext(
                 data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: width * 4,
                 space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
         context.translateBy(x: 0, y: CGFloat(height))
         context.scaleBy(x: 1, y: -1)
-        snapshot.draw(in: context, rect: CGRect(x: 0, y: 0, width: width, height: height))
+        context.translateBy(x: 0, y: -top)
+        snapshot.draw(in: context, rect: CGRect(x: 0, y: top, width: CGFloat(width), height: CGFloat(height)))
         let data = try #require(context.data)
         return Array(UnsafeBufferPointer(start: data.assumingMemoryBound(to: UInt8.self), count: width * height * 4))
+    }
+
+    nonisolated private static func tablePixels(
+        _ snapshot: RenderedDocument, index: Int, rect: CGRect
+    ) throws -> [UInt8] {
+        let width = Int(ceil(rect.width))
+        let height = Int(ceil(rect.height))
+        let context = try #require(
+            CGContext(
+                data: nil, width: width, height: height, bitsPerComponent: 8,
+                bytesPerRow: width * 4, space: CGColorSpaceCreateDeviceRGB(),
+                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+        context.translateBy(x: 0, y: CGFloat(height))
+        context.scaleBy(x: 1, y: -1)
+        context.translateBy(x: -rect.minX, y: -rect.minY)
+        snapshot.drawTable(at: index, in: context, rect: rect)
+        let data = try #require(context.data)
+        return Array(UnsafeBufferPointer(start: data.assumingMemoryBound(to: UInt8.self), count: width * height * 4))
+    }
+
+    nonisolated private static func decodedPixels(_ data: Data) throws -> Data {
+        let source = try #require(CGImageSourceCreateWithData(data as CFData, nil))
+        let image = try #require(CGImageSourceCreateImageAtIndex(source, 0, nil))
+        return try #require(image.dataProvider?.data) as Data
     }
 
     #if os(macOS)
@@ -245,6 +354,7 @@ import Testing
                     var construction = [[Double]](repeating: [], count: 5)
                     var disposal = construction
                     var painting = construction
+                    var fragmentCounts = [String](repeating: "", count: 5)
                     let widths: [CGFloat] = [800, 500, 400, 700, 440]
                     let contexts = try widths.map { width in
                         try #require(
@@ -260,9 +370,15 @@ import Testing
                             let start = ContinuousClock.now
                             var next: RenderedDocument? = await session.render(width: width)
                             construction[index].append(milliseconds(since: start))
+                            let firstSample = construction[index].count == 1
+                            let beforePaint = firstSample ? next?.fragmentStatistics : nil
                             let paintStart = ContinuousClock.now
                             paint(try #require(next), context: contexts[index], width: width)
                             painting[index].append(milliseconds(since: paintStart))
+                            if let beforePaint, let afterPaint = next?.fragmentStatistics {
+                                fragmentCounts[index] =
+                                    "built-before=\(beforePaint.materialized) built-after=\(afterPaint.materialized) total=\(afterPaint.total)"
+                            }
                             let releaseStart = ContinuousClock.now
                             releaseSnapshot(&previous)
                             disposal[index].append(milliseconds(since: releaseStart))
@@ -275,6 +391,7 @@ import Testing
                     let status = getrusage(RUSAGE_SELF, &usage)
                     let rss = status == 0 ? Double(usage.ru_maxrss) / (1024 * 1024) : -1
                     for (index, width) in widths.enumerated() {
+                        print("REFLOW_FRAGMENTS \(language) chars=\(count) width=\(width) \(fragmentCounts[index])")
                         print(
                             "REFLOW_PHASE \(language) chars=\(count) width=\(width) n=\(repetitions) construct=\(stats(construction[index])) dispose=\(stats(disposal[index])) draw=\(stats(painting[index]))"
                         )

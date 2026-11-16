@@ -5,24 +5,54 @@ import Foundation
 /// A source-backed text fragment. Box geometry and glyph origin are distinct:
 /// compressed opening punctuation can draw to the left of its selection box.
 struct ShapedFragment {
-    let range: NSRange
-    let line: CTLine
-    let x: CGFloat
-    let width: CGFloat
-    let drawOffset: CGFloat
-    /// Space Core Text put before the line's first glyph; drawing and hit testing remove it.
-    let glyphInset: CGFloat
-    let capsuleLeft: CGFloat
-    let capsuleRight: CGFloat
-    let boundaries: [Int]
+    private enum PaintSource {
+        case eager(FragmentMaterialization)
+        case deferred(LineFragmentStore, Int)
+    }
+    private let geometry: FragmentGeometry
+    private let paintSource: PaintSource
+
+    init(_ geometry: FragmentGeometry, paint: FragmentMaterialization) {
+        self.geometry = geometry
+        paintSource = .eager(paint)
+    }
+
+    init(_ geometry: FragmentGeometry, store: LineFragmentStore, index: Int) {
+        self.geometry = geometry
+        paintSource = .deferred(store, index)
+    }
+
+    var range: NSRange { geometry.range }
+    var x: CGFloat { geometry.x }
+    var width: CGFloat { geometry.width }
+    var drawOffset: CGFloat { geometry.drawOffset }
+    var capsuleLeft: CGFloat { geometry.capsuleLeft }
+    var capsuleRight: CGFloat { geometry.capsuleRight }
+
+    var materialized: FragmentMaterialization {
+        switch paintSource {
+        case .eager(let value): return value
+        case .deferred(let store, let index): return store.value(at: index)
+        }
+    }
+    var isMaterialized: Bool {
+        switch paintSource {
+        case .eager: return true
+        case .deferred(let store, _): return store.isMaterialized
+        }
+    }
+    var line: CTLine { materialized.line }
+    var glyphInset: CGFloat { materialized.glyphInset }
+    var boundaries: [Int] { materialized.boundaries }
 
     func offset(for index: Int) -> CGFloat {
         guard range.length > 0 else { return x }
         if index <= range.location { return x }
         if index >= NSMaxRange(range) { return x + width }
-        let natural = CGFloat(CTLineGetTypographicBounds(line, nil, nil, nil)) - glyphInset
+        let paint = materialized
+        let natural = CGFloat(CTLineGetTypographicBounds(paint.line, nil, nil, nil)) - paint.glyphInset
         guard natural > 0 else { return x }
-        let offset = CTLineGetOffsetForStringIndex(line, index, nil) - glyphInset
+        let offset = CTLineGetOffsetForStringIndex(paint.line, index, nil) - paint.glyphInset
         return x + min(width, max(0, offset / natural * width))
     }
 

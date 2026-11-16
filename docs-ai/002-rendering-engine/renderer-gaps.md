@@ -43,10 +43,13 @@ that fixes it; add one when a limitation is found and not fixed.
   document complexity. `DocumentReflowSession` retains attributed text and measured
   input, paragraph items, and semantic metadata between widths; active break
   candidates accumulate totals rather than rescanning each line. Plain paragraphs
-  skip decoration processing after preparation finds no candidates. Image/math paragraphs bypass preparation reuse to
-  preserve width-dependent attachments and independent Core Text ownership.
-  Full layout, drawing, and indices still scale with document length; this is
-  not viewport-only layout. Core Text fragments still build eagerly, and old
-  snapshot disposal and active Find can add UI-thread cost. See
-  [reflow preparation](006-reflow-preparation.md), [metadata reuse](007-reflow-metadata.md)
-  and [live reflow](../004-ios-reader/006-live-reflow.md).
+  skip decoration processing after preparation finds no candidates. Image/math
+  paragraphs bypass preparation reuse to preserve width-dependent attachments
+  and independent Core Text ownership. Session-prepared undecorated paragraphs
+  materialize fragment drawing/caret data per accessed line under the snapshot
+  lock. Decorated/unprepared paragraphs remain eager. Exact line breaking,
+  logical CTLines and document geometry still build for the complete document;
+  this is not viewport-only layout. First-use painting incurs materialization,
+  and old snapshot disposal and active Find can add UI-thread cost. See
+  [reflow preparation](006-reflow-preparation.md), [metadata reuse](007-reflow-metadata.md),
+  [lazy fragments](008-lazy-fragments.md) and [live reflow](../004-ios-reader/006-live-reflow.md).

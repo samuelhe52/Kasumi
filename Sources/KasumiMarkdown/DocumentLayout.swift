@@ -151,10 +151,11 @@ enum DocumentTypesetter {
             let offset = storage.length
             storage.append(attributed)
             storage.append(NSAttributedString(string: "\n"))
+            let prepared = preparation?.paragraph(attributed, fontSize: size, verbatim: verbatim)
             let paragraph = ParagraphTypesetter.layout(
                 attributed, width: max(1, width), fontSize: size, lineSpacing: style.lineSpacing, alignment: alignment,
                 indent: indent, verbatim: verbatim, profileValues: paragraphValues, outerWidth: measure,
-                baseEm: style.size, preparation: preparation?.paragraph(attributed, fontSize: size, verbatim: verbatim))
+                baseEm: style.size, preparation: prepared, deferFragments: prepared != nil)
             paragraphs.append(PlacedText(paragraph: paragraph, origin: CGPoint(x: x, y: y), textOffset: offset))
             for line in paragraph.lines {
                 attributed.enumerateAttribute(.kasumiImage, in: line.range) { value, range, _ in

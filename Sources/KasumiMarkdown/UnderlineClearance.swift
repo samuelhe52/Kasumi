@@ -7,7 +7,10 @@ final class UnderlineClearance {
         var lower = Double.infinity
         var upper = -Double.infinity
         var isEmpty: Bool { lower > upper }
-        mutating func include(_ x: Double) { lower = min(lower, x); upper = max(upper, x) }
+        mutating func include(_ x: Double) {
+            lower = min(lower, x)
+            upper = max(upper, x)
+        }
         mutating func include(_ bounds: Bounds) {
             guard !bounds.isEmpty else { return }
             include(bounds.lower)
@@ -131,10 +134,11 @@ final class UnderlineClearance {
             text(line.line, at: line.origin)
         } else {
             for fragment in line.fragments {
+                let paint = fragment.materialized
                 text(
-                    fragment.line,
+                    paint.line,
                     at: CGPoint(
-                        x: line.origin.x + fragment.x + fragment.drawOffset - fragment.glyphInset, y: line.origin.y))
+                        x: line.origin.x + fragment.x + fragment.drawOffset - paint.glyphInset, y: line.origin.y))
             }
         }
         if let hyphen = line.hyphen {

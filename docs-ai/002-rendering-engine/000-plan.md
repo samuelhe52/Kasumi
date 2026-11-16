@@ -80,3 +80,4 @@ Library tests pass on macOS and the iOS simulator, including comparisons against
   glyph-outline descender clearance — see [004-underline-clearance.md](004-underline-clearance.md).
 - Updated 2026-11-17: Retain reflow preparation and remove repeated break scans — see [006-reflow-preparation.md](006-reflow-preparation.md).
 - Updated 2026-11-17: Reuse semantic and item preparation and skip absent decorations — see [007-reflow-metadata.md](007-reflow-metadata.md).
+- Updated 2026-11-17: Defer snapshot-local offscreen fragment materialization — see [008-lazy-fragments.md](008-lazy-fragments.md).
