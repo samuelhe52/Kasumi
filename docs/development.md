@@ -41,6 +41,19 @@ targets.
   active. If the open is refused the extension's sheet stays, and sharing from
   inside Kasumi alone doesn't trigger an import: send Kasumi Home and launch it
   again.
+- **Files handed to the app.** SwiftUI's `DocumentGroup` doesn't open a file
+  shared to a scene that is already running (iOS 27.2), so
+  `DocumentHandoff.swift` opens it through the document browser instead. To
+  test, share from another app with the system share sheet both while Kasumi
+  runs and after terminating it; Files didn't list folder contents on the iOS
+  27.2 simulator. A share within a second or two of launch exercises the wait
+  for the browser's presentation. Any launch URL, including the Import action's
+  `kasumi://import`, makes SwiftUI skip `DocumentGroupLaunchScene` and show its
+  plain browser, so nothing that must run at launch may live in the launch
+  scene's views. On a device, `NSLog` didn't reach `idevicesyslog`; a log file in
+  `Library/Caches`, pulled with `xcrun devicectl device copy from --domain-type
+  appDataContainer`, worked. See
+  [004.005](../docs-ai/004-ios-reader/005-warm-file-handoff.md).
 - **Action icon.** The extension uses standalone transparent `ActionIcon@2x.png`
   and `ActionIcon@3x.png`, named by `CFBundleIconFiles`, not a normal image set.
   Regenerate them with `swift design/icon/make_action_icon.swift`. On iOS 27.2,

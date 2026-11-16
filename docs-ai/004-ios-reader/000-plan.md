@@ -75,3 +75,7 @@ paste consent prompt on a device (`make run-device`).
   installed icon with build 2; replaced the unconfirmed alpha-flattening theory
   with controlled identity/version evidence — see
   [icon correction](004-import-action.md#icon-correction-2026-11-16).
+- Updated 2026-11-16: open files handed to a running app, open "Import into
+  Kasumi" files on a cold launch (004.004's activation import corrected in
+  place), and wait for a ready browser before every programmatic open — see
+  [005-warm-file-handoff.md](005-warm-file-handoff.md).

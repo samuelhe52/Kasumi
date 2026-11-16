@@ -99,7 +99,7 @@ final class LaunchStore {
         }
         do {
             let url = try ImportFolder.pasted.save(Data(text.utf8), as: ImportFolder.pastedName())
-            open(url)
+            Task { await open(url) }
         } catch {
             pasteFailed(error.localizedDescription)
         }
@@ -114,58 +114,23 @@ final class LaunchStore {
     func urlImportDismissed() {
         guard let url = pendingOpen else { return }
         pendingOpen = nil
-        open(url)
+        Task { await open(url) }
     }
 
     private func pasteFailed(_ message: String) {
         alert = LaunchAlert(title: String(localized: "Could Not Paste"), message: message)
     }
 
-    /// Moves files shared through the "Import into Kasumi" action out of the
-    /// App Group inbox into Documents/Imported and opens the newest one. Runs
-    /// whenever the app becomes active, since the extension can't launch it.
-    func importSharedFiles() async {
-        var saved: [URL] = []
-        ImportInbox.drain { data, name in
-            saved.append(try ImportFolder.imported.save(data, as: ImportFolder.markdownName(name)))
-        }
-        guard let newest = saved.last else { return }
-        await waitForBrowser()
-        open(newest)
-    }
-
-    /// The browser installs itself after the launch overlay appears.
-    private func waitForBrowser() async {
-        for _ in 0..<50 where window.flatMap(Self.browser(in:)) == nil {
+    /// Opens a saved file in this window, closing a reader that is showing.
+    private func open(_ url: URL) async {
+        // The overlay reports its window shortly after the app becomes active.
+        for _ in 0..<50 where window?.windowScene == nil {
             try? await Task.sleep(for: .milliseconds(100))
         }
-    }
-
-    /// Hands a file to this window's document browser, so `DocumentGroup` opens
-    /// it with the same file session and presentation as a file the user picked.
-    private func open(_ url: URL) {
-        guard let browser = window.flatMap(Self.browser(in:)) else {
+        guard let scene = window?.windowScene, await DocumentBrowser.show(url, in: scene) else {
             alert = LaunchAlert(title: String(localized: "Could Not Open Document"), message: url.lastPathComponent)
             return
         }
-        // Saved files are already in the browser's Documents location. Reveal
-        // would import a copy, and fails (DocumentManager error 1) without import.
-        browser.delegate?.documentBrowser?(browser, didPickDocumentsAt: [url])
-    }
-
-    private static func browser(in window: UIWindow) -> UIDocumentBrowserViewController? {
-        for candidate in window.windowScene?.windows ?? [window] {
-            if let root = candidate.rootViewController, let browser = browser(in: root) { return browser }
-        }
-        return nil
-    }
-    private static func browser(in controller: UIViewController) -> UIDocumentBrowserViewController? {
-        if let browser = controller as? UIDocumentBrowserViewController { return browser }
-        if let presented = controller.presentedViewController, let browser = browser(in: presented) { return browser }
-        for child in controller.children {
-            if let browser = browser(in: child) { return browser }
-        }
-        return nil
     }
 
     #if DEBUG
@@ -185,30 +150,9 @@ final class LaunchStore {
                 NSLog("KasumiOpen: cannot read %@", path)
                 return
             }
-            await waitForBrowser()
-            open(target)
+            await open(target)
         }
     #endif
-}
-
-/// Reports the window hosting the launch overlay.
-fileprivate struct WindowReader: UIViewRepresentable {
-    let found: (UIWindow) -> Void
-    func makeUIView(context: Context) -> Probe { Probe(found: found) }
-    func updateUIView(_ view: Probe, context: Context) {}
-    final class Probe: UIView {
-        let found: (UIWindow) -> Void
-        init(found: @escaping (UIWindow) -> Void) {
-            self.found = found
-            super.init(frame: .zero)
-            isUserInteractionEnabled = false
-        }
-        required init?(coder: NSCoder) { nil }
-        override func didMoveToWindow() {
-            super.didMoveToWindow()
-            if let window { found(window) }
-        }
-    }
 }
 
 struct LaunchPresenter: View {

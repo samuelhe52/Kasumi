@@ -15,6 +15,8 @@ struct ReaderScreen: View {
     @State private var showAppearance = false
     @State private var showOutline = false
     @State private var showInspector = false
+    @State private var handoffID = UUID()
+    @State private var windowScene: UIWindowScene?
 
     private var regular: Bool { horizontalSizeClass == .regular }
     private var appearance: ReaderAppearance {
@@ -57,7 +59,18 @@ struct ReaderScreen: View {
             }
             .onChange(of: presetID) { _, _ in fontSize = 0 }
             .onChange(of: scenePhase) { _, phase in if phase != .active { viewport.flush() } }
-            .onDisappear { viewport.flush() }
+            // A file handed to the app while this reader shows closes it first.
+            .background(
+                WindowReader { window in
+                    guard let scene = window.windowScene else { return }
+                    windowScene = scene
+                    DocumentBrowser.readerAppeared(handoffID, in: scene) { dismiss() }
+                }
+            )
+            .onDisappear {
+                viewport.flush()
+                if let windowScene { DocumentBrowser.readerDisappeared(handoffID, in: windowScene) }
+            }
     }
 
     @ToolbarContentBuilder

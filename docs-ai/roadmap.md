@@ -10,7 +10,8 @@ or is reordered; record the work itself in a numbered entry.
    under its Validation and Open questions, and the open questions in
    [004.002](004-ios-reader/002-saved-imports.md) and
    [004.003](004-ios-reader/003-ipad-inspector.md), starting with the blank
-   iPad open.
+   iPad open, and the cold share-sheet copies left in `Inbox` in
+   [004.005](004-ios-reader/005-warm-file-handoff.md).
 2. Selection through UIKit text interaction, find bar with match navigation,
    links.
 3. Export: PDF, long PNG, print, share sheet.

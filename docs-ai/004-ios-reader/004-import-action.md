@@ -23,7 +23,10 @@ browser.
   dismisses and Kasumi comes forward, and if not the sheet stays and tells the
   user to open Kasumi. The app registers the `kasumi` scheme in `Info.plist` and
   has no URL handler: becoming active is what triggers the import.
-- When the app becomes active, `LaunchStore.importSharedFiles()` moves every
+- When the app becomes active, `LaunchStore.importSharedFiles()` (since
+  [005](005-warm-file-handoff.md): `HandoffSceneDelegate`, because a cold
+  launch through `kasumi://import` skipped the launch scene and never opened
+  the file) moves every
   pending inbox file into `Documents/Imported/` through the same naming rules as
   the other imports (" 2", " 3", `.md` added to names without a Markdown or text
   extension), clears the inbox entry, and opens the newest file through the
