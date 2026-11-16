@@ -71,3 +71,7 @@ Library tests pass on macOS and the iOS simulator, including comparisons against
   [001](../001-library-and-reader/001-action.md).
 - Updated 2026-11-16: Preserve shaped ligature spans and complete Han-mark
   advances — see [002-shaped-cluster-integrity.md](002-shaped-cluster-integrity.md).
+- Updated 2026-11-16: Replace native link underlines with muted, baseline-relative
+  document decorations — see [003-link-decoration.md](003-link-decoration.md).
+- Updated 2026-11-16: Unify ordinary and link underline rendering, including
+  glyph-outline descender clearance — see [004-underline-clearance.md](004-underline-clearance.md).

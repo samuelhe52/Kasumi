@@ -19,6 +19,17 @@ targets.
   symlink, which is what lets them run on the simulator.
 - `swift run KasumiRender <input> <output.png|pdf> [width]` renders a document
   from the command line; see its options for preset, theme, profile, and dark.
+- `fixtures/LinkIndicators.md` covers visible link styling in
+  `--theme mono-light` and `--theme mono-dark`, without launching the app.
+  Link indicators are cached rectangles, not native underline attributes:
+  0.185 em below the baseline and max(0.5 pt, 0.07 em) thick. Heading/web links
+  are solid at 40% text-color opacity; file/other links are dashed at 70%.
+  Footnote references and images stay unmarked; linked code and math participate.
+  Ordinary attributed underlines use the same cached geometry. Glyph outlines,
+  clipped as control polygons, cut descender gaps with 0.06 em clearance and
+  preserve dash phase.
+  See [002.003](../docs-ai/002-rendering-engine/003-link-decoration.md) and
+  [002.004](../docs-ai/002-rendering-engine/004-underline-clearance.md).
 - `MeasuredParagraphTypesetter` isolates Han clusters inside coalesced engine
   boxes before creating Core Text drawing fragments. Core Text can add internal
   spacing around curly quotes (`主线“感知`) that its glyph advances omit;

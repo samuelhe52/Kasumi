@@ -506,6 +506,12 @@ enum DocumentTypesetter {
                 }
                 context.restoreGState()
             }
+            for underline in item.paragraph.underlines {
+                let rect = underline.rect.offsetBy(dx: item.origin.x, dy: item.origin.y)
+                guard rect.intersects(clip) else { continue }
+                context.setFillColor(underline.color.cgColor)
+                context.fill(rect)
+            }
         }
     }
 }

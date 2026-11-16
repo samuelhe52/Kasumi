@@ -65,6 +65,11 @@ fileprivate func paragraphBitmap(_ paragraph: ParagraphLayout, batched: Bool) th
             }
             context.restoreGState()
         }
+        for underline in paragraph.underlines {
+            context.setFillColor(underline.color.cgColor)
+            let rect = underline.rect
+            context.fill(CGRect(x: rect.minX, y: -rect.maxY, width: rect.width, height: rect.height))
+        }
     }
     return pixels
 }

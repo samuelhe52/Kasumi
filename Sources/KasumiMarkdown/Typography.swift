@@ -323,6 +323,7 @@ struct ParagraphLayout {
     let height: CGFloat
     var autoRagged = false
     var diagnostics: [String] = []
+    var underlines: [PaintedRect] = []
 }
 
 enum ParagraphTypesetter {
@@ -331,6 +332,7 @@ enum ParagraphTypesetter {
         alignment: ParagraphAlignment = .justified, indent: CGFloat = 0, verbatim: Bool = false,
         profileValues: ProfileValues? = nil, outerWidth: CGFloat? = nil, baseEm: CGFloat? = nil
     ) -> ParagraphLayout {
+        let attributed = TextUnderline.normalized(attributed)
         guard attributed.length > 0, width > 0 else {
             return ParagraphLayout(attributed: attributed, lines: [], height: 0)
         }
@@ -341,10 +343,11 @@ enum ParagraphTypesetter {
                 || (0xfe70...0xfefc).contains($0.value)
         }
         if !verbatim && !hasRTL {
-            return MeasuredParagraphTypesetter.layout(
+            let paragraph = MeasuredParagraphTypesetter.layout(
                 attributed, width: width, fontSize: fontSize, lineSpacing: lineSpacing,
                 alignment: alignment, indent: indent, profileValues: profileValues, outerWidth: outerWidth,
                 baseEm: baseEm)
+            return TextUnderline.applying(to: paragraph, fontSize: fontSize)
         }
         var legacyAlignment = alignment
         var legacyAutoRagged = false
@@ -424,8 +427,9 @@ enum ParagraphTypesetter {
                     descent: descent, width: used))
             y = max(y + fontSize * lineSpacing, baseline + descent + leading)
         }
-        return ParagraphLayout(
+        let paragraph = ParagraphLayout(
             attributed: attributed, lines: lines, height: y, autoRagged: legacyAutoRagged,
             diagnostics: hasRTL && !verbatim ? ["nativeBidiPaintingUnverified"] : [])
+        return TextUnderline.applying(to: paragraph, fontSize: fontSize)
     }
 }
