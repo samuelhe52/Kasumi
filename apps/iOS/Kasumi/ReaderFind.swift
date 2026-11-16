@@ -1,90 +1,105 @@
 import KasumiMarkdown
-import Observation
-import SwiftUI
+import UIKit
 
-@MainActor @Observable
-final class ReaderFindState {
-    var isPresented = false
-    var barHeight: CGFloat = 0
-    var query = "" { didSet { if query != oldValue { rebuild(resetIndex: true) } } }
-    private(set) var matches: [TextRange] = []
-    private(set) var currentIndex = 0
-    private(set) var navigationRevision = 0
-    @ObservationIgnored private var rendered: RenderedDocument?
+/// The system owns the field, keyboard presentation, count, navigation controls,
+/// and shortcuts. The session supplies results in Kasumi's immutable layout.
+final class ReaderFindSession: UIFindSession {
+    private var rendered: RenderedDocument?
+    private var query = ""
+    private var options: UITextSearchOptions?
+    private var matches: [TextRange] = []
+    private var currentIndex = NSNotFound
+    private var active = false
+    private let update: ([TextRange], Int?, Bool) -> Void
 
-    var currentRange: TextRange? { matches.indices.contains(currentIndex) ? matches[currentIndex] : nil }
+    init(update: @escaping ([TextRange], Int?, Bool) -> Void) {
+        self.update = update
+        super.init()
+    }
+
+    override var resultCount: Int { matches.count }
+    override var highlightedResultIndex: Int { currentIndex }
+    override var supportsReplacement: Bool { false }
 
     func install(_ rendered: RenderedDocument) {
         guard self.rendered !== rendered else { return }
         self.rendered = rendered
+        if active { rebuild(resetIndex: false) }
+    }
+
+    func begin() {
+        active = true
         rebuild(resetIndex: false)
     }
-    func move(by delta: Int) {
+
+    func end() {
+        active = false
+        matches = []
+        currentIndex = NSNotFound
+        update([], nil, false)
+    }
+
+    override func performSearch(query: String, options: UITextSearchOptions?) {
+        self.query = query
+        self.options = options
+        rebuild(resetIndex: true)
+    }
+
+    override func highlightNextResult(in direction: UITextStorageDirection) {
         guard !matches.isEmpty else { return }
-        currentIndex = (currentIndex + delta % matches.count + matches.count) % matches.count
-        navigationRevision += 1
+        let delta = direction == .backward ? -1 : 1
+        if currentIndex == NSNotFound {
+            currentIndex = direction == .backward ? matches.count - 1 : 0
+        } else {
+            currentIndex = (currentIndex + delta + matches.count) % matches.count
+        }
+        update(matches, currentIndex, true)
     }
+
+    override func invalidateFoundResults() {
+        matches = []
+        currentIndex = NSNotFound
+        update([], nil, false)
+    }
+
     private func rebuild(resetIndex: Bool) {
-        matches = rendered?.ranges(matching: query) ?? []
-        currentIndex = resetIndex ? 0 : min(currentIndex, max(0, matches.count - 1))
-        navigationRevision += 1
+        guard active, let rendered else { return }
+        matches = matchingRanges(in: rendered)
+        // UIKit requests the initial highlight after performSearch. Leave it
+        // unset here so that request selects result 1 rather than skipping it.
+        currentIndex = matches.isEmpty || resetIndex ? NSNotFound :
+            (currentIndex == NSNotFound ? 0 : min(currentIndex, matches.count - 1))
+        update(matches, currentIndex == NSNotFound ? nil : currentIndex, !resetIndex)
     }
-}
 
-struct ReaderFindBar: View {
-    @Bindable var find: ReaderFindState
-    @FocusState private var focused: Bool
-
-    var body: some View {
-        VStack(spacing: 8) {
-            HStack(spacing: 10) {
-                Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
-                TextField("Find in Document", text: $find.query)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                    .submitLabel(.search)
-                    .focused($focused)
-                    .onSubmit { find.move(by: 1) }
-                    .accessibilityIdentifier("reader-find-query")
-                if !find.query.isEmpty {
-                    Button("Clear", systemImage: "xmark.circle.fill") { find.query = "" }
-                        .labelStyle(.iconOnly)
-                        .foregroundStyle(.secondary)
-                        .accessibilityIdentifier("reader-find-clear")
-                }
-                Button("Done") { find.isPresented = false }
-                    .accessibilityIdentifier("reader-find-done")
+    private func matchingRanges(in rendered: RenderedDocument) -> [TextRange] {
+        guard !query.isEmpty else { return [] }
+        let text = rendered.text(in: rendered.documentRange) as NSString
+        let method = options?.wordMatchMethod ?? .contains
+        var wordStarts: Set<Int> = []
+        var wordEnds: Set<Int> = []
+        if method != .contains {
+            text.enumerateSubstrings(in: NSRange(location: 0, length: text.length), options: [.byWords, .substringNotRequired]) {
+                _, range, _, _ in
+                wordStarts.insert(range.location)
+                wordEnds.insert(NSMaxRange(range))
             }
-            HStack {
-                Text(find.query.isEmpty ? "Enter text to find" :
-                    (find.matches.isEmpty ? "No matches" : "\(find.currentIndex + 1) of \(find.matches.count)"))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .accessibilityIdentifier("reader-find-count")
-                    .accessibilityLabel("Find results")
-                    .accessibilityValue(find.query.isEmpty ? "Enter text to find" :
-                        (find.matches.isEmpty ? "No matches" : "\(find.currentIndex + 1) of \(find.matches.count)"))
-                Spacer()
-                Button("Previous Match", systemImage: "chevron.up") { find.move(by: -1) }
-                    .frame(minWidth: 44, minHeight: 32)
-                    .accessibilityIdentifier("reader-find-previous")
-                Button("Next Match", systemImage: "chevron.down") { find.move(by: 1) }
-                    .frame(minWidth: 44, minHeight: 32)
-                    .accessibilityIdentifier("reader-find-next")
-            }
-            .labelStyle(.iconOnly)
-            .disabled(find.matches.isEmpty)
         }
-        .padding(.horizontal)
-        .padding(.vertical, 10)
-        .background(.bar)
-        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { find.barHeight = $0 }
-        .onAppear { focused = true }
-        .onKeyPress(keys: ["g"], phases: .down) { press in
-            guard press.modifiers.contains(.command) else { return .ignored }
-            find.move(by: press.modifiers.contains(.shift) ? -1 : 1)
-            return .handled
+        let flags = options?.stringCompareOptions ?? [.caseInsensitive, .diacriticInsensitive]
+        var cursor = 0
+        var result: [TextRange] = []
+        while cursor < text.length {
+            let range = text.range(
+                of: query, options: flags, range: NSRange(location: cursor, length: text.length - cursor),
+                locale: Locale(identifier: "en_US_POSIX"))
+            guard range.location != NSNotFound, range.length > 0 else { break }
+            cursor = NSMaxRange(range)
+            if method != .contains && !wordStarts.contains(range.location) { continue }
+            if method == .fullWord && !wordEnds.contains(cursor) { continue }
+            guard let start = rendered.position(from: rendered.documentRange.lowerBound, offset: range.location),
+                let end = rendered.position(from: start, offset: range.length) else { continue }
+            result.append(TextRange(start, end))
         }
-        .onKeyPress(.escape) { find.isPresented = false; return .handled }
+        return result
     }
 }

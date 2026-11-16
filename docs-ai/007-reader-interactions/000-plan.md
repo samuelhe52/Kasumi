@@ -16,8 +16,8 @@ or find controls. External links currently open immediately.
 ## Goals
 
 - Native read-only UIKit text selection, adjustment handles, Select All, and Copy.
-- An in-reader find bar with match count, previous/next navigation, wrapping,
-  visible highlights, and Command-F access.
+- A system find navigator above the keyboard, with match count, previous/next
+  navigation, wrapping, visible highlights, and Command-F access.
 - Confirm external link opening while preserving internal heading and footnote jumps.
 - Preserve tiled drawing, reading position, soft toolbar edges, and Reduce Motion.
 
@@ -34,9 +34,10 @@ renderer shaping changes already present in the working tree.
   when replacing that snapshot, so no old geometry or positions survive reflow.
 - Extend `Sources/KasumiMarkdown/RenderedDocument.swift` with checked UTF-16
   position arithmetic for UIKit tokenization; retain opaque layout ownership.
-- Add proposed reader interaction source files under `apps/iOS/Kasumi/` for the
-  UIKit adapter and find state/bar. Draw search highlights separately from tiles
-  and scroll the active result into the visible viewport.
+- `apps/iOS/Kasumi/ReaderFind.swift` bridges `UIFindSession` to semantic text.
+  `UIFindInteraction` owns the keyboard-attached controls. Draw highlights
+  separately from tiles and use `UIKeyboardLayoutGuide` to keep results visible.
+  See [002](002-system-find-navigator.md) for the replacement of the initial bar.
 - `ReaderScreen.swift` owns find presentation and external-link confirmation.
   `ReadingSurface.swift` connects geometry, scrolling, and page lifetime.
 
@@ -47,7 +48,7 @@ renderer shaping changes already present in the working tree.
 | UIKit interaction over the existing rendered page | Retains Kasumi layout and native handles/menu. A hidden UITextView would have different line geometry. |
 | Separate find highlights from selection | Navigating matches must not steal text-field focus or show selection handles. |
 | Clear selection, recompute search on reflow | Layout-owned positions cannot safely be carried between snapshots. |
-| Inline find bar | Keeps results visible while typing and navigating, unlike an outline-style search sheet. |
+| System find navigator | Replaces the initial custom top bar after maintainer feedback; UIKit supplies keyboard attachment, controls, and standard shortcuts. See [002](002-system-find-navigator.md). |
 
 ## Validation and acceptance criteria
 
@@ -63,3 +64,4 @@ renderer shaping changes already present in the working tree.
 ## Amendments
 
 - Completed 2026-11-16; see the [action record](001-action.md) for implementation and validation limits.
+- Updated 2026-11-16: replace the custom top bar with the keyboard-attached system find navigator — see [002](002-system-find-navigator.md).

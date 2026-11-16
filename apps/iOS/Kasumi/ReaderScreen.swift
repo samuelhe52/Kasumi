@@ -12,7 +12,7 @@ struct ReaderScreen: View {
     @AppStorage("reader.theme-pair") private var pairID = "mono"
     @AppStorage("reader.font-size") private var fontSize: Double = 0
     @State private var viewport = ReaderViewport()
-    @State private var find = ReaderFindState()
+    @State private var findRequest = 0
     @State private var pendingLink: URL?
     @State private var showLinkConfirmation = false
     @State private var showLinkFailure = false
@@ -113,7 +113,7 @@ struct ReaderScreen: View {
                 Button("Outline", systemImage: "list.bullet.indent") { showOutline = true }
                     .accessibilityIdentifier("reader-outline")
             }
-            Button("Find in Document", systemImage: "magnifyingglass") { find.isPresented = true }
+            Button("Find in Document", systemImage: "magnifyingglass") { findRequest += 1 }
                 .accessibilityIdentifier("reader-find")
             Button("Appearance", systemImage: "textformat.size") { showAppearance = true }
                 .accessibilityIdentifier("reader-appearance")
@@ -164,14 +164,14 @@ struct ReaderScreen: View {
             if let snapshot = document.snapshot, let parsed = snapshot.parsed {
                 ReadingSurface(
                     document: parsed, revision: snapshot.revision, style: style, fontRevision: fontStore.revision,
-                    outline: parsed.outline, fileURL: document.fileURL, viewport: viewport, find: find,
-                    findPresented: find.isPresented, findRevision: find.navigationRevision, findBarHeight: find.barHeight,
+                    outline: parsed.outline, fileURL: document.fileURL, viewport: viewport, findRequest: findRequest,
                     openLink: { url in
                         pendingLink = url
                         showLinkConfirmation = true
                     }
                 )
-                .ignoresSafeArea(.container, edges: [.top, .bottom])
+                // Paint behind the floating find panel as well as the toolbars.
+                .ignoresSafeArea(.all, edges: [.top, .bottom])
             } else if let error = document.snapshot?.error {
                 ContentUnavailableView(
                     "Could Not Decode Document", systemImage: "doc.badge.exclamationmark",
@@ -181,9 +181,6 @@ struct ReaderScreen: View {
             }
         }
         .background(paper.ignoresSafeArea())
-        .safeAreaInset(edge: .top, spacing: 0) {
-            if find.isPresented { ReaderFindBar(find: find) }
-        }
         .scrollEdgeEffectStyle(.soft, for: .top)
         .navigationTitle(document.title)
         .navigationBarTitleDisplayMode(.inline)

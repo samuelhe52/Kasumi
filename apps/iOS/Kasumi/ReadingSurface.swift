@@ -12,11 +12,7 @@ struct ReadingSurface: UIViewRepresentable {
     let outline: [OutlineItem]
     let fileURL: URL?
     let viewport: ReaderViewport
-    let find: ReaderFindState
-    // Explicit inputs make UIKit updates participate in SwiftUI observation.
-    let findPresented: Bool
-    let findRevision: Int
-    let findBarHeight: CGFloat
+    let findRequest: Int
     let openLink: (URL) -> Void
 
     func makeUIView(context: Context) -> ReaderScrollView { ReaderScrollView() }
@@ -24,12 +20,12 @@ struct ReadingSurface: UIViewRepresentable {
         view.update(
             document: document, revision: revision, style: style, fontRevision: fontRevision, outline: outline,
             fileURL: fileURL, viewport: viewport, openLink: openLink)
-        view.updateFind(find)
+        view.requestFind(findRequest)
     }
     static func dismantleUIView(_ view: ReaderScrollView, coordinator: ()) { view.finish() }
 }
 
-final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
+final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteractionDelegate {
     private let headingTopInset: CGFloat = 15
 
     // Pages swap inside a permanent container so the scroll view's own subviews
@@ -56,9 +52,15 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
     private var pageScale: CGFloat = 1
     private var lastJump: UUID?
     private var adjusting = false
-    private weak var find: ReaderFindState?
-    private var lastFindRevision: Int?
-    private var finding = false
+    private lazy var findInteraction = UIFindInteraction(sessionDelegate: self)
+    private lazy var findSession = ReaderFindSession { [weak self] matches, current, scroll in
+        self?.displayFindResults(matches, current: current, scroll: scroll)
+        self?.findInteraction.updateResultCount()
+    }
+    private var findRequest = 0
+    private var presentedFindRequest = 0
+    private let unobscuredViewport = UILayoutGuide()
+    private var currentFindRect: CGRect?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -67,6 +69,16 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
         contentInsetAdjustmentBehavior = .automatic
         topEdgeEffect.style = .soft
         addSubview(content)
+        addInteraction(findInteraction)
+        // Keep painting through the keyboard safe area, but let Auto Layout
+        // track the keyboard/accessory boundary for scrolling and indicators.
+        addLayoutGuide(unobscuredViewport)
+        NSLayoutConstraint.activate([
+            unobscuredViewport.leadingAnchor.constraint(equalTo: frameLayoutGuide.leadingAnchor),
+            unobscuredViewport.widthAnchor.constraint(equalToConstant: 0),
+            unobscuredViewport.topAnchor.constraint(equalTo: frameLayoutGuide.topAnchor),
+            unobscuredViewport.bottomAnchor.constraint(equalTo: keyboardLayoutGuide.topAnchor)
+        ])
         openingIndicator.hidesWhenStopped = true
         openingIndicator.translatesAutoresizingMaskIntoConstraints = false
         addSubview(openingIndicator)
@@ -107,14 +119,6 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
     }
 
     override var canBecomeFirstResponder: Bool { true }
-    override var keyCommands: [UIKeyCommand]? {
-        let find = UIKeyCommand(input: "f", modifierFlags: .command, action: #selector(presentFind(_:)))
-        find.discoverabilityTitle = String(localized: "Find in Document")
-        find.wantsPriorityOverSystemBehavior = true
-        return [find]
-    }
-    @objc private func presentFind(_ sender: Any?) { find?.isPresented = true }
-
     override func didMoveToWindow() {
         super.didMoveToWindow()
         if let backgroundColor { window?.backgroundColor = backgroundColor }
@@ -124,6 +128,19 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
         super.layoutSubviews()
         rebuildIfNeeded()
         updateScrollExtent()
+        updateKeyboardInset()
+    }
+
+    private func updateKeyboardInset() {
+        let occluded = max(0, bounds.height - unobscuredViewport.layoutFrame.height)
+        let automatic = adjustedContentInset.bottom - contentInset.bottom
+        let inset = max(0, occluded - automatic)
+        guard abs(contentInset.bottom - inset) > 0.5 else { return }
+        contentInset.bottom = inset
+        verticalScrollIndicatorInsets.bottom = inset
+        if let currentFindRect {
+            setTop(max(0, currentFindRect.minY * pageScale - 24))
+        }
     }
 
     override func willMove(toWindow newWindow: UIWindow?) {
@@ -237,10 +254,8 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
         viewport?.rendered = next
         adjusting = false
         jumpIfNeeded()
-        if let find {
-            find.install(next)
-            updateFind(find)
-        }
+        findSession.install(next)
+        presentFindIfNeeded()
         openingIndicator.stopAnimating()
         if firstLayout { becomeFirstResponder() }
         if let overlay {
@@ -298,30 +313,51 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
     }
     func finish() {
         viewport?.flush()
+        findInteraction.dismissFindNavigator()
         layoutTask?.cancel()
         transitionOverlay?.removeFromSuperview()
         transitionOverlay = nil
     }
 
-    func updateFind(_ find: ReaderFindState) {
-        self.find = find
-        let topInset = find.isPresented ? find.barHeight : 0
-        if contentInset.top != topInset {
-            contentInset.top = topInset
-            lastFindRevision = nil
+    func requestFind(_ revision: Int) {
+        findRequest = revision
+        presentFindIfNeeded()
+    }
+
+    private func presentFindIfNeeded() {
+        guard rendered != nil, window != nil, findRequest != presentedFindRequest else { return }
+        presentedFindRequest = findRequest
+        findInteraction.presentFindNavigator(showingReplace: false)
+    }
+
+    func findInteraction(_ interaction: UIFindInteraction, sessionFor view: UIView) -> UIFindSession? {
+        guard let rendered else { return nil }
+        findSession.install(rendered)
+        return findSession
+    }
+
+    func findInteraction(_ interaction: UIFindInteraction, didBegin session: UIFindSession) {
+        page?.clearSelection()
+        findSession.begin()
+    }
+
+    func findInteraction(_ interaction: UIFindInteraction, didEnd session: UIFindSession) {
+        findSession.end()
+        // Let UIKit finish resigning its search field, then restore the reader's
+        // responder chain so Command-F can start another session.
+        Task { @MainActor [weak self] in
+            guard let self, self.window != nil, !self.findInteraction.isFindNavigatorVisible else { return }
+            self.becomeFirstResponder()
         }
-        if let rendered { find.install(rendered) }
-        if find.isPresented && !finding { page?.clearSelection() }
-        let wasFinding = finding
-        finding = find.isPresented
-        if wasFinding && !finding { becomeFirstResponder() }
-        page?.highlight(matches: finding ? find.matches : [], current: finding ? find.currentIndex : nil)
-        guard finding else { lastFindRevision = nil; return }
-        guard lastFindRevision != find.navigationRevision, let range = find.currentRange, let rendered else { return }
-        lastFindRevision = find.navigationRevision
-        guard let rect = rendered.selectionRects(for: range).first else { return }
-        // Leave room beneath the find bar and above the keyboard/toolbar. Result
-        // navigation never makes the rendered page first responder.
+    }
+
+    private func displayFindResults(_ matches: [TextRange], current: Int?, scroll: Bool) {
+        page?.highlight(matches: matches, current: current)
+        currentFindRect = current.flatMap { index in
+            guard matches.indices.contains(index), let rendered else { return nil }
+            return rendered.selectionRects(for: matches[index]).first
+        }
+        guard scroll, let rect = currentFindRect else { return }
         setTop(max(0, rect.minY * pageScale - 24), animated: !UIAccessibility.isReduceMotionEnabled)
     }
 

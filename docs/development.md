@@ -43,14 +43,21 @@ targets.
   `UITextInteraction` owns gestures and handles. It must become first responder
   when interaction starts. Positions belong to one immutable layout: replacing
   a page clears selection and recomputes find results.
-- Find lives in Reader Actions (or Command-F). Return/Command-G advances,
-  Shift-Command-G goes backward, and Escape/Done closes it. The find bar measures
-  its height into the UIKit scroll inset; the representable takes explicit find
-  revisions so match navigation triggers an update. Exercise these paths with
-  `fixtures/ReaderInteractions.md`, including Unicode/semantic Copy, wrapping
-  match navigation, rotation, and external-link confirmation/failure. Confirm
-  software-keyboard occlusion and iPad layout separately; the initial Reader 2
-  runtime pass used an iPhone 18 Pro on iOS 27.2 with a hardware keyboard.
+- Find uses `UIFindInteraction` / a read-only `UIFindSession` on the tiled
+  reader. UIKit owns the floating field, result count, options, and shortcuts.
+  The SwiftUI surface ignores keyboard safe areas so text continues behind the
+  glass controls; `UIKeyboardLayoutGuide` supplies the bottom scroll inset so
+  the final result can still move above the keyboard. Do not shrink the reader
+  to the keyboard-safe height: that exposes a blank paper band behind Find.
+  UIKit asks for the initial highlight after `performSearch`; the session must
+  leave the index unset until then or it skips the first result.
+- Exercise Find with `fixtures/ReaderInteractions.md`: keyboard visible, first
+  and last results, wrapping, Match Case/Whole Words, clear, dismissal/reopening,
+  rotation, and selection afterward. The system identifiers are `find.searchField`,
+  `find.previousButton`, `find.nextButton`, and `find.doneButton`. `sim-use` 0.16
+  detects keyboard visibility but has no explicit software-keyboard toggle.
+  Device Hub exposes Device > Keyboard > Toggle Software Keyboard; use the host
+  control only for keyboard setup, then continue device interaction with `sim-use`.
 - Verify internal-link scrolling with `fixtures/LinkJumps.md` and a screen
   recording, not just settled screenshots: follow heading fragments, return
   upward, and tap a footnote. The fixture also covers duplicate headings and

@@ -12,7 +12,9 @@ or is reordered; record the work itself in a numbered entry.
    links — [007](007-reader-interactions/000-plan.md), implemented 2026-11-16.
    Native selection handles, Copy/Select All, find highlights and wrapping match
    navigation, external-link confirmation, and opening-failure feedback are in
-   place. Internal headings and footnotes retain animated jumps unless Reduce
+   place. [System Find](007-reader-interactions/002-system-find-navigator.md) now
+   floats above the keyboard with page content continuing behind its controls.
+   Internal headings and footnotes retain animated jumps unless Reduce
    Motion is enabled. See the [validation limits](007-reader-interactions/001-action.md#open-questions).
 3. Export: PDF, long PNG, print, share sheet.
 4. Source editor with live preview; side by side on iPad.

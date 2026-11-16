@@ -4,13 +4,8 @@
 
 | Date | Change | Ref |
 | --- | --- | --- |
-| 2026-11-16 | Recorded the milestone plan, implemented the UIKit text adapter, find controls, and link confirmation, then exercised the reader on the already booted iPhone simulator. | Local changes; not committed. |
-
-## Timeline
-
-| Date | Change | Ref |
-| --- | --- | --- |
-| 2026-11-16 | Implemented reader milestone 2 and reconciled the roadmap and development notes. | This implementation commit. |
+| 2026-11-16 | Recorded the milestone plan, implemented the UIKit text adapter, find controls, and link confirmation, then exercised the reader on the already booted iPhone simulator. | `f247bfd` |
+| 2026-11-16 | Replaced the top bar with system Find and corrected keyboard underlap and scrolling. | This follow-up commit; [002](002-system-find-navigator.md). |
 
 ## Outcome and current state (as of 2026-11-16)
 
@@ -26,16 +21,13 @@ Reader milestone 2 is implemented:
   and invalid/overflowing offsets. The precomputed grapheme-boundary index also
   supplies the UTF-16 document length without recounting the string on each
   tokenizer request. Hit testing still snaps to grapheme boundaries.
-- `apps/iOS/Kasumi/ReaderFind.swift` owns case- and diacritic-insensitive search,
-  the inline find bar, count, clear/done actions, and wrapping previous/next
-  navigation. Return and Command-G advance, Shift-Command-G goes backward, and
-  Escape closes find. The reader scroll view registers Command-F, so Find is
-  available before the actions menu has ever opened.
-- `apps/iOS/Kasumi/ReadingSurface.swift` keeps search highlights separate from
-  native selection, scrolls the active match below the measured find-bar inset,
-  and recomputes matches when the rendered snapshot changes. Selection is
-  cleared on page replacement. Search state is passed as explicit representable
-  inputs so UIKit receives navigation and presentation updates.
+- `apps/iOS/Kasumi/ReaderFind.swift` implements a read-only `UIFindSession`,
+  honoring the system match options and wrapping navigation. This replaces the
+  custom top bar from `f247bfd`; see [002](002-system-find-navigator.md).
+- `apps/iOS/Kasumi/ReadingSurface.swift` installs `UIFindInteraction`, lets the
+  page paint behind the native floating controls, and uses `UIKeyboardLayoutGuide`
+  for unobscured scrolling. Search highlights remain separate from selection;
+  replacing a page clears selection and recomputes results for that snapshot.
 - `apps/iOS/Kasumi/ReaderScreen.swift` adds Find to Reader Actions, confirms an
   external destination before invoking the system opener, and reports opening
   failures. Heading/footnote links retain their in-document animated jumps;
@@ -46,10 +38,10 @@ Reader milestone 2 is implemented:
 
 ## Deviations from plan
 
-None in product scope. SwiftUI menu/scene keyboard shortcuts did not activate
-Find on the iPhone simulator, so Command-F uses a native reader key command;
-the find bar handles its own navigation keys. Those unsuccessful approaches
-were removed.
+The first implementation used a custom top bar and separate keyboard handlers.
+Maintainer feedback replaced these with the keyboard-attached UIKit find
+navigator; [002](002-system-find-navigator.md) records the change and its fresh
+validation. The initial validation below remains evidence for `f247bfd`.
 
 ## Validation
 
@@ -86,10 +78,18 @@ were removed.
 ## Open questions
 
 - No iPad or physical-device runtime checks were performed; another simulator
-  was not booted. The phone used a hardware keyboard, so software-keyboard
-  occlusion was not exercised. Reduce Motion was preserved in source but was
-  not toggled during this task.
+  was not booted. The original milestone pass used a hardware keyboard;
+  [002](002-system-find-navigator.md) adds portrait software-keyboard coverage
+  and records the remaining landscape check. Reduce Motion was preserved in
+  source but was not toggled during these checks.
 - Mixed-direction selection, very large-document search performance, and
   selection-handle autoscrolling beyond the viewport were not exhaustively
   exercised. The existing renderer limitations remain in the
   [renderer gap list](../002-rendering-engine/renderer-gaps.md).
+
+## System find follow-up
+
+See [007.002](002-system-find-navigator.md) for the native panel, the keyboard
+safe-area correction, and the follow-up validation. The original software-keyboard
+coverage limit above was addressed in that follow-up; iPad/device coverage remains
+unverified.
