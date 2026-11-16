@@ -1,4 +1,3 @@
-import CryptoKit
 import Foundation
 
 /// A position in semantic document text, independent of font and viewport size.
@@ -56,8 +55,9 @@ struct ReadingPositionIndex {
         var indices: [String: [Int]] = [:]
         for (index, item) in layout.paragraphs.enumerated() {
             let paragraph = item.paragraph
-            let map = DocumentTextMap(paragraph.attributed)
-            let key = SHA256.hash(data: Data(map.string.utf8)).map { String(format: "%02x", $0) }.joined()
+            let content = paragraph.semanticContent ?? ParagraphSemanticContent(paragraph.attributed)
+            let map = content.textMap
+            let key = content.readingKey
             let blockLines = paragraph.lines.compactMap { line -> Line? in
                 let top = item.origin.y + line.origin.y - line.ascent
                 let bottom = item.origin.y + line.origin.y + line.descent

@@ -41,9 +41,12 @@ that fixes it; add one when a limitation is found and not fixed.
 - Reflow: each immutable snapshot still typesets the complete document; resize
   requests are coalesced by the reader, but publication cadence depends on
   document complexity. `DocumentReflowSession` retains attributed text and measured
-  input between widths, and active break candidates accumulate totals rather
-  than rescanning each line. Image/math paragraphs bypass preparation reuse to
+  input, paragraph items, and semantic metadata between widths; active break
+  candidates accumulate totals rather than rescanning each line. Plain paragraphs
+  skip decoration processing after preparation finds no candidates. Image/math paragraphs bypass preparation reuse to
   preserve width-dependent attachments and independent Core Text ownership.
   Full layout, drawing, and indices still scale with document length; this is
-  not viewport-only layout. See [reflow preparation](006-reflow-preparation.md)
+  not viewport-only layout. Core Text fragments still build eagerly, and old
+  snapshot disposal and active Find can add UI-thread cost. See
+  [reflow preparation](006-reflow-preparation.md), [metadata reuse](007-reflow-metadata.md)
   and [live reflow](../004-ios-reader/006-live-reflow.md).

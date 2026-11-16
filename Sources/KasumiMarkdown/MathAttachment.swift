@@ -67,8 +67,8 @@ final class MathAttachment: NSObject {
 /// Owns the correspondence between Core Text's drawable storage and text that
 /// users can search, copy, and read through accessibility. A formula occupies
 /// one layout object but expands to its original TeX in the semantic stream.
-struct DocumentTextMap {
-    private struct Segment {
+struct DocumentTextMap: Equatable {
+    private struct Segment: Equatable {
         let rendered: NSRange
         let semantic: NSRange
         let replacement: Bool

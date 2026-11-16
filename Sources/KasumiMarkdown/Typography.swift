@@ -339,6 +339,7 @@ struct ParagraphLayout {
     var autoRagged = false
     var diagnostics: [String] = []
     var underlines: [PaintedRect] = []
+    var semanticContent: ParagraphSemanticContent? = nil
 }
 
 enum ParagraphTypesetter {
@@ -350,8 +351,14 @@ enum ParagraphTypesetter {
     ) -> ParagraphLayout {
         let prepared = preparation ?? ParagraphPreparation(attributed, fontSize: fontSize, verbatim: verbatim)
         let attributed = prepared.attributed
+        func finish(_ paragraph: ParagraphLayout) -> ParagraphLayout {
+            var value = paragraph
+            value.semanticContent = prepared.semanticContent
+            return TextUnderline.applying(
+                to: value, fontSize: fontSize, hasCandidates: prepared.hasDecorationCandidates)
+        }
         guard attributed.length > 0, width > 0 else {
-            return ParagraphLayout(attributed: attributed, lines: [], height: 0)
+            return finish(ParagraphLayout(attributed: attributed, lines: [], height: 0))
         }
         // RTL text keeps Core Text's visual ordering; the paragraph engine does
         // not implement bidi painting yet.
@@ -360,8 +367,11 @@ enum ParagraphTypesetter {
             let paragraph = MeasuredParagraphTypesetter.layout(
                 attributed, width: width, fontSize: fontSize, lineSpacing: lineSpacing,
                 alignment: alignment, indent: indent, profileValues: profileValues, outerWidth: outerWidth,
-                baseEm: baseEm, preparedInput: prepared.input)
-            return TextUnderline.applying(to: paragraph, fontSize: fontSize)
+                baseEm: baseEm, preparedInput: prepared.input,
+                preparedItems: prepared.items(
+                    indent: Float(indent), options: profileValues.map(ParagraphProfileOptions.init(values:)) ?? .init())
+            )
+            return finish(paragraph)
         }
         var legacyAlignment = alignment
         var legacyAutoRagged = false
@@ -444,6 +454,6 @@ enum ParagraphTypesetter {
         let paragraph = ParagraphLayout(
             attributed: attributed, lines: lines, height: y, autoRagged: legacyAutoRagged,
             diagnostics: hasRTL && !verbatim ? ["nativeBidiPaintingUnverified"] : [])
-        return TextUnderline.applying(to: paragraph, fontSize: fontSize)
+        return finish(paragraph)
     }
 }

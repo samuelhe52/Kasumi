@@ -29,9 +29,34 @@ enum TextUnderline {
         return copy ?? attributed
     }
 
-    static func applying(to paragraph: ParagraphLayout, fontSize: CGFloat) -> ParagraphLayout {
+    /// Conservative: false positives keep the original decorated path intact.
+    /// Font and baseline spans alone must not trigger a per-line attribute scan.
+    static func hasCandidates(in attributed: NSAttributedString) -> Bool {
+        let range = NSRange(location: 0, length: attributed.length)
+        var found = false
+        attributed.enumerateAttribute(.kasumiUnderline, in: range) { value, _, stop in
+            if (value as? NSNumber)?.boolValue == true {
+                found = true
+                stop.pointee = true
+            }
+        }
+        if found { return true }
+        attributed.enumerateAttribute(.link, in: range) { value, _, stop in
+            if value != nil {
+                found = true
+                stop.pointee = true
+            }
+        }
+        return found
+    }
+
+    static func applying(
+        to paragraph: ParagraphLayout, fontSize: CGFloat, hasCandidates: Bool? = nil
+    ) -> ParagraphLayout {
         var result = paragraph
-        result.underlines = layout(paragraph, fontSize: fontSize)
+        result.underlines =
+            (hasCandidates ?? self.hasCandidates(in: paragraph.attributed))
+            ? layout(paragraph, fontSize: fontSize) : []
         return result
     }
 

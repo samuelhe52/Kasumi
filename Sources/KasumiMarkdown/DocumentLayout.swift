@@ -59,6 +59,7 @@ struct DocumentLayout {
     var imageBounds: [CGRect]
     var paginationGroups: [Range<CGFloat>]
     var tables: [RenderedTable] = []
+    var semanticContent: DocumentSemanticContent? = nil
 }
 
 enum DocumentTypesetter {
@@ -409,10 +410,13 @@ enum DocumentTypesetter {
                         ? (nextIsBody ? style.paraSpaceBetween : style.paraSpaceAfter) : style.paraSpaceAfter)
             }
         }
+        let semantic = preparation?.semanticContent(paragraphs: paragraphs, storage: storage)
         return DocumentLayout(
-            width: width, height: y + insets.bottom, text: storage, textMap: DocumentTextMap(storage),
+            width: width, height: y + insets.bottom, text: storage,
+            textMap: semantic?.textMap ?? DocumentTextMap(storage),
             paragraphs: paragraphs, backgrounds: backgrounds, rules: rules, headingPositions: headings,
-            anchorPositions: anchors, imageBounds: imageBounds, paginationGroups: paginationGroups, tables: tables)
+            anchorPositions: anchors, imageBounds: imageBounds, paginationGroups: paginationGroups, tables: tables,
+            semanticContent: semantic)
     }
 
     static func anchorSlug(_ text: String) -> String {

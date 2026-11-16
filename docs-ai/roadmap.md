@@ -36,8 +36,10 @@ layout/viewport-paint pipeline and coalesced pending widths. See
 Mac reproduction confirms that whole-document reflow still stalls on longer
 English and especially Chinese text. [Retained preparation and incremental
 break totals](002-rendering-engine/006-reflow-preparation.md) now reduce repeated
-work in the reader; viewport measurement with estimated heights remains the next
-architectural step for long documents.
+work in the reader. [Semantic/item preparation and decoration filtering](002-rendering-engine/007-reflow-metadata.md)
+remove more repeated width-independent work. Fragment construction remains eager;
+viewport measurement with estimated heights is still needed for document-length
+scaling.
 
 Retained after milestone closure; not prerequisites for starting Reader 2:
 

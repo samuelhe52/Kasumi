@@ -11,14 +11,17 @@ enum MeasuredParagraphTypesetter {
     static func layout(
         _ attributed: NSAttributedString, width: CGFloat, fontSize: CGFloat, lineSpacing: CGFloat,
         alignment: ParagraphAlignment, indent: CGFloat, profileValues: ProfileValues?, outerWidth: CGFloat?,
-        baseEm: CGFloat?, preparedInput: ShapedParagraphInput? = nil
+        baseEm: CGFloat?, preparedInput: ShapedParagraphInput? = nil, preparedItems: ParagraphEngine.Prepared? = nil
     ) -> ParagraphLayout {
         let input = preparedInput ?? ParagraphShaper.shape(attributed, fallbackSize: fontSize)
-        let options = profileValues.map(ParagraphProfileOptions.init(values:)) ?? .init()
+        let prepared =
+            preparedItems
+            ?? ParagraphEngine.prepare(
+                clusters: input.clusters, runs: input.metrics, indent: Float(indent),
+                options: profileValues.map(ParagraphProfileOptions.init(values:)) ?? .init())
         let result = ParagraphEngine.layout(
-            clusters: input.clusters, runs: input.metrics, width: Float(width),
-            outerWidth: Float(outerWidth ?? width), baseEm: Float(baseEm ?? fontSize),
-            alignment: alignment == .trailing ? .leading : alignment, indent: Float(indent), options: options)
+            prepared, width: Float(width), outerWidth: Float(outerWidth ?? width), baseEm: Float(baseEm ?? fontSize),
+            alignment: alignment == .trailing ? .leading : alignment)
         let typesetter = CTTypesetterCreateWithAttributedString(attributed)
         let source = attributed.string as NSString
         func sourceRange(_ clusters: Range<Int>) -> NSRange {

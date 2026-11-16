@@ -103,17 +103,9 @@ public final class RenderedDocument: @unchecked Sendable {
                         height: max(1, line.ascent + line.descent)))
             }
         }
-        // place() appends a storage separator after every paragraph; the last
-        // separator is not document content and must not create a phantom caret.
-        let text = built.textMap.string.hasSuffix("\n") ? String(built.textMap.string.dropLast()) : built.textMap.string
-        semanticText = text
-        var offset = 0
-        var boundaries = [0]
-        for character in text {
-            offset += String(character).utf16.count
-            boundaries.append(offset)
-        }
-        semanticBoundaries = boundaries
+        let semantic = built.semanticContent ?? DocumentSemanticContent(built.textMap)
+        semanticText = semantic.text
+        semanticBoundaries = semantic.boundaries
     }
 
     /// `rect` and the CGContext must use document coordinates (top-left, y down).

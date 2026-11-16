@@ -67,8 +67,8 @@ enum ParagraphEngineDiagnostic: String, Equatable, Sendable {
 /// contract is exercised by frozen authored reference cases, with remaining
 /// Unicode and fallback limits explicit.
 enum ParagraphEngine {
-    private enum Kind { case box, glue, penalty }
-    private struct Item {
+    fileprivate enum Kind { case box, glue, penalty }
+    fileprivate struct Item {
         var kind: Kind
         var width: Float = 0
         var stretch: Float = 0
@@ -115,21 +115,73 @@ enum ParagraphEngine {
         var allowHyphen = true
     }
 
+    /// Exact width-independent input. No drawing objects or mutable DP nodes
+    /// are retained here. Options and indent are part of the preparation key.
+    struct Prepared {
+        fileprivate let clusters: [ParagraphInputCluster]
+        fileprivate let runs: [ParagraphRunMetrics]
+        fileprivate let items: [Item]?
+        fileprivate let options: ParagraphProfileOptions
+        fileprivate let diagnostics: [ParagraphEngineDiagnostic]
+        fileprivate let total: Float
+        fileprivate let code: Float
+    }
+
+    static func prepare(
+        clusters: [ParagraphInputCluster], runs: [ParagraphRunMetrics], indent: Float = 0,
+        options: ParagraphProfileOptions = .init()
+    ) -> Prepared {
+        guard indent.isFinite,
+            clusters.allSatisfy({ runs.indices.contains($0.run) && $0.advance.isFinite && $0.advance >= 0 }),
+            runs.allSatisfy({ $0.em.isFinite && $0.em > 0 && $0.spaceAdvance.isFinite && $0.hyphenAdvance.isFinite })
+        else {
+            return Prepared(
+                clusters: clusters, runs: runs, items: nil, options: options,
+                diagnostics: [.invalidInput], total: 0, code: 0)
+        }
+        var diagnostics: [ParagraphEngineDiagnostic] = []
+        var items = clusters.isEmpty ? [] : makeItems(clusters, runs, indent, options, &diagnostics)
+        // Last-line infinite glue absorbs positive remaining measure instead
+        // of stretching the visible word/CJK spaces to the right margin.
+        if let last = clusters.last {
+            let end = clusters.count
+            items.append(Item(kind: .glue, stretch: 1_000_000, range: end..<end, run: last.run))
+            items.append(Item(kind: .penalty, penalty: -10_000, range: end..<end, run: last.run))
+        }
+        return Prepared(
+            clusters: clusters, runs: runs, items: items, options: options, diagnostics: diagnostics,
+            total: clusters.reduce(Float(0)) { $0 + $1.advance },
+            code: clusters.reduce(Float(0)) { $0 + (runs[$1.run].isCode ? $1.advance : 0) })
+    }
+
     static func layout(
         clusters: [ParagraphInputCluster], runs: [ParagraphRunMetrics], width: Float,
         outerWidth: Float, baseEm: Float, alignment: ParagraphAlignment = .justified,
         indent: Float = 0, options: ParagraphProfileOptions = .init()
     ) -> ParagraphEngineResult {
-        guard width.isFinite, width > 0, outerWidth.isFinite, baseEm.isFinite, indent.isFinite,
-            clusters.allSatisfy({ runs.indices.contains($0.run) && $0.advance.isFinite && $0.advance >= 0 }),
-            runs.allSatisfy({ $0.em.isFinite && $0.em > 0 && $0.spaceAdvance.isFinite && $0.hyphenAdvance.isFinite })
-        else {
+        // Reject bad measures before itemization, as on the uncached path.
+        guard width.isFinite, width > 0, outerWidth.isFinite, baseEm.isFinite else {
             return .init(lines: [], autoRagged: false, diagnostics: [.invalidInput])
         }
+        return layout(
+            prepare(clusters: clusters, runs: runs, indent: indent, options: options),
+            width: width, outerWidth: outerWidth, baseEm: baseEm, alignment: alignment)
+    }
+
+    static func layout(
+        _ prepared: Prepared, width: Float, outerWidth: Float, baseEm: Float,
+        alignment: ParagraphAlignment = .justified
+    ) -> ParagraphEngineResult {
+        guard width.isFinite, width > 0, outerWidth.isFinite, baseEm.isFinite, let items = prepared.items else {
+            return .init(lines: [], autoRagged: false, diagnostics: [.invalidInput])
+        }
+        let clusters = prepared.clusters
+        let runs = prepared.runs
+        let options = prepared.options
         guard !clusters.isEmpty else { return .init(lines: [], autoRagged: false, diagnostics: []) }
-        var diagnostics: [ParagraphEngineDiagnostic] = []
-        let total = clusters.reduce(Float(0)) { $0 + $1.advance }
-        let code = clusters.reduce(Float(0)) { $0 + (runs[$1.run].isCode ? $1.advance : 0) }
+        var diagnostics = prepared.diagnostics
+        let total = prepared.total
+        let code = prepared.code
         let codeRagged =
             alignment == .justified && options.raggedCodeFraction > 0 && total > 0
             && code / total >= options.raggedCodeFraction
@@ -138,13 +190,6 @@ enum ParagraphEngine {
             alignment == .justified && !codeRagged && options.autoRaggedNarrow
             && (outerWidth > 0 ? outerWidth : width) < effectiveEm * options.autoRaggedMeasureEm
         let ragged = alignment != .justified || codeRagged || narrow
-        var items = makeItems(clusters, runs, indent, options, &diagnostics)
-        // Last-line infinite glue absorbs positive remaining measure instead
-        // of stretching the visible word/CJK spaces to the right margin.
-        let end = clusters.count
-        let run = clusters.last!.run
-        items.append(Item(kind: .glue, stretch: 1_000_000, range: end..<end, run: run))
-        items.append(Item(kind: .penalty, penalty: -10_000, range: end..<end, run: run))
         let breaks = selectBreaks(
             items, width, (runs.first?.em ?? effectiveEm) * options.raggedStretch,
             ragged, options, &diagnostics)

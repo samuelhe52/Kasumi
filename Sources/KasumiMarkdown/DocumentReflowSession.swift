@@ -46,6 +46,9 @@ final class ReflowPreparation {
     private var retained = Set<ObjectIdentifier>()
     private(set) var attributedBuilds = 0
     private(set) var shapedBuilds = 0
+    private(set) var semanticBuilds = 0
+    private var documentParagraphs: [ParagraphSemanticContent] = []
+    private var documentSemantic: DocumentSemanticContent?
 
     func attributed(
         block: Int, slot: Int, runs: [InlineRun], size: Double?, heading: Bool, code: Bool, level: Int?,
@@ -80,19 +83,54 @@ final class ReflowPreparation {
         shapedBuilds += 1
         return value
     }
+
+    func semanticContent(paragraphs: [PlacedText], storage: NSAttributedString) -> DocumentSemanticContent {
+        let contents = paragraphs.map {
+            $0.paragraph.semanticContent ?? ParagraphSemanticContent($0.paragraph.attributed)
+        }
+        // Rebuilt attachments may change rendered offsets even when their alt
+        // text is unchanged. Compare the complete maps, not just semantic strings.
+        if let documentSemantic, contents.count == documentParagraphs.count,
+            zip(contents, documentParagraphs).allSatisfy({ $0 === $1 || $0.textMap == $1.textMap })
+        {
+            return documentSemantic
+        }
+        let value = DocumentSemanticContent(DocumentTextMap(storage))
+        documentParagraphs = contents
+        documentSemantic = value
+        semanticBuilds += 1
+        return value
+    }
+
 }
 
-struct ParagraphPreparation {
+final class ParagraphPreparation {
     let attributed: NSAttributedString
     let hasRTL: Bool
     let fontSize: CGFloat
     let verbatim: Bool
     let input: ShapedParagraphInput?
+    let hasDecorationCandidates: Bool
+    let semanticContent: ParagraphSemanticContent
+    private var cachedItems: (indent: Float, options: ParagraphProfileOptions, value: ParagraphEngine.Prepared)?
+    private(set) var itemBuilds = 0
+
+    func items(indent: Float, options: ParagraphProfileOptions) -> ParagraphEngine.Prepared? {
+        guard let input else { return nil }
+        if let cachedItems, cachedItems.indent == indent, cachedItems.options == options { return cachedItems.value }
+        let value = ParagraphEngine.prepare(
+            clusters: input.clusters, runs: input.metrics, indent: indent, options: options)
+        cachedItems = (indent, options, value)
+        itemBuilds += 1
+        return value
+    }
 
     init(_ source: NSAttributedString, fontSize: CGFloat, verbatim: Bool) {
         self.fontSize = fontSize
         self.verbatim = verbatim
         attributed = TextUnderline.normalized(source)
+        hasDecorationCandidates = TextUnderline.hasCandidates(in: attributed)
+        semanticContent = ParagraphSemanticContent(attributed)
         hasRTL = attributed.string.unicodeScalars.contains {
             (0x0590...0x08ff).contains($0.value) || (0xfb1d...0xfdff).contains($0.value)
                 || (0xfe70...0xfefc).contains($0.value)
