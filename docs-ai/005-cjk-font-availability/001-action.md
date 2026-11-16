@@ -20,18 +20,23 @@
   and SHA-256 sums recorded on 2026-11-16.
 - Store: open files live in `Application Support/Fonts` (excluded from backup)
   and are registered at launch. Apple packages requested once are re-requested
-  at launch. Open packages can be removed by swiping; Apple packages can't.
-- Onboarding: shown once from the launch scene or the reader, whichever
-  appears first. Download Fonts or Not Now marks it offered. Its 宋 楷 仿 specimen
-  shows each character in its face (or open fallback) once installed, and as a
-  dimmed system-face placeholder before: Apple's faces can't be bundled.
+  at launch. Open packages can be removed immediately from the role toolbar;
+  Apple packages can't, since iOS owns them system-wide.
+- Onboarding: a missing-Apple-font alert is shown once from the launch scene or
+  reader, whichever appears first. Download Fonts opens font management; Not Now
+  dismisses it. Neither choice starts a download automatically. See
+  [005.004](004-font-offer-alert.md).
 - Choice: `RenderStyle.preferredOpenFamilies` reorders each Apple face and its
   open substitute; Kai emphasis follows "LXGW WenKai Lite". The store groups
-  faces by role, shows In Use on the face the reader uses (Apple's, unless the
-  user chose the open one or Apple's isn't installed), and Use on the other
-  downloaded face. Supporting Apple faces say when they're unused because an
-  open Simplified face is in use. The choice persists in `UserDefaults`.
+  faces by role and marks the selected face with a checkmark (Apple's, unless the
+  user chose the open one or Apple's isn't installed). Tapping another
+  downloaded face selects it. Supporting Apple faces report download availability,
+  not unconditional usage. The choice persists in `UserDefaults`. See
+  [005.002](002-font-management-transitions.md) for animation repair and
+  [005.003](003-role-first-layout.md) for the current layout.
 - Debug builds accept `-KasumiFailAppleFonts YES` to exercise the fallbacks.
+  An explicit debug launch with `-onboarding.fonts-offered NO` previews the
+  onboarding offer even when all recommended faces are already cached.
 
 Key files: `Sources/KasumiMarkdown/FontFamilyResolver.swift`,
 `Sources/KasumiMarkdown/CJKFontFace.swift`,

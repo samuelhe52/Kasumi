@@ -68,14 +68,24 @@ targets.
 - **CJK fonts.** Apple's downloadable faces are activated per process: the app
   re-requests them at launch, and `make test-ios` still skips the 10 tests that
   need them even after the app downloaded them. iOS caches them for the whole
-  simulator, so to see onboarding's open fallbacks again, launch with
-  `-KasumiFailAppleFonts YES -onboarding.fonts-offered NO` (debug builds). The
-  appearance sheet's toolbar buttons are missing from `sim-use ui`; tap the Fonts
-  button by coordinates. See [005](../docs-ai/005-cjk-font-availability/001-action.md).
+  simulator. To exercise failed Apple downloads, launch with
+  `-KasumiFailAppleFonts YES -onboarding.fonts-offered NO` (debug builds).
+  The first-run alert opens font management; it does not start downloads.
+  The appearance sheet's toolbar buttons are missing from `sim-use ui`; tap the
+  Fonts button by coordinates. See [005](../docs-ai/005-cjk-font-availability/001-action.md).
   To see the first-run font offer again on a device, run `make run-device
   ONBOARDING=reset`. It passes `-onboarding.fonts-offered NO` for that launch only.
-  The offer also needs at least one recommended Apple face still missing, and
-  iOS keeps downloaded faces system-wide, so it won't appear once they're installed.
+  In debug builds, an explicit reset previews the offer even when every face is
+  cached, without forcing Apple downloads to fail. On the simulator, pass
+  `-onboarding.fonts-offered NO` to `simctl launch` for the same launch-only preview.
+  Font transition checks need a screen recording, not only settled screenshots:
+  exercise card selection in both directions, Remove Download from the role toolbar,
+  re-download completion, and reader size/preset changes at a scrolled position.
+  Cards must not move during selection. List insertion transitions can snap;
+  the font controls use persistent
+  opacity layers instead. Reader replacements prepaint one viewport off-main before
+  fading the old snapshot. See
+  [005.002](../docs-ai/005-cjk-font-availability/002-font-management-transitions.md).
 - **Open a file at launch (debug builds only).** Pass `-KasumiOpen <path>` to skip
   the launch scene. The file is copied into the app's `Documents/Debug/`
   (replacing an earlier copy) and opened through the document browser, so

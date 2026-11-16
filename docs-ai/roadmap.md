@@ -17,8 +17,10 @@ or is reordered; record the work itself in a numbered entry.
 4. Source editor with live preview; side by side on iPad.
 5. Settings: default preset, theme, and size. The font store shipped ahead of
    Reader 2 on 2026-11-16 in the appearance sheet
-   ([005](005-cjk-font-availability/000-plan.md)); move it here if a Settings
-   screen arrives.
+   ([005](005-cjk-font-availability/000-plan.md)), with
+   [transition repairs](005-cjk-font-availability/002-font-management-transitions.md) and
+   [role-first font cards](005-cjk-font-availability/003-role-first-layout.md);
+   move it here if a Settings screen arrives.
 
 ## Non-blocking Reader 1 follow-ups
 

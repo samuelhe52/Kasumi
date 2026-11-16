@@ -62,7 +62,9 @@ final class FontStore {
 
     /// Makes `package` the face used for its choice.
     func use(_ package: FontPackage) {
-        guard let choice = FontChoice.containing(package) else { return }
+        guard state(package) == .installed, let choice = FontChoice.containing(package),
+            active(choice)?.id != package.id
+        else { return }
         if package.id == choice.open.id {
             preferredOpen.insert(choice.openFamily)
         } else {
@@ -72,26 +74,12 @@ final class FontStore {
         revision += 1
     }
 
-    /// Recommended packages that aren't available yet.
-    var pendingRecommended: [FontPackage] {
-        FontPackage.catalog.filter { $0.recommended && state($0) != .installed }
+
+    func install(_ package: FontPackage) {
+        install(package, quietly: false)
     }
 
-    var isDownloading: Bool {
-        states.values.contains { if case .downloading = $0 { true } else { false } }
-    }
-
-    /// Downloads every recommended package. An Apple face that can't be
-    /// downloaded is replaced by its open fallback.
-    func installRecommended() {
-        for package in pendingRecommended { install(package, useFallback: true) }
-    }
-
-    func install(_ package: FontPackage, useFallback: Bool = false) {
-        install(package, quietly: false, useFallback: useFallback)
-    }
-
-    private func install(_ package: FontPackage, quietly: Bool, useFallback: Bool = false) {
+    private func install(_ package: FontPackage, quietly: Bool) {
         guard tasks[package.id] == nil, state(package) != .installed else { return }
         states[package.id] = .downloading(0)
         if package.isApple {
@@ -123,9 +111,6 @@ final class FontStore {
             } catch {
                 NSLog("Font download failed %@: %@", id, String(describing: error))
                 states[id] = .failed(Self.message(for: error, quietly: quietly))
-                if useFallback, let fallback = package.fallbackID.flatMap(FontPackage.named) {
-                    install(fallback)
-                }
             }
         }
     }

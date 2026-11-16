@@ -42,13 +42,13 @@ of them were listed as downloadable on the iOS 27.2 simulator (2026-11-16).
   fonts from pinned upstream files into Application Support, checking size,
   SHA-256 and PostScript name before registering them for the process.
 - Store screen: reached from the appearance sheet's Fonts button.
-- Onboarding: a skippable first-run sheet downloads the recommended Apple faces;
-  an Apple face that fails is replaced by downloading its open fallback.
+- Onboarding: a skippable first-run alert opens font management if a recommended
+  Apple face is missing. Users choose individual downloads in the store.
 - The reader re-renders when `FontStore.revision` changes.
 - User choice: `RenderStyle.preferredOpenFamilies` (public) moves a registered
   open face ahead of the Apple face it replaces. The store groups faces by role
   (`FontChoice`: Simplified, Emphasis, Traditional, plus supporting Apple faces),
-  marks the face in use, and offers Use on the other downloaded one.
+  marks the selected face, and lets users tap another downloaded face to select it.
 
 ## Alternatives & decisions
 
@@ -83,3 +83,12 @@ of them were listed as downloadable on the iOS 27.2 simulator (2026-11-16).
   to let users choose the open face; added the per-role choice and
   `RenderStyle.preferredOpenFamilies` before commit. Goals, Design and
   Alternatives updated in place.
+- Updated 2026-11-16: stable font controls, explicit download management, and
+  prepared reader transitions — see
+  [002-font-management-transitions.md](002-font-management-transitions.md).
+- Updated 2026-11-16: role-first navigation, symmetric choice cards, toolbar
+  download management, and removal of section boilerplate — see
+  [003-role-first-layout.md](003-role-first-layout.md).
+- Updated 2026-11-16: replaced the first-run sheet and automatic downloads with
+  a missing-font alert leading to font management — see
+  [004-font-offer-alert.md](004-font-offer-alert.md).

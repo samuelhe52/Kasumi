@@ -1,25 +1,28 @@
 import SwiftUI
 
-/// Groups the faces by the role they compete for, and says which one the
-/// reader uses. Each role offers Apple's face and an open alternative.
+/// Font selection and download management are separate: catalog rows never
+/// disappear, and only open-source downloads can be removed.
 struct FontStoreView: View {
     @Environment(\.dismiss) private var dismiss
-    private let store = FontStore.shared
 
     var body: some View {
         NavigationStack {
             List {
-                ForEach(FontChoice.all) { choice in
-                    Section(choice.title) {
-                        FontPackageRow(package: choice.apple)
-                        FontPackageRow(package: choice.open)
+                Section {
+                    ForEach(FontChoice.all) { choice in
+                        NavigationLink {
+                            FontChoiceScreen(choice: choice)
+                        } label: {
+                            FontChoiceSummary(choice: choice)
+                        }
+                        .accessibilityIdentifier("font-role-" + choice.id)
                     }
                 }
-                Section("Supporting Faces") {
-                    ForEach(FontChoice.supporting) { FontPackageRow(package: $0) }
+                Section {
+                    NavigationLink("Supporting Fonts") { SupportingFontsScreen() }
+                        .accessibilityIdentifier("font-supporting")
                 }
             }
-            .animation(.smooth, value: store.preferredOpen)
             .scrollEdgeEffectStyle(.soft, for: .top)
             .navigationTitle("Fonts")
             .navigationBarTitleDisplayMode(.inline)
@@ -35,116 +38,226 @@ struct FontStoreView: View {
     }
 }
 
-struct FontPackageRow: View {
-    let package: FontPackage
-    /// Offers Use on a downloaded face its role doesn't use.
-    var allowsChoosing = true
+private struct FontChoiceSummary: View {
+    let choice: FontChoice
+    @ScaledMetric(relativeTo: .body) private var glyphSize = 28
     private let store = FontStore.shared
 
-    private enum Usage: Equatable {
-        case inUse
-        /// Downloaded, but the named package is used instead.
-        case unused(String)
-        case standalone
+    var body: some View {
+        let active = store.active(choice)
+        HStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(choice.title).font(.body)
+                Text(active?.name ?? "System fallback")
+                    .font(.subheadline).foregroundStyle(.secondary)
+            }
+            .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
+            Text("霞")
+                .font(active.map { .custom($0.postScriptNames[0], fixedSize: glyphSize) }
+                    ?? .system(size: glyphSize))
+                .frame(width: glyphSize * 1.3, height: glyphSize * 1.5)
+                .accessibilityHidden(true)
+        }
+        .padding(.vertical, 4)
     }
+}
 
-    private var usage: Usage {
-        if let choice = FontChoice.containing(package) {
-            guard let active = store.active(choice) else { return .standalone }
-            return active.id == package.id ? .inUse : .unused(active.name)
-        }
-        // Supporting faces only pair with Songti SC.
-        if let simplified = FontChoice.all.first, let active = store.active(simplified),
-            active.id != simplified.apple.id
-        {
-            return .unused(active.name)
-        }
-        return .standalone
+private struct FontChoiceScreen: View {
+    let choice: FontChoice
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    private let store = FontStore.shared
+
+    private var sample: String {
+        choice.id == "traditional" ? "霞光與晨霧，落筆成章。" : "霞光与晨雾，落笔成章。"
     }
 
     var body: some View {
-        let state = store.state(package)
-        HStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 3) {
-                Text(package.name).font(.body)
-                if state == .installed, let face = package.postScriptNames.first {
-                    Text(package.sample).font(.custom(face, size: 17))
-                        .accessibilityHidden(true)
-                        .transition(.blurReplace)
+        ScrollView {
+            VStack(spacing: 12) {
+                ForEach([choice.apple, choice.open]) { package in
+                    let selected = store.active(choice)?.id == package.id
+                    FontPackageRow(package: package, sample: sample, contentInset: 16)
+                        .background(
+                            Color(uiColor: .secondarySystemGroupedBackground),
+                            in: RoundedRectangle(cornerRadius: 16))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 16)
+                                .strokeBorder(
+                                    selected ? Color.accentColor : Color(uiColor: .separator).opacity(0.3),
+                                    lineWidth: selected ? 1.5 : 0.5)
+                                .animation(
+                                    reduceMotion ? nil : .easeInOut(duration: 0.22), value: selected)
+                        }
                 }
-                Text(detail(state)).font(.footnote)
-                    .foregroundStyle(state.isFailure ? AnyShapeStyle(.red) : AnyShapeStyle(.secondary))
             }
-            Spacer(minLength: 8)
-            control(state)
-                .transition(.scale(scale: 0.5).combined(with: .opacity))
+            .padding(20)
         }
-        .padding(.vertical, 2)
-        // Animates state changes, not every progress tick.
-        .animation(.smooth, value: state.phase)
-        .animation(.smooth, value: usage)
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("font-" + package.id)
-        .swipeActions {
-            if !package.isApple, state == .installed {
-                Button("Remove", role: .destructive) { store.remove(package) }
+        .background(Color(uiColor: .systemGroupedBackground))
+        .scrollBounceBehavior(.basedOnSize)
+        .scrollEdgeEffectStyle(.soft, for: .top)
+        .navigationTitle(choice.title)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Menu {
+                    if store.state(choice.open) == .installed {
+                        Button("Remove Download", systemImage: "trash", role: .destructive) {
+                            store.remove(choice.open)
+                        }
+                    }
+                    if case .open(_, let license, let url) = choice.open.source {
+                        Link(destination: url) {
+                            Label(license, systemImage: "arrow.up.right")
+                        }
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                }
+                .accessibilityLabel("Manage \(choice.open.name)")
+                .accessibilityIdentifier("font-more-" + choice.open.id)
             }
         }
     }
 
-    private func detail(_ state: FontStore.State) -> String {
-        var parts = [package.role]
-        if let bytes = package.byteCount, state != .installed {
-            parts.append(bytes.formatted(.byteCount(style: .file)))
+}
+
+private struct SupportingFontsScreen: View {
+    var body: some View {
+        List {
+            Section {
+                ForEach(FontChoice.supporting) { FontPackageRow(package: $0) }
+            }
         }
-        if case .failed(let message) = state { parts = [message] }
-        if state == .installed, case .unused(let other) = usage {
-            parts = ["Downloaded · \(other) is in use"]
-        }
-        return parts.joined(separator: " · ")
+        .scrollEdgeEffectStyle(.soft, for: .top)
+        .navigationTitle("Supporting Fonts")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+struct FontPackageRow: View {
+    let package: FontPackage
+    var sample: String? = nil
+    var contentInset: CGFloat = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @ScaledMetric(relativeTo: .body) private var specimenSize = 24
+    private let store = FontStore.shared
+
+    private var selected: Bool {
+        guard let choice = FontChoice.containing(package) else { return false }
+        return store.active(choice)?.id == package.id
     }
 
-    @ViewBuilder private func control(_ state: FontStore.State) -> some View {
+    private var selectable: Bool { FontChoice.containing(package) != nil }
+    private var animation: Animation? { reduceMotion ? nil : .easeInOut(duration: 0.22) }
+
+    var body: some View {
+        let state = store.state(package)
+        let installed = state == .installed
+        let usage = FontChoice.containing(package)?.apple.role ?? package.role
+        let label: String
+        let identifier: String
         switch state {
         case .installed:
-            switch usage {
-            case .inUse:
-                Text("In Use").font(.footnote.weight(.semibold)).foregroundStyle(.green)
-                    .padding(.horizontal, 10).padding(.vertical, 5)
-                    .background(.green.opacity(0.15), in: Capsule())
-                    .accessibilityIdentifier("font-in-use-" + package.id)
-            case .unused where allowsChoosing && FontChoice.containing(package) != nil:
-                Button("Use") { store.use(package) }
-                    .buttonStyle(.bordered).buttonBorderShape(.capsule)
-                    .accessibilityIdentifier("font-use-" + package.id)
-            case .unused:
-                Image(systemName: "checkmark.circle").foregroundStyle(.secondary)
-                    .accessibilityLabel("Downloaded, not in use")
-            case .standalone:
-                Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
-                    .accessibilityLabel("Installed")
-            }
-        case .downloading(let fraction):
-            Button {
-                store.cancel(package)
-            } label: {
-                ZStack {
-                    if fraction > 0 {
-                        ProgressView(value: fraction).progressViewStyle(.circular)
-                            .animation(.linear(duration: 0.15), value: fraction)
-                    } else {
-                        ProgressView()
-                    }
-                }
-                .frame(width: 28, height: 28)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Downloading, \(Int(fraction * 100)) percent. Cancel")
-        case .missing, .failed:
-            Button(state.isFailure ? "Retry" : "Get") { store.install(package) }
-                .buttonStyle(.bordered).buttonBorderShape(.capsule)
-                .accessibilityIdentifier("font-get-" + package.id)
+            label = selectable
+                ? (selected ? "\(package.name), selected" : "Use \(package.name)")
+                : "\(package.name), downloaded"
+            identifier = selected ? "font-in-use-" : "font-use-"
+        case .downloading(let value):
+            label = "Cancel \(package.name) download, \(Int(value * 100)) percent"
+            identifier = "font-cancel-"
+        case .missing:
+            label = "Download \(package.name)"
+            identifier = "font-get-"
+        case .failed(let message):
+            label = "Retry downloading \(package.name). \(message)"
+            identifier = "font-get-"
         }
+        return Button {
+            switch state {
+            case .installed:
+                if selectable { withAnimation(animation) { store.use(package) } }
+            case .downloading: store.cancel(package)
+            case .missing, .failed: store.install(package)
+            }
+        } label: {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(alignment: .top, spacing: 16) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(package.name).font(.body.weight(.semibold))
+                            .fixedSize(horizontal: false, vertical: true)
+                        Text(source).font(.caption).foregroundStyle(.secondary)
+                    }
+                    Spacer(minLength: 0)
+                    indicator(state).frame(width: 28, height: 28)
+                }
+                Text(usage).font(.footnote).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                ZStack(alignment: .leading) {
+                    Text(sample ?? package.sample)
+                        .font(.system(size: specimenSize, design: .serif))
+                        .foregroundStyle(.tertiary)
+                        .opacity(installed ? 0 : 1)
+                    Text(sample ?? package.sample)
+                        .font(installed
+                            ? .custom(package.postScriptNames[0], fixedSize: specimenSize)
+                            : .system(size: specimenSize, design: .serif))
+                        .foregroundStyle(.primary)
+                        .opacity(installed ? 1 : 0)
+                }
+                .lineLimit(1).minimumScaleFactor(0.6)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(height: specimenSize * 1.6, alignment: .leading)
+                .animation(animation, value: installed)
+                if case .failed(let message) = state {
+                    Text(message).font(.footnote).foregroundStyle(.red)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .foregroundStyle(.primary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(contentInset)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .allowsHitTesting(!installed || selectable)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(label)
+        .accessibilityValue(usage)
+        .accessibilityAddTraits(!installed || selectable ? .isButton : [])
+        .accessibilityAddTraits(selected && selectable ? .isSelected : [])
+        .accessibilityRemoveTraits(installed && !selectable ? .isButton : [])
+        .accessibilityIdentifier(identifier + package.id)
+    }
+
+    private var source: String {
+        if package.isApple { return "Apple" }
+        let size = package.byteCount.map { $0.formatted(.byteCount(style: .file)) }
+        return ["Open source", size].compactMap { $0 }.joined(separator: " · ")
+    }
+
+    private func indicator(_ state: FontStore.State) -> some View {
+        let installed = state == .installed
+        let downloading = if case .downloading = state { true } else { false }
+        return ZStack {
+            Image(systemName: "checkmark.circle.fill").foregroundStyle(Color.accentColor)
+                .opacity(installed && selected && selectable ? 1 : 0)
+            Image(systemName: "circle").foregroundStyle(.tertiary)
+                .opacity(installed && !selected && selectable ? 1 : 0)
+            Image(systemName: "checkmark.circle").foregroundStyle(.secondary)
+                .opacity(installed && !selectable ? 1 : 0)
+            Image(systemName: "arrow.down.circle").foregroundStyle(Color.accentColor)
+                .opacity(state == .missing ? 1 : 0)
+            Image(systemName: "arrow.clockwise.circle").foregroundStyle(Color.accentColor)
+                .opacity(state.isFailure ? 1 : 0)
+            ZStack {
+                if downloading { ProgressView() }
+            }
+            .opacity(downloading ? 1 : 0)
+        }
+        .font(.system(size: 22))
+        .animation(animation, value: selected)
+        .animation(animation, value: state.phase)
     }
 }
 

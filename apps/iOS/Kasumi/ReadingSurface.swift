@@ -32,6 +32,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
     private let content = UIView()
     private var page: ReaderPageView?
     private var rendered: RenderedDocument?
+    private var transitionOverlay: UIView?
     private let openingIndicator = UIActivityIndicatorView(style: .medium)
     private var document: MarkdownDocument?
     private var revision: UUID?
@@ -163,15 +164,49 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
                 // A user can continue scrolling during the build; prefer the
                 // latest old-snapshot anchor over the one captured at kickoff.
                 let latest = self.rendered?.readingAnchor(atY: self.topY) ?? anchor
-                self.install(next, restoring: latest)
+                let rect = self.visibleRect(in: next, restoring: latest)
+                let scale = max(1, self.traitCollection.displayScale)
+                // CATiledLayer paints asynchronously. Seed only the viewport,
+                // off the main actor, so swapping pages never exposes empty tiles.
+                let painter = Task.detached(priority: .userInitiated) {
+                    try Task.checkCancellation()
+                    let image = ReaderPageView.preview(next, rect: rect, scale: scale)
+                    try Task.checkCancellation()
+                    return image
+                }
+                let preview = try await withTaskCancellationHandler {
+                    try await painter.value
+                } onCancel: {
+                    painter.cancel()
+                }
+                guard !Task.isCancelled, self.generation == token else { return }
+                let current = self.rendered?.readingAnchor(atY: self.topY) ?? latest
+                self.install(next, restoring: current, preview: preview, previewRect: rect)
             } catch { /* Cancellation leaves the previous snapshot visible. */  }
         }
     }
 
-    private func install(_ next: RenderedDocument, restoring anchor: ReadingAnchor?) {
+    private func visibleRect(in next: RenderedDocument, restoring anchor: ReadingAnchor?) -> CGRect {
+        let y = anchor.flatMap { next.y(for: $0) } ?? 0
+        let minimum = -adjustedContentInset.top
+        let maximum = max(minimum, next.size.height - bounds.height + adjustedContentInset.bottom)
+        let offset = min(maximum, max(minimum, y - adjustedContentInset.top))
+        return CGRect(x: 0, y: max(0, offset), width: next.size.width, height: bounds.height)
+            .intersection(CGRect(origin: .zero, size: next.size))
+    }
+
+    private func install(
+        _ next: RenderedDocument, restoring anchor: ReadingAnchor?, preview: CGImage?, previewRect: CGRect
+    ) {
         adjusting = true
         let firstLayout = rendered == nil
-        let nextPage = ReaderPageView(rendered: next, scale: max(1, traitCollection.displayScale))
+        let animate = !UIAccessibility.isReduceMotionEnabled && window != nil
+        let overlay = !firstLayout && animate
+            ? content.resizableSnapshotView(from: bounds, afterScreenUpdates: false, withCapInsets: .zero) : nil
+        transitionOverlay?.removeFromSuperview()
+        transitionOverlay = overlay
+        let nextPage = ReaderPageView(
+            rendered: next, scale: max(1, traitCollection.displayScale), preview: preview, previewRect: previewRect)
         content.addSubview(nextPage)
         page?.removeFromSuperview()
         rendered = next
@@ -187,7 +222,18 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
         adjusting = false
         jumpIfNeeded()
         openingIndicator.stopAnimating()
-        if firstLayout, !UIAccessibility.isReduceMotionEnabled {
+        if let overlay {
+            overlay.frame = bounds
+            overlay.isUserInteractionEnabled = false
+            overlay.accessibilityElementsHidden = true
+            content.addSubview(overlay)
+            UIView.animate(withDuration: 0.22, delay: 0, options: [.beginFromCurrentState, .curveEaseInOut]) {
+                overlay.alpha = 0
+            } completion: { [weak self] _ in
+                overlay.removeFromSuperview()
+                if self?.transitionOverlay === overlay { self?.transitionOverlay = nil }
+            }
+        } else if firstLayout, animate {
             nextPage.alpha = 0
             UIView.animate(withDuration: 0.18, delay: 0, options: [.beginFromCurrentState, .curveEaseOut]) {
                 nextPage.alpha = 1
@@ -232,6 +278,8 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
     func finish() {
         viewport?.flush()
         layoutTask?.cancel()
+        transitionOverlay?.removeFromSuperview()
+        transitionOverlay = nil
     }
 
     @objc private func tapped(_ gesture: UITapGestureRecognizer) {
@@ -256,11 +304,18 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIGestureRecog
 }
 
 fileprivate final class ReaderPageView: UIView {
-    init(rendered: RenderedDocument, scale: CGFloat) {
+    init(rendered: RenderedDocument, scale: CGFloat, preview: CGImage?, previewRect: CGRect) {
         super.init(frame: CGRect(origin: .zero, size: rendered.size))
         layer.anchorPoint = .zero
         layer.position = .zero
         backgroundColor = UIColor(cgColor: rendered.backgroundColor)
+        if let preview {
+            let seed = CALayer()
+            seed.frame = previewRect
+            seed.contents = preview
+            seed.contentsScale = scale
+            layer.addSublayer(seed)
+        }
         let tiles = ReaderTileLayer(rendered: rendered)
         tiles.frame = bounds
         tiles.contentsScale = scale
@@ -270,6 +325,17 @@ fileprivate final class ReaderPageView: UIView {
         accessibilityLabel = rendered.text(in: rendered.documentRange)
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    nonisolated static func preview(_ rendered: RenderedDocument, rect: CGRect, scale: CGFloat) -> CGImage? {
+        guard !rect.isNull, !rect.isEmpty else { return nil }
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = scale
+        format.opaque = true
+        return UIGraphicsImageRenderer(size: rect.size, format: format).image { context in
+            context.cgContext.translateBy(x: -rect.minX, y: -rect.minY)
+            rendered.draw(in: context.cgContext, rect: rect)
+        }.cgImage
+    }
 }
 
 fileprivate final class ReaderTileLayer: CATiledLayer {

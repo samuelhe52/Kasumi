@@ -26,8 +26,6 @@ struct FontPackage: Identifiable, Hashable, Sendable {
     /// What the reader uses the face for.
     let role: String
     let source: Source
-    /// The open package downloaded when this Apple package can't be.
-    let fallbackID: String?
     /// Offered by onboarding.
     let recommended: Bool
 
@@ -84,28 +82,28 @@ extension FontPackage {
         .init(
             id: "songti-sc", name: "Songti SC", sample: "宋体 霞光与晨雾", role: "Simplified Chinese body text",
             source: .apple(postScriptNames: ["STSongti-SC-Regular", "STSongti-SC-Bold", "STSongti-SC-Black"]),
-            fallbackID: "noto-serif-sc", recommended: true),
+            recommended: true),
         .init(
             id: "simsong", name: "SimSong", sample: "，。、「」《》", role: "Punctuation in Songti SC text",
-            source: .apple(postScriptNames: ["SimSong-Regular", "SimSong-Bold"]),
-            fallbackID: nil, recommended: true),
+            source: .apple(postScriptNames: ["SimSong-Regular", "SimSong-Bold"]), recommended: true),
         .init(
             id: "kaiti-sc", name: "Kaiti SC", sample: "楷体 霞光与晨雾", role: "Emphasis in Chinese text",
-            source: .apple(postScriptNames: ["STKaitiSC-Regular", "STKaitiSC-Bold"]),
-            fallbackID: "lxgw-wenkai-lite", recommended: true),
+            source: .apple(postScriptNames: ["STKaitiSC-Regular", "STKaitiSC-Bold"]), recommended: true),
         .init(
             id: "fangsong", name: "STFangsong", sample: "仿宋 霞光与晨雾", role: "Fangsong emphasis with Songti SC",
-            source: .apple(postScriptNames: ["STFangsong"]), fallbackID: nil, recommended: true),
+            source: .apple(postScriptNames: ["STFangsong"]), recommended: true),
         .init(
             id: "heiti", name: "STHeiti", sample: "黑体 霞光与晨雾", role: "Xihei emphasis and Hei bold with Songti SC",
-            source: .apple(postScriptNames: ["STXihei", "STHeiti"]), fallbackID: nil, recommended: true),
+            source: .apple(postScriptNames: ["STXihei", "STHeiti"]), recommended: true),
         .init(
             id: "songti-tc", name: "Songti TC", sample: "宋體 霞光與晨霧", role: "Traditional Chinese body text",
-            source: .apple(postScriptNames: ["STSongti-TC-Regular", "STSongti-TC-Bold"]),
-            fallbackID: "noto-serif-tc", recommended: true)
+            source: .apple(postScriptNames: ["STSongti-TC-Regular", "STSongti-TC-Bold"]), recommended: true)
     ]
 
-    private static let ofl = URL(string: "https://openfontlicense.org")!
+    private static let notoLicense = URL(
+        string: "https://raw.githubusercontent.com/notofonts/noto-cjk/Serif2.003/Serif/LICENSE")!
+    private static let wenKaiLicense = URL(
+        string: "https://raw.githubusercontent.com/lxgw/LxgwWenKai-Lite/v1.530/OFL.txt")!
 
     // Noto CJK tag Serif2.003 (SubsetOTF) and LXGW WenKai Lite v1.530, fetched
     // and checksummed on 2026-11-16.
@@ -138,8 +136,8 @@ extension FontPackage {
                     noto(
                         "SC", "Bold", bytes: 12_094_336,
                         sha256: "24693d48bdb9152f0a06b02af625638a1097abd6de4010ebba027f6e82710527")
-                ], license: "SIL Open Font License 1.1", licenseURL: ofl),
-            fallbackID: nil, recommended: false),
+                ], license: "SIL Open Font License 1.1", licenseURL: notoLicense),
+            recommended: false),
         .init(
             id: "noto-serif-tc", name: "Noto Serif TC", sample: "思源宋體 霞光與晨霧",
             role: "Open alternative to Songti TC",
@@ -151,8 +149,8 @@ extension FontPackage {
                     noto(
                         "TC", "Bold", bytes: 8_253_304,
                         sha256: "3ca2b3294ec84b795d0a45695e78e3612a44dce50f9fc776cd40206340a5768d")
-                ], license: "SIL Open Font License 1.1", licenseURL: ofl),
-            fallbackID: nil, recommended: false),
+                ], license: "SIL Open Font License 1.1", licenseURL: notoLicense),
+            recommended: false),
         .init(
             id: "lxgw-wenkai-lite", name: "LXGW WenKai Lite", sample: "霞鹜文楷 霞光与晨雾",
             role: "Open alternative to Kaiti SC",
@@ -164,7 +162,7 @@ extension FontPackage {
                     wenKai(
                         "Medium", bytes: 13_801_408,
                         sha256: "9282063131640c9558a102560cf6d6f8ecc4bb441e74f2bcff032ce4786238d0")
-                ], license: "SIL Open Font License 1.1", licenseURL: ofl),
-            fallbackID: nil, recommended: false)
+                ], license: "SIL Open Font License 1.1", licenseURL: wenKaiLicense),
+            recommended: false)
     ]
 }
