@@ -67,6 +67,10 @@ targets.
   `-KasumiFailAppleFonts YES -onboarding.fonts-offered NO` (debug builds). The
   appearance sheet's toolbar buttons are missing from `sim-use ui`; tap the Fonts
   button by coordinates. See [005](../docs-ai/005-cjk-font-availability/001-action.md).
+  To see the first-run font offer again on a device, run `make run-device
+  ONBOARDING=reset`. It passes `-onboarding.fonts-offered NO` for that launch only.
+  The offer also needs at least one recommended Apple face still missing, and
+  iOS keeps downloaded faces system-wide, so it won't appear once they're installed.
 - **Open a file at launch (debug builds only).** Pass `-KasumiOpen <path>` to skip
   the launch scene. The file is copied into the app's `Documents/Debug/`
   (replacing an earlier copy) and opened through the document browser, so

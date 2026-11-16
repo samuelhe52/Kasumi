@@ -16,6 +16,11 @@ DEVICE_APP_PATH = $(DERIVED_DATA)/Build/Products/$(CONFIGURATION)-iphoneos/$(APP
 # DEVELOPMENT_TEAM=<team ID> sets the signing team when the project has none.
 DEVICE ?=
 DEVELOPMENT_TEAM ?=
+# ONBOARDING=reset shows the first-run font offer again on this launch. It passes
+# -onboarding.fonts-offered NO for that launch only; the stored flag is untouched,
+# so a plain run-device afterwards doesn't show the offer.
+ONBOARDING ?=
+ONBOARDING_ARGS = $(if $(filter reset,$(ONBOARDING)),-- -onboarding.fonts-offered NO)
 DEVICE_PROBE = xcrun xcdevice list | /usr/bin/python3 -c 'import json, sys; interface = {"usb": 0, "network": 1}; devices = [device for device in json.load(sys.stdin) if device.get("platform") == "com.apple.platform.iphoneos" and device.get("available") and not device.get("simulator")]; devices.sort(key=lambda device: (interface.get(device.get("interface"), 2), not device.get("modelCode", "").startswith("iPhone"), device.get("identifier", ""))); print(devices[0]["identifier"] if devices else "")'
 # Narrow `make test` to matching tests, e.g. `make test FILTER=ParagraphTests`.
 FILTER ?=
@@ -65,7 +70,7 @@ run-sim: native ## Build, install, and launch on the booted simulator
 		-derivedDataPath $(DERIVED_DATA) build
 	@$(MAKE) --no-print-directory launch-sim
 
-run-device: native ## Build, install, and launch on a connected iPhone or iPad (DEVICE=<UDID> to choose)
+run-device: native ## Build, install, and launch on a connected iPhone or iPad (DEVICE=<UDID> to choose, ONBOARDING=reset to show first-run onboarding)
 	@device="$(DEVICE)"; \
 	[ -n "$$device" ] || device=$$($(DEVICE_PROBE)); \
 	[ -n "$$device" ] || { echo "No connected iPhone found."; exit 1; }; \
@@ -75,7 +80,7 @@ run-device: native ## Build, install, and launch on a connected iPhone or iPad (
 		-derivedDataPath $(DERIVED_DATA) -allowProvisioningUpdates \
 		$(if $(strip $(DEVELOPMENT_TEAM)),DEVELOPMENT_TEAM=$(DEVELOPMENT_TEAM)) build && \
 	xcrun devicectl device install app --device "$$device" "$(DEVICE_APP_PATH)" && \
-	xcrun devicectl device process launch --terminate-existing --device "$$device" $(BUNDLE_ID)
+	xcrun devicectl device process launch --terminate-existing --device "$$device" $(BUNDLE_ID) $(ONBOARDING_ARGS)
 
 launch-sim: ## Install and launch the last built app on the booted simulator, without building
 	@udid=$$(xcrun simctl list devices booted | grep -oE '[0-9A-F]{8}(-[0-9A-F]{4}){3}-[0-9A-F]{12}' | head -1); \
