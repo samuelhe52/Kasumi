@@ -99,6 +99,7 @@ struct AppearanceSettings: View {
             .background(.fill.tertiary, in: Capsule())
         }
         .tint(.primary)
+        .menuActionDismissBehavior(.disabled)
         .accessibilityLabel("Typography, \(appearance.preset.name)")
     }
 
