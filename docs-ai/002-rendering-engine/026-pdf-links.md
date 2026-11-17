@@ -24,7 +24,8 @@ have no annotation. The page clip and transform cover continuation-header
 space, margins, and scaling of oversized content.
 
 The PDFKit test checks cross-page wrapping, relative URLs, bidi text, heading
-and footnote destinations, and clipping with a page header.
+and footnote destinations, and clipping with a page header. Diagram node
+annotations reuse this pass. See [002.027](027-diagram-interactions.md).
 
 On the iPhone 18 Pro simulator running iOS 27.2, Preview exposed Markdown
 and diagram annotations as links in a PDF created by the reader's Export

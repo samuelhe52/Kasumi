@@ -249,7 +249,7 @@ import Testing
                 let b = try tablePixels(full, rect: region)
                 #expect(a == b)
             }
-            for query in ["wide", "x^2+1", "graph LR"] {
+            for query in ["wide", "x^2+1", "Start"] {
                 let match = try #require(full.ranges(matching: query).first)
                 let target = try #require(full.readingAnchor(at: match.lowerBound))
                 let revealed = RenderedDocument(

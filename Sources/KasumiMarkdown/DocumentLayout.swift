@@ -69,6 +69,7 @@ struct DocumentLayout {
     var tables: [RenderedTable] = []
     var codeBlocks: [CodeBlockLayout] = []
     var semanticContent: DocumentSemanticContent? = nil
+    var diagrams: [Int: PlacedDiagram] = [:]
 }
 
 enum DocumentTypesetter {
@@ -142,6 +143,7 @@ enum DocumentTypesetter {
         var paginationGroups: [Range<CGFloat>] = []
         var tables: [RenderedTable] = []
         var codeBlocks: [CodeBlockLayout] = []
+        var diagrams: [Int: PlacedDiagram] = [:]
         var paragraphValues = style.profileValues
         paragraphValues[.hangingPunctuation] = .flag(style.hangingPunctuation)
         paragraphValues[.autoRaggedNarrow] = .flag(style.narrowMeasureRagged)
@@ -243,6 +245,10 @@ enum DocumentTypesetter {
                     guard let diagram = value as? MermaidAttachment else { return }
                     let top = y + line.origin.y - diagram.size.height
                     paginationGroups.append(top..<(top + diagram.size.height))
+                    let left = x + line.origin.x + line.offset(forStringIndex: range.location)
+                    diagrams[index] = PlacedDiagram(
+                        attachment: diagram, topLeft: CGPoint(x: left, y: top),
+                        renderedOffset: offset + range.location)
                 }
             }
             return paragraph.height
@@ -543,7 +549,7 @@ enum DocumentTypesetter {
             textMap: textMap,
             paragraphs: paragraphs, backgrounds: backgrounds, rules: rules, headingPositions: headings,
             anchorPositions: anchors, imageBounds: imageBounds, paginationGroups: paginationGroups, tables: tables,
-            codeBlocks: codeBlocks, semanticContent: semantic)
+            codeBlocks: codeBlocks, semanticContent: semantic, diagrams: diagrams)
     }
 
     static func anchorSlug(_ text: String) -> String {
@@ -601,7 +607,7 @@ enum DocumentTypesetter {
             context.addLine(to: rule.end)
             context.strokePath()
         }
-        for item in layout.paragraphs where include(item.tableIndex) {
+        for (index, item) in layout.paragraphs.enumerated() where include(item.tableIndex) {
             context.saveGState()
             defer { context.restoreGState() }
             clipTable(item.tableIndex)
@@ -620,6 +626,11 @@ enum DocumentTypesetter {
                 ).insetBy(dx: -max(4, line.ascent), dy: -4)
                 guard ink.intersects(clip) else { continue }
                 if let pdfLinks {
+                    if let diagram = layout.diagrams[index] {
+                        for link in diagram.linkRects {
+                            pdfLinks.write(link.target, rect: link.rect, clip: clip, in: context)
+                        }
+                    }
                     let attributed = item.paragraph.attributed
                     attributed.enumerateAttribute(.link, in: line.range) { value, range, _ in
                         guard let value else { return }

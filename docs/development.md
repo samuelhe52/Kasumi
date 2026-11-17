@@ -145,9 +145,10 @@ Run the narrowest filter: `make test FILTER=<name>` for package tests and
   reader size or preset changes at a scrolled position. Cards must not move during
   selection. See [005.002](../docs-ai/005-cjk-font-availability/002-font-management-transitions.md).
 
-- **PDF links.** Use the PDF link annotation test in `Tests/KasumiMarkdownTests/`
-  to check page geometry. Open the exported PDF in Preview to check an
-  internal destination.
+- **PDF links and diagrams.** Use the PDF link annotation and Mermaid export
+  tests in `Tests/KasumiMarkdownTests/` for page and hit geometry. In the
+  simulator, tap a linked node, long-press its label, and open the exported
+  PDF in Preview to check an internal destination.
 
 ## Third-party notices
 

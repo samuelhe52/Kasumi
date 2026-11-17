@@ -29,8 +29,9 @@ that fixes it; add one when a limitation is found and not fixed.
   is recognized only when `\[` opens a line and `\]` ends one, so mid-line
   `\[x\]` stays an escaped bracket, while a line wrapped in escaped brackets
   becomes math; `\(...\)` can't span lines.
-- Diagrams: no rich HTML labels; syntax outside the tested corpus may be
-  rejected; no links or selection inside diagrams.
+- Diagrams: rich HTML labels and sequence actor link menus are unsupported.
+  Rendered labels support selection and Find. Flowchart and class nodes
+  support URL links. See [diagram interactions](027-diagram-interactions.md).
 - Tables: document-based exports fit every column to the page and may still wrap
   heavily at very narrow widths. Compact tables are centered; overflowing reader
   tables start at the left edge of the reading measure. Snapshot image exports

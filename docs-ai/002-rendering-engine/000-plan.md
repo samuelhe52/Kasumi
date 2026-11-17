@@ -119,3 +119,4 @@ Library tests pass on macOS and the iOS simulator, including comparisons against
 - Updated 2026-11-17: Compact prepared geometry, release reusable break items, and bound paint retention — see [024-compact-idle-preparation.md](024-compact-idle-preparation.md).
 
 - Updated 2026-11-18: Preserve clickable links through PDF pagination. See [026-pdf-links.md](026-pdf-links.md).
+- Updated 2026-11-18: Expose diagram label selection and node links. See [027-diagram-interactions.md](027-diagram-interactions.md).
