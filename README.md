@@ -67,7 +67,7 @@ make run-device  # build and run on a connected iPhone or iPad
 Add KasumiMarkdown to your `Package.swift` dependencies:
 
 ```swift
-.package(url: "https://github.com/OWNER/Kasumi.git", from: "VERSION")
+.package(url: "https://github.com/samuelhe52/Kasumi.git", from: "<latest release>")
 ```
 
 Render a document into any `CGContext`:
