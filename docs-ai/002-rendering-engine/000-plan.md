@@ -87,3 +87,7 @@ Library tests pass on macOS and the iOS simulator, including comparisons against
 
 - Updated 2026-11-17: Implement configurable code-block styles and reader-owned controls
   — see [008-code-block-style-boundary.md](008-code-block-style-boundary.md).
+
+- Updated 2026-11-17: Expose dictionary selection, retain Liang mixed-case matching,
+  and remove unsupported subscript-shift customization; see
+  [002.009](009-hyphenation-and-defaults.md).

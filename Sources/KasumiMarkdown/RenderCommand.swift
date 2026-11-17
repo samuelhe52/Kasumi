@@ -10,6 +10,7 @@ package enum RenderCommand {
         _ = await DocumentImageStore.shared.preload(document)
         var style = Typography()
         var width = 800.0
+        var hyphenationLanguage: String?
         var index = 3
         enum ArgumentError: LocalizedError {
             case invalid(String)
@@ -34,12 +35,17 @@ package enum RenderCommand {
                 width = value
                 continue
             }
-            guard ["--preset", "--profile", "--theme", "--code-radius"].contains(argument), index < arguments.count else {
+            guard ["--preset", "--profile", "--theme", "--code-radius", "--hyphenation-language"].contains(argument), index < arguments.count else {
                 throw ArgumentError.invalid("Unknown or incomplete option: \(argument)")
             }
             let value = arguments[index]
             index += 1
             switch argument {
+            case "--hyphenation-language":
+                guard ProfileField.hyphenationLanguage.specification.choices.contains(value) else {
+                    throw ArgumentError.invalid("Unsupported hyphenation language: \(value)")
+                }
+                hyphenationLanguage = value
             case "--code-radius":
                 guard let radius = Double(value), radius.isFinite, radius >= 0 else {
                     throw ArgumentError.invalid("Invalid code corner radius: \(value)")
@@ -62,6 +68,9 @@ package enum RenderCommand {
                 style.dark = theme.dark
                 if theme.dark { style.darkThemeID = theme.id } else { style.lightThemeID = theme.id }
             }
+        }
+        if let hyphenationLanguage {
+            style = style.applying(style.profileValues.merging(ProfileValues([.hyphenationLanguage: .string(hyphenationLanguage)])))
         }
         let output = URL(fileURLWithPath: arguments[2])
         if output.pathExtension.lowercased() == "pdf" {

@@ -11,6 +11,40 @@ fileprivate struct HyphenationNativeWord: Decodable {
 }
 
 @Suite struct HyphenationTests {
+    @Test func publicPresetSelectsDictionaryWithoutChangingSemanticText() throws {
+        let source = String(repeating: "internationalisation extraordinaire constitution ", count: 6)
+        let document = MarkdownDocument(markdown: source)
+        let french = try TypographyPreset(id: "fr", name: "French", toml: "[profile]\nhyphenation_language = \"fr\"")
+        let automatic = try TypographyPreset(id: "auto", name: "Automatic", toml: "[profile]\n")
+        var differs = false
+        for width in stride(from: 100, through: 220, by: 20) {
+            let baseline = RenderedDocument(document, width: CGFloat(width), style: RenderStyle(preset: automatic, insets: .zero))
+            let selected = RenderedDocument(document, width: CGFloat(width), style: RenderStyle(preset: french, insets: .zero))
+            #expect(selected.text(in: selected.documentRange) == baseline.text(in: baseline.documentRange))
+            differs = differs || selected.size.height != baseline.size.height
+                || selected.selectionRects(for: selected.documentRange) != baseline.selectionRects(for: baseline.documentRange)
+        }
+        #expect(differs, "Selecting French must reach actual paragraph layout")
+        #expect(ProfileField.hyphenationLanguage.specification.choices.count == 16)
+        for tag in ProfileField.hyphenationLanguage.specification.choices {
+            let values = try ProfileValues.parse("[profile]\nhyphenation_language = \"\(tag)\"")
+            #expect(ParagraphProfileOptions(values: values).hyphenationLanguage == tag)
+        }
+        #expect(ParagraphHyphenation.opportunities(in: "KasumiMarkdown") == ParagraphHyphenation.opportunities(in: "kasumimarkdown"))
+        #expect(ParagraphHyphenation.opportunities(in: "macOS") == ParagraphHyphenation.opportunities(in: "macos"))
+    }
+
+    @Test func cliAcceptsExplicitDictionaryAndRejectsUnknownLanguage() async throws {
+        let output = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".png")
+        defer { try? FileManager.default.removeItem(at: output) }
+        let input = testRepositoryURL.appendingPathComponent("fixtures/Profiles.md").path
+        _ = try await RenderCommand.run(["KasumiRender", input, output.path, "160", "--hyphenation-language", "fr"])
+        #expect(FileManager.default.fileExists(atPath: output.path))
+        await #expect(throws: (any Error).self) {
+            try await RenderCommand.run(["KasumiRender", input, output.path, "--hyphenation-language", "unknown"])
+        }
+    }
+
     @Test func frozenNativeWordsAcrossFifteenDictionaries() throws {
         let observations = #"""
             [

@@ -17,7 +17,7 @@ enum ProfileField: String, CaseIterable, Codable, Identifiable, Sendable {
     case interCjkNatural = "inter_cjk_natural"
     case scriptScale = "script_scale"
     case superscriptShift = "superscript_shift"
-    case subscriptShift = "subscript_shift"
+    case hyphenationLanguage = "hyphenation_language"
     case hanScale = "han_scale"
     case latinScale = "latin_scale"
     case codeScale = "code_scale"

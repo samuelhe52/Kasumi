@@ -37,7 +37,10 @@ the local toolchain without changing anything.
   symlink, which lets them run on the simulator.
 - `swift run KasumiRender <input> <output.png|jpg|jpeg|pdf> [width]` renders a
   document without launching the app. See its options for preset, theme, profile,
-  and dark.
+  and dark. `--hyphenation-language TAG` overrides the selected profile: `auto`
+  (US English on ASCII words), `en-us`, `en-gb`, `de-1996`, `fr`, `es`, `it`,
+  `pt`, `nl`, `sv`, `da`, `nb`, `fi`, `pl`, `cs`, or `ru`. Profiles expose the same
+  `hyphenation_language` choice; neither path performs language detection.
 - Launch scene: a `nil` title falls back to the app name, so the scene passes a
   one-space title and `LaunchLogotype` draws the wordmark. `titleViewFrame` spans
   everything above the browser sheet, not just the title.

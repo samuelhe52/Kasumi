@@ -56,7 +56,11 @@ Retained after milestone closure; not prerequisites for starting Reader 2:
   once its views settle ([003](003-public-rendering-api/000-plan.md)).
 - Distributable XCFrameworks so clients can depend on the repository by URL.
 - Bundle license notices into the app.
-- Standard TOML profile files.
+- Explicit profile/CLI hyphenation language selection — implemented 2026-11-17;
+  [002.009](002-rendering-engine/009-hyphenation-and-defaults.md). Mixed-case words
+  retain Liang pattern matching; math subscripts remain font-driven.
+- Standard TOML profile files and custom theme files — next, library/CLI only;
+  no legacy profile compatibility or new reader settings.
 - Known limitations: [renderer gaps](002-rendering-engine/renderer-gaps.md).
   Ligature-span and Han combining-mark width repairs shipped on 2026-11-16;
   see [002.002](002-rendering-engine/002-shaped-cluster-integrity.md).

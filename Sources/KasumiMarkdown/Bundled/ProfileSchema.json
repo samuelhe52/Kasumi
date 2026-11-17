@@ -252,15 +252,29 @@
     "step": null
   },
   {
-    "id": "subscript_shift",
-    "label": "Subscript shift",
-    "kind": "number",
-    "defaultValue": 0.24699999392032623,
-    "choices": [],
-    "parserRange": [
-      0.0,
-      1.0
+    "id": "hyphenation_language",
+    "label": "Hyphenation language",
+    "kind": "choice",
+    "defaultValue": "auto",
+    "choices": [
+      "auto",
+      "en-us",
+      "en-gb",
+      "de-1996",
+      "fr",
+      "es",
+      "it",
+      "pt",
+      "nl",
+      "sv",
+      "da",
+      "nb",
+      "fi",
+      "pl",
+      "cs",
+      "ru"
     ],
+    "parserRange": null,
     "guiRange": null,
     "step": null
   },

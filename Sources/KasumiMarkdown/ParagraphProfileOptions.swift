@@ -44,6 +44,7 @@ struct ParagraphProfileOptions: Equatable, Sendable {
         autoRaggedNarrow = values.resolved(.autoRaggedNarrow).flag ?? true
         autoRaggedMeasureEm = number(.autoRaggedMeasureEm)
         raggedCodeFraction = number(.raggedCodeFraction)
+        hyphenationLanguage = values.resolved(.hyphenationLanguage).string ?? "auto"
         codeCapsule = values.resolved(.codeCapsule).flag ?? false
         codeCapsulePad = number(.codeCapsulePad)
     }

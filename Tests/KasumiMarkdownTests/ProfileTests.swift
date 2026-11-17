@@ -80,7 +80,7 @@ fileprivate let nativeProfileFactories: [ProfileFactoryExpectation] = [
         .compactness: .number(0.5), .punctSqueeze: .number(0.5), .cjkLatinGap: .number(0.25),
         .interCjkStretch: .number(0.05), .interCjkShrink: .number(0.04), .interCjkNatural: .number(0),
         .scriptScale: .number(0.699999988079071), .superscriptShift: .number(0.3630000054836273),
-        .subscriptShift: .number(0.24699999392032623),
+        .hyphenationLanguage: .string("auto"),
         .hanScale: .number(1), .latinScale: .number(1), .codeScale: .number(1),
         .codeCapsulePad: .number(0.2), .codeCapsule: .flag(false), .tableStyle: .string("booktabs"),
         .raggedCodeFraction: .number(0.45), .hanBaseline: .number(0), .headingHanBaseline: .number(0),
@@ -115,9 +115,9 @@ fileprivate let nativeProfileFactories: [ProfileFactoryExpectation] = [
     ] { ranges[field] = 0...4 }
     for field: ProfileField in [
         .compactness, .punctSqueeze, .cjkLatinGap, .interCjkStretch, .interCjkShrink, .superscriptShift,
-        .subscriptShift, .raggedCodeFraction, .footnoteMarkSep
+        .raggedCodeFraction, .footnoteMarkSep
     ] { ranges[field] = 0...1 }
-    #expect(ranges.count == 33)
+    #expect(ranges.count == 32)
     for (field, range) in ranges {
         #expect(ProfileValues([field: .number(range.lowerBound - 10)])[field] == .number(range.lowerBound))
         #expect(ProfileValues([field: .number(range.upperBound + 10)])[field] == .number(range.upperBound))
