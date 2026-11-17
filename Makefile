@@ -26,12 +26,12 @@ DEVICE_PROBE = xcrun xcdevice list | /usr/bin/python3 -c 'import json, sys; inte
 FILTER ?=
 
 NATIVE_STAMP := .build/native/.stamp
-NATIVE_INPUTS := scripts/build-native \
+NATIVE_INPUTS := scripts/build-native rust-toolchain.toml \
 	$(shell find packages -type f \( -name Cargo.toml -o -name Cargo.lock -o -name '*.rs' \) \
 		-not -path '*/target/*' 2>/dev/null)
 
 .DEFAULT_GOAL := help
-.PHONY: help native build test test-ios app run-sim run-device launch-sim test-syntax-native syntax-notices render app-check check clean benchmark-typography
+.PHONY: help native native-local native-release build test test-ios app run-sim run-device launch-sim test-syntax-native syntax-notices render app-check app-check-sim check clean benchmark-typography
 
 help: ## List available targets
 	@awk 'BEGIN { FS = ":.*## " } /^[a-z-]+:.*## / { printf "  %-8s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
@@ -39,6 +39,12 @@ help: ## List available targets
 		"$(SIMULATOR)" "$(FILTER)" "$(DERIVED_DATA)"
 
 native: $(NATIVE_STAMP) ## Build the Rust XCFrameworks (only when inputs changed)
+
+native-local: native ## Select locally built native binaries for this checkout
+	@./scripts/native-mode local
+
+native-release: ## Select release binaries for this checkout
+	@./scripts/native-mode release
 
 $(NATIVE_STAMP): $(NATIVE_INPUTS)
 	./scripts/build-native
@@ -73,6 +79,10 @@ test-ios: native ## Run package tests on iOS Simulator (optionally FILTER=<name>
 app-check: native ## Compile the iOS app without signing or launching a device
 	xcodebuild -project apps/iOS/Kasumi.xcodeproj -scheme Kasumi \
 		-destination 'generic/platform=iOS' -derivedDataPath $(DERIVED_DATA) CODE_SIGNING_ALLOWED=NO build
+
+app-check-sim: native ## Compile the iOS app for a generic simulator without launching it
+	xcodebuild -project apps/iOS/Kasumi.xcodeproj -scheme Kasumi \
+		-destination 'generic/platform=iOS Simulator' -derivedDataPath $(DERIVED_DATA) ARCHS=arm64 CODE_SIGNING_ALLOWED=NO build
 
 app: native ## Build the iOS app for the simulator
 	xcodebuild -project apps/iOS/Kasumi.xcodeproj -scheme Kasumi \

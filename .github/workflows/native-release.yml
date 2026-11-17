@@ -1,0 +1,110 @@
+name: Native binary release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version without v prefix (test: e.g. 0.0.1-ci.1)'
+        required: true
+        type: string
+      mode:
+        description: 'Test uses a separate public test repository'
+        required: true
+        type: choice
+        options: [test, release]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: native-release-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: xcode-27
+    timeout-minutes: 90
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_27.2.app/Contents/Developer
+      VERSION: ${{ inputs.version }}
+      MODE: ${{ inputs.mode }}
+      GH_TOKEN: ${{ github.token }}
+      REPOSITORY: ${{ github.repository }}
+      RELEASE_BRANCH: ${{ github.ref_name }}
+      PRODUCTION_REPOSITORY: ${{ vars.KASUMI_PRODUCTION_REPOSITORY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check release request
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_REF_TYPE" == branch ]] || { echo 'Run from a branch'; exit 1; }
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z]+([.-][0-9A-Za-z]+)*)?$ ]] || { echo 'Invalid version'; exit 1; }
+          if [[ "$MODE" == test ]]; then
+            [[ "$VERSION" == *-ci.* ]] || { echo 'Test versions must contain -ci.'; exit 1; }
+            [[ "$REPOSITORY" != "$PRODUCTION_REPOSITORY" && -n "$PRODUCTION_REPOSITORY" ]] || { echo 'Configure KASUMI_PRODUCTION_REPOSITORY and use a separate test repository'; exit 1; }
+          else
+            [[ "$VERSION" != *-ci.* ]] || { echo 'CI test versions require test mode'; exit 1; }
+          fi
+          if git ls-remote --exit-code --tags origin "refs/tags/$VERSION" >/dev/null; then echo 'Tag already exists'; exit 1; fi
+          if gh release view "$VERSION" --repo "$REPOSITORY" >/dev/null 2>&1; then echo 'Release already exists'; exit 1; fi
+          [[ "$(git rev-parse HEAD)" == "$(git ls-remote origin "refs/heads/$RELEASE_BRANCH" | cut -f1)" ]] || { echo 'Branch moved'; exit 1; }
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install 1.98.1 --profile minimal --target aarch64-apple-ios --target aarch64-apple-ios-sim --no-self-update
+      - name: Build native artifacts
+        run: make native-local
+      - name: Test native and public API
+        run: |
+          make test-syntax-native
+          make test FILTER='PublicAPITests|CodeSyntaxTests|dagreNativeGeometryAndDirectionCrossTheCABI'
+          make app-check
+      - name: Prepare artifacts and manifest
+        run: |
+          scripts/prepare-native-release --version "$VERSION" --repository "$REPOSITORY" --output "$RUNNER_TEMP/native-release"
+          tar -czf "$RUNNER_TEMP/native-release/notices.tar.gz" packages/Native*/Notices Sources/KasumiMarkdown/Bundled/*LICENSE* LICENSE
+          swift package dump-package > "$RUNNER_TEMP/native-release/package.json"
+          git diff --check
+      - name: Create release commit and tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$(git rev-parse HEAD)" == "$(git ls-remote origin "refs/heads/$RELEASE_BRANCH" | cut -f1)" ]] || { echo 'Branch moved during build'; exit 1; }
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add Package.swift
+          git commit -m "build: Prepare $VERSION native binaries"
+          git tag "$VERSION"
+          git push origin "refs/tags/$VERSION"
+      - name: Publish exact prepared archives
+        shell: bash
+        run: |
+          set -euo pipefail
+          flags=()
+          [[ "$MODE" != test ]] || flags+=(--prerelease)
+          gh release create "$VERSION" "$RUNNER_TEMP/native-release/"*.xcframework.zip "$RUNNER_TEMP/native-release/notices.tar.gz" "$RUNNER_TEMP/native-release/provenance.json" --repo "$REPOSITORY" --verify-tag --title "$VERSION" --generate-notes "${flags[@]}"
+      - name: Validate released iOS package builds
+        run: |
+          make native-release
+          make app-check
+          make app-check-sim
+      - name: Validate released package by URL
+        shell: bash
+        run: |
+          set -euo pipefail
+          test_dir="$RUNNER_TEMP/kasumi-consumer"
+          mkdir -p "$test_dir/Sources/Consumer"
+          cat > "$test_dir/Package.swift" <<MANIFEST
+          // swift-tools-version: 6.2
+          import PackageDescription
+          let package = Package(name: "Consumer", platforms: [.macOS(.v13)], dependencies: [.package(url: "https://github.com/$REPOSITORY.git", exact: "$VERSION")], targets: [.executableTarget(name: "Consumer", dependencies: [.product(name: "KasumiMarkdown", package: "$(basename "$REPOSITORY")")])])
+          MANIFEST
+          cat > "$test_dir/Sources/Consumer/main.swift" <<'SWIFT'
+          import KasumiMarkdown
+          let document = MarkdownDocument(markdown: "# Release smoke test")
+          let rendered = RenderedDocument(document, width: 390, style: RenderStyle())
+          print(try DocumentExport.png(rendered, scale: 1).count)
+          SWIFT
+          cd "$test_dir"
+          swift run Consumer

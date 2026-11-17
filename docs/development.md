@@ -19,7 +19,8 @@ a step, its gotcha, and a link to any record that explains why.
 ## Setup
 
 Needs Xcode 27, Swift 6.2+, and Rust (edition 2024) with the
-`aarch64-apple-ios` and `aarch64-apple-ios-sim` targets. `make check` reports
+`aarch64-apple-ios` and `aarch64-apple-ios-sim` targets. The repository pins
+the Rust toolchain in `rust-toolchain.toml`. `make check` reports
 the local toolchain without changing anything.
 
 ## Builds
@@ -27,6 +28,18 @@ the local toolchain without changing anything.
 - `make native` rebuilds the Rust XCFrameworks in `.build/native/` only when a
   `packages/Native*` input changed. Make targets run it; calling `swift` or
   `xcodebuild` directly needs `./scripts/build-native` first.
+- `make native-local` selects locally built XCFrameworks; on a tagged release it
+  changes the local manifest. `make native-release` restores the released targets.
+  Unreleased development commits default to local binaries.
+- Run the `Native binary release` GitHub workflow manually on the intended branch.
+  CI builds ZIPs, creates a release-only commit and version tag, then publishes
+  the same ZIPs. The tag commit does not advance the development branch. A failed
+  publication may leave a tag or release that needs explicit recovery.
+- Test mode requires a separate public repository, a prerelease version containing
+  `-ci.`, and its `KASUMI_PRODUCTION_REPOSITORY` repository variable set to the
+  production owner/name. Never use production for test mode. The repository needs
+  Actions write access to create tags and releases. A separate-repository test
+  passed; no production release has yet been published.
 - `make run-sim` and `make test-ios` don't boot a simulator.
 - New files under `apps/iOS/Kasumi/`, `ImportExtension/`, and `Shared/` are
   picked up without project edits (folder-synchronized groups). `Shared/` compiles

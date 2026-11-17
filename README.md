@@ -64,7 +64,12 @@ make run-device  # build and run on a connected iPhone or iPad
 
 ## Using the library
 
-KasumiMarkdown supports iOS 17 and macOS 13. It is not yet distributable by URL: it depends on locally built Rust XCFrameworks, and shipping prebuilt ones is on the roadmap. For now, work from a checkout.
+KasumiMarkdown supports arm64 macOS 13, iOS 17 and iOS Simulator. Release tags use
+prebuilt Rust XCFrameworks. Development commits use local native builds: clone the
+repository, run `make native-local`, and add the checkout as a local Swift package.
+The first release has not yet been published. A tagged checkout can also use local
+binaries with `make native-local`; this changes its `Package.swift` locally. Run
+`make native-release` to select its published binaries again.
 
 ```swift
 import KasumiMarkdown

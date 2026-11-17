@@ -56,7 +56,9 @@ Retained after milestone closure; not prerequisites for starting Reader 2:
 
 - Ready-made UIKit/AppKit views and SwiftUI wrappers, extracted from the reader
   once its views settle ([003](003-public-rendering-api/000-plan.md)).
-- Distributable XCFrameworks so clients can depend on the repository by URL.
+- Distributable XCFrameworks — workflow implemented and tested in a temporary
+  repository; [010](010-binary-distribution/001-action.md). A production release
+  remains to be published.
 - Bundle license notices into the app.
 - Explicit profile/CLI hyphenation language selection — implemented 2026-11-17;
   [002.009](002-rendering-engine/009-hyphenation-and-defaults.md). Mixed-case words

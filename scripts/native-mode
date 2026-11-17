@@ -1,0 +1,19 @@
+#!/usr/bin/env python3
+"""Select local or published binaries in the checkout's manifest."""
+import pathlib
+import re
+import sys
+
+if len(sys.argv) != 2 or sys.argv[1] not in ("local", "release"):
+    raise SystemExit("Usage: scripts/native-mode local|release")
+manifest = pathlib.Path(__file__).resolve().parent.parent / "Package.swift"
+text = manifest.read_text()
+pattern = r"let forceLocalNative = (?:true|false) // KASUMI_LOCAL_NATIVE_MODE"
+if len(re.findall(pattern, text)) != 1:
+    raise SystemExit("Missing or ambiguous local mode switch")
+local = sys.argv[1] == "local" and 'let releasedNative: [String: (url: String, checksum: String)] = [:]' not in text
+replacement = f"let forceLocalNative = {'true' if local else 'false'} // KASUMI_LOCAL_NATIVE_MODE"
+updated = re.sub(pattern, replacement, text)
+if updated != text:
+    manifest.write_text(updated)
+print("Using " + ("local" if sys.argv[1] == "local" else "default") + " native binaries")
