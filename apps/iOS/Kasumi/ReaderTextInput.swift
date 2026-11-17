@@ -209,10 +209,21 @@ class ReaderTextInputView: UIView, UITextInput, UITextInteractionDelegate, UIGes
         return range.value
     }
 
+    private func isControl(_ view: UIView?) -> Bool {
+        var candidate = view
+        while let current = candidate, current !== self {
+            if current is UIControl { return true }
+            candidate = current.superview
+        }
+        return false
+    }
+
     func interactionShouldBegin(_ interaction: UITextInteraction, at point: CGPoint) -> Bool {
+        guard !isControl(hitTest(point, with: nil)) else { return false }
         return hasText && becomeFirstResponder()
     }
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        guard !isControl(touch.view) else { return false }
         // Native text selection handles double taps and long presses. The link
         // recognizer only participates when a link is actually under the finger.
         dismissingSelection = !(selection?.isEmpty ?? true)

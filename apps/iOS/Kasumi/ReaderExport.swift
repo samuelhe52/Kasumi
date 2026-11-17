@@ -57,6 +57,9 @@ fileprivate final class ReaderExportJob {
         let stem = (title as NSString).deletingPathExtension
         let filename = (stem.isEmpty ? "Untitled" : stem).replacingOccurrences(of: "/", with: "-")
         let url = folder.appendingPathComponent(filename).appendingPathExtension(format.rawValue)
+        var preparedStyle = style
+        preparedStyle.codeBlockStyle = ReaderCodeBlockStyle.exporting
+        let exportStyle = preparedStyle
         let task = Task.detached(priority: .userInitiated) {
             try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
             do {
@@ -70,14 +73,14 @@ fileprivate final class ReaderExportJob {
                         options.pageNumbers = pageNumbers
                         if letter { options.paperSize = CGSize(width: 612, height: 792) }
                         try DocumentExport.writePDF(
-                            document, style: style, options: options, to: url)
+                            document, style: exportStyle, options: options, to: url)
                     } else {
                         var options = ImageExportOptions()
                         options.format = format == .jpg ? .jpeg : .png
                         options.scale = scale
                         options.jpegQuality = quality
                         try DocumentExport.writeImage(
-                            document, style: style, width: width, options: options, to: url)
+                            document, style: exportStyle, width: width, options: options, to: url)
                     }
                 }
                 try Task.checkCancellation()

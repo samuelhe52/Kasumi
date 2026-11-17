@@ -61,8 +61,11 @@ Run the narrowest filter: `make test FILTER=<name>` for package tests and
   notices from the pinned crate; registry/grammar provenance lives in
   `packages/NativeSyntax/Notices/`. See
   [002.006](../docs-ai/002-rendering-engine/006-syntax-highlighting.md).
-  Optional caption/style behavior is documented in
-  [002.008](../docs-ai/002-rendering-engine/008-code-block-style-boundary.md).
+  `make app-check` compiles the reader's native Copy controls for a generic iOS
+  device with signing disabled, without launching a simulator or device. Control
+  identifier: `reader-code-copy-<block ID>`. See
+  [002.008](../docs-ai/002-rendering-engine/008-code-block-style-boundary.md) for
+  the style boundary, headless checks and interaction-validation limits.
 - **Export:** `make test FILTER='Export|Pagination|PublicAPITests'`. Run it after
   any export change. Memory guard and measurements:
   [008](../docs-ai/008-reader-export/001-action.md).

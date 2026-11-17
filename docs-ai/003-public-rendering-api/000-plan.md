@@ -68,7 +68,9 @@ simulator through `make test-ios FILTER=PublicAPITests`.
 
 ## Amendments
 
-- Updated 2026-11-17: Add configurable `RenderStyle.codeBlockStyle` and immutable
-  block/content/optional-caption bounds, raw language metadata, and complete
-  parsed code literals. No Copy control geometry is part of the library API.
-  See [002.008](../002-rendering-engine/008-code-block-style-boundary.md).
+- Updated 2026-11-17: Expose `RenderedDocument.codeBlocks` with immutable block,
+  content and optional-caption bounds, raw language metadata, and complete parsed
+  code literals. `RenderStyle.codeBlockStyle` selects presentation; button frames
+  and control colors belong to the reader. See
+  [002.008](../002-rendering-engine/008-code-block-style-boundary.md), which
+  revises the initial API in [002.007](../002-rendering-engine/007-code-block-presentation.md).

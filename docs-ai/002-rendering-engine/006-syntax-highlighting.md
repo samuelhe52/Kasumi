@@ -62,7 +62,8 @@ Implemented on `feat/syntect-highlighting`.
   reflow, theme changes, and exports. No global source/token cache was added.
 - Explicit languages use their first whitespace-delimited word, case-insensitive,
   with common aliases. Inline code, indented/unlabeled code, raw HTML, unknown/plain
-  languages, and Mermaid fallback remain unhighlighted.
+  languages, and Mermaid fallback remain unhighlighted. Panel chrome and Copy
+  controls are implemented in [002.007](007-code-block-presentation.md).
 - Source above 256 KiB UTF-8, a line above 16 KiB excluding LF, language info above
   128 bytes, parsing errors, or caught panics fall back to plain text. These input
   guards are not a hard execution-time timeout.

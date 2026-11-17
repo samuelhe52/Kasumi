@@ -82,5 +82,8 @@ Library tests pass on macOS and the iOS simulator, including comparisons against
 - Updated 2026-11-17: Implement reader code-block highlighting with Syntect
   — see [006-syntax-highlighting.md](006-syntax-highlighting.md).
 
+- Updated 2026-11-17: Implement rounded code blocks, language captions, and native copying
+  — see [007-code-block-presentation.md](007-code-block-presentation.md).
+
 - Updated 2026-11-17: Implement configurable code-block styles and reader-owned controls
   — see [008-code-block-style-boundary.md](008-code-block-style-boundary.md).

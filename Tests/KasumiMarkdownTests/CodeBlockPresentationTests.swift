@@ -13,7 +13,7 @@ import Testing
             + "```\n\n```\nplain\n```\n\n```unknown-language\nliteral\n```\n\n```swift\n```"
         let document = MarkdownDocument(markdown: source)
         let rendered = RenderedDocument(
-            document, width: 360, style: RenderStyle(codeBlockStyle: CodeBlockStyle(caption: .init())))
+            document, width: 360, style: RenderStyle(codeBlockStyle: ReaderCodeBlockStyle.reading))
         #expect(rendered.codeBlocks.map(\.language) == ["RuSt", nil, "unknown-language", "swift"])
         #expect(rendered.codeBlocks[0].source == code)
         #expect(rendered.codeBlocks[1].source == "plain\n")
@@ -31,6 +31,31 @@ import Testing
             })
     }
 
+    @Test func readerOwnsControlGeometryAndSelectsDifferentExportStyling() throws {
+        let document = DocumentParser.parse("```" + String(repeating: "long-language", count: 10) + "\nlet x = 1;\n```")
+        for width: CGFloat in [60, 180, 360] {
+            var style = Typography()
+            style.codeBlockStyle = ReaderCodeBlockStyle.reading
+            let layout = DocumentTypesetter.layout(document, width: width, style: style, insets: .zero)
+            let code = try #require(layout.codeBlocks.first)
+            let button = try #require(ReaderCodeBlockStyle.copyButtonFrame(in: code.block))
+            #expect(code.block.frame.contains(button))
+            #expect(button.height == 44 && button.width >= 44)
+            let labelFrame = try #require(code.labelFrame)
+            #expect(labelFrame.isEmpty || labelFrame.maxX <= button.minX)
+            #expect(code.block.contentFrame.minY >= button.maxY)
+            if let label = code.label {
+                #expect(CTLineGetTypographicBounds(label, nil, nil, nil) <= labelFrame.width + 0.01)
+            }
+            style.codeBlockStyle = ReaderCodeBlockStyle.exporting
+            let exported = DocumentTypesetter.layout(document, width: width, style: style, insets: .zero)
+            let compact = try #require(exported.codeBlocks.first)
+            #expect(compact.block.captionFrame?.height == 28)
+            #expect(ReaderCodeBlockStyle.copyButtonFrame(in: compact.block) == nil)
+            #expect(exported.height < layout.height)
+        }
+    }
+
     @Test func publicStylesKeepDefaultsIndependentAndCaptionsOptional() throws {
         let document = MarkdownDocument(markdown: "```rust\nlet x = 1;\n```")
         let basic = RenderedDocument(document, width: 360, style: RenderStyle())
@@ -38,6 +63,7 @@ import Testing
         #expect(normal.captionFrame == nil)
         #expect(abs(normal.contentFrame.minY - normal.frame.minY - 10) < 0.001)
         #expect(abs(normal.frame.maxY - normal.contentFrame.maxY - 10) < 0.001)
+        #expect(ReaderCodeBlockStyle.copyButtonFrame(in: normal) == nil)
 
         let customStyle = CodeBlockStyle(
             drawsBackground: false, cornerRadius: 7,
@@ -118,7 +144,7 @@ import Testing
         let lines = (0..<30).map { "let value_\($0) = \($0);" }.joined(separator: "\n")
         let document = DocumentParser.parse("Before.\n\n```rust\n" + lines + "\n```\n\nAfter.")
         var style = Typography()
-        style.codeBlockStyle = CodeBlockStyle(cornerRadius: 10, padding: .init(top: 0, left: 14, bottom: 12, right: 14), caption: .init())
+        style.codeBlockStyle = ReaderCodeBlockStyle.exporting
         let layout = DocumentTypesetter.layout(document, width: 360, style: style, insets: .zero)
         let code = try #require(layout.codeBlocks.first)
         let paragraph = try #require(

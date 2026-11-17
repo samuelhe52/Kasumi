@@ -105,6 +105,11 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     deinit { layoutTask?.cancel() }
 
+    override func touchesShouldCancel(in view: UIView) -> Bool {
+        if view is ReaderCodeCopyButton { return true }
+        return super.touchesShouldCancel(in: view)
+    }
+
     func update(
         document: MarkdownDocument, revision: UUID, style: RenderStyle, fontRevision: Int, outline: [OutlineItem],
         fileURL: URL?, viewport: ReaderViewport, openLink: @escaping (URL) -> Void
@@ -250,8 +255,12 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
             ? content.resizableSnapshotView(from: bounds, afterScreenUpdates: false, withCapInsets: .zero) : nil
         transitionOverlay?.removeFromSuperview()
         transitionOverlay = overlay
+        let codeColor = style?.theme.document["secondary_text"].map {
+            UIColor(red: CGFloat($0.red), green: CGFloat($0.green), blue: CGFloat($0.blue), alpha: CGFloat($0.alpha))
+        } ?? .secondaryLabel
         let nextPage = ReaderPageView(
-            rendered: next, scale: max(1, traitCollection.displayScale), preview: preview, previewRect: previewRect)
+            rendered: next, scale: max(1, traitCollection.displayScale), preview: preview, previewRect: previewRect,
+            codeControlColor: codeColor)
         content.addSubview(nextPage)
         page?.clearSelection()
         page?.removeFromSuperview()
@@ -432,7 +441,8 @@ fileprivate final class ReaderPageView: ReaderTextInputView {
     private var highlightedMatches: [TextRange] = []
     private var highlightedIndex: Int?
     private var tableScrollViews: [ReaderTableScrollView] = []
-    init(rendered: RenderedDocument, scale: CGFloat, preview: ReaderPagePreview?, previewRect: CGRect) {
+    init(rendered: RenderedDocument, scale: CGFloat, preview: ReaderPagePreview?, previewRect: CGRect,
+         codeControlColor: UIColor) {
         super.init(rendered: rendered)
         layer.anchorPoint = .zero
         layer.position = .zero
@@ -461,8 +471,28 @@ fileprivate final class ReaderPageView: ReaderTextInputView {
         currentHighlight.fillColor = UIColor.systemOrange.withAlphaComponent(0.45).cgColor
         layer.addSublayer(matchHighlights)
         layer.addSublayer(currentHighlight)
-        isAccessibilityElement = true
-        accessibilityLabel = rendered.text(in: rendered.documentRange)
+        var copyButtons: [ReaderCodeCopyButton] = []
+        for block in rendered.codeBlocks {
+            guard let frame = ReaderCodeBlockStyle.copyButtonFrame(in: block) else { continue }
+            let button = ReaderCodeCopyButton(block: block, frame: frame, color: codeControlColor)
+            copyButtons.append(button)
+            addSubview(button)
+        }
+        // Preserve the existing whole-document reading element, while allowing
+        // assistive technologies to discover the native Copy buttons as well.
+        isAccessibilityElement = false
+        let textElement = UIAccessibilityElement(accessibilityContainer: self)
+        textElement.accessibilityLabel = rendered.text(in: rendered.documentRange)
+        textElement.accessibilityTraits = .staticText
+        textElement.accessibilityFrameInContainerSpace = bounds
+        textElement.accessibilityCustomActions = copyButtons.enumerated().compactMap { index, button in
+            guard button.isEnabled else { return nil }
+            return UIAccessibilityCustomAction(name: String(localized: "Copy code block \(index + 1)")) {
+                [weak button] _ in
+                button?.copyCode() ?? false
+            }
+        }
+        accessibilityElements = [textElement] + copyButtons
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
