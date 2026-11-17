@@ -45,8 +45,11 @@ now defer offscreen drawing/caret objects in session-prepared undecorated paragr
 text paragraphs around the reading anchor with overscan, retaining indexed
 offscreen height estimates. Scrolling requests refined immutable snapshots.
 Documents containing tables or attachments still use exact full layout; very
-large single paragraphs still require whole-paragraph breaking. Further work
-targets viewport painting, broader lazy coverage, and UI installation/Find tails.
+large single paragraphs still require whole-paragraph breaking.
+[Glyph paint reuse](002-rendering-engine/010-glyph-paint-reuse.md) now shares
+immutable source-range paint values across widths, reducing repeated extraction
+while keeping Core Text objects snapshot-local. Remaining work targets cold
+painting, broader lazy coverage, and UI installation/Find tails.
 
 Retained after milestone closure; not prerequisites for starting Reader 2:
 

@@ -12,7 +12,7 @@ enum MeasuredParagraphTypesetter {
         _ attributed: NSAttributedString, width: CGFloat, fontSize: CGFloat, lineSpacing: CGFloat,
         alignment: ParagraphAlignment, indent: CGFloat, profileValues: ProfileValues?, outerWidth: CGFloat?,
         baseEm: CGFloat?, preparedInput: ShapedParagraphInput? = nil, preparedItems: ParagraphEngine.Prepared? = nil,
-        deferFragments: Bool = false
+        deferFragments: Bool = false, glyphPaintCache: FragmentGlyphPaintCache? = nil
     ) -> ParagraphLayout {
         let input = preparedInput ?? ParagraphShaper.shape(attributed, fallbackSize: fontSize)
         let prepared =
@@ -23,7 +23,7 @@ enum MeasuredParagraphTypesetter {
         let result = ParagraphEngine.layout(
             prepared, width: Float(width), outerWidth: Float(outerWidth ?? width), baseEm: Float(baseEm ?? fontSize),
             alignment: alignment == .trailing ? .leading : alignment)
-        let factory = ParagraphFragmentFactory(attributed)
+        let factory = ParagraphFragmentFactory(attributed, glyphPaintCache: glyphPaintCache)
         func sourceRange(_ clusters: Range<Int>) -> NSRange {
             guard let first = input.ranges[safe: clusters.lowerBound], !clusters.isEmpty,
                 let last = input.ranges[safe: clusters.upperBound - 1]

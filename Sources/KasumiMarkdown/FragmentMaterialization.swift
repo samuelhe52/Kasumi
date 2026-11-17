@@ -6,10 +6,14 @@ import Foundation
 final class ParagraphFragmentFactory {
     private let typesetter: CTTypesetter
     private let source: NSString
+    private let attributed: NSAttributedString
+    private let glyphPaintCache: FragmentGlyphPaintCache?
 
-    init(_ attributed: NSAttributedString) {
+    init(_ attributed: NSAttributedString, glyphPaintCache: FragmentGlyphPaintCache? = nil) {
         typesetter = CTTypesetterCreateWithAttributedString(attributed)
         source = attributed.string as NSString
+        self.attributed = attributed
+        self.glyphPaintCache = glyphPaintCache
     }
 
     func textLine(_ range: NSRange) -> CTLine {
@@ -29,15 +33,18 @@ final class ParagraphFragmentFactory {
         }
         if range.length > 0 { boundaries.append(NSMaxRange(range)) }
         let line = textLine(range)
+        let glyphPaint = glyphPaintCache?.value(for: range) {
+            ParagraphGlyphDrawing.prepare(line, attributed: attributed)
+        }
         // Core Text adds contextual CJK/Latin spacing at fragment edges. The
         // engine already placed the fragment, so remove that leading inset.
-        var inset: CGFloat = 0
-        if let run = (CTLineGetGlyphRuns(line) as! [CTRun]).first, CTRunGetGlyphCount(run) > 0 {
+        var inset: CGFloat = glyphPaint?.leadingInset ?? 0
+        if glyphPaint == nil, let run = (CTLineGetGlyphRuns(line) as! [CTRun]).first, CTRunGetGlyphCount(run) > 0 {
             var position = CGPoint.zero
             CTRunGetPositions(run, CFRange(location: 0, length: 1), &position)
             inset = max(0, position.x)
         }
-        return FragmentMaterialization(line: line, glyphInset: inset, boundaries: boundaries)
+        return FragmentMaterialization(line: line, glyphInset: inset, boundaries: boundaries, glyphPaint: glyphPaint)
     }
 }
 
@@ -45,6 +52,7 @@ struct FragmentMaterialization {
     let line: CTLine
     let glyphInset: CGFloat
     let boundaries: [Int]
+    let glyphPaint: FragmentGlyphPaint?
 }
 
 /// Geometry stays immutable. The paint/caret cache changes only during

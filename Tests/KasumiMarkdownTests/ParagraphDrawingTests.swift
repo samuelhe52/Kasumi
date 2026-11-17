@@ -12,10 +12,12 @@ import Testing
     import UIKit
 #endif
 
-fileprivate func drawingParagraph(_ attributed: NSAttributedString, width: CGFloat = 650) -> ParagraphLayout {
+fileprivate func drawingParagraph(
+    _ attributed: NSAttributedString, width: CGFloat = 650, preparation: ParagraphPreparation? = nil
+) -> ParagraphLayout {
     ParagraphTypesetter.layout(
         attributed, width: width, fontSize: 22, alignment: .justified,
-        profileValues: ProfileValues([.autoRaggedNarrow: .flag(false)]))
+        profileValues: ProfileValues([.autoRaggedNarrow: .flag(false)]), preparation: preparation)
 }
 
 /// The former renderer is the independent paint reference: retain the existing
@@ -136,6 +138,37 @@ fileprivate func mixedFontDrawingText() -> NSMutableAttributedString {
 }
 
 @Suite struct ParagraphDrawingTests {
+    @Test func reusedGlyphValuesKeepPixelsAndLayoutObjectsIndependent() throws {
+        let text = NSMutableAttributedString(
+            attributedString: Typography().attributed(
+                [
+                    InlineRun("office affinity 汉，字𠀀汉\u{0301} "), InlineRun("raised", traits: [.strong]),
+                    InlineRun(" tail 🙂 ", traits: [.emphasis])
+                ], size: 22))
+        let range = (text.string as NSString).range(of: "office")
+        text.addAttributes([.foregroundColor: PlatformColor.red, .baselineOffset: 4.25], range: range)
+        let prepared = ParagraphPreparation(text, fontSize: 22, verbatim: false)
+        for width: CGFloat in [650, 300, 500, 650] {
+            let cached = drawingParagraph(text, width: width, preparation: prepared)
+            let uncached = drawingParagraph(text, width: width)
+            let actual = try paragraphBitmap(cached, batched: true)
+            let expected = try paragraphBitmap(uncached, batched: true)
+            #expect(differingParagraphPixels(actual, expected) == 0)
+        }
+        let factoryA = ParagraphFragmentFactory(prepared.attributed, glyphPaintCache: prepared.glyphPaintCache)
+        let factoryB = ParagraphFragmentFactory(prepared.attributed, glyphPaintCache: prepared.glyphPaintCache)
+        let a = factoryA.materialize(range)
+        let b = factoryB.materialize(range)
+        let shared = try #require(a.glyphPaint)
+        #expect(shared === b.glyphPaint)
+        #expect(a.line as AnyObject !== b.line as AnyObject)
+        #expect(a.glyphInset == b.glyphInset && a.boundaries == b.boundaries)
+        let unsupported = NSMutableAttributedString(attributedString: text)
+        unsupported.addAttribute(.strokeWidth, value: -3, range: range)
+        let unsupportedFactory = ParagraphFragmentFactory(unsupported, glyphPaintCache: FragmentGlyphPaintCache())
+        #expect(unsupportedFactory.materialize(range).glyphPaint == nil)
+    }
+
     @Test(requiresReferenceFaces("STSongti-SC-Regular", "SimSong-Regular"))
     func mixedFontsUseReferenceSongtiAndSimSongFaces() {
         let text = mixedFontDrawingText()

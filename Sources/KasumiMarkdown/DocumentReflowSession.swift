@@ -36,8 +36,8 @@ public actor DocumentReflowSession {
     }
 }
 
-/// Confined to a session's actor. Only normalized text, fonts, and measured
-/// cluster values persist; CTTypesetter/CTLine/CTRun objects belong to snapshots.
+/// Actor-owned text/measurement preparation. Glyph paint values use a separate
+/// synchronized cache; CTTypesetter/CTLine/CTRun objects belong to snapshots.
 final class ReflowPreparation {
     private struct Key: Hashable {
         let block: Int
@@ -131,6 +131,7 @@ final class ReflowPreparation {
 }
 
 final class ParagraphPreparation {
+    lazy var glyphPaintCache = FragmentGlyphPaintCache()
     let attributed: NSAttributedString
     let hasRTL: Bool
     let fontSize: CGFloat

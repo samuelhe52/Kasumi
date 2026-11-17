@@ -52,10 +52,15 @@ that fixes it; add one when a limitation is found and not fixed.
   paragraphs bypass preparation reuse to preserve width-dependent attachments
   and independent Core Text ownership. Session-prepared undecorated paragraphs
   materialize fragment drawing/caret data per accessed line under the snapshot
-  lock. Decorated/unprepared paragraphs remain eager. Exact line breaking and
+  lock. Session-prepared paragraphs without underline candidates also reuse
+  immutable source-range font/color/glyph/position values through a synchronized
+  cache; CTLine/CTRun/CTTypesetter ownership remains snapshot-local. Cold misses
+  and unsupported paint still need extraction/fallback. Decorated/unprepared
+  paragraphs remain eager. Exact line breaking and
   logical CTLines build only for measured paragraphs in viewport mode. First-use
   painting incurs materialization, and old snapshot disposal and active Find can
   add UI-thread cost. See
   [reflow preparation](006-reflow-preparation.md), [metadata reuse](007-reflow-metadata.md),
-  [lazy fragments](008-lazy-fragments.md), [viewport layout](009-viewport-layout.md), [live reflow](../004-ios-reader/006-live-reflow.md)
+  [lazy fragments](008-lazy-fragments.md), [viewport layout](009-viewport-layout.md),
+  [glyph paint reuse](010-glyph-paint-reuse.md), [live reflow](../004-ios-reader/006-live-reflow.md)
   and [reader anchor lifecycle](../004-ios-reader/007-reflow-anchor-lifecycle.md).

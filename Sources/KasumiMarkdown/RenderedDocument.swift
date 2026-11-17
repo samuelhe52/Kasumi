@@ -42,6 +42,8 @@ public struct SearchOptions: OptionSet, Sendable {
 /// CGImage/CGColor/font-table assets are retained, not mutated. Global image reads
 /// use NSCache's synchronized methods;
 /// bundled font registration and math assets use Swift's serialized static lets.
+/// Reflow sessions may also share immutable glyph-paint values through a
+/// synchronized NSCache; no CTLine/CTRun/CTTypesetter enters that shared cache.
 /// The lock protects shared CTLine/CTRun objects, not mutable Kasumi draw state:
 /// Apple's Core Text contract confines layout objects to one operation/queue/thread
 /// even though individual functions and font objects are thread-safe.

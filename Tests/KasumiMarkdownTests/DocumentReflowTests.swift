@@ -115,6 +115,30 @@ import Testing
         #expect(changed.size.height != original.size.height)
     }
 
+    @Test func sharedGlyphValuesPreserveConcurrentMultiWidthPixels() async throws {
+        let paragraph = String(repeating: "office 中文𠀀汉\u{0301}、标点“文字” and **strong** *emphasis* words. ", count: 5)
+        let document = MarkdownDocument(markdown: Array(repeating: paragraph, count: 4).joined(separator: "\n\n"))
+        let style = RenderStyle(fontSize: 16, widthLimit: nil)
+        let session = DocumentReflowSession(document, style: style)
+        var snapshots: [(RenderedDocument, RenderedDocument)] = []
+        for width: CGFloat in [400, 800, 320, 440, 400] {
+            let cached = await session.render(width: width)
+            snapshots.append((cached, RenderedDocument(document, width: width, style: style)))
+        }
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            for (cached, fresh) in snapshots {
+                group.addTask { [self] () async throws -> Void in
+                    let actual = try pixels(cached)
+                    let expected = try pixels(fresh)
+                    #expect(actual == expected)
+                    let repeated = try pixels(cached)
+                    #expect(repeated == expected)
+                }
+            }
+            try await group.waitForAll()
+        }
+    }
+
     @Test func lazyFragmentsMaterializeOnlyAccessedLinesAndStaySnapshotLocal() async throws {
         let paragraph = String(
             repeating: "*office* **affinity** 中文𠀀汉\u{0301}、主线“感知—传输” ~~struck words~~ and `code`. ", count: 8)
