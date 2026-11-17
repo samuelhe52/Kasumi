@@ -86,4 +86,33 @@ import Testing
             #expect(document.parsed.languageAnalysis == cached)
         }
     }
+
+    @Test func scannerPreservesCaseRunBoundariesAndBudgets() {
+        func analyze(_ runs: [InlineRun]) -> DocumentLanguageAnalysis {
+            DocumentLanguageAnalysis.analyze([DocumentBlock(id: 0, kind: .paragraph, runs: runs)])
+        }
+        // Tokens continue across styled prose runs, but excluded runs separate
+        // them. Unicode case mapping still applies after an ASCII run.
+        let split = analyze([InlineRun("LE L"), InlineRun("ES POUR AVEC DANS CETTE NOUS VOUS SONT")])
+        #expect(split.hyphenationLanguage == "fr")
+        #expect(split.origin == .stopwords)
+        let excluded = analyze([InlineRun("th"), InlineRun("ignored", traits: [.code]), InlineRun("e and which")])
+        #expect(excluded.origin == .fallback)
+        let german = "FÜR DER DIE DAS UND IST NICHT EIN EINE MIT VON AUF SICH AUCH ZU WIRD WERDEN"
+        #expect(analyze([InlineRun("F"), InlineRun(String(german.dropFirst()))]).hyphenationLanguage == "de-1996")
+        let russian = "ЭТО ТЕКСТ ДЛЯ ЧИТАТЕЛЯ КОТОРЫЙ НЕ ЯВЛЯЕТСЯ ПЕРЕВОДОМ ОН И ОНА ЧИТАЮТ НО ОНИ ТАКЖЕ ВИДЯТ ЧТО ЕСТЬ В НЕЙ"
+        #expect(analyze([InlineRun(russian)]).hyphenationLanguage == "ru")
+        let longToken = String(repeating: "x", count: 49) + "the"
+        #expect(analyze([InlineRun(longToken + " and which")]).origin == .fallback)
+        let wordBounded = analyze([InlineRun(String(repeating: "x ", count: DocumentLanguageAnalysis.wordLimit) + "the and which")])
+        #expect(wordBounded.sampledScalars == DocumentLanguageAnalysis.wordLimit * 2)
+        #expect(wordBounded.origin == .fallback)
+        // A token cut by the scalar budget must not contribute a partial vote.
+        for prefix in ["", "中"] {
+            let cut = prefix + String(repeating: " ", count: DocumentLanguageAnalysis.sampleLimit - 13 - prefix.unicodeScalars.count) + "the and whichX"
+            let scalarBounded = analyze([InlineRun(cut)])
+            #expect(scalarBounded.sampledScalars == DocumentLanguageAnalysis.sampleLimit)
+            #expect(scalarBounded.origin == .fallback)
+        }
+    }
 }

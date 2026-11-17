@@ -36,6 +36,50 @@ struct DocumentLanguageAnalysis: Equatable, Sendable {
         return result
     }()
 
+    private struct WordNode {
+        var next: [UInt32: Int] = [:]
+        var mask: UInt16 = 0
+        var word = 0
+    }
+    private struct WordMatcher {
+        let nodes: [WordNode]
+        let ascii: [Int]
+    }
+    // Match bounded tokens directly instead of allocating and lowercasing a
+    // String for each word, including words that never occur in the lexicon.
+    private static let wordMatcher: WordMatcher = {
+        var nodes = [WordNode()]
+        var ascii = [Int](repeating: -1, count: 26)
+        for (wordIndex, entry) in votes.sorted(by: { $0.key < $1.key }).enumerated() {
+            var node = 0
+            for scalar in entry.key.unicodeScalars {
+                if (97...122).contains(scalar.value) {
+                    let slot = node * 26 + Int(scalar.value - 97)
+                    if ascii[slot] >= 0 { node = ascii[slot] }
+                    else {
+                        let next = nodes.count
+                        nodes.append(WordNode())
+                        ascii.append(contentsOf: repeatElement(-1, count: 26))
+                        ascii[slot] = next
+                        node = next
+                    }
+                    continue
+                }
+                if let next = nodes[node].next[scalar.value] { node = next }
+                else {
+                    let next = nodes.count
+                    nodes.append(WordNode())
+                    ascii.append(contentsOf: repeatElement(-1, count: 26))
+                    nodes[node].next[scalar.value] = next
+                    node = next
+                }
+            }
+            nodes[node].mask = entry.value
+            nodes[node].word = wordIndex
+        }
+        return WordMatcher(nodes: nodes, ascii: ascii)
+    }()
+
     static func dictionary(for tag: String) -> String? {
         let tag = tag.lowercased().replacingOccurrences(of: "_", with: "-")
         if tag == "en-gb" || tag.hasPrefix("en-gb-") { return "en-gb" }
@@ -48,26 +92,40 @@ struct DocumentLanguageAnalysis: Equatable, Sendable {
         }
     }
 
-    static func analyze(_ blocks: [DocumentBlock], declaredLanguage: String? = nil) -> Self {
-        if let declaredLanguage, let tag = dictionary(for: declaredLanguage) {
-            return Self(hyphenationLanguage: tag, origin: .frontMatter, sampledScalars: 0)
-        }
+    private struct Sampler {
         var scores = [Int](repeating: 0, count: languages.count)
-        var distinct = scores
-        var occurrences: [String: Int] = [:]
+        var distinct = [Int](repeating: 0, count: languages.count)
+        let matcher = wordMatcher
+        let nodes = wordMatcher.nodes
+        var occurrences = [UInt8](repeating: 0, count: votes.count)
         var scalars = 0
         var words = 0
-        var token = String.UnicodeScalarView()
+        var tokenNode = 0
         var tokenScalars = 0
-        var tooLong = false
-        func flush() {
-            guard !token.isEmpty || tooLong else { return }
+        @inline(__always) mutating func advance(_ value: UInt32) {
+            guard tokenNode >= 0 else { return }
+            if (97...122).contains(value) { tokenNode = matcher.ascii[tokenNode * 26 + Int(value - 97)] }
+            else { tokenNode = nodes[tokenNode].next[value] ?? -1 }
+        }
+        @inline(__always) mutating func letter(_ value: UInt32) {
+            tokenScalars += 1
+            if tokenScalars > 48 { tokenNode = -1; return }
+            if value < 128 { advance(value <= 90 ? value + 32 : value) }
+            else if tokenNode >= 0 {
+                for scalar in String(UnicodeScalar(value)!).lowercased().unicodeScalars { advance(scalar.value) }
+            }
+        }
+        @inline(__always) mutating func flush() {
+            guard tokenScalars > 0 else { return }
             words += 1
-            defer { token = String.UnicodeScalarView(); tokenScalars = 0; tooLong = false }
-            guard !tooLong else { return }
-            let word = String(token).lowercased()
-            guard let mask = votes[word] else { return }
-            let prior = occurrences[word, default: 0]
+            let matched = tokenNode
+            tokenNode = 0
+            tokenScalars = 0
+            guard matched >= 0 else { return }
+            let mask = nodes[matched].mask
+            guard mask != 0 else { return }
+            let word = nodes[matched].word
+            let prior = occurrences[word]
             guard prior < 4 else { return }
             occurrences[word] = prior + 1
             let weight = max(1, 8 / mask.nonzeroBitCount)
@@ -76,11 +134,30 @@ struct DocumentLanguageAnalysis: Equatable, Sendable {
                 if prior == 0 { distinct[index] += 1 }
             }
         }
-        func sample(_ runs: [InlineRun]) {
+        mutating func sample(_ runs: [InlineRun]) {
             for run in runs {
                 guard scalars < sampleLimit, words < wordLimit else { return }
                 guard run.traits.isDisjoint(with: [.code, .math, .image, .footnote, .link]) else {
                     flush()
+                    continue
+                }
+                var truncated = false
+                let sampledASCII = run.text.utf8.withContiguousStorageIfAvailable { bytes in
+                    let prefix = bytes.prefix(sampleLimit - scalars)
+                    guard prefix.allSatisfy({ $0 < 128 }) else { return false }
+                    var consumed = 0
+                    for value in prefix {
+                        guard words < wordLimit else { break }
+                        consumed += 1
+                        scalars += 1
+                        if (65...90).contains(value) || (97...122).contains(value) { letter(UInt32(value)) }
+                        else { flush() }
+                    }
+                    truncated = consumed < bytes.count
+                    return true
+                } ?? false
+                if sampledASCII {
+                    if truncated { return }
                     continue
                 }
                 for scalar in run.text.unicodeScalars {
@@ -91,28 +168,37 @@ struct DocumentLanguageAnalysis: Equatable, Sendable {
                     let extendedLetter = (0x00C0...0x024F).contains(value) || (0x1E00...0x1EFF).contains(value)
                         || (0x0400...0x04FF).contains(value)
                     if asciiLetter || (extendedLetter && scalar.properties.isAlphabetic) {
-                        if tokenScalars < 48 && !tooLong { token.append(scalar); tokenScalars += 1 }
-                        else { token = String.UnicodeScalarView(); tooLong = true }
+                        letter(value)
                     } else { flush() }
                 }
             }
             flush()
         }
+    }
+
+    static func analyze(_ blocks: [DocumentBlock], declaredLanguage: String? = nil) -> Self {
+        if let declaredLanguage, let tag = dictionary(for: declaredLanguage) {
+            return Self(hyphenationLanguage: tag, origin: .frontMatter, sampledScalars: 0)
+        }
+        var sampler = Sampler()
         for block in blocks {
-            guard scalars < sampleLimit, words < wordLimit else { break }
+            guard sampler.scalars < sampleLimit, sampler.words < wordLimit else { break }
             switch block.kind {
-            case .paragraph, .heading, .quote: sample(block.runs)
+            case .paragraph, .heading, .quote: sampler.sample(block.runs)
             case .table:
                 for row in block.rows {
-                    guard scalars < sampleLimit, words < wordLimit else { break }
+                    guard sampler.scalars < sampleLimit, sampler.words < wordLimit else { break }
                     for cell in row {
-                        guard scalars < sampleLimit, words < wordLimit else { break }
-                        sample(cell)
+                        guard sampler.scalars < sampleLimit, sampler.words < wordLimit else { break }
+                        sampler.sample(cell)
                     }
                 }
             default: break
             }
         }
+        let scores = sampler.scores
+        let distinct = sampler.distinct
+        let scalars = sampler.scalars
         // A truncated final token must not vote as a different, shorter word.
         // Complete tokens are flushed at run/block boundaries above.
         let ranked = scores.indices.sorted { scores[$0] > scores[$1] }

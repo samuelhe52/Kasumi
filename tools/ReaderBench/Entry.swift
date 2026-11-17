@@ -1,8 +1,24 @@
 import Foundation
+import KasumiMarkdown
 
 @main struct ReaderBench {
     static func main() async throws {
         let args = Array(CommandLine.arguments.dropFirst())
+        // Repeated parsing provides enough samples for Instruments without
+        // mixing font initialization, layout, or bitmap work into the profile.
+        if args.count == 4, args[0] == "--profile-parse", let repeats = Int(args[2]), repeats > 0 {
+            let source = try String(contentsOfFile: args[1], encoding: .utf8)
+            var samples: [Double] = []
+            var checksum = 0
+            for _ in 0..<repeats {
+                try Task.checkCancellation()
+                let start = ContinuousClock.now
+                checksum += autoreleasepool { MarkdownDocument(markdown: source).outline.count }
+                samples.append(milliseconds(start))
+            }
+            try writeJSON(["parseAndOutlineMs": samples, "checksum": checksum], to: args[3])
+            return
+        }
         if args.count == 2, args[0] == "--corpus" {
             let root = URL(fileURLWithPath: args[1])
             try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
@@ -39,6 +55,6 @@ import Foundation
                            "readDecodeMs": readMs, "hostStart": startState, "hostEnd": hostState(), "result": result], to: args[4])
             return
         }
-        throw BenchError.invalid("Usage: --corpus DIR | --worker PHASE CASE SOURCE OUTPUT quick|full")
+        throw BenchError.invalid("Usage: --corpus DIR | --worker PHASE CASE SOURCE OUTPUT quick|full | --profile-parse SOURCE REPEATS OUTPUT")
     }
 }

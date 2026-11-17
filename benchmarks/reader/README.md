@@ -49,6 +49,21 @@ Uncovered painting, wrong preparation eligibility, corpus changes and invalid re
 
 Compare only the same sample hash, phase, geometry, style, build configuration and host class, and check n, spread and flags before trusting a median or p99. Cold means a fresh process with OS and font caches intact.
 
+Match the runner profile too. Quick refinement visits 12 anchors; full visits
+100 on the same session and reuses geometry prepared by earlier visits. Their
+medians describe different cache histories and cannot establish a regression
+against each other. The retained baseline uses the full profile.
+
+For a parse-only Time Profiler capture, first run `make benchmark-build` and
+`make benchmark-corpus BENCHMARK_OUTPUT=<new directory>`. The executable accepts
+`--profile-parse <source.md> <positive repetition count> <output.json>`; pass that
+command to `xcrun xctrace record --template 'Time Profiler' --output <new.trace>
+--launch -- <executable> ...`. This diagnostic repeatedly constructs a document
+and reads its outline in an autorelease pool, excluding layout and painting.
+It records every parse-plus-outline duration and a heading-count checksum.
+Use untraced worker cold/warm timings to validate user-visible parsing gains;
+trace timings include profiling overhead.
+
 Nothing here establishes display FPS, 120 Hz rendering, UIKit tile presentation or iPhone/iPad memory. Native coverage is geometry metadata, not pixels. Use the manual Mac lab or an authorized device run for those.
 
 ## Baseline
