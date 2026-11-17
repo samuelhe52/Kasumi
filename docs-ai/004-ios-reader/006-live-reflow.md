@@ -52,6 +52,12 @@ Implemented on 2026-11-17.
 - `Makefile` accepts `SWIFT_CONFIGURATION=release` for package checks and now
   honors `CONFIGURATION` for `make app`, as the other app routines already did.
 
+Source editor integration retains this scheduler. Hiding Preview clears pending
+work and rejects an in-flight result while allowing that worker to drain. Reopening
+queues the latest width/content behind it. Source edits replace content without a
+snapshot fade; typography/font changes retain the appearance transition. Find
+presentation waits until the preview is active.
+
 ## Validation
 
 - Initial focused Debug test compilation failed because Swift Testing's

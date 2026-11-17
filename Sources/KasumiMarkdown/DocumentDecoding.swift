@@ -1,6 +1,65 @@
 import CoreFoundation
 import Foundation
 
+/// Decoded source plus its original bytes and encoding. Reading alone never
+/// changes a file; edited output preserves its encoding and byte-order mark.
+public struct DocumentSource: Sendable {
+    public let text: String
+    public let isLossy: Bool
+    private let original: Data
+    private let encoding: String.Encoding
+    private let prefix: Data
+
+    public init(text: String) {
+        self.text = text
+        isLossy = false
+        original = Data(text.utf8)
+        encoding = .utf8
+        prefix = Data()
+    }
+
+    public init(data: Data) throws {
+        let decoded = try DocumentDecoder.decode(data)
+        text = decoded.text
+        isLossy = decoded.isLossy
+        original = data
+        if decoded.encoding == .utf16 {
+            let little = data.starts(with: [0xFF, 0xFE])
+            encoding = little ? .utf16LittleEndian : .utf16BigEndian
+            prefix = Data(data.prefix(2))
+        } else {
+            encoding = decoded.encoding.foundationEncoding ?? .utf8
+            prefix = decoded.hadByteOrderMark ? Data(data.prefix(3)) : Data()
+        }
+    }
+
+    /// Returns the exact original bytes for a no-op edit. Throws instead of
+    /// silently replacing characters that the original encoding cannot store.
+    public func data(replacingText replacement: String) throws -> Data {
+        // Swift String equality treats canonically equivalent Unicode as equal;
+        // source editing must distinguish their actual scalar sequences.
+        if replacement.utf8.elementsEqual(text.utf8) { return original }
+        guard !isLossy else { throw SourceWriteError.lossySource }
+        guard let bytes = replacement.data(using: encoding, allowLossyConversion: false),
+            let roundTrip = String(data: bytes, encoding: encoding),
+            roundTrip.utf8.elementsEqual(replacement.utf8)
+        else { throw SourceWriteError.unrepresentableText }
+        return prefix + bytes
+    }
+
+    private enum SourceWriteError: LocalizedError {
+        case lossySource, unrepresentableText
+        var errorDescription: String? {
+            switch self {
+            case .lossySource:
+                "The original file contains undecodable bytes and cannot be edited safely."
+            case .unrepresentableText:
+                "Some characters cannot be saved in this file’s original text encoding."
+            }
+        }
+    }
+}
+
 public enum DocumentTextEncoding: String, Codable, CaseIterable, Hashable, Sendable {
     case automatic, utf8, gb18030, big5, shiftJIS, eucKR, utf16
 

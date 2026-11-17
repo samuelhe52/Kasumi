@@ -22,9 +22,9 @@ struct KasumiApp: App {
         } overlayAccessoryView: { _ in
             LaunchPresenter(store: launchStore)
         }
-        DocumentGroup { document in
+        DocumentGroup(allowCreating: false) { document in
             ReaderScreen(document: document).id(document.id)
-        } makeReadableDocument: { configuration, _ in
+        } makeDocument: { configuration, _ in
             ReaderDocument(configuration: configuration)
         }
     }

@@ -26,8 +26,9 @@ that fixes it; add one when a limitation is found and not fixed.
 - Diagrams: no rich HTML labels; syntax outside the tested corpus may be
   rejected; no links or selection inside diagrams.
 - Tables: document-based exports fit every column to the page and may still wrap
-  heavily at very narrow widths. Snapshot image exports of a scrollable
-  `RenderedDocument` capture its initial table viewport. Reader scrolling is
+  heavily at very narrow widths. Compact tables are centered; overflowing reader
+  tables start at the left edge of the reading measure. Snapshot image exports
+  of a scrollable `RenderedDocument` capture its initial table viewport. Reader scrolling is
   presentation state, separate from the immutable snapshot. See
   [adaptive tables](005-table-layout.md) for behavior and validation limits.
 - Export: pagination details, PDF links, footnote edge cases, HTML/SVG images.
@@ -68,3 +69,8 @@ that fixes it; add one when a limitation is found and not fixed.
   [glyph paint reuse](010-glyph-paint-reuse.md), [live reflow](../004-ios-reader/006-live-reflow.md),
   [mixed coverage](011-mixed-viewport-coverage.md),
   and [reader anchor lifecycle](../004-ios-reader/007-reflow-anchor-lifecycle.md).
+- Live preview still parses the complete document and creates fresh preparation
+  after source edits. Visible paragraph layout follows the viewport reflow path
+  above. The app coalesces source edits and skips layout while the preview is
+  hidden. Source and preview scroll independently. See [009](../009-source-editor/000-plan.md) and
+  [editor continuity](../009-source-editor/002-editor-experience.md).

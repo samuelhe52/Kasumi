@@ -12,6 +12,36 @@ fileprivate func tableFixture() throws -> MarkdownDocument {
 }
 
 @Suite struct TableLayoutTests {
+    @Test(arguments: [false, true], ["booktabs", "grid"])
+    func compactTablesCenterWithinTheReadingMeasure(scrollable: Bool, tableStyle: String) throws {
+        var style = Typography()
+        style.limitWidth = true
+        style.widthLimit = 300
+        style.profileValues[.tableStyle] = .string(tableStyle)
+        let source = """
+            | A | B |
+            | --- | --- |
+            | 1 | 2 |
+            """
+        let layout = DocumentTypesetter.layout(
+            DocumentParser.parse(source), width: 520, style: style,
+            insets: .init(top: 20, left: 30, bottom: 20, right: 50), scrollableTables: scrollable)
+        let table = try #require(layout.tables.first)
+        #expect(table.frame.width < 300)
+        #expect(abs(table.frame.midX - 250) < 0.01)
+        let firstCell = try #require(layout.paragraphs.first)
+        #expect(abs(firstCell.origin.x - table.frame.minX - style.size * 0.6) < 0.01)
+        let header = try #require(layout.backgrounds.first)
+        #expect(abs(header.rect.minX - table.frame.minX) < 0.01)
+        #expect(abs(header.rect.maxX - table.frame.maxX) < 0.01)
+        #expect(layout.rules.allSatisfy {
+            $0.start.x >= table.frame.minX - 0.01 && $0.end.x <= table.frame.maxX + 0.01
+        })
+        #expect(layout.rules.contains {
+            abs($0.start.x - table.frame.minX) < 0.01 && abs($0.end.x - table.frame.maxX) < 0.01
+        })
+    }
+
     @Test func verboseCellsDoNotStarveShortColumnsAndHeadersUseTheirPaintedFont() throws {
         let style = Typography()
         let source = """
@@ -43,6 +73,7 @@ fileprivate func tableFixture() throws -> MarkdownDocument {
         #expect(narrow.tables.count == 4)
         #expect(narrow.tables[0].isScrollable)
         #expect(narrow.tables[1].isScrollable)
+        #expect(narrow.tables.filter(\.isScrollable).allSatisfy { abs($0.frame.minX - 20) < 0.01 })
         #expect(!narrow.tables[2].isScrollable)
         #expect(wide.tables.allSatisfy { !$0.isScrollable })
         #expect(fitted.tables.allSatisfy { !$0.isScrollable })

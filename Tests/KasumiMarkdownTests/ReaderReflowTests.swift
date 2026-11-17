@@ -87,6 +87,25 @@ import Testing
         }
     }
 
+    @Test func hiddenPreviewDrainsItsWorkerBeforeResumingAtTheLatestRequest() throws {
+        var state = ReaderReflowState()
+        let generation = UUID()
+        state.request(width: 400, generation: generation)
+        let hidden = try #require({ state.begin() }())
+        state.stop()
+        #expect(!state.accepts(hidden))
+        #expect({ state.begin() }() == nil)
+        // Reopen before the hidden worker returns, after changing the content.
+        let edited = UUID()
+        state.request(width: 600, generation: edited)
+        #expect({ state.begin() }() == nil)
+        #expect(!{ state.complete(hidden) }())
+        let resumed = try #require({ state.begin() }())
+        #expect(resumed.width == 600 && resumed.generation == edited)
+        #expect({ state.complete(resumed) }())
+        #expect(!state.needsLayout)
+    }
+
     @Test func contentRevisionsRefreshFrozenReadingKeysWithoutWidthDrift() throws {
         let tail =
             String(repeating: "Leading words place the reading marker inside the paragraph. ", count: 4)

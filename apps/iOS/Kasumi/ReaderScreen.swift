@@ -8,6 +8,7 @@ struct ReaderScreen: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @AppStorage("reader.preset") private var presetID = "serif"
     @AppStorage("reader.theme-pair") private var pairID = "mono"
     @AppStorage("reader.font-size") private var fontSize: Double = 0
@@ -23,6 +24,10 @@ struct ReaderScreen: View {
     @State private var showDeleteConfirmation = false
     @State private var handoffID = UUID()
     @State private var windowScene: UIWindowScene?
+    @State private var editingSource = false
+    @State private var hasEditedSource = false
+    @State private var showPreview = false
+    @State private var editorState = SourceEditorState()
 
     private var regular: Bool { horizontalSizeClass == .regular }
     private var appearance: ReaderAppearance {
@@ -43,7 +48,7 @@ struct ReaderScreen: View {
     }
 
     var body: some View {
-        reader
+        workspace
             // On iPad the outline is a trailing inspector beside the text. Compact
             // widths use the full-height sheet below instead of the inspector's
             // own sheet, which has no Done button or paper background.
@@ -59,9 +64,40 @@ struct ReaderScreen: View {
             }
             // Attach outside the inspector so the DocumentGroup receives the toolbar.
             .toolbar {
-                ToolbarItemGroup(placement: .bottomBar) {
-                    Spacer()
-                    readerMenu
+                if editingSource {
+                    // Native bar items keep the soft scroll edge; a custom row
+                    // under the bar would need its own opaque background.
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button(
+                            showPreview ? "Show Source" : "Show Preview",
+                            systemImage: showPreview ? "square.and.pencil" : "eye"
+                        ) {
+                            showPreview.toggle()
+                        }
+                        .accessibilityIdentifier("source-preview-toggle")
+                    }
+                    // History sits where the reader keeps its actions. The bottom
+                    // bar hides behind the keyboard; SourceTextView carries the
+                    // same pair above it.
+                    ToolbarItemGroup(placement: .bottomBar) {
+                        SourceHistoryControls(state: editorState)
+                        Spacer()
+                    }
+                    // Done must never fall into the overflow menu on iPhone.
+                    ToolbarItem(placement: .topBarPinnedTrailing) {
+                        Button("Done") {
+                            editorState.finishEditing()
+                            withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) {
+                                editingSource = false
+                            }
+                        }
+                        .accessibilityIdentifier("source-done")
+                    }
+                } else {
+                    ToolbarItemGroup(placement: .bottomBar) {
+                        Spacer()
+                        readerMenu
+                    }
                 }
             }
             .background(paper.ignoresSafeArea())
@@ -92,6 +128,9 @@ struct ReaderScreen: View {
             }
             .fontOnboarding()
             .onChange(of: presetID) { _, _ in fontSize = 0 }
+            .onChange(of: showPreview) { _, preview in
+                editorState.previewDidChange(isVisible: preview)
+            }
             .onChange(of: scenePhase) { _, phase in if phase != .active { viewport.flush() } }
             // A file handed to the app while this reader shows closes it first.
             .background(
@@ -119,13 +158,24 @@ struct ReaderScreen: View {
                 Button("Outline", systemImage: "list.bullet.indent") { showOutline = true }
                     .accessibilityIdentifier("reader-outline")
             }
-            Button("Find in Document", systemImage: "magnifyingglass") { findRequest += 1 }
-                .accessibilityIdentifier("reader-find")
             Button("Appearance", systemImage: "textformat.size") { showAppearance = true }
                 .accessibilityIdentifier("reader-appearance")
+            Button("Find", systemImage: "magnifyingglass") { findRequest += 1 }
+                .accessibilityIdentifier("reader-find")
             Button("Export", systemImage: "square.and.arrow.up") { showExport = true }
-                .disabled(document.snapshot?.parsed == nil)
+                .disabled(!document.previewIsCurrent)
                 .accessibilityIdentifier("reader-export")
+            if !editingSource {
+                Button("Edit", systemImage: "square.and.pencil") {
+                    hasEditedSource = true
+                    showPreview = false
+                    withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) {
+                        editingSource = true
+                    }
+                }
+                .disabled(!document.canEdit)
+                .accessibilityIdentifier("reader-edit-source")
+            }
             if isImport {
                 Section {
                     Button("Delete", systemImage: "trash", role: .destructive) {
@@ -153,6 +203,23 @@ struct ReaderScreen: View {
         }
     }
 
+    /// Both panes stay mounted once editing starts, so the caret, scroll
+    /// positions and find state survive Source/Preview switches.
+    private var workspace: some View {
+        let sourceVisible = editingSource && !showPreview
+        let previewVisible = !editingSource || showPreview
+        return ZStack {
+            if hasEditedSource {
+                SourceEditor(document: document, state: editorState, paper: paper, isVisible: sourceVisible)
+                    .ignoresSafeArea(.all, edges: [.top, .bottom])
+            }
+            reader(isActive: previewVisible)
+        }
+        .scrollEdgeEffectStyle(.soft, for: .top)
+        .navigationTitle(document.title)
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
     private var outlineSheet: some View {
         NavigationStack {
             outline
@@ -168,12 +235,14 @@ struct ReaderScreen: View {
         .presentationBackground(paper)
     }
 
-    private var reader: some View {
+    private func reader(isActive: Bool) -> some View {
         Group {
-            if let snapshot = document.snapshot, let parsed = snapshot.parsed {
+            if let snapshot = document.snapshot {
+                let parsed = snapshot.parsed
                 ReadingSurface(
                     document: parsed, revision: snapshot.revision, style: style, fontRevision: fontStore.revision,
                     outline: parsed.outline, fileURL: document.fileURL, viewport: viewport, findRequest: findRequest,
+                    isActive: isActive,
                     openLink: { url in
                         pendingLink = url
                         showLinkConfirmation = true
@@ -181,25 +250,18 @@ struct ReaderScreen: View {
                 )
                 // Paint behind the floating find panel as well as the toolbars.
                 .ignoresSafeArea(.all, edges: [.top, .bottom])
-            } else if let error = document.snapshot?.error {
-                ContentUnavailableView(
-                    "Could Not Decode Document", systemImage: "doc.badge.exclamationmark",
-                    description: Text(error))
             } else {
                 ProgressView("Opening document…").frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .background(paper.ignoresSafeArea())
-        .scrollEdgeEffectStyle(.soft, for: .top)
-        .navigationTitle(document.title)
-        .navigationBarTitleDisplayMode(.inline)
     }
 
     private var outline: some View {
         ReaderOutline(
-            items: document.snapshot?.parsed?.outline ?? [], currentID: viewport.headingID,
+            items: document.snapshot?.parsed.outline ?? [], currentID: viewport.headingID,
             searchable: !regular
         ) { item in
+            showPreview = true
             viewport.jump(to: item.id)
             showOutline = false
         }
@@ -227,5 +289,18 @@ struct ReaderScreen: View {
                 NSLog("Delete failed %@: %@", url.lastPathComponent, coordinationError.localizedDescription)
             }
         }
+    }
+}
+
+private struct SourceHistoryControls: View {
+    let state: SourceEditorState
+
+    var body: some View {
+        Button("Undo", systemImage: "arrow.uturn.backward", action: state.undo)
+            .disabled(!state.canUndo)
+            .accessibilityIdentifier("source-undo")
+        Button("Redo", systemImage: "arrow.uturn.forward", action: state.redo)
+            .disabled(!state.canRedo)
+            .accessibilityIdentifier("source-redo")
     }
 }

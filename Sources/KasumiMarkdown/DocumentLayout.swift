@@ -280,13 +280,14 @@ enum DocumentTypesetter {
                         padding: horizontalPadding, scrollable: scrollableTables)
                 viewport?.tableWidths[blockIndex] = widths
                 let tableWidth = widths.reduce(0, +)
+                let tableLeft = left + max(0, (measure - tableWidth) / 2)
                 let paragraphStart = paragraphs.count
                 let backgroundStart = backgrounds.count
                 let ruleStart = rules.count
                 let top = y
                 for (rowIndex, row) in block.rows.enumerated() {
                     let rowTop = y
-                    var x = left
+                    var x = tableLeft
                     var height: CGFloat = style.size * style.lineSpacing + verticalPadding * 2
                     for (column, cell) in row.enumerated() where column < columns {
                         let attr = attributed(
@@ -308,7 +309,7 @@ enum DocumentTypesetter {
                     if rowIndex == 0 {
                         backgrounds.append(
                             PaintedRect(
-                                rect: CGRect(x: left, y: y, width: tableWidth, height: height),
+                                rect: CGRect(x: tableLeft, y: y, width: tableWidth, height: height),
                                 color: theme.color("table_header_background")!))
                     }
                     y += height
@@ -316,12 +317,12 @@ enum DocumentTypesetter {
                     if rowIndex == 0 || grid {
                         rules.append(
                             PaintedRule(
-                                start: CGPoint(x: left, y: y), end: CGPoint(x: left + tableWidth, y: y),
+                                start: CGPoint(x: tableLeft, y: y), end: CGPoint(x: tableLeft + tableWidth, y: y),
                                 color: style.ruleColor))
                     }
                 }
                 if grid {
-                    var edge = left
+                    var edge = tableLeft
                     for column in 0...columns {
                         rules.append(
                             PaintedRule(
@@ -332,7 +333,7 @@ enum DocumentTypesetter {
                 for edge in [top, y] {
                     rules.append(
                         PaintedRule(
-                            start: CGPoint(x: left, y: edge), end: CGPoint(x: left + tableWidth, y: edge),
+                            start: CGPoint(x: tableLeft, y: edge), end: CGPoint(x: tableLeft + tableWidth, y: edge),
                             color: style.textColor, width: 1.2))
                 }
                 let tableIndex = tables.count
@@ -342,7 +343,7 @@ enum DocumentTypesetter {
                 tables.append(
                     RenderedTable(
                         id: tableIndex,
-                        frame: CGRect(x: left, y: top - 1, width: min(measure, tableWidth), height: y - top + 2),
+                        frame: CGRect(x: tableLeft, y: top - 1, width: min(measure, tableWidth), height: y - top + 2),
                         contentWidth: tableWidth))
                 y += style.size
             } else {

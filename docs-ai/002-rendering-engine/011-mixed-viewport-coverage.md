@@ -69,8 +69,15 @@ and highlights without revealing a different horizontal position.
   disjoint across retained snapshots. Semantic maps match freshly derived maps.
   A long linked paragraph initially materializes fewer than one quarter of its
   fragments; ordinary and linked viewport pixels/selection match eager layout.
-- The Release app build passed. Native horizontal pan, selection and Find behavior
-  have source/build validation only; no simulator/device runtime verification.
+- The Release app build passed. A subsequent source-editor integration check on
+  iPhone 18 Pro/iOS 27.2 Simulator exercised an authored 100-paragraph CJK document
+  with a formula/table: horizontal pan survives Source/Preview switching; widening
+  until the table fits clamps its offset, and narrowing restores overflow. With
+  Find active (1 of 2 table matches), manually panning away and resizing from
+  460 to 450 pt does not reveal the current match again. Resize Mode also covered
+  600 pt and the scene's 437 pt minimum at that stage, then returned to the
+  402 pt main display. Native selection gestures were not checked; these checks
+  do not measure frame rate or continuous-drag tails.
 
 ## Mac measurements
 
