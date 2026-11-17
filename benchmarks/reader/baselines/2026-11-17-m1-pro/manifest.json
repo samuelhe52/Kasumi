@@ -1,0 +1,4015 @@
+{
+  "corpus": {
+    "cases": [
+      {
+        "completePreparationEligible": true,
+        "id": "english-20000",
+        "nominalBodyCharacters": 20000,
+        "sample": "English",
+        "sha256": "67c0656f16a6520f939591f591048de99034d11944fd7687b7e56e19198adace",
+        "utf16Units": 20659,
+        "utf8Bytes": 20660
+      },
+      {
+        "completePreparationEligible": true,
+        "id": "english-50000",
+        "nominalBodyCharacters": 50000,
+        "sample": "English",
+        "sha256": "a6341aea441782fce55f573b8a13680ed57b8a79da727ee7c5d818d037d362a6",
+        "utf16Units": 51619,
+        "utf8Bytes": 51620
+      },
+      {
+        "completePreparationEligible": true,
+        "id": "english-200000",
+        "nominalBodyCharacters": 200000,
+        "sample": "English",
+        "sha256": "6c665bfb77302f89dc2751e7ffa8bd4e6e9bfb050f228d531c47889c6706fc3d",
+        "utf16Units": 206720,
+        "utf8Bytes": 206721
+      },
+      {
+        "completePreparationEligible": true,
+        "id": "chinese-20000",
+        "nominalBodyCharacters": 20000,
+        "sample": "Chinese",
+        "sha256": "68ce28bb1b60e710f6fd225f2b7e5a471ce4ebe84e1a897c5a26f8bd66c9fd44",
+        "utf16Units": 20659,
+        "utf8Bytes": 60660
+      },
+      {
+        "completePreparationEligible": true,
+        "id": "chinese-50000",
+        "nominalBodyCharacters": 50000,
+        "sample": "Chinese",
+        "sha256": "b5f4f661f95cd9053a89fc0b4ad53131ad900982c2d1385f85198e2695501431",
+        "utf16Units": 51619,
+        "utf8Bytes": 151620
+      },
+      {
+        "completePreparationEligible": true,
+        "id": "chinese-200000",
+        "nominalBodyCharacters": 200000,
+        "sample": "Chinese",
+        "sha256": "38eede52ac3a8089c68539004e188191d2ddea8597c829b5657b47d4eb93d510",
+        "utf16Units": 206720,
+        "utf8Bytes": 606721
+      },
+      {
+        "completePreparationEligible": true,
+        "id": "mixed-20000",
+        "nominalBodyCharacters": 20000,
+        "sample": "Mixed",
+        "sha256": "a4f88dca603311dc424685c981a59ad9d592e95b51444fc7fb745e337f13f959",
+        "utf16Units": 21937,
+        "utf8Bytes": 61962
+      },
+      {
+        "completePreparationEligible": true,
+        "id": "mixed-50000",
+        "nominalBodyCharacters": 50000,
+        "sample": "Mixed",
+        "sha256": "69f5c6af9547f57c0c082d1fa7ef297f595139b3c8ca2087fd34e260542ec31b",
+        "utf16Units": 54817,
+        "utf8Bytes": 154878
+      },
+      {
+        "completePreparationEligible": true,
+        "id": "mixed-200000",
+        "nominalBodyCharacters": 200000,
+        "sample": "Mixed",
+        "sha256": "d7704271e23e2693f7dfb606bc09441b0cd26d70ccdae92e09791b5177468331",
+        "utf16Units": 219518,
+        "utf8Bytes": 619759
+      },
+      {
+        "completePreparationEligible": false,
+        "id": "single-50000",
+        "nominalBodyCharacters": 50000,
+        "sample": "Single paragraph",
+        "sha256": "16d01ba6ab3f0e9bcade3a36dec4a208149d785253eb0f7328d3bb769f41925d",
+        "utf16Units": 50000,
+        "utf8Bytes": 150000
+      }
+    ],
+    "generator": "LabSample-v1-en_US",
+    "schema": 1
+  },
+  "finishedUTC": "2026-11-17T15:47:04.616560+00:00",
+  "latencyGeometry": {
+    "colorSpace": "sRGB SDR",
+    "fontSize": 18,
+    "height": 701,
+    "scale": 2,
+    "width": 1179
+  },
+  "memoryGeometry": {
+    "colorSpace": "sRGB SDR",
+    "fontSize": 18,
+    "height": 714,
+    "scale": 1,
+    "width": 900
+  },
+  "plannedJobs": [
+    [
+      "cold-mixed-50000-000",
+      "cold",
+      "mixed-50000"
+    ],
+    [
+      "cold-chinese-200000-000",
+      "cold",
+      "chinese-200000"
+    ],
+    [
+      "cold-mixed-200000-000",
+      "cold",
+      "mixed-200000"
+    ],
+    [
+      "cold-chinese-50000-000",
+      "cold",
+      "chinese-50000"
+    ],
+    [
+      "cold-single-50000-000",
+      "cold",
+      "single-50000"
+    ],
+    [
+      "cold-mixed-20000-000",
+      "cold",
+      "mixed-20000"
+    ],
+    [
+      "cold-english-50000-000",
+      "cold",
+      "english-50000"
+    ],
+    [
+      "cold-chinese-20000-000",
+      "cold",
+      "chinese-20000"
+    ],
+    [
+      "cold-english-20000-000",
+      "cold",
+      "english-20000"
+    ],
+    [
+      "cold-english-200000-000",
+      "cold",
+      "english-200000"
+    ],
+    [
+      "cold-chinese-20000-001",
+      "cold",
+      "chinese-20000"
+    ],
+    [
+      "cold-single-50000-001",
+      "cold",
+      "single-50000"
+    ],
+    [
+      "cold-english-50000-001",
+      "cold",
+      "english-50000"
+    ],
+    [
+      "cold-chinese-50000-001",
+      "cold",
+      "chinese-50000"
+    ],
+    [
+      "cold-mixed-20000-001",
+      "cold",
+      "mixed-20000"
+    ],
+    [
+      "cold-english-200000-001",
+      "cold",
+      "english-200000"
+    ],
+    [
+      "cold-chinese-200000-001",
+      "cold",
+      "chinese-200000"
+    ],
+    [
+      "cold-mixed-200000-001",
+      "cold",
+      "mixed-200000"
+    ],
+    [
+      "cold-english-20000-001",
+      "cold",
+      "english-20000"
+    ],
+    [
+      "cold-mixed-50000-001",
+      "cold",
+      "mixed-50000"
+    ],
+    [
+      "cold-chinese-20000-002",
+      "cold",
+      "chinese-20000"
+    ],
+    [
+      "cold-english-20000-002",
+      "cold",
+      "english-20000"
+    ],
+    [
+      "cold-chinese-50000-002",
+      "cold",
+      "chinese-50000"
+    ],
+    [
+      "cold-chinese-200000-002",
+      "cold",
+      "chinese-200000"
+    ],
+    [
+      "cold-english-200000-002",
+      "cold",
+      "english-200000"
+    ],
+    [
+      "cold-single-50000-002",
+      "cold",
+      "single-50000"
+    ],
+    [
+      "cold-english-50000-002",
+      "cold",
+      "english-50000"
+    ],
+    [
+      "cold-mixed-50000-002",
+      "cold",
+      "mixed-50000"
+    ],
+    [
+      "cold-mixed-20000-002",
+      "cold",
+      "mixed-20000"
+    ],
+    [
+      "cold-mixed-200000-002",
+      "cold",
+      "mixed-200000"
+    ],
+    [
+      "cold-mixed-20000-003",
+      "cold",
+      "mixed-20000"
+    ],
+    [
+      "cold-mixed-50000-003",
+      "cold",
+      "mixed-50000"
+    ],
+    [
+      "cold-single-50000-003",
+      "cold",
+      "single-50000"
+    ],
+    [
+      "cold-chinese-200000-003",
+      "cold",
+      "chinese-200000"
+    ],
+    [
+      "cold-english-50000-003",
+      "cold",
+      "english-50000"
+    ],
+    [
+      "cold-english-20000-003",
+      "cold",
+      "english-20000"
+    ],
+    [
+      "cold-chinese-50000-003",
+      "cold",
+      "chinese-50000"
+    ],
+    [
+      "cold-chinese-20000-003",
+      "cold",
+      "chinese-20000"
+    ],
+    [
+      "cold-english-200000-003",
+      "cold",
+      "english-200000"
+    ],
+    [
+      "cold-mixed-200000-003",
+      "cold",
+      "mixed-200000"
+    ],
+    [
+      "cold-chinese-200000-004",
+      "cold",
+      "chinese-200000"
+    ],
+    [
+      "cold-mixed-20000-004",
+      "cold",
+      "mixed-20000"
+    ],
+    [
+      "cold-chinese-20000-004",
+      "cold",
+      "chinese-20000"
+    ],
+    [
+      "cold-mixed-50000-004",
+      "cold",
+      "mixed-50000"
+    ],
+    [
+      "cold-english-20000-004",
+      "cold",
+      "english-20000"
+    ],
+    [
+      "cold-mixed-200000-004",
+      "cold",
+      "mixed-200000"
+    ],
+    [
+      "cold-chinese-50000-004",
+      "cold",
+      "chinese-50000"
+    ],
+    [
+      "cold-english-200000-004",
+      "cold",
+      "english-200000"
+    ],
+    [
+      "cold-single-50000-004",
+      "cold",
+      "single-50000"
+    ],
+    [
+      "cold-english-50000-004",
+      "cold",
+      "english-50000"
+    ],
+    [
+      "cold-mixed-20000-005",
+      "cold",
+      "mixed-20000"
+    ],
+    [
+      "cold-mixed-200000-005",
+      "cold",
+      "mixed-200000"
+    ],
+    [
+      "cold-chinese-20000-005",
+      "cold",
+      "chinese-20000"
+    ],
+    [
+      "cold-english-200000-005",
+      "cold",
+      "english-200000"
+    ],
+    [
+      "cold-mixed-50000-005",
+      "cold",
+      "mixed-50000"
+    ],
+    [
+      "cold-single-50000-005",
+      "cold",
+      "single-50000"
+    ],
+    [
+      "cold-english-20000-005",
+      "cold",
+      "english-20000"
+    ],
+    [
+      "cold-english-50000-005",
+      "cold",
+      "english-50000"
+    ],
+    [
+      "cold-chinese-200000-005",
+      "cold",
+      "chinese-200000"
+    ],
+    [
+      "cold-chinese-50000-005",
+      "cold",
+      "chinese-50000"
+    ],
+    [
+      "cold-chinese-200000-006",
+      "cold",
+      "chinese-200000"
+    ],
+    [
+      "cold-mixed-200000-006",
+      "cold",
+      "mixed-200000"
+    ],
+    [
+      "cold-single-50000-006",
+      "cold",
+      "single-50000"
+    ],
+    [
+      "cold-mixed-20000-006",
+      "cold",
+      "mixed-20000"
+    ],
+    [
+      "cold-english-50000-006",
+      "cold",
+      "english-50000"
+    ],
+    [
+      "cold-english-20000-006",
+      "cold",
+      "english-20000"
+    ],
+    [
+      "cold-chinese-20000-006",
+      "cold",
+      "chinese-20000"
+    ],
+    [
+      "cold-mixed-50000-006",
+      "cold",
+      "mixed-50000"
+    ],
+    [
+      "cold-chinese-50000-006",
+      "cold",
+      "chinese-50000"
+    ],
+    [
+      "cold-english-200000-006",
+      "cold",
+      "english-200000"
+    ],
+    [
+      "cold-english-200000-007",
+      "cold",
+      "english-200000"
+    ],
+    [
+      "cold-single-50000-007",
+      "cold",
+      "single-50000"
+    ],
+    [
+      "cold-english-50000-007",
+      "cold",
+      "english-50000"
+    ],
+    [
+      "cold-mixed-200000-007",
+      "cold",
+      "mixed-200000"
+    ],
+    [
+      "cold-english-20000-007",
+      "cold",
+      "english-20000"
+    ],
+    [
+      "cold-mixed-20000-007",
+      "cold",
+      "mixed-20000"
+    ],
+    [
+      "cold-chinese-50000-007",
+      "cold",
+      "chinese-50000"
+    ],
+    [
+      "cold-chinese-200000-007",
+      "cold",
+      "chinese-200000"
+    ],
+    [
+      "cold-chinese-20000-007",
+      "cold",
+      "chinese-20000"
+    ],
+    [
+      "cold-mixed-50000-007",
+      "cold",
+      "mixed-50000"
+    ],
+    [
+      "cold-chinese-50000-008",
+      "cold",
+      "chinese-50000"
+    ],
+    [
+      "cold-english-200000-008",
+      "cold",
+      "english-200000"
+    ],
+    [
+      "cold-mixed-50000-008",
+      "cold",
+      "mixed-50000"
+    ],
+    [
+      "cold-english-50000-008",
+      "cold",
+      "english-50000"
+    ],
+    [
+      "cold-english-20000-008",
+      "cold",
+      "english-20000"
+    ],
+    [
+      "cold-mixed-200000-008",
+      "cold",
+      "mixed-200000"
+    ],
+    [
+      "cold-chinese-20000-008",
+      "cold",
+      "chinese-20000"
+    ],
+    [
+      "cold-single-50000-008",
+      "cold",
+      "single-50000"
+    ],
+    [
+      "cold-chinese-200000-008",
+      "cold",
+      "chinese-200000"
+    ],
+    [
+      "cold-mixed-20000-008",
+      "cold",
+      "mixed-20000"
+    ],
+    [
+      "cold-chinese-20000-009",
+      "cold",
+      "chinese-20000"
+    ],
+    [
+      "cold-english-50000-009",
+      "cold",
+      "english-50000"
+    ],
+    [
+      "cold-chinese-200000-009",
+      "cold",
+      "chinese-200000"
+    ],
+    [
+      "cold-mixed-50000-009",
+      "cold",
+      "mixed-50000"
+    ],
+    [
+      "cold-english-20000-009",
+      "cold",
+      "english-20000"
+    ],
+    [
+      "cold-chinese-50000-009",
+      "cold",
+      "chinese-50000"
+    ],
+    [
+      "cold-mixed-20000-009",
+      "cold",
+      "mixed-20000"
+    ],
+    [
+      "cold-single-50000-009",
+      "cold",
+      "single-50000"
+    ],
+    [
+      "cold-mixed-200000-009",
+      "cold",
+      "mixed-200000"
+    ],
+    [
+      "cold-english-200000-009",
+      "cold",
+      "english-200000"
+    ],
+    [
+      "warm-chinese-50000-000",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-mixed-50000-000",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-mixed-20000-000",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-mixed-200000-000",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-chinese-20000-000",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-english-200000-000",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-single-50000-000",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-english-20000-000",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-chinese-200000-000",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-english-50000-000",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-english-20000-001",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-single-50000-001",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-mixed-50000-001",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-chinese-20000-001",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-english-50000-001",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-chinese-50000-001",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-mixed-200000-001",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-english-200000-001",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-chinese-200000-001",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-mixed-20000-001",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-chinese-50000-002",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-english-200000-002",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-chinese-200000-002",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-mixed-200000-002",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-english-20000-002",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-mixed-20000-002",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-single-50000-002",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-chinese-20000-002",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-mixed-50000-002",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-english-50000-002",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-mixed-200000-003",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-english-200000-003",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-chinese-20000-003",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-english-50000-003",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-english-20000-003",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-chinese-200000-003",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-mixed-20000-003",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-chinese-50000-003",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-single-50000-003",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-mixed-50000-003",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-chinese-200000-004",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-single-50000-004",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-chinese-50000-004",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-mixed-50000-004",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-mixed-200000-004",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-mixed-20000-004",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-english-20000-004",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-english-200000-004",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-english-50000-004",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-chinese-20000-004",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-single-50000-005",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-mixed-50000-005",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-english-200000-005",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-chinese-50000-005",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-chinese-20000-005",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-chinese-200000-005",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-english-50000-005",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-mixed-200000-005",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-mixed-20000-005",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-english-20000-005",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-chinese-50000-006",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-english-200000-006",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-chinese-20000-006",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-mixed-200000-006",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-english-50000-006",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-chinese-200000-006",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-english-20000-006",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-single-50000-006",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-mixed-50000-006",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-mixed-20000-006",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-mixed-50000-007",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-english-20000-007",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-chinese-20000-007",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-mixed-20000-007",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-mixed-200000-007",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-single-50000-007",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-english-50000-007",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-chinese-50000-007",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-english-200000-007",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-chinese-200000-007",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-english-50000-008",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-english-200000-008",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-chinese-200000-008",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-mixed-50000-008",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-mixed-200000-008",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-single-50000-008",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-chinese-20000-008",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-mixed-20000-008",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-chinese-50000-008",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-english-20000-008",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-chinese-20000-009",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-mixed-20000-009",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-mixed-200000-009",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-english-20000-009",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-chinese-200000-009",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-single-50000-009",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-english-50000-009",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-english-200000-009",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-chinese-50000-009",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-mixed-50000-009",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-single-50000-010",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-chinese-20000-010",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-english-20000-010",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-mixed-50000-010",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-chinese-200000-010",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-mixed-200000-010",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-mixed-20000-010",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-chinese-50000-010",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-english-200000-010",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-english-50000-010",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-english-200000-011",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-chinese-20000-011",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-chinese-50000-011",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-chinese-200000-011",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-mixed-200000-011",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-mixed-50000-011",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-english-20000-011",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-mixed-20000-011",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-single-50000-011",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-english-50000-011",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-english-20000-012",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-single-50000-012",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-english-50000-012",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-chinese-50000-012",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-chinese-200000-012",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-english-200000-012",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-mixed-50000-012",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-mixed-200000-012",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-chinese-20000-012",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-mixed-20000-012",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-english-20000-013",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-single-50000-013",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-english-50000-013",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-chinese-20000-013",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-mixed-20000-013",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-english-200000-013",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-mixed-50000-013",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-mixed-200000-013",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-chinese-50000-013",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-chinese-200000-013",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-english-20000-014",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-english-50000-014",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-single-50000-014",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-mixed-20000-014",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-mixed-50000-014",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-english-200000-014",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-mixed-200000-014",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-chinese-200000-014",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-chinese-20000-014",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-chinese-50000-014",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-chinese-200000-015",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-english-50000-015",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-chinese-20000-015",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-chinese-50000-015",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-single-50000-015",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-english-200000-015",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-mixed-200000-015",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-mixed-50000-015",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-mixed-20000-015",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-english-20000-015",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-chinese-50000-016",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-english-200000-016",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-mixed-50000-016",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-english-50000-016",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-mixed-20000-016",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-chinese-20000-016",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-mixed-200000-016",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-english-20000-016",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-chinese-200000-016",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-single-50000-016",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-english-200000-017",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-chinese-200000-017",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-single-50000-017",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-english-20000-017",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-chinese-50000-017",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-english-50000-017",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-mixed-200000-017",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-mixed-50000-017",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-mixed-20000-017",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-chinese-20000-017",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-single-50000-018",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-english-20000-018",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-mixed-200000-018",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-chinese-20000-018",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-mixed-20000-018",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-english-200000-018",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-mixed-50000-018",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-chinese-50000-018",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-chinese-200000-018",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-english-50000-018",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-mixed-50000-019",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-chinese-20000-019",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-chinese-200000-019",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-single-50000-019",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-english-200000-019",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-english-20000-019",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-mixed-20000-019",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-english-50000-019",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-mixed-200000-019",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-chinese-50000-019",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-mixed-20000-020",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-chinese-20000-020",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-single-50000-020",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-chinese-200000-020",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-english-50000-020",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-mixed-50000-020",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-mixed-200000-020",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-chinese-50000-020",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-english-20000-020",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-english-200000-020",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-mixed-20000-021",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-english-50000-021",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-chinese-200000-021",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-mixed-200000-021",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-english-200000-021",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-english-20000-021",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-single-50000-021",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-mixed-50000-021",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-chinese-50000-021",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-chinese-20000-021",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-chinese-200000-022",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-chinese-50000-022",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-english-200000-022",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-chinese-20000-022",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-mixed-200000-022",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-single-50000-022",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-mixed-20000-022",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-mixed-50000-022",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-english-50000-022",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-english-20000-022",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-chinese-200000-023",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-english-50000-023",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-chinese-50000-023",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-mixed-200000-023",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-mixed-50000-023",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-single-50000-023",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-english-200000-023",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-chinese-20000-023",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-english-20000-023",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-mixed-20000-023",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-english-20000-024",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-english-200000-024",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-mixed-50000-024",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-english-50000-024",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-chinese-50000-024",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-mixed-20000-024",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-chinese-200000-024",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-mixed-200000-024",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-chinese-20000-024",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-single-50000-024",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-chinese-50000-025",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-single-50000-025",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-mixed-20000-025",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-mixed-200000-025",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-english-20000-025",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-chinese-200000-025",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-english-200000-025",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-english-50000-025",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-chinese-20000-025",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-mixed-50000-025",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-mixed-20000-026",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-english-200000-026",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-chinese-200000-026",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-single-50000-026",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-chinese-20000-026",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-english-50000-026",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-mixed-50000-026",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-english-20000-026",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-mixed-200000-026",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-chinese-50000-026",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-english-50000-027",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-english-200000-027",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-chinese-200000-027",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-chinese-50000-027",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-chinese-20000-027",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-single-50000-027",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-mixed-20000-027",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-mixed-200000-027",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-mixed-50000-027",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-english-20000-027",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-english-200000-028",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-english-20000-028",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-english-50000-028",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-single-50000-028",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-chinese-20000-028",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-mixed-20000-028",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-chinese-50000-028",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-mixed-50000-028",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-mixed-200000-028",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-chinese-200000-028",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-chinese-200000-029",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-mixed-50000-029",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-chinese-50000-029",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-chinese-20000-029",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-mixed-20000-029",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-english-200000-029",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-single-50000-029",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-english-20000-029",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-english-50000-029",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-mixed-200000-029",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-english-200000-030",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-chinese-20000-030",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-mixed-200000-030",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-single-50000-030",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-english-50000-030",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-mixed-50000-030",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-english-20000-030",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-mixed-20000-030",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-chinese-50000-030",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-chinese-200000-030",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-chinese-200000-031",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-mixed-50000-031",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-chinese-50000-031",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-mixed-200000-031",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-single-50000-031",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-mixed-20000-031",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-chinese-20000-031",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-english-200000-031",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-english-20000-031",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-english-50000-031",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-chinese-200000-032",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-mixed-200000-032",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-mixed-20000-032",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-mixed-50000-032",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-chinese-20000-032",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-english-20000-032",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-single-50000-032",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-english-200000-032",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-english-50000-032",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-chinese-50000-032",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-chinese-20000-033",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-chinese-50000-033",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-english-200000-033",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-chinese-200000-033",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-mixed-50000-033",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-single-50000-033",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-mixed-20000-033",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-english-50000-033",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-english-20000-033",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-mixed-200000-033",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-mixed-20000-034",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-english-20000-034",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-chinese-200000-034",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-single-50000-034",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-mixed-200000-034",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-mixed-50000-034",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-chinese-20000-034",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-chinese-50000-034",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-english-200000-034",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-english-50000-034",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-english-50000-035",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-mixed-20000-035",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-chinese-50000-035",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-english-200000-035",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-chinese-20000-035",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-chinese-200000-035",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-mixed-50000-035",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-single-50000-035",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-mixed-200000-035",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-english-20000-035",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-mixed-200000-036",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-single-50000-036",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-mixed-20000-036",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-english-200000-036",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-english-20000-036",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-mixed-50000-036",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-chinese-50000-036",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-chinese-20000-036",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-chinese-200000-036",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-english-50000-036",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-chinese-50000-037",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-english-50000-037",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-mixed-50000-037",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-english-20000-037",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-single-50000-037",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-chinese-200000-037",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-chinese-20000-037",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-mixed-20000-037",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-mixed-200000-037",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-english-200000-037",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-single-50000-038",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-chinese-50000-038",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-mixed-50000-038",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-english-200000-038",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-mixed-200000-038",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-chinese-20000-038",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-mixed-20000-038",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-english-50000-038",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-english-20000-038",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-chinese-200000-038",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-chinese-20000-039",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-single-50000-039",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-chinese-50000-039",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-english-20000-039",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-english-200000-039",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-mixed-50000-039",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-mixed-200000-039",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-english-50000-039",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-mixed-20000-039",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-chinese-200000-039",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-mixed-200000-040",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-chinese-50000-040",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-english-50000-040",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-mixed-20000-040",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-mixed-50000-040",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-single-50000-040",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-chinese-200000-040",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-chinese-20000-040",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-english-20000-040",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-english-200000-040",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-chinese-50000-041",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-english-20000-041",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-single-50000-041",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-mixed-20000-041",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-english-50000-041",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-chinese-20000-041",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-english-200000-041",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-chinese-200000-041",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-mixed-50000-041",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-mixed-200000-041",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-mixed-200000-042",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-english-200000-042",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-chinese-50000-042",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-english-50000-042",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-chinese-20000-042",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-english-20000-042",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-mixed-20000-042",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-mixed-50000-042",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-single-50000-042",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-chinese-200000-042",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-chinese-50000-043",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-english-200000-043",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-english-20000-043",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-chinese-20000-043",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-chinese-200000-043",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-single-50000-043",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-english-50000-043",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-mixed-20000-043",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-mixed-200000-043",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-mixed-50000-043",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-english-200000-044",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-single-50000-044",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-mixed-50000-044",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-mixed-20000-044",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-chinese-50000-044",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-chinese-200000-044",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-english-50000-044",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-mixed-200000-044",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-english-20000-044",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-chinese-20000-044",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-mixed-50000-045",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-english-200000-045",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-english-50000-045",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-mixed-200000-045",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-chinese-20000-045",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-chinese-50000-045",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-mixed-20000-045",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-english-20000-045",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-single-50000-045",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-chinese-200000-045",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-chinese-200000-046",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-single-50000-046",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-english-20000-046",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-english-50000-046",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-english-200000-046",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-chinese-20000-046",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-mixed-50000-046",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-mixed-20000-046",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-mixed-200000-046",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-chinese-50000-046",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-mixed-200000-047",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-english-200000-047",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-english-50000-047",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-mixed-50000-047",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-english-20000-047",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-chinese-200000-047",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-mixed-20000-047",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-single-50000-047",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-chinese-20000-047",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-chinese-50000-047",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-single-50000-048",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-chinese-200000-048",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-chinese-20000-048",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-english-20000-048",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-mixed-50000-048",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-english-50000-048",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-mixed-20000-048",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-english-200000-048",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-mixed-200000-048",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-chinese-50000-048",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "warm-english-50000-049",
+      "warm",
+      "english-50000"
+    ],
+    [
+      "warm-english-200000-049",
+      "warm",
+      "english-200000"
+    ],
+    [
+      "warm-mixed-200000-049",
+      "warm",
+      "mixed-200000"
+    ],
+    [
+      "warm-english-20000-049",
+      "warm",
+      "english-20000"
+    ],
+    [
+      "warm-chinese-200000-049",
+      "warm",
+      "chinese-200000"
+    ],
+    [
+      "warm-mixed-50000-049",
+      "warm",
+      "mixed-50000"
+    ],
+    [
+      "warm-mixed-20000-049",
+      "warm",
+      "mixed-20000"
+    ],
+    [
+      "warm-chinese-20000-049",
+      "warm",
+      "chinese-20000"
+    ],
+    [
+      "warm-single-50000-049",
+      "warm",
+      "single-50000"
+    ],
+    [
+      "warm-chinese-50000-049",
+      "warm",
+      "chinese-50000"
+    ],
+    [
+      "resize-chinese-200000-000",
+      "resize",
+      "chinese-200000"
+    ],
+    [
+      "resize-chinese-50000-000",
+      "resize",
+      "chinese-50000"
+    ],
+    [
+      "resize-single-50000-000",
+      "resize",
+      "single-50000"
+    ],
+    [
+      "resize-english-20000-000",
+      "resize",
+      "english-20000"
+    ],
+    [
+      "resize-english-200000-000",
+      "resize",
+      "english-200000"
+    ],
+    [
+      "resize-mixed-50000-000",
+      "resize",
+      "mixed-50000"
+    ],
+    [
+      "resize-chinese-20000-000",
+      "resize",
+      "chinese-20000"
+    ],
+    [
+      "resize-english-50000-000",
+      "resize",
+      "english-50000"
+    ],
+    [
+      "resize-mixed-20000-000",
+      "resize",
+      "mixed-20000"
+    ],
+    [
+      "resize-mixed-200000-000",
+      "resize",
+      "mixed-200000"
+    ],
+    [
+      "afterPrepare-single-50000-000",
+      "afterPrepare",
+      "single-50000"
+    ],
+    [
+      "afterPrepare-english-200000-000",
+      "afterPrepare",
+      "english-200000"
+    ],
+    [
+      "afterPrepare-chinese-200000-000",
+      "afterPrepare",
+      "chinese-200000"
+    ],
+    [
+      "afterPrepare-mixed-50000-000",
+      "afterPrepare",
+      "mixed-50000"
+    ],
+    [
+      "afterPrepare-mixed-20000-000",
+      "afterPrepare",
+      "mixed-20000"
+    ],
+    [
+      "afterPrepare-chinese-20000-000",
+      "afterPrepare",
+      "chinese-20000"
+    ],
+    [
+      "afterPrepare-english-20000-000",
+      "afterPrepare",
+      "english-20000"
+    ],
+    [
+      "afterPrepare-english-50000-000",
+      "afterPrepare",
+      "english-50000"
+    ],
+    [
+      "afterPrepare-mixed-200000-000",
+      "afterPrepare",
+      "mixed-200000"
+    ],
+    [
+      "afterPrepare-chinese-50000-000",
+      "afterPrepare",
+      "chinese-50000"
+    ],
+    [
+      "afterPrepare-english-20000-001",
+      "afterPrepare",
+      "english-20000"
+    ],
+    [
+      "afterPrepare-chinese-50000-001",
+      "afterPrepare",
+      "chinese-50000"
+    ],
+    [
+      "afterPrepare-english-200000-001",
+      "afterPrepare",
+      "english-200000"
+    ],
+    [
+      "afterPrepare-chinese-20000-001",
+      "afterPrepare",
+      "chinese-20000"
+    ],
+    [
+      "afterPrepare-chinese-200000-001",
+      "afterPrepare",
+      "chinese-200000"
+    ],
+    [
+      "afterPrepare-mixed-200000-001",
+      "afterPrepare",
+      "mixed-200000"
+    ],
+    [
+      "afterPrepare-mixed-20000-001",
+      "afterPrepare",
+      "mixed-20000"
+    ],
+    [
+      "afterPrepare-mixed-50000-001",
+      "afterPrepare",
+      "mixed-50000"
+    ],
+    [
+      "afterPrepare-english-50000-001",
+      "afterPrepare",
+      "english-50000"
+    ],
+    [
+      "afterPrepare-single-50000-001",
+      "afterPrepare",
+      "single-50000"
+    ],
+    [
+      "afterPrepare-chinese-50000-002",
+      "afterPrepare",
+      "chinese-50000"
+    ],
+    [
+      "afterPrepare-english-20000-002",
+      "afterPrepare",
+      "english-20000"
+    ],
+    [
+      "afterPrepare-single-50000-002",
+      "afterPrepare",
+      "single-50000"
+    ],
+    [
+      "afterPrepare-mixed-50000-002",
+      "afterPrepare",
+      "mixed-50000"
+    ],
+    [
+      "afterPrepare-english-50000-002",
+      "afterPrepare",
+      "english-50000"
+    ],
+    [
+      "afterPrepare-english-200000-002",
+      "afterPrepare",
+      "english-200000"
+    ],
+    [
+      "afterPrepare-chinese-200000-002",
+      "afterPrepare",
+      "chinese-200000"
+    ],
+    [
+      "afterPrepare-chinese-20000-002",
+      "afterPrepare",
+      "chinese-20000"
+    ],
+    [
+      "afterPrepare-mixed-20000-002",
+      "afterPrepare",
+      "mixed-20000"
+    ],
+    [
+      "afterPrepare-mixed-200000-002",
+      "afterPrepare",
+      "mixed-200000"
+    ],
+    [
+      "afterPrepare-mixed-20000-003",
+      "afterPrepare",
+      "mixed-20000"
+    ],
+    [
+      "afterPrepare-mixed-50000-003",
+      "afterPrepare",
+      "mixed-50000"
+    ],
+    [
+      "afterPrepare-english-200000-003",
+      "afterPrepare",
+      "english-200000"
+    ],
+    [
+      "afterPrepare-mixed-200000-003",
+      "afterPrepare",
+      "mixed-200000"
+    ],
+    [
+      "afterPrepare-single-50000-003",
+      "afterPrepare",
+      "single-50000"
+    ],
+    [
+      "afterPrepare-chinese-20000-003",
+      "afterPrepare",
+      "chinese-20000"
+    ],
+    [
+      "afterPrepare-english-20000-003",
+      "afterPrepare",
+      "english-20000"
+    ],
+    [
+      "afterPrepare-chinese-200000-003",
+      "afterPrepare",
+      "chinese-200000"
+    ],
+    [
+      "afterPrepare-chinese-50000-003",
+      "afterPrepare",
+      "chinese-50000"
+    ],
+    [
+      "afterPrepare-english-50000-003",
+      "afterPrepare",
+      "english-50000"
+    ],
+    [
+      "afterPrepare-chinese-200000-004",
+      "afterPrepare",
+      "chinese-200000"
+    ],
+    [
+      "afterPrepare-mixed-50000-004",
+      "afterPrepare",
+      "mixed-50000"
+    ],
+    [
+      "afterPrepare-mixed-20000-004",
+      "afterPrepare",
+      "mixed-20000"
+    ],
+    [
+      "afterPrepare-single-50000-004",
+      "afterPrepare",
+      "single-50000"
+    ],
+    [
+      "afterPrepare-chinese-20000-004",
+      "afterPrepare",
+      "chinese-20000"
+    ],
+    [
+      "afterPrepare-chinese-50000-004",
+      "afterPrepare",
+      "chinese-50000"
+    ],
+    [
+      "afterPrepare-mixed-200000-004",
+      "afterPrepare",
+      "mixed-200000"
+    ],
+    [
+      "afterPrepare-english-50000-004",
+      "afterPrepare",
+      "english-50000"
+    ],
+    [
+      "afterPrepare-english-20000-004",
+      "afterPrepare",
+      "english-20000"
+    ],
+    [
+      "afterPrepare-english-200000-004",
+      "afterPrepare",
+      "english-200000"
+    ],
+    [
+      "paint-english-200000-000",
+      "paint",
+      "english-200000"
+    ],
+    [
+      "paint-mixed-200000-000",
+      "paint",
+      "mixed-200000"
+    ],
+    [
+      "paint-chinese-20000-000",
+      "paint",
+      "chinese-20000"
+    ],
+    [
+      "paint-mixed-50000-000",
+      "paint",
+      "mixed-50000"
+    ],
+    [
+      "paint-chinese-50000-000",
+      "paint",
+      "chinese-50000"
+    ],
+    [
+      "paint-chinese-200000-000",
+      "paint",
+      "chinese-200000"
+    ],
+    [
+      "paint-single-50000-000",
+      "paint",
+      "single-50000"
+    ],
+    [
+      "paint-english-50000-000",
+      "paint",
+      "english-50000"
+    ],
+    [
+      "paint-english-20000-000",
+      "paint",
+      "english-20000"
+    ],
+    [
+      "paint-mixed-20000-000",
+      "paint",
+      "mixed-20000"
+    ],
+    [
+      "find-chinese-50000-000",
+      "find",
+      "chinese-50000"
+    ],
+    [
+      "find-mixed-20000-000",
+      "find",
+      "mixed-20000"
+    ],
+    [
+      "find-chinese-20000-000",
+      "find",
+      "chinese-20000"
+    ],
+    [
+      "find-english-20000-000",
+      "find",
+      "english-20000"
+    ],
+    [
+      "find-english-50000-000",
+      "find",
+      "english-50000"
+    ],
+    [
+      "find-english-200000-000",
+      "find",
+      "english-200000"
+    ],
+    [
+      "find-chinese-200000-000",
+      "find",
+      "chinese-200000"
+    ],
+    [
+      "find-mixed-50000-000",
+      "find",
+      "mixed-50000"
+    ],
+    [
+      "find-single-50000-000",
+      "find",
+      "single-50000"
+    ],
+    [
+      "find-mixed-200000-000",
+      "find",
+      "mixed-200000"
+    ],
+    [
+      "memory-chinese-200000",
+      "memory",
+      "chinese-200000"
+    ],
+    [
+      "memory-mixed-200000",
+      "memory",
+      "mixed-200000"
+    ],
+    [
+      "memory-english-50000",
+      "memory",
+      "english-50000"
+    ],
+    [
+      "memory-mixed-50000",
+      "memory",
+      "mixed-50000"
+    ],
+    [
+      "memory-chinese-50000",
+      "memory",
+      "chinese-50000"
+    ],
+    [
+      "memory-english-200000",
+      "memory",
+      "english-200000"
+    ],
+    [
+      "nativeOrdinary",
+      "nativeOrdinary",
+      null
+    ],
+    [
+      "nativeFast",
+      "nativeFast",
+      null
+    ],
+    [
+      "nativeFastControl",
+      "nativeFastControl",
+      null
+    ]
+  ],
+  "profile": "full",
+  "provenance": {
+    "binarySHA256": "e5e9e68d6d896ac1af4ec64bcd075bd0d311006f648284372676295cba11dc1c",
+    "buildCommand": "swift build -c release --product KasumiReflowBench --scratch-path .build/bench",
+    "dirty": true,
+    "gitStatus": "M Makefile\n M Package.swift\n M docs-ai/002-rendering-engine/renderer-gaps.md\n M docs-ai/roadmap.md\n M docs/development.md\n D tools/ReflowLab/Benchmark.swift\n M tools/ReflowLab/Preview.swift\n M tools/ReflowLab/README.md\n M tools/ReflowLab/Samples.swift\n M tools/ReflowLab/main.swift\n?? benchmarks/\n?? tools/ReflowBench/\n?? tools/ReflowLab/BenchmarkMemory.swift\n?? tools/ReflowLab/ViewportBitmap.swift",
+    "host": {
+      "architecture": "arm64",
+      "cpu": "Apple M1 Pro",
+      "memoryBytes": 17179869184,
+      "model": "MacBookPro18,3",
+      "os": "ProductName:\t\tmacOS\nProductVersion:\t\t27.2.1\nBuildVersion:\t\t26B131",
+      "power": "Now drawing from 'AC Power'\n -InternalBattery-0 (id=24838243)\t100%; finishing charge; 0:08 remaining present: true",
+      "swift": "swift-driver version: 1.168.6 Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.2.0",
+      "xcode": "Xcode 27.2\nBuild version 27B48"
+    },
+    "nativeBinarySHA256": "9ac13014f69fc265428fb011b6461e0a0e5f43c0b801caaeb86029026bbf56c2",
+    "revision": "8bf141cc4653725c27b25dec0786485a6486c06d",
+    "scratchPath": ".build/bench",
+    "seed": 20261117,
+    "sourceFiles": {
+      ".agents/skills/write-ai-doc/SKILL.md": "f1110f51841e7a841c5551bd232a2518d69fd9a53c6bb52eb5a23a3a5ea91780",
+      ".claude/skills/write-ai-doc": "deleted",
+      ".gitignore": "a9f5393cc7cf41a822cea5fbbdc21c6da47b59b38f2c49722204575e407bc68d",
+      ".swift-format": "bef3bc4c7423ccabdc90f068023224ba7785baf008df2941ed15b46a2ba5b136",
+      "AGENTS.md": "693a2c2da1ae1b2d0ef8086f5514c1501e963c26c2eaf28a2d76618fe59b5ff6",
+      "LICENSE": "9b20430a27c93774a77ba5ec0ac71ae3d36d95b6160f2fd9aafdb19ed85f86d4",
+      "Makefile": "44d63fcccd70f4fa0010f8e3db00ac9b3f9d878ebcd57bf3b2260e33b5d5aeb2",
+      "Package.resolved": "b9ca47c1d6362d4cf9b3e596a6c580f61394958fffa10579e3eb995749188227",
+      "Package.swift": "7ab72ceeb2c291329bb37785a5ce25d084b0c26f3f19ab9dbddc23423b38ae32",
+      "README.md": "dbd2a553c360e2f2587cf1ca707ca97c3f43f52e49c84d267636757790e6e351",
+      "Sources/KasumiMarkdown/Bundled/BuiltinProfiles.json": "776eeaa17c5b8b510b0aa46f3b3de6d940f49de654fed69f5b23317ff94dcd3f",
+      "Sources/KasumiMarkdown/Bundled/DocumentThemes.json": "ced74a4f0b9735185d718ab94fbda5bf13f054d40f3671e9a3df8fb4df5abdf9",
+      "Sources/KasumiMarkdown/Bundled/GUST-FONT-LICENSE.txt": "49ea6cb9257bbee0a3979c48a774cd221550ac1c20c95549efe45fc99cc18050",
+      "Sources/KasumiMarkdown/Bundled/LPPL-1.3c.txt": "d7bd10db098a03db9e36e41f3e6f67548602d11486904fb4f1d98b3d64ab7258",
+      "Sources/KasumiMarkdown/Bundled/MANIFEST-TeX-Gyre-Pagella-Math.txt": "9eff8878dc44fe1333507e41d7005ec9c5522a811d4e3daeae9efd88c7730247",
+      "Sources/KasumiMarkdown/Bundled/MANIFEST-TeX-Gyre-Pagella.txt": "6ac4bc1448a1d71a3a7ad5fd13566f00855b37ca4db5b20451c88806ac3f5242",
+      "Sources/KasumiMarkdown/Bundled/NewCMMath-Book.otf": "ac2f4393db81faa7242751483e52de8fd784c89bd00c20d07aaa938c68441ff8",
+      "Sources/KasumiMarkdown/Bundled/NewCMMath-Regular.otf": "60394d357348f68cd301764fe61cc502a5858e1c4ff21b948a1d14d82586a7a2",
+      "Sources/KasumiMarkdown/Bundled/NewComputerModern-NOTICE.txt": "12ce9c14ffd4e46f9e8da47de0624e3e422e474c1c28d2fbcf11abbd9c19acbf",
+      "Sources/KasumiMarkdown/Bundled/ProfileSchema.json": "478326cb7543e223d33efaa5ecf6dcf4ad5b093b48f2ed4cee5f54b0e481badb",
+      "Sources/KasumiMarkdown/Bundled/README-NewComputerModern-7.1.1.txt": "0fcf71e1e7e6dbdf56a90d45e2ed7bf6591b5e2b9ab37280ee3108b9d36f5865",
+      "Sources/KasumiMarkdown/Bundled/README-TeX-Gyre-Pagella-Math.txt": "71a3780122b5bf21af2c7186d93312a7be25aa5b1bb0c8853fa5ef287c1d5de8",
+      "Sources/KasumiMarkdown/Bundled/README-TeX-Gyre-Pagella.txt": "6fc4c72a8754f7e04ffbbec99167a568c0a3d21e231318ed624b58ddfeb1f896",
+      "Sources/KasumiMarkdown/Bundled/TeXGyreMath-DejaVu-LICENSE.txt": "d75938dec098f06f0ac3c00853065d94f020be1c3c62ef1dc2975ba15b4d9b0e",
+      "Sources/KasumiMarkdown/Bundled/TeXGyrePagella-GUST-FONT-LICENSE.txt": "2bd69affc3da00715116f713f57eab9707e96daf3562ad0215987b15b9c16f73",
+      "Sources/KasumiMarkdown/Bundled/TeXGyrePagella-NOTICE.txt": "15e5cd1b3d74ace989a4ac25d3bd0974231856cf9f47dd1a0f8e5891ad806280",
+      "Sources/KasumiMarkdown/Bundled/TeXGyrePagellaMath-GUST-FONT-LICENSE.txt": "2bd69affc3da00715116f713f57eab9707e96daf3562ad0215987b15b9c16f73",
+      "Sources/KasumiMarkdown/Bundled/TeXGyrePagellaMath-NOTICE.txt": "6bfbc9e303bf9f2c2f9d1d4bed24fbfb935bcf94bcdae0aa50be0710fbd54a62",
+      "Sources/KasumiMarkdown/Bundled/texgyrepagella-bold.otf": "dd4f9b69f0b24f1fb9be8634abf1fce2009e5c68a30842a3e9f5d6e535900abd",
+      "Sources/KasumiMarkdown/Bundled/texgyrepagella-bolditalic.otf": "556fd64655a92bd9f5485ae2c03f7b9cdaf745a27a91d7edb3c3abde997206d2",
+      "Sources/KasumiMarkdown/Bundled/texgyrepagella-italic.otf": "069bb27f48eb98a741715227fc6e4b7baf3639c29fc13925f70d1ed8884ac29a",
+      "Sources/KasumiMarkdown/Bundled/texgyrepagella-math.otf": "1f9e010f60e947d0e925910009b2ea85ad54edc7cefb106f8cdefb9ffd1d5f2f",
+      "Sources/KasumiMarkdown/Bundled/texgyrepagella-regular.otf": "44e64260716d8f2bbe412baa1ee99b7c995190ac4573177c24def0b9200438c7",
+      "Sources/KasumiMarkdown/CJKFontFace.swift": "ccfed3b87bb9eac1cf575a8b05f9acc8b17d524f0f59258f7dbe523b20e02b8a",
+      "Sources/KasumiMarkdown/CJKFontRole.swift": "eac3128f7764a3320d735e5bcc4be361c9ec2a1cc40bd51b12d9553d081d0957",
+      "Sources/KasumiMarkdown/DagreLayout.swift": "542cc451fbfcfd762a4163dcb7a168c5365cf49f591735cff5940d39f1c3e948",
+      "Sources/KasumiMarkdown/Document.swift": "bccaf555cef9e8cf900ca4c881c127b6fae3042fc61460d70fd549d2027fb04a",
+      "Sources/KasumiMarkdown/DocumentDecoding.swift": "5e21eae31d9c734825dff561132067a7bcc516ceb049fae4c85d2500038d2989",
+      "Sources/KasumiMarkdown/DocumentExport.swift": "8af115a696f1d83e8644ac2416258c8e0e35d9e170288b24eed6a1f4b104eab3",
+      "Sources/KasumiMarkdown/DocumentExporter.swift": "0cc13122f8e28bbbfc068900e72b65dc7bc817ea97c6bc775b1efd08cd497efc",
+      "Sources/KasumiMarkdown/DocumentFonts.swift": "a544a371ecffc04eebbebb7cbd313167acfb0d29c80d59ad03e9a393a31b85b6",
+      "Sources/KasumiMarkdown/DocumentImages.swift": "c8360a1fc414e79f6645fa92d1d386736cce11b80699f3ebaf413a2f791684eb",
+      "Sources/KasumiMarkdown/DocumentLayout.swift": "7547d25a8fe9522aabe1a26ac5f32759d607c5ede1c98fa80a93885d8d10fa0a",
+      "Sources/KasumiMarkdown/DocumentPagination.swift": "433e13ecc918e64408bf5bf8522bcb8602c46f1381130b1045613abfdcb4edcd",
+      "Sources/KasumiMarkdown/DocumentReflowSession.swift": "25add416aff20aa8e6199e97c8b843a73fee2477b00284b5624ea9173783cee7",
+      "Sources/KasumiMarkdown/DocumentTheme.swift": "c046122e5acc8805dc465b7cf9d37a0aefc21c49eab6f07da50ff6abb4c752bf",
+      "Sources/KasumiMarkdown/DocumentThemePair.swift": "8d06aca6d7450afd2758372459ef80872c6f62221427b4b4a5cab1e181e8d88b",
+      "Sources/KasumiMarkdown/FontFamilyResolver.swift": "752c3d933f9e03ef29bc809ad0ad800dcad292e684d02ae78a81357c3b2dd5fa",
+      "Sources/KasumiMarkdown/FragmentGlyphPaint.swift": "d6a8981bed8f2107de35b82884cab25429eace61a241dcfd0be84d21ce532958",
+      "Sources/KasumiMarkdown/FragmentMaterialization.swift": "fa8d57792a2093bd2157ebf56e457737a1b6830b522788920f472b386bf155a2",
+      "Sources/KasumiMarkdown/InlineCodeCapsule.swift": "af2149828024fe1199788a475cf4735b7ed207bb4ba6a9716b1ee873e1470de2",
+      "Sources/KasumiMarkdown/MarkdownDocument.swift": "0acb19b0e707dd2cf029b5772d189e89a469af30777b8156538fb153ca67e87a",
+      "Sources/KasumiMarkdown/MarkdownExtensions.swift": "1afe1c6c01bfbbf0fe8766d4890303f9e36ad18f9c8aab97da9c60f0cd6d5443",
+      "Sources/KasumiMarkdown/MathAttachment.swift": "a4ee8bb944ab77059edcff4ca25e707b4622a6eb2eb58a4a4edce280f55cdb1c",
+      "Sources/KasumiMarkdown/MathFont.swift": "f475426f5931a25e60e7896c1d801a4cd1faf99c0b4ce85d3fa546d8d3e706bb",
+      "Sources/KasumiMarkdown/MathLayout.swift": "9fa24b78dd329d4a09fb94205b5b31347f03dfe95897d90c5ddd82e29a8e3c2f",
+      "Sources/KasumiMarkdown/MathParser.swift": "ee26f8ec84f0ce701a6c3e5e469acff8d7d8a24e08fcbaf05f38ca0e25d6551d",
+      "Sources/KasumiMarkdown/MathProfileOptions.swift": "79992c01c75b38c8e7b18987f8a45b345ab435d161005fab611e4e880ce57279",
+      "Sources/KasumiMarkdown/MeasuredParagraphTypesetter.swift": "fb2c03d94eeb4d2fe75b15f64e604e40f7144308e99b8e536e039ef708eafcaa",
+      "Sources/KasumiMarkdown/MermaidAttachment.swift": "ffd6de9c079e885bab6c452885de0a92ddba3393449a270b2c5db9b49789f4d0",
+      "Sources/KasumiMarkdown/MermaidEntities.swift": "c6705657d2863888a0d694d9d4b10848eb4bc2fa76c82c1cf82e27a627c779c7",
+      "Sources/KasumiMarkdown/MermaidFlow.swift": "4d6cc9e9348d61d3f258dc9e99136825309014776b76b39f419e1f3c1c3a0270",
+      "Sources/KasumiMarkdown/MermaidPie.swift": "6ae047d0f3ddc992f96cb694b66d744a522e048998fe56c7226bb8ad7c66f3e7",
+      "Sources/KasumiMarkdown/MermaidScene.swift": "24a2519c5aeea439f5a627b76a9688f71a2e29b0ded4bf9b5a310c95e52854a5",
+      "Sources/KasumiMarkdown/MermaidSequence.swift": "4d9299993aa58fdad9bed03988b7b1f6ce745ddca869f13643e62c1f04ff2d97",
+      "Sources/KasumiMarkdown/MermaidState.swift": "543ecc125192008886326d0401c902eff681814b21d7c0519b22230ea290c9da",
+      "Sources/KasumiMarkdown/MermaidStyle.swift": "6d01ff88481adf51624e0566e62ab8ca3422c1cd75c81101145f2218a4b7325b",
+      "Sources/KasumiMarkdown/MermaidStyleColor.swift": "7d76dec3fead2e91fd74586a40af22d1990c7f411e7057d3ca3b9b220624b2bd",
+      "Sources/KasumiMarkdown/MermaidTextStyle.swift": "2289669f82b52dcb686ca94219566be0e347ae38e35a70f5cc463e54ec3d0942",
+      "Sources/KasumiMarkdown/MermaidTree.swift": "78571b840fa9be0c581e9961aa17e32ca512f66a4c58745f87ea7db09df0f4e0",
+      "Sources/KasumiMarkdown/ParagraphBreaker.swift": "cbfb17c3f8cd8e42d5eff7cc86a28ad16db6b4d025d21b6a70e188dcb6ca3852",
+      "Sources/KasumiMarkdown/ParagraphEngine.swift": "e0a826b847c0ac7c8e7b3b82bf30d85f8f727ae77cfb38189c4f3f0ae4db5de5",
+      "Sources/KasumiMarkdown/ParagraphGlyphDrawing.swift": "0932e8cb898c6837e271b9bfec05c7f19d297fa94718db3166593383d934fc7b",
+      "Sources/KasumiMarkdown/ParagraphHyphenation.swift": "2826871b71983780e9d8c48b04be1581cfdd6549ce785b8b1725940e5ee94f96",
+      "Sources/KasumiMarkdown/ParagraphLayoutGeometry.swift": "e0446ae3913db3fa8826944d19f3ad9f7977162452fcf55d80f47f2440e4be87",
+      "Sources/KasumiMarkdown/ParagraphProfileOptions.swift": "4631eb9c7b6bf960ec8b8dc7007b7730688e03dbf7d00b459c5985e9cc6271f6",
+      "Sources/KasumiMarkdown/ParagraphShaping.swift": "f6f2769ee29cfaceda376059c1251e6569de5d3194e8d530707432b7a80f2319",
+      "Sources/KasumiMarkdown/PlainTextParser.swift": "7b9de547fa8d6fcd3d91bdf6a227ff561f4245e8a9c3c691863b548b65774e0f",
+      "Sources/KasumiMarkdown/Platform.swift": "24eec8989b4b03f0b15a170c02c2d5b236182590e02a3ca0b9df8428b570e6f7",
+      "Sources/KasumiMarkdown/ProfileField.swift": "4505ceacbb3c455d959cacb378ecf7f857d3cdec7f0b3fb310b49e7527e01b18",
+      "Sources/KasumiMarkdown/ProfileFileDocument.swift": "b6c8a268261470ae993c8c1b740e832a58f3ca565d27dd24431ba7153da096a2",
+      "Sources/KasumiMarkdown/ProfileLibrary.swift": "fa88c8ce55025d6f7cac05b1f96c67f6df2edcfeb7f888001700c99d5ce4cf6c",
+      "Sources/KasumiMarkdown/ReadingPosition.swift": "1a7a647c929f5cbd7072ebec3e19c8e53e30e0a3bf90d4c058e98535ab167520",
+      "Sources/KasumiMarkdown/ReflowSemanticContent.swift": "a020f066d7c485821e219014d456d0ed12997237acf75762dd8bebff306a2317",
+      "Sources/KasumiMarkdown/RenderCommand.swift": "3ab5520a90869d956732cc5f83db5cc5c1dd9dc84444003d067f538a7c959cb0",
+      "Sources/KasumiMarkdown/RenderStyle.swift": "c1f5a22f96cfbf9bdc031adc56d72a730c03b7f6ce1684147e0238a7ba4a043e",
+      "Sources/KasumiMarkdown/RenderedDocument.swift": "8410ea2b7bdabcd03da368212e1f7a6f33d4777067b16a3b9b74cb4dd1d7468e",
+      "Sources/KasumiMarkdown/ShapedLine.swift": "0d53cc31fd0f5c9ff0a0a015eebdff51d1561797ffe9bc3bb11b6c82e94d1af2",
+      "Sources/KasumiMarkdown/TableLayout.swift": "f58e34e36d6f65e61cb4863e373932f150d283a6a012a68f5c4c4a92ae379709",
+      "Sources/KasumiMarkdown/TextUnderline.swift": "db6674200fc50f5dab93518b54eb71a441f81a53abe0afbcef5f4485fad1e445",
+      "Sources/KasumiMarkdown/Typography.swift": "c3c07b7f1113b477751b46c3e3577da38cc692b91dc29eeb46050e1f2fdb5d7d",
+      "Sources/KasumiMarkdown/TypographyProfile.swift": "5f87b71ab2a7808baaf84cafe148eb8f07980be99a9d7e97cad7c6f908ccbec6",
+      "Sources/KasumiMarkdown/UnderlineClearance.swift": "7ed71eab8ea2a655161c5361daf18c127efd7bf6003e5967375f7d63fd6754a4",
+      "Sources/KasumiMarkdown/UnicodeLineBreak.swift": "7a316a426438f966065ab8d73fa64624cd2e2e661225156fc6ea974a123256b7",
+      "Sources/KasumiMarkdown/ViewportLayout.swift": "023329f0ec3e58a2c2a70490ad35a1299cd86a9dc45944c936decfd622fd8303",
+      "Sources/KasumiRender/main.swift": "3315916db357c9276e7db896d0c7c2556f125177b4b7ade0000d64aae367e30c",
+      "Tests/KasumiMarkdownTests/DagreTests.swift": "9bd3838f9530dc637b59b3a72b1859adebfb37c7aa8bacb89e16378e1a74f5e3",
+      "Tests/KasumiMarkdownTests/DocumentFontTests.swift": "b0e399534f557ee58473c5f65aaebc08836153fd814b087fa2e8a76cc5094682",
+      "Tests/KasumiMarkdownTests/DocumentReflowTests.swift": "351b988d0bf71dc8597632b52c922be2fe2f9d7e96126578acd52f8ae63b2ff9",
+      "Tests/KasumiMarkdownTests/DocumentTests.swift": "22e046f177bdbab78e4695ffeb71999c03996257150e847c2093b1d485457af3",
+      "Tests/KasumiMarkdownTests/ExportTests.swift": "f7441950d0ccfb43d42a7aba250f0f18a27226f3b9f8bf7e5c2ca88ba25e0a74",
+      "Tests/KasumiMarkdownTests/HyphenationTests.swift": "0817b03d2c3143f8bd8d283868ebaeb7784e87415d7ed6a77676e08ce1993415",
+      "Tests/KasumiMarkdownTests/ImageTests.swift": "01849ae9498679b77c1dfb96728f29a2606a855437e523d8b8e8211b3930a5a1",
+      "Tests/KasumiMarkdownTests/LinkUnderlineTests.swift": "a30d43ace1b59cca1910d329de52cf990d7d09a7600435989f971dfe20733d2c",
+      "Tests/KasumiMarkdownTests/MathFontTests.swift": "bec2bf6da0fc1765edf5eef693f4f903eaa4e0a73bbaa957e7d250682adfd86d",
+      "Tests/KasumiMarkdownTests/MathLayoutTests.swift": "da143a68c84cdb180d155018e861f17d6b8c3379f59ecda2d6c28e85cd214818",
+      "Tests/KasumiMarkdownTests/MathProfileTests.swift": "939b8c0a69e1f0b104ead42d62de0b17c2a5ae25557c4b608b21db2515825f15",
+      "Tests/KasumiMarkdownTests/MermaidEntitiesTests.swift": "a94b878b5e7eecd3948110abfc1ccddbc64e4f7174a414d22a14d24a9bd2ff2f",
+      "Tests/KasumiMarkdownTests/MermaidExportTests.swift": "68ee727f1c9d9625a839e68bf1ffc76a41d7c3a1d23d5ebdea53871ae45dfd95",
+      "Tests/KasumiMarkdownTests/MermaidFlowTests.swift": "48306c497225b5dda91f0c44801760daad3a8a021b5628ca7f864d346d255ab9",
+      "Tests/KasumiMarkdownTests/MermaidFrontendTests.swift": "cbbf9308717e15f4417a00e37d5e2be273c857c9942a41f95db761f405434341",
+      "Tests/KasumiMarkdownTests/MermaidPaletteTests.swift": "dbff4c0371aae745f9dfc3889bea522a4de97bac401b969448e71d21c4b56372",
+      "Tests/KasumiMarkdownTests/MermaidPieTests.swift": "a6fe5b7ef86941e12e0a8cfa8a84cebd0b5e65657e9dcfaa61619fef63aea1fb",
+      "Tests/KasumiMarkdownTests/MermaidSequenceTests.swift": "9f019e45ae76e9d147bfa114ae14401222371b9c3a44374b455444c7bef03214",
+      "Tests/KasumiMarkdownTests/MermaidStateTests.swift": "a8c8d837eab57be376d56ead31bbd98cc3e8cccd990ec2a3b33650b9ec04df22",
+      "Tests/KasumiMarkdownTests/MermaidStyleApplicationTests.swift": "24149e9b23d3ec547cf3a532eb3a63a11e8dc008e4835a1eddd0651cf56dd750",
+      "Tests/KasumiMarkdownTests/MermaidStyleColorTests.swift": "5f33591af34dac6ff3879849feec8fcc837d4da88b5311ea6683a47fa8696f61",
+      "Tests/KasumiMarkdownTests/MermaidTreeTests.swift": "a051117c4b9f354e493fc9d5457992c413fd9a62064a297c17bd85b6a5b46601",
+      "Tests/KasumiMarkdownTests/ParagraphDrawingTests.swift": "2af1be85a4c663d3b53cb51912bfa2a9d075e6bbd14393ee6a29db2dfeea1654",
+      "Tests/KasumiMarkdownTests/ParagraphEngineTests.swift": "23d862054cba18532445c0e0158019fd5488503169d9101d7e670bb7c97fa4b6",
+      "Tests/KasumiMarkdownTests/ParagraphShapingTests.swift": "9963a85a10049344b7b993ff55cc5dbd5f137e77f82c10e2ce79a7fae7a427c8",
+      "Tests/KasumiMarkdownTests/ParagraphTests.swift": "13f46ef2e6c85a9539c9c95963fe005d3cc61883c8e6a03696d4c9d6a68f6580",
+      "Tests/KasumiMarkdownTests/PlatformTestsSupport.swift": "0a296014fe010710a3b76b1f92d42a044db7e5e1913fd05333b157b362457683",
+      "Tests/KasumiMarkdownTests/ProfileFileDocumentTests.swift": "118713f340034b087718a35b82c9e461dc20029b6968ddf0ea616fb613ce90d8",
+      "Tests/KasumiMarkdownTests/ProfileRenderingTests.swift": "c094ea809ab09417280c117e5b017da84ad2a14614fdd0a66a143e3e4f29b179",
+      "Tests/KasumiMarkdownTests/ProfileTests.swift": "669ade40741d00cf044b8c2945d367733638db1b49d0e3a30c809d842a8dc6f9",
+      "Tests/KasumiMarkdownTests/PublicAPITests.swift": "b30f16063e971e480e0758b3cabd91f0d02dfa848c7055e7d08f5726f01fa8fc",
+      "Tests/KasumiMarkdownTests/PunctuationFontTests.swift": "9536d50617f185ce5914b4b1378ced328ffb6ed71408be9b2a455758536700a7",
+      "Tests/KasumiMarkdownTests/ReaderHighlightIndex.swift": "c2271743b416cd319386208881cb354e641cc653bd0ed495c3f824df2d7a1ab9",
+      "Tests/KasumiMarkdownTests/ReaderHighlightTests.swift": "d1be314baa6f991790e3c61e634e7bce5c2489f846ccf6aafee63b13487d466a",
+      "Tests/KasumiMarkdownTests/ReaderReflowState.swift": "ac9df72bc427ae346b2cc433f0c99b1e8ef82ed3e8c4da1f8cfb46dd676817e7",
+      "Tests/KasumiMarkdownTests/ReaderReflowTests.swift": "9b062597d3d36dbb61ae8ff7381a9980ed1f64da76c7c622124faa322c8fc6c0",
+      "Tests/KasumiMarkdownTests/ReaderSearchState.swift": "8b600c70041ac83b6cc0a2769625accd3066221606ca4f08073a4c8bbddb3b40",
+      "Tests/KasumiMarkdownTests/ReaderSearchTests.swift": "ab0efeb1d5c5e1df9016da454b189ebf66c656130c3ebcf394729c796d30f281",
+      "Tests/KasumiMarkdownTests/ReaderTableEdgeMask.swift": "9e0841d47b18f86c83044c8657ef78f5e50e323d667ee2dce381fcef91ca1c04",
+      "Tests/KasumiMarkdownTests/ReaderTableEdgeTests.swift": "dabe5c7ba6e72fd842f4e7fc6e4274f1bdeccf05c8710a0f5b656b770e0702ed",
+      "Tests/KasumiMarkdownTests/ReadingPositionTests.swift": "063478bad0cab596e3784246639e3b39405ec11e7b110fae1fef4de290887a1c",
+      "Tests/KasumiMarkdownTests/ReferenceSemanticsTests.swift": "f5d50157e50e75d5b4a5284813a0c080b17a139ae4f17b574cb10b7e378fc6ff",
+      "Tests/KasumiMarkdownTests/SelectionLookupTests.swift": "e50cf2aabd842176bf4149daabdfd2871177a5efff08618e0b81d0af872319c3",
+      "Tests/KasumiMarkdownTests/SourceFormatting.swift": "27c35d2df1bf0fad483c56d544f1b47115d37abc36d7706bf782ea9eb425920b",
+      "Tests/KasumiMarkdownTests/SourceFormattingTests.swift": "41a7c501770bdce3a6399e5d9294b2815e3763c3f20645f53c44a5d56266ec20",
+      "Tests/KasumiMarkdownTests/TableLayoutTests.swift": "299f1351755cfe1d8223a035e7efa5478956be5216a043f3a820b1b76c0dc62d",
+      "Tests/KasumiMarkdownTests/TestResources.swift": "e7591453c274c4d75c30b25e60cccd164bf5e69474d92e85dd94bd79b7f54f3b",
+      "Tests/KasumiMarkdownTests/TextDocumentTests.swift": "94668278ccd5f4e1750a07441826e701e21736a1f43f8d29326c6a9292432ac3",
+      "Tests/KasumiMarkdownTests/ThemeDiagramTests.swift": "41e54dc9fd1cc2872470d27939e9ca224ef6748e84961d1b8807cf72204c2981",
+      "Tests/KasumiMarkdownTests/ThemeTests.swift": "3824bde53150a87b0b3e3b695947dfe857e04ccbf78206eb69945d79bac47935",
+      "Tests/KasumiMarkdownTests/TypographyOutputTests.swift": "f2b7ab672f10fde072f3cc6a05054369070b18cb0eb3998f3ff42ec83c5d33bb",
+      "Tests/KasumiMarkdownTests/UnderlineClearanceTests.swift": "95b817e9a657f09e4b3aa5b648969da9ab73c92600b3b33e6bfee303f75d0a3b",
+      "Tests/KasumiMarkdownTests/ViewportLayoutTests.swift": "38d0dd94826f4183cfec1f924520fc781d61952bc367fdc1bcef2f8a438d3dd4",
+      "Tests/KasumiMarkdownTests/fixtures": "deleted",
+      "apps/iOS/ImportExtension-Info.plist": "b4f3a82507582bbed16ce188e6dbddf70d25015d82996ec170a926e1918d3016",
+      "apps/iOS/ImportExtension.entitlements": "87333e6b07771872c3f5f5ab19d4f763b9e6d0e688774318bfa9f995dd0501f7",
+      "apps/iOS/ImportExtension/ActionIcon@2x.png": "e383f31210e14bca6c1eb62ba737b37a93ba6c580fcf23486a832a185e17f218",
+      "apps/iOS/ImportExtension/ActionIcon@3x.png": "fd7ce597957e041819ee8871a9613faa8d35400f96cd276b07894d51ee2b6a0a",
+      "apps/iOS/ImportExtension/ImportViewController.swift": "25bd9d4d50089bf681eb996f67a189649aff6ff43c08188930e1bea1d898fa1d",
+      "apps/iOS/Info.plist": "6d38b8f3eb1176e6f5769102dd38d926853af1346b3ce9fe5aff9f48d8eef630",
+      "apps/iOS/Kasumi.entitlements": "87333e6b07771872c3f5f5ab19d4f763b9e6d0e688774318bfa9f995dd0501f7",
+      "apps/iOS/Kasumi.xcodeproj/project.pbxproj": "bdb042ccf1d82807fdac82e009ee3423eef1f81fb8257c57fa71abb16d0b6e8d",
+      "apps/iOS/Kasumi.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved": "c4ae7709e425f3729cdfc18d1d5a23ce0a39e61463ea027ae153d0a310d9db45",
+      "apps/iOS/Kasumi/AppearanceSettings.swift": "0ba7067df35a28e13b832efc31f97e45f56b94875d350e3322d4f9ee352c326a",
+      "apps/iOS/Kasumi/Assets.xcassets/AccentColor.colorset/Contents.json": "a2a6d1f11992022acb05e94152dcdd94434115c5d5c2ea08de5622ea8e33bd92",
+      "apps/iOS/Kasumi/Assets.xcassets/AppIcon.appiconset/AppIcon-Dark.png": "0ccd2a2e0c21871d1ee17f61c6881c03a53522046243e7b5e50e41a9c76d5e05",
+      "apps/iOS/Kasumi/Assets.xcassets/AppIcon.appiconset/AppIcon-Tinted.png": "c881a595ddb9d789d51afc630635b074f7a4d910ad0f45767e65560b93e7e02a",
+      "apps/iOS/Kasumi/Assets.xcassets/AppIcon.appiconset/AppIcon.png": "41edfa4621351f88a240e0e84fb5e3cf9e221ebc9a6278bb70fd389000b8149d",
+      "apps/iOS/Kasumi/Assets.xcassets/AppIcon.appiconset/Contents.json": "014614a47673b15755114a2c73e7b8806ad2fbe1c7192fbab97f047babf39265",
+      "apps/iOS/Kasumi/Assets.xcassets/Contents.json": "80b0b2e5ce5f42d06c9cea0234147e7f2bea58ef205c47ce3a82f0abe4b64465",
+      "apps/iOS/Kasumi/Assets.xcassets/ReaderPaper.colorset/Contents.json": "3350487b598669433bc387c91886daea71ad0432d7f1b699060f538fd29d6e6b",
+      "apps/iOS/Kasumi/DocumentHandoff.swift": "ceb3a403a0e7616bee9f8192a6c9a89d79053421fe578036d38db414d7bc9e28",
+      "apps/iOS/Kasumi/FontCatalog.swift": "2a33cf1eb73aacb1a7bad0de397efd08cb2fa740be1ad1a939554fd87e3b07c3",
+      "apps/iOS/Kasumi/FontOnboarding.swift": "dd8076ad2a00daee2a962fbbe19c947340ad8ea0c2abb6d43124d8edcf8a50e2",
+      "apps/iOS/Kasumi/FontStore.swift": "c11886a9cecaf2711fc5680ff1bc1ea0952a9b2f91b863a4a84c2156c2e74ab7",
+      "apps/iOS/Kasumi/FontStoreView.swift": "9ad73350682b3b8404da166ff202647715ea37137b7bb0c53b5e83d55961c0b3",
+      "apps/iOS/Kasumi/KasumiApp.swift": "b2ff8cd478248876571a70c46e3789327cc4f9d531a4b47d47fe49740b117682",
+      "apps/iOS/Kasumi/LaunchActions.swift": "6702dede3e9b6e3e0b035bc6d3f2c57ca15b7df05b7c1e950505546cb9031cba",
+      "apps/iOS/Kasumi/LaunchLogotype.swift": "ac6567bbf53017089fbd5593b9bc7e1c0a47ca0f77a8e2e3fe8c47db3951bf07",
+      "apps/iOS/Kasumi/ReaderAppearance.swift": "9b9c9ce4e2ea8f347758a3324b5447fe652f15e7c01a6c3b1aa3a873836e59fa",
+      "apps/iOS/Kasumi/ReaderDocument.swift": "df64ae9cd57195a9ccc36cd1b5d04558facb64558f4afaaee73a376e3424911b",
+      "apps/iOS/Kasumi/ReaderExport.swift": "de8d85eb68017bf80a440bc1e4208fd9485fe9b5e928e23e9555c47899c0aa65",
+      "apps/iOS/Kasumi/ReaderFind.swift": "9dcb3a8d2fe7ec66a5dc8fb82d6d7c25754302e5a5921b63822371349cd18f35",
+      "apps/iOS/Kasumi/ReaderHighlightIndex.swift": "c2271743b416cd319386208881cb354e641cc653bd0ed495c3f824df2d7a1ab9",
+      "apps/iOS/Kasumi/ReaderOutline.swift": "d34ed720b317039d7c644f5f1c1797179975677bc643df0b22ec9a1af0400e2a",
+      "apps/iOS/Kasumi/ReaderPaneTransition.swift": "2a42a38acf7bdef5902756f1c01097a2c24ff517714c5cfc98cf63d82db7b6fa",
+      "apps/iOS/Kasumi/ReaderReflowState.swift": "ac9df72bc427ae346b2cc433f0c99b1e8ef82ed3e8c4da1f8cfb46dd676817e7",
+      "apps/iOS/Kasumi/ReaderScreen.swift": "7854e51fb18b04ea47facc6f5bc5ba2b8d2ca04c6ad1a3c81bbfe90f255145f9",
+      "apps/iOS/Kasumi/ReaderScrollDiagnostics.swift": "da7c1a78419deaf10f9f059fe939484811fdbe867190ee9b9ba0d5a6fe9bfc64",
+      "apps/iOS/Kasumi/ReaderSearchState.swift": "8b600c70041ac83b6cc0a2769625accd3066221606ca4f08073a4c8bbddb3b40",
+      "apps/iOS/Kasumi/ReaderState.swift": "4f8d120b250c9e2e4731779dc2a707855dc7835ffca31cc18c414cbe3e3eb1ac",
+      "apps/iOS/Kasumi/ReaderTableEdgeMask.swift": "9e0841d47b18f86c83044c8657ef78f5e50e323d667ee2dce381fcef91ca1c04",
+      "apps/iOS/Kasumi/ReaderTableScrollView.swift": "145c2b7c7bd91a51690dd13a8c86bd6244b2f243523156a90b4016698f4f7f14",
+      "apps/iOS/Kasumi/ReaderTextInput.swift": "6e16e23b24113c2154517d80c6e78a68f56571610180d2bf8c0f14faa69ce2ad",
+      "apps/iOS/Kasumi/ReadingSurface.swift": "7b0c2c292f95503f3ed7e94baa264273f6f272b3db4f95df75a1d99bf1664e21",
+      "apps/iOS/Kasumi/SourceEditor.swift": "21820d1ec4a6e14946ca40654bba2fdbb3e49dfed27a105c44296a2dcc31bb85",
+      "apps/iOS/Kasumi/SourceFormatting.swift": "27c35d2df1bf0fad483c56d544f1b47115d37abc36d7706bf782ea9eb425920b",
+      "apps/iOS/Kasumi/Welcome.md": "de9296949f4dd7a65e1f339e3cd33d77499f51b77a2a722cd6439b7ed101395e",
+      "apps/iOS/Shared/ImportInbox.swift": "af28a0b45c93c04f2ee2b2f424e901e2dd480b8b5777046c4e79f0a15f083295",
+      "benchmarks/reflow/README.md": "9b2ad5b0cc48b70487a97aa4619261b0f1a8e1ec6da27b411f4e52d2e830d310",
+      "benchmarks/reflow/corpus.json": "f99dab290c78188b1cc9436a4ff86f22345860fc278703c1c532203aede300fd",
+      "benchmarks/reflow/run.py": "29699ce22dd2e127f046a6f975140ff1cf8ef7a62473601ef5d5280bba4240e1",
+      "benchmarks/reflow/test_runner.py": "29e2813bd53202cf4e2bdc1ca282c6c0a71a77b1a3d2014aa6ae5a01e5a0e068",
+      "design/icon/kasumi-dark.svg": "dcba1d20d13137f25fa6ef5270ecda139921fdd1144753bbf4fd1a75135d919f",
+      "design/icon/kasumi-light.svg": "6fa5fb155ccafa8edf9a4ad153ca54d04d843fabc0fbcf88f9e2d2fd91b079b2",
+      "design/icon/kasumi-tinted.svg": "493acccaba7e9c00193b0d4364a30b9619a1d424109baf40a00bbeb71757a664",
+      "design/icon/make_action_icon.swift": "768c43836607c1680a924dd1f9cbb2cfbf7b6b4e60b9868367aab30c2bb3ce41",
+      "design/icon/make_icon.py": "025cec3a6179c0070f413521b8b359f312e47f509c6454958b33f41dde2e9581",
+      "docs-ai/001-library-and-reader/000-plan.md": "06e0d29aa83577565e90ab329d12245134e5f67e62cb8da6736118bf5d96feb7",
+      "docs-ai/001-library-and-reader/001-action.md": "6c6937b70a8dce465562d2387f3f8fd6d62a9c63421be3e2bc2cb4c63a456de0",
+      "docs-ai/001-library-and-reader/goal.md": "8a61b015506a6c91c06287c1147e5b2c88af2e2993deafd5aec7f0d59ac5a867",
+      "docs-ai/002-rendering-engine/000-plan.md": "ca15cd61602e253208b5effc2364a1cba11f20dd65289979672521a4e4cd130d",
+      "docs-ai/002-rendering-engine/001-action.md": "32c1e5ea4610160228635bc5d77a19b25d78f1f3bbd8dbcc0c35ee7edc986b5c",
+      "docs-ai/002-rendering-engine/002-shaped-cluster-integrity.md": "169be534a827a057f9a4b3c8f14a5ea3261378c2f9cb09c992d8f11a11c89346",
+      "docs-ai/002-rendering-engine/003-link-decoration.md": "18e5a7581feb620aafe31cc66c238c14ddec5a128b12d9ea364f55be1d7e18cc",
+      "docs-ai/002-rendering-engine/004-underline-clearance.md": "fe8cfcc7118e14081463dc17b8dd79bd591093e9f35700eb52befa42bf55df65",
+      "docs-ai/002-rendering-engine/005-table-layout.md": "3efded59d111f92fc0e1689ad43baf3c2445d94ac1a2ac0396a854666b2b7836",
+      "docs-ai/002-rendering-engine/006-reflow-preparation.md": "f8413f78c2918801ebbe23cf6d006d4aca2326775bf3fa44e8c2d8f55816e0dc",
+      "docs-ai/002-rendering-engine/007-reflow-metadata.md": "6e2c514e38caac6d3fa807b6738e288e1a9c8dfd54fd028aec5838c4d3af7f0b",
+      "docs-ai/002-rendering-engine/008-lazy-fragments.md": "c13880750d9848266376b33d5abdb0d2d1a7d0a18f6f7fda2fa1152d3d04d3f7",
+      "docs-ai/002-rendering-engine/009-viewport-layout.md": "b1ee92d17eaf6759316e75665268ce7cd2afd56990b96735899e9ba7b44a5dc5",
+      "docs-ai/002-rendering-engine/010-glyph-paint-reuse.md": "cf11d7fa23056d1f58b77b03157a8a0378a539324ca6452061bdea0e907e8865",
+      "docs-ai/002-rendering-engine/011-mixed-viewport-coverage.md": "632aa1418a6b1b11a5a98acc49153b9ff4429f85665fa635653ad812618db538",
+      "docs-ai/002-rendering-engine/012-selection-range-indexing.md": "60171939308ca405cf4e6c49b6b42fc423f81523af86fdcca5eeda896963cd32",
+      "docs-ai/002-rendering-engine/013-paint-without-caret-materialization.md": "5c0600d48e0a517a175c7de4699f78f99550d7a9a4ce7e1d6ceece3b50f8491f",
+      "docs-ai/002-rendering-engine/014-telari-open-report.md": "9aca8cf3c2825da464abd29dcaca080aa7e9fd26c1c71d428d9432a96b0c476a",
+      "docs-ai/002-rendering-engine/015-incremental-reflow.md": "7548a0b6464b565c256b78706f7a57a4810e7b46e5e594329ae2a90be32c3650",
+      "docs-ai/002-rendering-engine/016-fast-scroll-coverage.md": "cb96485d512e2f76f83e8c0ba15e1c15cf4018e0a7319348657c38ef059d351a",
+      "docs-ai/002-rendering-engine/017-compact-idle-preparation.md": "7a934e17d4491115936537d643eeeeeae4577f0ca7d9fa0cc83067f4264261a5",
+      "docs-ai/002-rendering-engine/renderer-gaps.md": "d6543dc8dbb2ed2f5d400ed23a74abf2f94f78337284f2cd9c2bd9d3d07cd7d0",
+      "docs-ai/003-public-rendering-api/000-plan.md": "b92322f7045fa0ee102471d7f73814c5ab67d9b2fe54008e2b62e213d2deb83c",
+      "docs-ai/003-public-rendering-api/001-action.md": "e78829bfe4df20cc7eccd17f3aacd0ae2dd78391e3ed78c7061bbe7ef600002e",
+      "docs-ai/004-ios-reader/000-plan.md": "91c13df0b082e57120e5a4a2e852047925dacb34386b6df9e183b92b8822d5ef",
+      "docs-ai/004-ios-reader/001-action.md": "74b1d7d5f148bf312409e98d89ffc3d942a7dff69e49069936c0ccd17c5e8e0d",
+      "docs-ai/004-ios-reader/002-saved-imports.md": "7a18ff14785f2b93e5fad820241ecadc75d188cb1e64eac973149ad19f0b172c",
+      "docs-ai/004-ios-reader/003-ipad-inspector.md": "d1a5c724064afdfa9af1334087932dcbac84309e28e2074f71ad5e31417805fe",
+      "docs-ai/004-ios-reader/004-import-action.md": "347ae2fa9afaf03351dbe15e14ae5e6c2c3cee996c704a46c5156e8c2678623d",
+      "docs-ai/004-ios-reader/005-warm-file-handoff.md": "4b4712611c3b47aae89040814ef597629f8a4568f310ed24ddd196f7f6275a3a",
+      "docs-ai/004-ios-reader/006-live-reflow.md": "8ab8b0eba47d76fe9f6650797ca93f8e0455e33eeb5c525a03295f9c9f583109",
+      "docs-ai/004-ios-reader/007-reflow-anchor-lifecycle.md": "b4f049221ce896be83965f67f74189e7a949eb2ff6866f79d53084063c071fa3",
+      "docs-ai/005-cjk-font-availability/000-plan.md": "abde58ee0c9ca86dfc818336d4d7dfd8aa81857f6ecec0ae9d980ef472ff70cd",
+      "docs-ai/005-cjk-font-availability/001-action.md": "f98f8323f43aa5739462344080efe8c220f8e067c40fee804b7c14e186029b23",
+      "docs-ai/005-cjk-font-availability/002-font-management-transitions.md": "f5808e76760141dee317b860aa948137a551dbac1cc1d1ee1b1cf5b5cb6484ec",
+      "docs-ai/005-cjk-font-availability/003-role-first-layout.md": "dc32996990bfc8790a8e6108699fa0f71a7203a98c0203dae35a197de300ea5c",
+      "docs-ai/005-cjk-font-availability/004-font-offer-alert.md": "71c8e2eaf8127540bcd34012fe01c4340fe91c107ef2bb459121d65d1e5cdda2",
+      "docs-ai/006-documentation-workflow/000-plan.md": "ded32263b37669fb8a17ca2816f7c9492de2d038cf3d7b219a4ddbd6ee3cd1d9",
+      "docs-ai/006-documentation-workflow/001-action.md": "ed88f8e3387cc8bd7920dc006f812105d076cb21d336092f656c7cfbb4bd396f",
+      "docs-ai/006-documentation-workflow/002-development-guide.md": "bbd4dde61bd51883531ce5640afbc90c97581c66498b173ed375ea5063a78451",
+      "docs-ai/007-reader-interactions/000-plan.md": "45a048d4514090775d281680d889ab46511705fd91a537a3a784985ec59c47bb",
+      "docs-ai/007-reader-interactions/001-action.md": "1d3e20e4bf195f14d5a6142dfe8fe1303b2f35a31b3e1c472ad4c84792b666b7",
+      "docs-ai/007-reader-interactions/002-system-find-navigator.md": "1a80d5094200adc4c3f66cab96d265175ce189211f266ffdb3f35a95c741165d",
+      "docs-ai/007-reader-interactions/003-retained-find-matches.md": "4b6616f8664d7b3c898195e4e46a0b07db251369c5b5109fb143a05755373411",
+      "docs-ai/007-reader-interactions/004-viewport-find-highlights.md": "41af6fd21efdd97e6368d8050af56d0e23ee0d06fef900b8412b1e9647e85655",
+      "docs-ai/008-reader-export/000-plan.md": "3a5daf8ae2de88bb974d00890ca862470f29dbd02e8b1172575028982f269cba",
+      "docs-ai/008-reader-export/001-action.md": "51d3f46558a62f6d5629a236f329776c43964fd8383502d50a40067dc35940be",
+      "docs-ai/009-source-editor/000-plan.md": "d44045cd2dbd4ffafb590c37ae4e630cd63df5503abf98437b76d51fda0e4f8d",
+      "docs-ai/009-source-editor/001-action.md": "90c6b1e69e24e6985b8fccd1601320c8b31b61eb84d1eb5c07b169b5f21f2688",
+      "docs-ai/009-source-editor/002-editor-experience.md": "f78d8bab213182a76c68dcffc5bbbeb40d477cef3e60af61d0e82af04f7f3f12",
+      "docs-ai/009-source-editor/003-native-editor-chrome.md": "8a3c8cd50038488752b1db497f24823697fe22ae10d8df5bfc93eb8d50c82675",
+      "docs-ai/009-source-editor/004-markdown-keyboard-bar.md": "8c56ec6981de9ccc707435d845f2f306dcde5b148525763a75e51f10dfea8b87",
+      "docs-ai/README.md": "151741960a8ae25a08176c6beeba472a702d205a35a1e469f07d28e0ad5e0ed0",
+      "docs-ai/roadmap.md": "b8b1a5bc4ecfd7449585bfc5bb9b7362325770e1178383e4578685b568124ecb",
+      "docs-ai/workflow.md": "e6bae9299eb13eedc1fc2ecf97753d0c46e1c0f5232bbdf06204654be9ab5766",
+      "docs/development.md": "b7aa032c4e4bca0c50feac375f913f88e7b779e5c41d2114ff0b0cdac562324b",
+      "docs/images/kasumi-icon.png": "571807e6c8cc1903e94da7718ba5b8b98f2b224f89f05e93158ec9dfac0d4693",
+      "fixtures/DiagramStyles.md": "807b1e400ed65d6b4a7409f2caf0d64b1e455f3b960ce9a5cb452621b891a6bd",
+      "fixtures/Diagrams.md": "b6b417170774a7a3651b36116cebcbe6b5cd9664a4fdef4f0c6814c3bdaed2d0",
+      "fixtures/ExtensionSemantics.md": "e9689f6bc51e221f0710aa4f298ac60acd1e03f3fb42e310be08403cccd33dfe",
+      "fixtures/Images.md": "4ef5f32d55e9289412e62517a2cca305333b1cf9156c872f1c3df0980d4bac74",
+      "fixtures/LinkIndicators.md": "03a17b19cebcddc1d8c9a8b61620f995d247bd3511f69100924bd8bfd5685578",
+      "fixtures/LinkJumps.md": "57d7a72e0b76a1bfe5c0060021d1c6b8c6520438ab5418a9b3fa986cba0ea595",
+      "fixtures/Mathematics.md": "6771568d64154350953c8409709be122f7f8663fc4f0b44c279c206752b8c69b",
+      "fixtures/NativeProfile.toml": "1a4833198217677d1023d7f3538678ad2cafeb2d6664854f82be5be6c1a03514",
+      "fixtures/ParagraphProfile.toml": "ee1952b2bedf1f0230555dd56b44842856d9838f158a52e7eee1fe1511a5f1b6",
+      "fixtures/Paragraphs.md": "06aacf0f2747cc1c31cc9f83b30dd661729f77adb3f84648003eff1aa6edca09",
+      "fixtures/PlainText.txt": "95d63ac62f1b95e2a05dbd58701fa8469a69eb33a23ec04b1ef5f8f238ca62d8",
+      "fixtures/Profiles.md": "0c8022ce89e774517921dca29ba82ffc34c9591d60dbbc61046864c92eeea4d2",
+      "fixtures/ReaderInteractions.md": "db187474ec79cc2b12877887a9ad483b137ee120592412053ed0f6fc0d4ac14b",
+      "fixtures/Rendering.md": "a08716a47433fabe71dd336e0954223719337de5a47f53dbb8b64ec65c16d531",
+      "fixtures/SourceEditing.md": "5b5f6748fc9bedad1dfb57a08ac85063d77e64b5385f6d02d6e67ec0c30839a2",
+      "fixtures/Tables.md": "8d17a5f49c3e433e7a53daf5b16a0216b0844241a818c68de4c099d74a8a4ac9",
+      "fixtures/Typography.md": "601fd06f4fd261bcbb5a4a8a9d38f01331af42f6bb7fc1bd99232a484aaf48fd",
+      "fixtures/TypographyProfile.toml": "f01762a8a4955ba5f97f746ac016fa72da9ab03f144a76c08a505d1a4e7d3868",
+      "fixtures/images/tiny.png": "1b4dbea0c4e6f465fa9e7cea5075181f6514fd51cdedd566f3d6f2c75a0d51df",
+      "fixtures/images/wide sample.png": "f56c0c8888365ec3080e384629805f89e9ea64285c5990f23cb0450007c907e0",
+      "fixtures/reference/Diagrams.core.json": "638c62a876e2ea0d09a08e8db21bfd2f37dddbea7394292afdf599d960d1d103",
+      "fixtures/reference/ExtensionSemantics.core.json": "2136d8ad6476c2f2097a47b79003d1c1910ff0c2350095e7f6dff21be84ac113",
+      "fixtures/reference/Images.core.json": "77d8d695294f7155699139b02a737f42ff41f829f06c7ef9fa68b1683cabae30",
+      "fixtures/reference/Math.core.json": "2c4806be5201ada81f6a8717b8452cdb6d8cd03d500bc8c674fbcf5ff2b9c384",
+      "fixtures/reference/MermaidClass.core.json": "88fe7b6ddc7622678b623e6bbe9db09c8a66308b965e9363d0e523f2118b41d6",
+      "fixtures/reference/MermaidER.core.json": "e35a48238a64b190b8ca6f14d94f46e96539ce7b0fc89192bade6f4cd0967512",
+      "fixtures/reference/MermaidFlow.core.json": "8d516ad6993b6d94b863a3902a633d7f2d0ac24f9c66747d71fa231dbc4c261e",
+      "fixtures/reference/MermaidFrontend.core.json": "7a23cffe219af6064ff77cd2cd211d0ee921d00dd661e1f3eccdc606cc49050e",
+      "fixtures/reference/MermaidPalette.json": "1747b5db0f1851da4be95363c798162001fce4f15780b09b374ba1f7879d3556",
+      "fixtures/reference/MermaidPie.core.json": "32004327e6035f951fce8c03a12150a89dd568066c5fed7bb72e07b768d98aa3",
+      "fixtures/reference/MermaidSequence.core.json": "46d29298a675b937b229b4eace20cc6359d21ed785a6e33f354e0d463716a677",
+      "fixtures/reference/MermaidSequenceFrontend.core.json": "2f83c5e0ecf87208004fb991d6cb9e2fc6e4852114b7a2bb4c720c32fbf73727",
+      "fixtures/reference/MermaidState.core.json": "732ceee471ad78880ce0a09109cfa46285358a0270294214ec8dc5f0d24f86a8",
+      "fixtures/reference/MermaidStyleColor.core.json": "ef70782b7c1145f3b38efb67f3c9d62682c3007131f2efab25c102f8a50fe6d4",
+      "fixtures/reference/MermaidTree.core.json": "922261fb843eb0704704a16894da8495ff12cf53eecddc12213495cc77fc9bdf",
+      "fixtures/reference/Pagination.core.json": "f975a28d0e96a3626f385cac0ecfe8ce8f723302d1065023df99beac0d3e18f4",
+      "fixtures/reference/Paragraph.core.json": "6624c1e3bd45d284ee6daa0f7ea3140fb081f41c397102870cc24831de34e639",
+      "fixtures/reference/PunctuationFonts.json": "4eca655b69b4174d5a3f1fb63c908cdcba63e04f9ffa917e10dca2d2b22ec358",
+      "fixtures/reference/Rendering.core.json": "4945bf003a323c5064a0a8eeed89f57e7934202691b071c250e4d6d457c1b240",
+      "fixtures/reference/StyleApplications.core.json": "e98705e1e090b4cc19a795e88ae4993cc8041b50dced9f5e842c61024b25e483",
+      "fixtures/reference/TXT.core.json": "da4b5d55325a9602f9af81ae32b690a9c8d6e297ef4867eef6ba6351976778d8",
+      "packages/NativeDagre/Bridge/CDagre.c": "257bcf676f19eecfd7a934a9697f3b3bb30b790dc6f7384d90064fda32ecbee9",
+      "packages/NativeDagre/Bridge/include/CDagre.h": "2dc7c8d64a90ca0719d169ab9fe15932df6d685c13025414dfa586769badf4b5",
+      "packages/NativeDagre/Cargo.lock": "6e85086c61e624b0ef2c78c90b21d98f65a30d36e255358844ef169b20c9e7ed",
+      "packages/NativeDagre/Cargo.toml": "e93eb9badbbf89be61d7b6514da3db0ee9215177720d84b763f722c85119d243",
+      "packages/NativeDagre/Notices/NOTICE.txt": "411a0f30bfc4673102461e816b73eaa54ad68d09b99430c6615d4463ad862397",
+      "packages/NativeDagre/Notices/THIRD-PARTY-LICENSES.txt": "919dda8de68fcfaf919527d27d33023cd9062e938f7cdc316624f60555ecaeee",
+      "packages/NativeDagre/src/lib.rs": "cd4a5749a58f4064d04daf2e48619a47118e6e24633481bb8aedbaf28027a6df",
+      "packages/NativeHyphenation/Bridge/CHyphenation.c": "99a457b0fd258d48749fa2c5d6be19187b14361eefd3872bf70b3ad93191cd16",
+      "packages/NativeHyphenation/Bridge/include/CHyphenation.h": "eb052b59ce19f73a8fc070b48193d90ec1d1c17cbd8a74c99824992c478d6aab",
+      "packages/NativeHyphenation/Cargo.lock": "5dbff73e5c53ab2234774274f5cf05cae4f343be0008c6d284c73c80dd36b9e4",
+      "packages/NativeHyphenation/Cargo.toml": "ae42f3e8f9d93028ea20bb807773f39ca7495def63d5980fbb3671ffa00e8ce3",
+      "packages/NativeHyphenation/Notices/CODE-LICENSES.txt": "421da69d3f5a88fa2dad17d2f72fbd37f9b8f645f0ac2ca035cdc98f3dc0a175",
+      "packages/NativeHyphenation/Notices/NOTICE.txt": "3aba149935a0b352fc123142a94f8d81e0d862d0acc6136e35a9ecbc8f8dbf71",
+      "packages/NativeHyphenation/Notices/SourcePatterns/MANIFEST.json": "1178e4fc52b9f4e3e743a57026daf7d5ba4d58247975e2c9fc68fd75daa46738",
+      "packages/NativeHyphenation/Notices/SourcePatterns/README.md": "0afb2884c613f365dcf3da7815323f219a110a61f3f67eaa65710e2a4c06c1a1",
+      "packages/NativeHyphenation/Notices/SourcePatterns/hyphenex-2016/ushyphex.tex": "d81973158b2c8a12a470d4991a29bab8bde057f373d0975e94f08fc79e732c7f",
+      "packages/NativeHyphenation/Notices/SourcePatterns/hyphenex-current-documentation/README": "547ceae8d0a683eaae07bdd12d18f3343b444b78cf85f5a9e6302fe4ef87c0e2",
+      "packages/NativeHyphenation/Notices/SourcePatterns/hyphenex-current-documentation/hyphenex.pl": "4b5cfc34af5b62e247d623b66d6c1953e7143db056f217785f14c14622e0d5c2",
+      "packages/NativeHyphenation/Notices/SourcePatterns/hyphenex-current-documentation/hyphenex.sh": "904e7fba08f7b11673191b783a3261279c304e98149a28a0c9e5565dd5f8b6f4",
+      "packages/NativeHyphenation/Notices/SourcePatterns/hyphenex-current-documentation/tb0hyf.tex": "206c3c2c428f8e83a9b5e4e68c7a7f450933bdd6b5fcae89e3225686cc9ce6a4",
+      "packages/NativeHyphenation/Notices/SourcePatterns/licenses/GPL-2.0.txt": "edaef632cbb643e4e7a221717a6c441a4c1a7c918e6e4d56debc3d8739b233f6",
+      "packages/NativeHyphenation/Notices/SourcePatterns/licenses/LPPL-1.3c.txt": "c1ae6e179a6d28bbd5c483fbacc744acc75e922d598281dc3390aab26126e163",
+      "packages/NativeHyphenation/Notices/SourcePatterns/licenses/hyphenation-LICENSE-APACHE": "9cf5de169b595cdae317551ef69a794b59fa3d1e151db4190d337fe08d13d5f8",
+      "packages/NativeHyphenation/Notices/SourcePatterns/licenses/hyphenation-LICENSE-MIT": "e121e0a4f603838d744a4be885c7807d35571a7f107880b6b7c23b00b466e7b1",
+      "packages/NativeHyphenation/Notices/SourcePatterns/masters/hyph-cs.tex": "37b16173109c9c1a34d04c87eeb4ea8206d55e636c380dbcd72e912b4ca5033a",
+      "packages/NativeHyphenation/Notices/SourcePatterns/masters/hyph-da.tex": "23e0a50f0c20d632be06f973e700323463961eac737bb14f6c3787675a4f5575",
+      "packages/NativeHyphenation/Notices/SourcePatterns/masters/hyph-de-1996.tex": "162ae879d2e61112bf7ab37b2bf47027e3df409f2641fb9b8cd6e6388c6d547d",
+      "packages/NativeHyphenation/Notices/SourcePatterns/masters/hyph-en-gb.tex": "e95bb4ab350f620c41c231c4785d7bdb4f91949d3e631b30e08b3ead3c340a52",
+      "packages/NativeHyphenation/Notices/SourcePatterns/masters/hyph-en-us.tex": "f4ffcd96c5cbc886bdad23f95dcae8edc3cd3620eae62f7946eceda97c4e68f8",
+      "packages/NativeHyphenation/Notices/SourcePatterns/masters/hyph-es.tex": "6a2e5f39a991a23d1cd8a23dbd0f6fe96a9f07561a6695f4f3320f47030e236c",
+      "packages/NativeHyphenation/Notices/SourcePatterns/masters/hyph-fi.tex": "cf68be5eb003d299f85f2b7185f31d8ff5799c19dfad3f0300eaf9843e9cc8d3",
+      "packages/NativeHyphenation/Notices/SourcePatterns/masters/hyph-fr.tex": "526cad6fe8f52fcd3caa3fcaf667cb1740cfc14bca198680e00dc343a84594de",
+      "packages/NativeHyphenation/Notices/SourcePatterns/masters/hyph-it.tex": "6ce56ed6ed2ca7c0688838e366e6595e0429f984f4fc6e96ec045cebb1e76a47",
+      "packages/NativeHyphenation/Notices/SourcePatterns/masters/hyph-nb.tex": "b111264f46d59089d4cf96691c66b637166f5aae5b86719a5b9fe32737cc0169",
+      "packages/NativeHyphenation/Notices/SourcePatterns/masters/hyph-nl.tex": "c3749c79c435edc8273b701148462dc3751f38f4d4e4381f7850ae4432a0a5f4",
+      "packages/NativeHyphenation/Notices/SourcePatterns/masters/hyph-no.tex": "05a2ac5fbf88bdc78c580e5cb8a158e6aa760d13756604f9523aa99feec3ec65",
+      "packages/NativeHyphenation/Notices/SourcePatterns/masters/hyph-pl.tex": "83ddbbd21bc06a44bc4f4a4c49c38782e809cff5f026b764c044daa29e818843",
+      "packages/NativeHyphenation/Notices/SourcePatterns/masters/hyph-pt.tex": "59fe5ef9929d5f82fb6fff2df4119ba30fcbb9c6a119953f8561679193e3c53d",
+      "packages/NativeHyphenation/Notices/SourcePatterns/masters/hyph-ru.tex": "ce988fcc66e5e29d7474df5ab5b489d3f52a50ebccf570997f992d84221b922a",
+      "packages/NativeHyphenation/Notices/SourcePatterns/masters/hyph-sv.tex": "102253382bd91cdb7535de5c20744254c9ac9aaa4ca12ed420eb835e5004c0b3",
+      "packages/NativeHyphenation/Notices/SourcePatterns/ruhyphen-original/PROVENANCE.json": "6281ec56a268e208600406e494e70a8b513d928bb8ff64045b974a6251015fe7",
+      "packages/NativeHyphenation/Notices/SourcePatterns/ruhyphen-original/README": "ab0b860acd367436d33cff339f91cb2c740235457d4c4e64ace10acfcbe3dc7d",
+      "packages/NativeHyphenation/Notices/SourcePatterns/ruhyphen-original/README.ruhyphal": "1d171056218f73702d3f331d9c52831b63f9271544b39ddbd9d93c8a5e745322",
+      "packages/NativeHyphenation/Notices/SourcePatterns/ruhyphen-original/cyryoal.tex": "e00bd3d31af2bb91473aea40c4e66eafcf595ccad752cc5179c989463451222d",
+      "packages/NativeHyphenation/Notices/SourcePatterns/ruhyphen-original/hyphen.rules": "dc719b9b49bf68d0f6b604272d3717442b120582c4f600d4516ea495bc4ac8ee",
+      "packages/NativeHyphenation/Notices/SourcePatterns/ruhyphen-original/mkcyryo": "6f34fb17de2e3ac444635044859aa83fda7faca27e10ec34c28b4cdf88a7b444",
+      "packages/NativeHyphenation/Notices/SourcePatterns/ruhyphen-original/ruhyphal.tex": "348e778b9f887a77cb72a60c85027a31979d8076eaad983f8db8720f277adf3c",
+      "packages/NativeHyphenation/Notices/SourcePatterns/sources/hyph-cs.hyp.txt": "a31b19189676f5d31d1fa75042a43a16eacfa80bc42a9d02c2bda9d37c91e2b7",
+      "packages/NativeHyphenation/Notices/SourcePatterns/sources/hyph-cs.pat.txt": "6d868b0196c049cb834640902068857617e6697748b039941feee4402a3508ac",
+      "packages/NativeHyphenation/Notices/SourcePatterns/sources/hyph-da.pat.txt": "a093ef99375717fe34d261b05d2fdc8e64f8a9f741578c020204374f4c39a20c",
+      "packages/NativeHyphenation/Notices/SourcePatterns/sources/hyph-de-1996.pat.txt": "3534fe7edb6cf20e085865b069f22013dc532e93959a49fc1f97567a8be6b3ef",
+      "packages/NativeHyphenation/Notices/SourcePatterns/sources/hyph-en-gb.hyp.txt": "947b7b8e76f6a0d8ebe296178ff92ad624e4912ffbaaf59b26f81a395124e366",
+      "packages/NativeHyphenation/Notices/SourcePatterns/sources/hyph-en-gb.pat.txt": "651b89b4a0d4051995db8586e81ab109a4c7395d7706c06483893ebab5af013b",
+      "packages/NativeHyphenation/Notices/SourcePatterns/sources/hyph-en-us.hyp.txt": "7b62f3eab4bfcab0b85d6a5d6797100239721ba06ce9874c1657fe4b8cad95ed",
+      "packages/NativeHyphenation/Notices/SourcePatterns/sources/hyph-en-us.pat.txt": "0f57318b878b132547ae92db39a6e1d1cf2a05d9008874955d6ecb910007a463",
+      "packages/NativeHyphenation/Notices/SourcePatterns/sources/hyph-es.pat.txt": "7ae8fa8d6a61ea4111c4a0412d019b62e7c07a62673121d0b711c5bc08d8e00c",
+      "packages/NativeHyphenation/Notices/SourcePatterns/sources/hyph-fi.pat.txt": "ccabb0b3f403eca9999c0cd73b75d16b0220f2052d8f6aad2f98b5f1854dc027",
+      "packages/NativeHyphenation/Notices/SourcePatterns/sources/hyph-fr.pat.txt": "fd40a89e9e8eb0784a0919e50378814843e44afa41c5beaf0a85f6562820f6c2",
+      "packages/NativeHyphenation/Notices/SourcePatterns/sources/hyph-it.pat.txt": "ce650cffad4e81ecaf04591f3274a8ed909e82c587698c55e33b00e2aa7746de",
+      "packages/NativeHyphenation/Notices/SourcePatterns/sources/hyph-nb.hyp.txt": "6484bbd793e20a206a2f0d7abfc499a5f8688c54ea7e91ee7af87fba53959d00",
+      "packages/NativeHyphenation/Notices/SourcePatterns/sources/hyph-nb.pat.txt": "e080c77da3d0f8de7e464f69082f5e2485e43ed349a2a7018b84e0adef785806",
+      "packages/NativeHyphenation/Notices/SourcePatterns/sources/hyph-nl.hyp.txt": "5902ba4d760815a51a972b6d05f514dde1842c16fa2859b907e2d299edbb3299",
+      "packages/NativeHyphenation/Notices/SourcePatterns/sources/hyph-nl.pat.txt": "ac5795c1d6cd7027e6ec3a9e58e173789f999669e40ffd81755a4db7d3214165",
+      "packages/NativeHyphenation/Notices/SourcePatterns/sources/hyph-pl.hyp.txt": "0e3fd28ea45ec144f5f1438a7bbfb5b55c14dd0cccfefe4ddfbe95fee14d82cf",
+      "packages/NativeHyphenation/Notices/SourcePatterns/sources/hyph-pl.pat.txt": "4b9c3583f176efb76dccee7e630ac7516567abd96dcbc3ebaa2388e795774b48",
+      "packages/NativeHyphenation/Notices/SourcePatterns/sources/hyph-pt.hyp.txt": "5c093a9e48dc8f87624693f31b8da7d090ed1e6eeb07fce7bcfd5689d7f941a8",
+      "packages/NativeHyphenation/Notices/SourcePatterns/sources/hyph-pt.pat.txt": "6b50256e72d5448cec1801866e9027491f66552c8957f72b6e0ec315159e7931",
+      "packages/NativeHyphenation/Notices/SourcePatterns/sources/hyph-ru.hyp.txt": "11b1c36c26bab4770505c2331eb85fb3e13f0c0841a7fa80142aee3be332facb",
+      "packages/NativeHyphenation/Notices/SourcePatterns/sources/hyph-ru.pat.txt": "12fa91c83d56ffefa589cf022d9f24ec5a5f4035b4c09484cf4270128c2c162a",
+      "packages/NativeHyphenation/Notices/SourcePatterns/sources/hyph-sv.pat.txt": "1fbf98f5d316712fd4e86f564643ad7341184f9ce8b30e0e18d06eceb4f52a79",
+      "packages/NativeHyphenation/Notices/SourcePatterns/upstream-build/Cargo.toml.orig": "4fe15cc12355d40137ff4d620033360bda355a0518e1523a32932082866d3ae1",
+      "packages/NativeHyphenation/Notices/SourcePatterns/upstream-build/build.rs": "441bc9623c9b0791e4bb4e9b8d0a3a5e07c5848f690b26be83b7d01b5fa2cdb7",
+      "packages/NativeHyphenation/Notices/SourcePatterns/upstream-build/hyphenation_commons-Cargo.toml.orig": "b9d05017fecced0bd6eafc06fa7783bbb5d8864fcfd4b5f3417e2755fefc9555",
+      "packages/NativeHyphenation/Notices/dependencies.json": "62493e80e7c3074516d6a97614a952c06d488a553fa9e0e28ceea6b3e46e977e",
+      "packages/NativeHyphenation/README.md": "394370f618e7df6b733e0ecbbef4c921b5d06336f1918906e69069dd221f3fed",
+      "packages/NativeHyphenation/dictionaries/cs.standard.bincode": "c4dd5929221d5dca6ae7c11eab0147adaf042cfb2a29ce879e625d26b77e3405",
+      "packages/NativeHyphenation/dictionaries/da.standard.bincode": "75bebe81e1dcad630784abb0efc56845c1430d0159947743f1d8ee0e052b07df",
+      "packages/NativeHyphenation/dictionaries/de-1996.standard.bincode": "4481338a3b9d45060e7c218e2bf7fb90045183fce282dcd7dd68994cff1f52ad",
+      "packages/NativeHyphenation/dictionaries/en-gb.standard.bincode": "342d12bb3d4c7b0476063a5e18a85b1a8c1a46cef893b3c1c3ce5ffa86cbddc6",
+      "packages/NativeHyphenation/dictionaries/en-us.standard.bincode": "844d27c6bb153473f836ac173a147211265597be216aaeed6c110b0608ea262a",
+      "packages/NativeHyphenation/dictionaries/es.standard.bincode": "f1c41ce4810ca56b6c743b7d6c9876b02bd469706c69ea13ae98ad4cc836f5c2",
+      "packages/NativeHyphenation/dictionaries/fi.standard.bincode": "a87b9c8f442a89a5e0a1ee6c98cae9946507c54dd6194ec8ef92413a77598a64",
+      "packages/NativeHyphenation/dictionaries/fr.standard.bincode": "a00483daf159438dd31311457ade0b33bd994998738c7f44badd50a6dd2dc9cc",
+      "packages/NativeHyphenation/dictionaries/it.standard.bincode": "250e0d5e4eab98f86e6728016734192cc4df932be885b78ee61bb31604784d30",
+      "packages/NativeHyphenation/dictionaries/manifest.json": "6cfb66d7f10886f5705255e3ee3babca41561c5dbf3eaf27da42dc8e083eb7bf",
+      "packages/NativeHyphenation/dictionaries/nb.standard.bincode": "bea1d152d53dcf239b2dee2e00e64023f81a093d5272f381fb2b6e1d39ae7b08",
+      "packages/NativeHyphenation/dictionaries/nl.standard.bincode": "7d3082d46ab733fa1f64fc436390540eb7d9b0c4d77beb631d761307511976a6",
+      "packages/NativeHyphenation/dictionaries/pl.standard.bincode": "bcde9d6c2feff9963929c089211e775068a1c1f7823cc2250a2f541aa41a0629",
+      "packages/NativeHyphenation/dictionaries/pt.standard.bincode": "e787cdd16f65954eda8cf6e0f1fe41a6074733b3c75bf7939fc9eea0d4792bae",
+      "packages/NativeHyphenation/dictionaries/ru.standard.bincode": "5c826d8ec076c49d182d7b5d3dbc912717e77e6bc3905e1c1c4c84af6d4ac065",
+      "packages/NativeHyphenation/dictionaries/sv.standard.bincode": "ada02a74e010186960a384cffa8c50069bb579e997ba7bc2a0760e31b6c7df54",
+      "packages/NativeHyphenation/src/lib.rs": "9472d930a5e0243ed0279de1033feee2b4b2f531a4165030d1c03c5a743632d1",
+      "packages/NativeHyphenation/tests/bridge.c": "1452037d54698cc04b098fb3c880e3d57262e7d2ee9eefeb48af186ab10364fc",
+      "packages/NativeLineBreak/Bridge/CLineBreak.c": "df6a42bc2fa6bf89f9364ce39168ea73f31b102a42285a485e60c9bcfc02f251",
+      "packages/NativeLineBreak/Bridge/include/CLineBreak.h": "1934bfa8960465c111c657cc43ed3ca9a6e78fdd1ae852219e05f529a99aeb36",
+      "packages/NativeLineBreak/Cargo.lock": "a6c3f481456babad3d8d430972568631e2f13b1b8df3a28ab445019cc51c6561",
+      "packages/NativeLineBreak/Cargo.toml": "a7aef4e85898bfc61c0ba00cb5e83ecfd9e5fc20472f587663500b3d4c19e8f5",
+      "packages/NativeLineBreak/Notices/NOTICE.txt": "022d5021edc4806edd813d6da61e155e33b353017801c0e63e652d1e7eff3919",
+      "packages/NativeLineBreak/Notices/THIRD-PARTY-LICENSES.txt": "18e20fda8cb80edfe68959cccd7a9aefec60b64e6650c01ce6f02c0c633bebc2",
+      "packages/NativeLineBreak/README.md": "c3a41839cd3828bd3d53074729e3740909d2ac45c7866fff7384ee1bf26fadab",
+      "packages/NativeLineBreak/src/lib.rs": "c20927ea9151dfc65038e3971e7b1c3696c7fc461e3284a6644d746034cb12d4",
+      "packages/NativeLineBreak/tests/bridge.c": "884b237dd9569eb939c2283987f9757702902f3f27756f51dd2b064d56d05148",
+      "scripts/build-native": "a39438d2281600754ed76a4e1d272331bb7b66f1bd3a20b317fb29ab14e3e48a",
+      "scripts/check-environment": "a0b4db875855fb6629adb764a15b81c422c4cf99a023ef788312001b268a8dba",
+      "scripts/check-reader-scrolling": "9c2b1016a81ed7b42c55371553069a283aa81248ad972ba03be841a553dc50e0",
+      "scripts/package-reflow-lab": "e609744e623698583cc54ae219ebec825964a92d3a282773446ecfa8b452ed83",
+      "tools/ReflowBench/Entry.swift": "ee4723c43bdd04592219b9b84526f156c8213178292e63be7f64420d3d940145",
+      "tools/ReflowBench/Memory.swift": "900dc57827ea3cb9b911220e4c23817e36947a0768c80c013bee5b13c013145c",
+      "tools/ReflowBench/ReaderHighlightIndex.swift": "c2271743b416cd319386208881cb354e641cc653bd0ed495c3f824df2d7a1ab9",
+      "tools/ReflowBench/ReaderSearchState.swift": "8b600c70041ac83b6cc0a2769625accd3066221606ca4f08073a4c8bbddb3b40",
+      "tools/ReflowBench/Samples.swift": "b5af4b73f448ad96c7ae027d0102426c47b8e8d09f5074dc779da685f7b3ca46",
+      "tools/ReflowBench/ViewportBitmap.swift": "457123847b155a225c8e71ac0fe89b1a3c035479c89324a264ddf93fb6e58854",
+      "tools/ReflowBench/Worker.swift": "cfee6049becd500caa299fe6e8cae49db27085e83dc4569aa32ecbed3a54cf14",
+      "tools/ReflowLab/Benchmark.swift": "deleted",
+      "tools/ReflowLab/BenchmarkMemory.swift": "900dc57827ea3cb9b911220e4c23817e36947a0768c80c013bee5b13c013145c",
+      "tools/ReflowLab/Preview.swift": "672fabcb992caf463acdcaebcc3237edb395497cf17e7f9743dd5920d0d35bb0",
+      "tools/ReflowLab/README.md": "ceb033fce570e7a55ba8863c707cfbabfb23a8ead317c71e015945c1e1a67b0f",
+      "tools/ReflowLab/ReaderReflowState.swift": "ac9df72bc427ae346b2cc433f0c99b1e8ef82ed3e8c4da1f8cfb46dd676817e7",
+      "tools/ReflowLab/Samples.swift": "b5af4b73f448ad96c7ae027d0102426c47b8e8d09f5074dc779da685f7b3ca46",
+      "tools/ReflowLab/ViewportBitmap.swift": "457123847b155a225c8e71ac0fe89b1a3c035479c89324a264ddf93fb6e58854",
+      "tools/ReflowLab/main.swift": "0fc70c7523334bfdfbf4432301724e9d01868fa6ac2d65b0c0c5bda4e34ee908"
+    },
+    "sourceTreeSHA256": "f8df36f1300120d29b778d38267ad8f64726f6bcaf2b776693ba44dc21bd89b8",
+    "trackedDiffSHA256": "9e8cade109e8f9e749d3bca294f3b9a1230d444d7b1fe2197504b77b79c450d8"
+  },
+  "schema": 1,
+  "startedUTC": "2026-11-17T15:33:30.289783+00:00",
+  "statistics": {
+    "method": "nearest rank",
+    "p95MinimumN": 100,
+    "p99MinimumN": 1000
+  }
+}
