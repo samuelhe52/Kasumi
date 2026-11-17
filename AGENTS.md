@@ -15,6 +15,7 @@
 ## UI
 
 - Always use the `.soft` style for toolbar edge effects. In UIKit, set `UIScrollView.topEdgeEffect.style = .soft`. In SwiftUI, use `.scrollEdgeEffectStyle(.soft, for: .top)`. Apply this everywhere a toolbar appears.
+- Sheets are dismissed by an X button (`Button(..., systemImage: "xmark")`) in the leading toolbar slot (`ToolbarItem(placement: .cancellationAction)`). Do not add a Done button.
 
 ## Reference materials
 
