@@ -14,7 +14,7 @@ enum LabSample: String, CaseIterable, Sendable {
             return String(String(repeating: sentence, count: characters / sentence.count + 1).prefix(characters))
         }
         let paragraph = String(String(repeating: sentence, count: 500 / sentence.count + 1).prefix(500))
-        var blocks = ["# \(rawValue) · \(characters.formatted()) characters"]
+        var blocks = ["# \(rawValue) · \(characters.formatted(.number.locale(Locale(identifier: "en_US")))) characters"]
         for index in 0..<max(1, characters / 500) {
             blocks.append("Paragraph \(index). " + paragraph)
             if self == .mixed, index.isMultiple(of: 10) {

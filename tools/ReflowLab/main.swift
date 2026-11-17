@@ -334,7 +334,7 @@ import os
             guard settled, installations > initialInstalls else { throw CocoaError(.coderReadCorrupt) }
         }
         let result: [String: Any] = [
-            "schema": 1, "stepPoints": stepPoints, "requestedStepIntervalMs": interval, "idleBeforeTraversalSeconds": fast ? 3 : 0,
+            "schema": 1, "processMemory": try BenchmarkMemory.read(), "hostState": ["thermalState": ProcessInfo.processInfo.thermalState.rawValue, "lowPowerMode": ProcessInfo.processInfo.isLowPowerModeEnabled], "stepPoints": stepPoints, "requestedStepIntervalMs": interval, "idleBeforeTraversalSeconds": fast ? 3 : 0,
             "notes": "Offscreen AppKit scroll controller and real asynchronous layout/prepaint/publication. Coverage metadata sampled after each step; not FPS or pixel evidence for every displayed frame.",
             "results": rows
         ]
@@ -389,18 +389,6 @@ import os
         item.submenu = appMenu
         NSApp.mainMenu = menu
         let args = CommandLine.arguments.dropFirst()
-        if args.first == "--benchmark", let path = args.dropFirst().first {
-            Task {
-                do {
-                    try await LabBenchmark.run(to: URL(fileURLWithPath: path))
-                    NSApp.terminate(nil)
-                } catch {
-                    fputs("Reflow benchmark failed: \(error)\n", stderr)
-                    exit(1)
-                }
-            }
-            return
-        }
         let controller = LabController()
         self.controller = controller
         let window = NSWindow(contentRect: CGRect(x: 0, y: 0, width: 900, height: 800), styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
@@ -438,7 +426,7 @@ import os
 }
 
 let app = NSApplication.shared
-app.setActivationPolicy(CommandLine.arguments.contains("--smoke-check") || CommandLine.arguments.contains("--scroll-check") || CommandLine.arguments.contains("--fast-scroll-check") || CommandLine.arguments.contains("--benchmark") ? .prohibited : .regular)
+app.setActivationPolicy(CommandLine.arguments.contains("--smoke-check") || CommandLine.arguments.contains("--scroll-check") || CommandLine.arguments.contains("--fast-scroll-check") ? .prohibited : .regular)
 let delegate = LabDelegate()
 app.delegate = delegate
 app.run()

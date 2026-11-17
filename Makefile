@@ -26,6 +26,9 @@ DEVICE_PROBE = xcrun xcdevice list | /usr/bin/python3 -c 'import json, sys; inte
 # Narrow `make test` to matching tests, e.g. `make test FILTER=ParagraphTests`.
 FILTER ?=
 REFLOW_IDLE_WARMUP ?= 1
+BENCHMARK_OUTPUT ?= build/benchmarks/$(shell date -u +%Y%m%dT%H%M%SZ)
+BENCHMARK_BUILD = .build/bench
+BENCHMARK_BIN = $(shell swift build -c release --scratch-path $(BENCHMARK_BUILD) --show-bin-path)/KasumiReaderBench
 
 NATIVE_STAMP := .build/native/.stamp
 NATIVE_INPUTS := scripts/build-native \
@@ -33,7 +36,7 @@ NATIVE_INPUTS := scripts/build-native \
 		-not -path '*/target/*' 2>/dev/null)
 
 .DEFAULT_GOAL := help
-.PHONY: help native build test test-ios app run-sim run-device launch-sim check clean reflow-lab run-reflow-lab check-reflow-lab check-reader-scrolling benchmark-reflow-lab check-reflow-scrolling check-fast-reflow-scrolling
+.PHONY: help native build test test-ios app run-sim run-device launch-sim check clean reflow-lab run-reflow-lab check-reflow-lab check-reader-scrolling check-reflow-scrolling check-fast-reflow-scrolling
 
 help: ## List available targets
 	@awk 'BEGIN { FS = ":.*## " } /^[a-z-]+:.*## / { printf "  %-8s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
@@ -111,8 +114,24 @@ check-reflow-scrolling: reflow-lab ## Check 50k/200k mixed scrolling coverage in
 check-fast-reflow-scrolling: reflow-lab ## Stress native scrolling after three seconds idle
 	KASUMI_REFLOW_IDLE_WARMUP=$(REFLOW_IDLE_WARMUP) build/KasumiReflowLab.app/Contents/MacOS/KasumiReflowLab --fast-scroll-check build/reflow-lab-fast-scrolling.json
 
-benchmark-reflow-lab: reflow-lab ## Measure native Mac 50k/200k construction and viewport painting
-	build/KasumiReflowLab.app/Contents/MacOS/KasumiReflowLab --benchmark build/reflow-lab-benchmark.json
+benchmark-build: native ## Build the isolated standard Release benchmark executable
+	swift build -c release --product KasumiReaderBench --scratch-path $(BENCHMARK_BUILD)
+
+benchmark-corpus: benchmark-build ## Export and verify the fixed benchmark Markdown samples
+	python3 benchmarks/reader/run.py --binary $(BENCHMARK_BIN) --output "$(BENCHMARK_OUTPUT)" --corpus-only
+
+benchmark-self-check: ## Check benchmark statistics, manifest and failure handling
+	python3 -m unittest discover -s benchmarks/reader -p 'test_*.py'
+
+benchmark-reader: benchmark-build benchmark-self-check ## Run the quick reader engine benchmark (no simulator)
+	python3 benchmarks/reader/run.py --binary $(BENCHMARK_BIN) --output "$(BENCHMARK_OUTPUT)" --profile quick
+
+benchmark-reader-full: benchmark-build benchmark-self-check reflow-lab ## Run the full engine, memory and native coverage suite
+	python3 benchmarks/reader/run.py --binary $(BENCHMARK_BIN) --output "$(BENCHMARK_OUTPUT)" --profile full --native build/KasumiReflowLab.app/Contents/MacOS/KasumiReflowLab
+
+benchmark-reflow-lab: benchmark-reader ## Legacy alias for benchmark-reader
+
+.PHONY: benchmark-build benchmark-corpus benchmark-self-check benchmark-reader benchmark-reader-full benchmark-reflow-lab
 
 check-reader-scrolling: app ## Profile iOS scrolling on the only booted simulator (DEVICE=<UDID>, CONFIGURATION=Release)
 	@test "$(CONFIGURATION)" = Release || { echo "Use CONFIGURATION=Release for scrolling measurements."; exit 1; }
