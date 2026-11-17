@@ -1201,11 +1201,11 @@
         "column_divider": "#4E4E4E"
       },
       "syntax": {
-        "keyword": "#F1F5FF",
-        "string": "#6AC1A2",
+        "keyword": "#8CA0EA",
+        "string": "#DA8F72",
         "comment": "#80898F",
-        "literal": "#D68B48",
-        "type": "#A4E9FF"
+        "literal": "#E8BC78",
+        "type": "#74CDE2"
       }
     },
     {
@@ -1266,11 +1266,11 @@
         "column_divider": "#C7C7C5"
       },
       "syntax": {
-        "keyword": "#000343",
-        "string": "#004E36",
+        "keyword": "#494597",
+        "string": "#914330",
         "comment": "#616A70",
-        "literal": "#844600",
-        "type": "#001E4B"
+        "literal": "#896600",
+        "type": "#1C747D"
       }
     },
     {

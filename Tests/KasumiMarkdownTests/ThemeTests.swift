@@ -12,8 +12,8 @@ import Testing
 
 @Test func themeResourcePreservesEveryBundledColor() throws {
     let expected = [
-        "mono-dark": "7e6be3ed3d446039fe0d85378aa03ae3a46c21e6866f20289c1fcaed27064327",
-        "mono-light": "e0fc4333dac4bbc11de31e597eef6430ba5f8210fbd84cdf6b88837cc319d416",
+        "mono-dark": "f7abcef16e94dc66306dd69a5355be5143fe3409b59dd595e32e26d7a206a864",
+        "mono-light": "aa2d3263246f4c51e6d962e6a32695928ab07e7ca916003afda45646fe736de3",
         "one-dark": "c9f7b36788025ee9fe6eb6e92b6a35a2f266778612b643693ae385305377881c",
         "one-light": "984c7fd8814ab31c5e9fe17c4b834c01ecfdf8d76ec62163ebb155d1a9dfdae6",
         "solarized-dark": "09a21ad00752094348f76fdd3ec6159f373a6a2c2b12a5f1827eff75131a05d7",
