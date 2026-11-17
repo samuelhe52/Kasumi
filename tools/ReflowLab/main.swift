@@ -25,6 +25,9 @@ import os
     private var revision = UUID()
     private var task: Task<Void, Never>?
     private var loading: Task<Void, Never>?
+    private var warmup: Task<Void, Never>?
+    private var warmupID = UUID()
+    private var warmupMilliseconds: Double?
     private var adjusting = false
     private var sourceURL: URL?
     private var installedHeight: CGFloat = 0
@@ -102,6 +105,9 @@ import os
     func load(markdown: String?, url: URL? = nil) {
         _ = view
         loading?.cancel()
+        cancelWarmup()
+        warmupMilliseconds = nil
+        details.stringValue = "Shared reflow engine · Native Mac harness · Find off"
         state.stop()
         revision = UUID()
         let expected = revision
@@ -135,14 +141,21 @@ import os
 
     @objc private func scrolled() {
         guard !adjusting else { return }
+        cancelWarmup()
         anchor.moved(in: rendered, atY: max(0, scroll.contentView.bounds.minY))
         request()
+        scheduleWarmup()
     }
 
     private func request() {
         guard session != nil else { return }
         let viewport = scroll.contentView.bounds
         guard viewport.width.isFinite, viewport.height.isFinite, viewport.width > 0, viewport.height > 0 else { return }
+        if rendered?.size.width != viewport.width {
+            cancelWarmup()
+            warmupMilliseconds = nil
+            details.stringValue = "Shared reflow engine · Native Mac harness · Find off"
+        }
         let visible = viewport.insetBy(dx: 0, dy: -viewport.height * 0.75)
         if let rendered, rendered.size.width == viewport.width, installedHeight == viewport.height,
             !rendered.needsLayout(in: visible), let installed = state.installed
@@ -196,11 +209,64 @@ import os
             self?.task = nil
             // A document may have changed while the old synchronous render drained.
             if self?.session != nil, self?.state.needsLayout == true { self?.request() }
+            else { self?.scheduleWarmup() }
         }
     }
 
-    func scrollingCheck(to output: URL) async throws {
+    private func cancelWarmup() {
+        warmupID = UUID()
+        warmup?.cancel()
+        warmup = nil
+    }
+
+    private func scheduleWarmup() {
+        guard ProcessInfo.processInfo.environment["KASUMI_REFLOW_IDLE_WARMUP"] != "0",
+            warmup == nil, rendered?.hasEstimatedGeometry == true, let session else { return }
+        let expected = revision
+        let width = scroll.contentView.bounds.width
+        let id = UUID()
+        warmupID = id
+        warmup = Task(priority: .utility) { [weak self] in
+            defer { if self?.warmupID == id { self?.warmup = nil } }
+            do {
+                try await Task.sleep(for: .milliseconds(200))
+                guard let self, self.revision == expected, self.task == nil,
+                    self.scroll.contentView.bounds.width == width else { return }
+                let start = ContinuousClock.now
+                guard let full = try await session.prepareForScrolling(width: width) else { return }
+                try Task.checkCancellation()
+                let top = max(0, min(max(0, full.size.height - self.scroll.contentView.bounds.height),
+                    self.anchor.value.flatMap { full.y(for: $0) } ?? 0))
+                let rect = CGRect(x: 0, y: top, width: width, height: self.scroll.contentView.bounds.height)
+                    .intersection(CGRect(origin: .zero, size: full.size))
+                let scale = self.view.window?.backingScaleFactor ?? 2
+                let preview = await Task.detached(priority: .utility) { LabPreview.paint(full, rect: rect, scale: scale) }.value
+                try Task.checkCancellation()
+                guard self.revision == expected, self.task == nil, !self.state.needsLayout,
+                    self.scroll.contentView.bounds.width == width else { return }
+                self.adjusting = true
+                self.rendered = full
+                self.canvas.rendered = full
+                self.canvas.preview = preview
+                self.canvas.frame = CGRect(x: 0, y: 0, width: width,
+                    height: max(self.scroll.contentView.bounds.height, full.size.height))
+                self.scroll.contentView.scroll(to: CGPoint(x: 0, y: top))
+                self.scroll.reflectScrolledClipView(self.scroll.contentView)
+                self.canvas.needsDisplay = true
+                self.installations += 1
+                self.adjusting = false
+                let elapsed = start.duration(to: .now).components
+                self.warmupMilliseconds = Double(elapsed.seconds) * 1000 + Double(elapsed.attoseconds) / 1e15
+                self.details.stringValue = "Shared reflow engine · Entire document measured · Find off"
+            } catch is CancellationError {} catch { self?.details.stringValue = "Idle preparation failed: \(error)" }
+        }
+    }
+
+    func scrollingCheck(to output: URL, fast: Bool = false) async throws {
+        try FileManager.default.createDirectory(at: output.deletingLastPathComponent(), withIntermediateDirectories: true)
         var rows: [[String: Any]] = []
+        let stepPoints: CGFloat = fast ? 480 : 80
+        let interval = fast ? 8 : 16
         for count in [50_000, 200_000] {
             load(markdown: LabSample.mixed.markdown(characters: count))
             for _ in 0..<1500 {
@@ -221,23 +287,35 @@ import os
                 let missing = rendered?.needsLayout(in: viewport) ?? true
                 if missing {
                     uncovered += 1
-                    missingSamples.append(["sample": samples, "top": viewport.minY, "installations": installations - initialInstalls])
+                    missingSamples.append(["sample": samples, "top": viewport.minY, "installations": installations - initialInstalls,
+                        "snapshotWidth": rendered?.size.width ?? 0, "viewportWidth": viewport.width,
+                        "fullyMeasured": rendered?.hasEstimatedGeometry == false])
                     if gapStart == nil { gapStart = .now }
+                    if fast, missingSamples.count == 1, let rendered,
+                        let capture = LabPreview.paint(rendered, rect: viewport, scale: 1) {
+                        let image = NSBitmapImageRep(cgImage: capture.image)
+                        let path = output.deletingPathExtension().appendingPathExtension("\(count)-missing.png")
+                        try? image.representation(using: .png, properties: [:])?.write(to: path)
+                    }
                 } else if let start = gapStart {
                     let elapsed = start.duration(to: .now).components
                     maximumGap = max(maximumGap, Double(elapsed.seconds) * 1000 + Double(elapsed.attoseconds) / 1e15)
                     gapStart = nil
                 }
             }
+            if fast { try await Task.sleep(for: .seconds(3)) }
             // Drive the real AppKit controller/scheduler while its detached work
             // runs. This samples coverage; it does not emulate trackpad inertia.
-            for step in (0..<100).map({ $0 }) + (0..<100).reversed().map({ $0 }) {
-                let top = min(max(0, initial.size.height - scroll.contentView.bounds.height), CGFloat(step) * 80)
+            let fullyMeasuredAtStart = rendered?.hasEstimatedGeometry == false
+            let documentHeight = rendered?.size.height ?? initial.size.height
+            let steps = fast ? Int(ceil(documentHeight / stepPoints)) : 100
+            for step in (0..<steps).map({ $0 }) + (0..<steps).reversed().map({ $0 }) {
+                let top = min(max(0, documentHeight - scroll.contentView.bounds.height), CGFloat(step) * stepPoints)
                 scroll.contentView.scroll(to: CGPoint(x: 0, y: top))
                 scroll.reflectScrolledClipView(scroll.contentView)
                 scrolled()
                 sample()
-                try await Task.sleep(for: .milliseconds(16))
+                try await Task.sleep(for: .milliseconds(interval))
             }
             for _ in 0..<1000 {
                 sample()
@@ -249,13 +327,14 @@ import os
             let settled = rendered.map { !$0.needsLayout(in: viewport) } ?? false
             rows.append([
                 "nominalCharacters": count, "samples": samples, "uncoveredSamples": uncovered,
+                "fullyMeasuredBeforeTraversal": fullyMeasuredAtStart, "idlePreparationMs": warmupMilliseconds ?? -1,
                 "maximumCoverageGapMs": maximumGap, "installations": installations - initialInstalls,
                 "settledViewportMeasured": settled, "missingSamples": missingSamples
             ])
             guard settled, installations > initialInstalls else { throw CocoaError(.coderReadCorrupt) }
         }
         let result: [String: Any] = [
-            "schema": 1, "stepPoints": 80, "requestedStepIntervalMs": 16,
+            "schema": 1, "stepPoints": stepPoints, "requestedStepIntervalMs": interval, "idleBeforeTraversalSeconds": fast ? 3 : 0,
             "notes": "Offscreen AppKit scroll controller and real asynchronous layout/prepaint/publication. Coverage metadata sampled after each step; not FPS or pixel evidence for every displayed frame.",
             "results": rows
         ]
@@ -334,11 +413,11 @@ import os
         window.center()
         window.layoutIfNeeded()
         controller.view.layoutSubtreeIfNeeded()
-        if (args.first == "--smoke-check" || args.first == "--scroll-check"), let path = args.dropFirst().first {
+        if (args.first == "--smoke-check" || args.first == "--scroll-check" || args.first == "--fast-scroll-check"), let path = args.dropFirst().first {
             Task {
                 do {
-                    if args.first == "--scroll-check" {
-                        try await controller.scrollingCheck(to: URL(fileURLWithPath: path))
+                    if args.first == "--scroll-check" || args.first == "--fast-scroll-check" {
+                        try await controller.scrollingCheck(to: URL(fileURLWithPath: path), fast: args.first == "--fast-scroll-check")
                     } else {
                         try await controller.smokeCheck(to: URL(fileURLWithPath: path))
                     }
@@ -359,7 +438,7 @@ import os
 }
 
 let app = NSApplication.shared
-app.setActivationPolicy(CommandLine.arguments.contains("--smoke-check") || CommandLine.arguments.contains("--scroll-check") || CommandLine.arguments.contains("--benchmark") ? .prohibited : .regular)
+app.setActivationPolicy(CommandLine.arguments.contains("--smoke-check") || CommandLine.arguments.contains("--scroll-check") || CommandLine.arguments.contains("--fast-scroll-check") || CommandLine.arguments.contains("--benchmark") ? .prohibited : .regular)
 let delegate = LabDelegate()
 app.delegate = delegate
 app.run()

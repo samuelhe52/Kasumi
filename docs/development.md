@@ -146,7 +146,10 @@ Run the narrowest filter: `make test FILTER=<name>` for package tests and
 `make run-reflow-lab` opens the standalone Mac harness. `make check-reflow-lab`
 runs its offscreen smoke check; `make benchmark-reflow-lab` records 50k/200k
 construction and painting phases, and `make check-reflow-scrolling` samples
-coverage during asynchronous native scrolling. These commands require no
+coverage during asynchronous native scrolling. `make check-fast-reflow-scrolling`
+traverses the full 50k/200k mixed samples at 480 points every 8 ms after three
+seconds idle, recording readiness and coverage. Add `REFLOW_IDLE_WARMUP=0` for a
+same-binary control with idle preparation disabled. These commands require no
 simulator. The Mac harness shares renderer and scheduling code but uses AppKit
 and SDR bitmap painting; its results do not establish UIKit behavior or FPS.
 See `tools/ReflowLab/README.md` for the protocol and output boundaries.

@@ -51,7 +51,15 @@ that fixes it; add one when a limitation is found and not fixed.
   still visit the whole document on viewport requests; there is no persistent
   indexed block-placement tree yet. One screen of overscan buffers scrolling, and
   compatible results may publish after anchor movement only when the latest
-  visible region is measured.
+  visible region is measured. Optional `prepareForScrolling(width:)` completes
+  bounded text/table/math documents during idle time and retains one complete
+  snapshot at the current width. Both reader hosts wait 200 ms after activity,
+  cancel between batches and resume retained progress. The envelope is at most
+  1,000 parsed blocks, 250,000 UTF-16 units, 4,000 units per block/cell and 64
+  cells per table, excluding image/diagram resources. It trades memory and idle
+  CPU work for complete coverage after readiness. Cold jumps, width changes,
+  interrupted warmup and documents outside the envelope can still outrun
+  viewport refinement; this does not establish UIKit tile presentation behavior.
   Resize requests are coalesced by the reader. `DocumentReflowSession` retains
   attributed text and measured input, paragraph items, and semantic metadata
   between widths; active break candidates accumulate totals rather than
@@ -82,7 +90,7 @@ that fixes it; add one when a limitation is found and not fixed.
   [reflow preparation](006-reflow-preparation.md), [metadata reuse](007-reflow-metadata.md),
   [lazy fragments](008-lazy-fragments.md), [viewport layout](009-viewport-layout.md),
   [glyph paint reuse](010-glyph-paint-reuse.md), [paint-only reuse](013-paint-without-caret-materialization.md),
-  [incremental reflow](015-incremental-reflow.md),
+  [incremental reflow](015-incremental-reflow.md), [idle preparation](016-fast-scroll-coverage.md),
   [live reflow](../004-ios-reader/006-live-reflow.md),
   [mixed coverage](011-mixed-viewport-coverage.md), [selection lookup](012-selection-range-indexing.md),
   [retained Find matches](../007-reader-interactions/003-retained-find-matches.md),

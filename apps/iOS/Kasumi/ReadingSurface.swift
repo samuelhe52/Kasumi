@@ -59,6 +59,8 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
     private var openLink: ((URL) -> Void)?
     private var restoreAnchor: ReadingAnchor?
     private var layoutTask: Task<Void, Never>?
+    private var scrollWarmup: Task<Void, Never>?
+    private var scrollWarmupID = UUID()
     private var generation = UUID()
     private var reflow = ReaderReflowState()
     private var reflowAnchor = ReaderReflowAnchorState()
@@ -124,7 +126,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         }
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-    deinit { layoutTask?.cancel() }
+    deinit { layoutTask?.cancel(); scrollWarmup?.cancel() }
 
     func update(
         document: MarkdownDocument, revision: UUID, style: RenderStyle, fontRevision: Int, outline: [OutlineItem],
@@ -147,6 +149,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         self.revision = revision
         self.style = style
         if changed {
+            cancelScrollWarmup()
             generation = UUID()
             reflowSession = DocumentReflowSession(document, style: style, scrollableTables: true)
             rebuildIfNeeded()
@@ -158,6 +161,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
     override func didMoveToWindow() {
         super.didMoveToWindow()
         if let backgroundColor { window?.backgroundColor = backgroundColor }
+        scheduleScrollWarmup()
     }
 
     override func layoutSubviews() {
@@ -193,6 +197,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
 
     override func willMove(toWindow newWindow: UIWindow?) {
         if newWindow == nil {
+            cancelScrollWarmup()
             reportPosition()
             viewport?.flush()
         }
@@ -212,6 +217,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         guard isActive, !finished, bounds.width.isFinite, bounds.width > 0, bounds.height.isFinite, bounds.height > 0,
             document != nil, style != nil
         else { return }
+        if rendered?.size.width != bounds.width { cancelScrollWarmup() }
         // Refill while most of the one-screen layout buffer still remains;
         // waiting until only a quarter-screen remains cannot absorb paint tails.
         let visible = CGRect(x: 0, y: topY, width: bounds.width, height: bounds.height)
@@ -293,6 +299,44 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
                 }
             }
             self?.layoutTask = nil
+            self?.scheduleScrollWarmup()
+        }
+    }
+
+    private func cancelScrollWarmup() {
+        scrollWarmupID = UUID()
+        scrollWarmup?.cancel()
+        scrollWarmup = nil
+    }
+
+    private func scheduleScrollWarmup() {
+        guard scrollWarmup == nil, rendered?.hasEstimatedGeometry == true,
+            isActive, !finished, window != nil, let session = reflowSession, let revision else { return }
+        let generation = self.generation
+        let width = bounds.width
+        let id = UUID()
+        scrollWarmupID = id
+        scrollWarmup = Task(priority: .utility) { [weak self] in
+            defer { if self?.scrollWarmupID == id { self?.scrollWarmup = nil } }
+            do {
+                try await Task.sleep(for: .milliseconds(200))
+                guard let self, self.isActive, !self.finished, !self.isDragging, !self.isDecelerating,
+                    self.layoutTask == nil, self.generation == generation, self.bounds.width == width else { return }
+                guard let next = try await session.prepareForScrolling(width: width) else { return }
+                try Task.checkCancellation()
+                let rect = self.visibleRect(in: next, restoring: self.reflowAnchor.value)
+                let scale = max(1, self.traitCollection.displayScale)
+                let offsets = self.page?.tableOffsets ?? [:]
+                let preview = await Task.detached(priority: .utility) {
+                    ReaderPageView.preview(next, rect: rect, scale: scale, tableOffsets: offsets)
+                }.value
+                try Task.checkCancellation()
+                guard self.isActive, !self.finished, !self.isDragging, !self.isDecelerating,
+                    self.generation == generation, self.bounds.width == width,
+                    self.layoutTask == nil, !self.reflow.needsLayout else { return }
+                self.install(next, revision: revision, restoring: self.reflowAnchor.value,
+                    preview: preview, previewRect: rect, animateReplacement: false)
+            } catch is CancellationError {} catch { /* Foreground refinement remains available. */ }
         }
     }
 
@@ -418,13 +462,22 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         rebuildIfNeeded()
     }
 
+    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) { cancelScrollWarmup() }
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        if !decelerate { scheduleScrollWarmup() }
+    }
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) { scheduleScrollWarmup() }
+    func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) { scheduleScrollWarmup() }
+
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         updateHighlightViewport()
         guard !adjusting else { return }
+        cancelScrollWarmup()
         if isDragging || isDecelerating { pendingReveal = nil }
         reflowAnchor.moved(in: rendered, atY: topY)
         reportPosition()
         rebuildIfNeeded()
+        scheduleScrollWarmup()
     }
     private func updateHighlightViewport() {
         guard let page else { return }
@@ -437,6 +490,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         viewport?.moved(anchor: reflowAnchor.value ?? rendered.readingAnchor(atY: y), heading: heading)
     }
     func finish() {
+        cancelScrollWarmup()
         scrollDiagnostics?.finish()
         scrollDiagnostics = nil
         findPresentationTask?.cancel()
@@ -454,8 +508,9 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         guard isActive != active else { return }
         isActive = active
         // A hidden preview skips layout; catch up on a size change meanwhile.
-        if active { setNeedsLayout() }
+        if active { setNeedsLayout(); scheduleScrollWarmup() }
         if !active {
+            cancelScrollWarmup()
             reflow.stop()
             reportPosition()
             findPresentationTask?.cancel()

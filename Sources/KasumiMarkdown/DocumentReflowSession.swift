@@ -1,13 +1,43 @@
 import Foundation
 
-/// Retains width-independent text preparation across layouts of one document.
+/// Retains text preparation and current-width geometry for one document.
 /// Create a new session when content, style, available fonts, or resources change.
-/// Calls are serialized; returned snapshots remain independently immutable.
+/// Calls are serialized; snapshots remain immutable and safe to retain.
+/// A completed idle snapshot may be reused by same-width viewport requests.
 public actor DocumentReflowSession {
     private let document: MarkdownDocument
     private let style: RenderStyle
     private let scrollableTables: Bool
     private let preparation = ReflowPreparation()
+    private var layoutWidth: CGFloat?
+    private(set) var warmCursor = 0
+    private var warmEpoch = UUID()
+    private var warmSnapshot: RenderedDocument?
+    private lazy var supportsCompleteWarmup: Bool = {
+        guard document.parsed.blocks.count <= 1_000 else { return false }
+        var units = 0
+        for block in document.parsed.blocks {
+            guard block.kind != .image && block.kind != .diagram,
+                block.text.utf16.count <= 4_000 else { return false }
+            let cells = block.rows.flatMap { $0 }
+            guard cells.count <= 64,
+                cells.allSatisfy({ $0.reduce(0) { $0 + $1.text.utf16.count } <= 4_000 }) else { return false }
+            for run in block.runs + cells.flatMap({ $0 }) {
+                guard !run.traits.contains(.image) else { return false }
+                units += run.text.utf16.count
+                if units > 250_000 { return false }
+            }
+        }
+        return true
+    }()
+
+    private func useWidth(_ width: CGFloat) {
+        guard layoutWidth != width else { return }
+        layoutWidth = width
+        warmCursor = 0
+        warmEpoch = UUID()
+        warmSnapshot = nil
+    }
 
     public init(_ document: MarkdownDocument, style: RenderStyle, scrollableTables: Bool = false) {
         self.document = document
@@ -16,7 +46,8 @@ public actor DocumentReflowSession {
     }
 
     public func render(width: CGFloat) -> RenderedDocument {
-        autoreleasepool {
+        useWidth(width)
+        return autoreleasepool {
             RenderedDocument(
                 document, width: width, style: style, scrollableTables: scrollableTables, preparation: preparation)
         }
@@ -27,15 +58,51 @@ public actor DocumentReflowSession {
     /// Request another snapshot when `needsLayout(in:)` is true after scrolling.
     /// Offscreen prose, tables and math keep semantic text with estimated geometry.
     /// Visible tables refine as a unit. Resource-dependent images and diagram
-    /// fallbacks keep their exact storage path.
+    /// fallbacks keep their exact storage path. After idle preparation completes,
+    /// requests at that width reuse the complete immutable snapshot and its lock.
     public func render(width: CGFloat, viewportHeight: CGFloat, anchor: ReadingAnchor? = nil) -> RenderedDocument {
-        autoreleasepool {
+        useWidth(width)
+        if let warmSnapshot { return warmSnapshot }
+        return autoreleasepool {
             RenderedDocument(
                 document, width: width, style: style, scrollableTables: scrollableTables, preparation: preparation,
                 viewport: viewportHeight.isFinite && viewportHeight > 0
                     ? ViewportLayoutRequest(height: viewportHeight, anchor: anchor) : nil)
         }
     }
+
+    /// Optional idle work for bounded text/table/math documents. Check cancellation
+    /// between batches and yield the actor so visible requests can take priority.
+    /// Returns nil for workloads outside the resource envelope. Width changes
+    /// invalidate progress; cancellation retains completed preparation at that width.
+    public func prepareForScrolling(width: CGFloat) async throws -> RenderedDocument? {
+        try Task.checkCancellation()
+        guard width.isFinite, width > 0, supportsCompleteWarmup else { return nil }
+        useWidth(width)
+        let epoch = warmEpoch
+        while warmSnapshot == nil {
+            try Task.checkCancellation()
+            guard warmEpoch == epoch else { throw CancellationError() }
+            let count = autoreleasepool {
+                let construction = ViewportConstruction()
+                construction.selected = Set(warmCursor..<(warmCursor + 8))
+                return DocumentTypesetter.layout(
+                    document.parsed, width: width, style: style.typography, insets: style.insets,
+                    scrollableTables: scrollableTables, preparation: preparation, viewport: construction,
+                    buildSemanticContent: false).paragraphs.count
+            }
+            warmCursor += 8
+            if warmCursor >= count {
+                warmSnapshot = render(width: width)
+                break
+            }
+            await Task.yield()
+        }
+        try Task.checkCancellation()
+        guard warmEpoch == epoch else { throw CancellationError() }
+        return warmSnapshot
+    }
+
 }
 
 /// Actor-owned text/measurement preparation. Glyph paint values use a separate

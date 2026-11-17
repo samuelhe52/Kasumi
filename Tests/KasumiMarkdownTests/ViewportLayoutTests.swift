@@ -309,6 +309,67 @@ import Testing
         #expect(try pixels(initial, top: 0) == originalPixels)
     }
 
+    @Test func idlePreparationProducesCompleteIndependentSnapshotsAndResetsForWidth() async throws {
+        let source = (0..<35).map { "Paragraph \($0). " + String(repeating: "中文 text. ", count: 12) }
+            .joined(separator: "\n\n") + "\n\n| A | B |\n| --- | --- |\n| $x+1$ | Text |"
+        let document = MarkdownDocument(markdown: source)
+        let session = DocumentReflowSession(document, style: style)
+        let initial = await session.render(width: 400, viewportHeight: 300)
+        #expect(initial.hasEstimatedGeometry)
+        let before = try pixels(initial, top: 0)
+        let warm = try #require(try await session.prepareForScrolling(width: 400))
+        let full = RenderedDocument(document, width: 400, style: style)
+        #expect(!warm.hasEstimatedGeometry && warm.size == full.size)
+        let revisited = await session.render(width: 400, viewportHeight: 300,
+            anchor: warm.readingAnchor(atY: warm.size.height * 0.8))
+        #expect(revisited === warm && !revisited.hasEstimatedGeometry)
+        #expect(warm.text(in: warm.documentRange) == full.text(in: full.documentRange))
+        for fraction: CGFloat in [0, 0.3, 0.8] {
+            let top = fraction * max(0, full.size.height - 500)
+            #expect(try pixels(warm, top: top) == pixels(full, top: top))
+        }
+        _ = await session.render(width: 600, viewportHeight: 300)
+        let resized = try #require(try await session.prepareForScrolling(width: 600))
+        #expect(resized.size.width == 600 && !resized.hasEstimatedGeometry)
+        #expect(warm.size == full.size)
+        #expect(try pixels(initial, top: 0) == before)
+    }
+
+    @Test func foregroundWidthChangeInvalidatesInFlightIdlePreparation() async throws {
+        let session = DocumentReflowSession(MarkdownDocument(markdown: source), style: style)
+        let task = Task { try await session.prepareForScrolling(width: 400) }
+        while await session.warmCursor == 0 { await Task.yield() }
+        let foreground = await session.render(width: 600, viewportHeight: 500)
+        do {
+            if let completed = try await task.value { #expect(completed.size.width == 400) }
+        } catch is CancellationError {} catch { Issue.record("Unexpected error: \(error)") }
+        #expect(foreground.size.width == 600)
+        let ready = try #require(try await session.prepareForScrolling(width: 600))
+        #expect(ready.size.width == 600 && !ready.hasEstimatedGeometry)
+        let full = RenderedDocument(MarkdownDocument(markdown: source), width: 600, style: style)
+        #expect(try pixels(ready, top: 0) == pixels(full, top: 0))
+    }
+
+    @Test func idlePreparationHonorsCancellationAndResourceEnvelope() async throws {
+        let document = MarkdownDocument(markdown: source)
+        let session = DocumentReflowSession(document, style: style)
+        let task = Task { try await session.prepareForScrolling(width: 400) }
+        task.cancel()
+        do {
+            _ = try await task.value
+            Issue.record("Cancelled idle preparation completed")
+        } catch is CancellationError {} catch { Issue.record("Unexpected error: \(error)") }
+        let next = await session.render(width: 600, viewportHeight: 500)
+        #expect(!next.needsLayout(in: CGRect(x: 0, y: 0, width: 600, height: 500)))
+        let warm = try #require(try await session.prepareForScrolling(width: 600))
+        #expect(!warm.hasEstimatedGeometry && warm.size.width == 600)
+        for source in [String(repeating: "x", count: 4001), "![image](missing.png)",
+                       "| A | B |\n| --- | --- |\n" + String(repeating: "| a | b |\n", count: 33)] {
+            let excluded = DocumentReflowSession(MarkdownDocument(markdown: source), style: style)
+            #expect(try await excluded.prepareForScrolling(width: 400) == nil)
+        }
+    }
+
     @Test func linkedParagraphDefersItsUnadornedLines() async throws {
         let words = String(repeating: "普通中文 text before and after the link. ", count: 30)
         let document = MarkdownDocument(markdown: words + "[agp linked](https://example.com) " + words)

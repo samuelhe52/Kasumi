@@ -25,6 +25,7 @@ ONBOARDING_ARGS = $(if $(filter reset,$(ONBOARDING)),-- -onboarding.fonts-offere
 DEVICE_PROBE = xcrun xcdevice list | /usr/bin/python3 -c 'import json, sys; interface = {"usb": 0, "network": 1}; devices = [device for device in json.load(sys.stdin) if device.get("platform") == "com.apple.platform.iphoneos" and device.get("available") and not device.get("simulator")]; devices.sort(key=lambda device: (interface.get(device.get("interface"), 2), not device.get("modelCode", "").startswith("iPhone"), device.get("identifier", ""))); print(devices[0]["identifier"] if devices else "")'
 # Narrow `make test` to matching tests, e.g. `make test FILTER=ParagraphTests`.
 FILTER ?=
+REFLOW_IDLE_WARMUP ?= 1
 
 NATIVE_STAMP := .build/native/.stamp
 NATIVE_INPUTS := scripts/build-native \
@@ -32,7 +33,7 @@ NATIVE_INPUTS := scripts/build-native \
 		-not -path '*/target/*' 2>/dev/null)
 
 .DEFAULT_GOAL := help
-.PHONY: help native build test test-ios app run-sim run-device launch-sim check clean reflow-lab run-reflow-lab check-reflow-lab check-reader-scrolling benchmark-reflow-lab check-reflow-scrolling
+.PHONY: help native build test test-ios app run-sim run-device launch-sim check clean reflow-lab run-reflow-lab check-reflow-lab check-reader-scrolling benchmark-reflow-lab check-reflow-scrolling check-fast-reflow-scrolling
 
 help: ## List available targets
 	@awk 'BEGIN { FS = ":.*## " } /^[a-z-]+:.*## / { printf "  %-8s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
@@ -106,6 +107,9 @@ check-reflow-lab: reflow-lab ## Run offscreen macOS harness smoke checks
 
 check-reflow-scrolling: reflow-lab ## Check 50k/200k mixed scrolling coverage in the native Mac harness
 	build/KasumiReflowLab.app/Contents/MacOS/KasumiReflowLab --scroll-check build/reflow-lab-scrolling.json
+
+check-fast-reflow-scrolling: reflow-lab ## Stress native scrolling after three seconds idle
+	KASUMI_REFLOW_IDLE_WARMUP=$(REFLOW_IDLE_WARMUP) build/KasumiReflowLab.app/Contents/MacOS/KasumiReflowLab --fast-scroll-check build/reflow-lab-fast-scrolling.json
 
 benchmark-reflow-lab: reflow-lab ## Measure native Mac 50k/200k construction and viewport painting
 	build/KasumiReflowLab.app/Contents/MacOS/KasumiReflowLab --benchmark build/reflow-lab-benchmark.json

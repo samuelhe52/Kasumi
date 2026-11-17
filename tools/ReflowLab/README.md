@@ -68,6 +68,9 @@ shared-engine test window, not a reproduction of the production drawing backend.
 ```sh
 make benchmark-reflow-lab
 make check-reflow-scrolling
+make check-fast-reflow-scrolling
+# Same-binary control without idle preparation:
+make check-fast-reflow-scrolling REFLOW_IDLE_WARMUP=0
 ```
 
 The benchmark records parsing, first viewport construction, warm width changes,
@@ -81,3 +84,19 @@ Neither check measures physical display frames or reproduces UIKit tile behavior
 The scrolling protocol requests 80-point steps every 16 ms; actual scheduling
 can vary. Cold means a fresh document session, with OS/font caches left intact.
 The on-screen timing label excludes file reading and parsing.
+
+The fast check waits three seconds after the first screen, then traverses the
+whole document down and back at 480-point steps requested every 8 ms. Its
+`build/reflow-lab-fast-scrolling.json` records complete-layout readiness,
+preparation time, missed coverage samples and the longest observed gap. On the
+first coverage miss it also saves a rendered viewport PNG beside that JSON.
+Sampling records measured geometry, not presented frames; the diagnostic PNG
+can lengthen the first measured gap. Actual scheduling varies.
+
+After 200 ms idle, the harness and UIKit reader prepare bounded text/table/math
+documents in cancellable batches. The harness says **Entire document measured**
+when the complete snapshot is installed. Width/content/style changes invalidate
+that snapshot. This retains more geometry in memory; very large or resource-heavy
+documents keep the viewport path. The fast check explicitly records readiness
+rather than assuming three seconds always suffice. Its results do not guarantee
+coverage for an immediate jump during cold opening or UIKit tile presentation.

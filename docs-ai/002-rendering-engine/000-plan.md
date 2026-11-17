@@ -88,3 +88,5 @@ Library tests pass on macOS and the iOS simulator, including comparisons against
 - Updated 2026-11-17: Paint warm glyph records without constructing fragment caret objects — see [013-paint-without-caret-materialization.md](013-paint-without-caret-materialization.md).
 
 - Updated 2026-11-17: Reduce cold preparation and reuse immutable geometry during viewport refinement — see [015-incremental-reflow.md](015-incremental-reflow.md).
+
+- Updated 2026-11-17: Prepare bounded documents during idle time to cover rapid scrolling — see [016-fast-scroll-coverage.md](016-fast-scroll-coverage.md).

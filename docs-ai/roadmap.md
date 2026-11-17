@@ -58,7 +58,12 @@ tables refine as a unit; resource-dependent images and diagram fallbacks remain
 exact. Immutable paragraph geometry and table widths are reused, while Core Text
 objects remain snapshot-local. Publication checks current viewport coverage when
 the anchor moves, and one screen of overscan buffers scrolling. Cold preparation
-also avoids redundant parsing and document-wide grapheme indexing. A very large
+also avoids redundant parsing and document-wide grapheme indexing. [Idle preparation](002-rendering-engine/016-fast-scroll-coverage.md) now completes
+bounded text/table/math documents after 200 ms of inactivity. Both reader hosts
+cancel on activity and retain progress; complete snapshots are reused at the
+same width. This covers jumps beyond overscan once preparation finishes, with
+additional retained geometry and memory. Documents outside the resource envelope,
+and immediate jumps before readiness, still use viewport refinement. A very large
 visible table, resource-heavy block or individual paragraph can still dominate.
 See the earlier [mixed coverage](002-rendering-engine/011-mixed-viewport-coverage.md)
 record for the preceding exact-attachment policy.
