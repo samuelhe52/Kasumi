@@ -12,7 +12,10 @@ let package = Package(
         .library(name: "KasumiMarkdown", targets: ["KasumiMarkdown"]),
         .executable(name: "KasumiRender", targets: ["KasumiRender"])
     ],
-    dependencies: [.package(url: "https://github.com/swiftlang/swift-markdown.git", exact: "0.9.0")],
+    dependencies: [
+        .package(url: "https://github.com/swiftlang/swift-markdown.git", exact: "0.9.0"),
+        .package(url: "https://github.com/dduan/TOMLDecoder.git", exact: "0.4.5")
+    ],
     targets: [
         .binaryTarget(name: "KasumiDagreNative", path: "\(native)/kasumi_dagre.xcframework"),
         .binaryTarget(name: "KasumiLineBreakNative", path: "\(native)/kasumi_linebreak.xcframework"),
@@ -33,7 +36,8 @@ let package = Package(
         .target(
             name: "KasumiMarkdown",
             dependencies: [
-                "CDagre", "CLineBreak", "CHyphenation", "CSyntax", .product(name: "Markdown", package: "swift-markdown")
+                "CDagre", "CLineBreak", "CHyphenation", "CSyntax", .product(name: "Markdown", package: "swift-markdown"),
+                .product(name: "TOMLDecoder", package: "TOMLDecoder")
             ],
             resources: [.copy("Bundled")]
         ),

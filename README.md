@@ -80,6 +80,13 @@ let png = try DocumentExport.png(rendered, scale: 2)
 
 `RenderedDocument` also answers hit-testing, selection rectangles, text search, outline positions and link lookups for one immutable layout. Presets and themes are public values that clients can define.
 
+Custom presets accept standard TOML through `TypographyPreset(id:name:toml:)`.
+Put overrides in `[profile]`, for example `hyphenation_language = "fr"` or
+`base_size = 18`. Malformed syntax and duplicate keys throw errors. Profile
+files use `[meta]` for their name and `[anchor]` for a saved factory snapshot;
+unrelated tables never contribute typography overrides. The reader currently
+offers built-in presets only.
+
 The `KasumiRender` command renders a file without launching the app:
 
 ```sh

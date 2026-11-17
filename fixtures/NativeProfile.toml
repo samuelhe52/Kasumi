@@ -1,5 +1,4 @@
-# Authored profile-format fixture, intentionally not strict TOML.
-# The later invalid numeric assignment retains the earlier valid value.
+# Authored standard TOML profile fixture.
 [meta]
 name = "Native profile fixture"
 
@@ -13,12 +12,12 @@ heading_han_baseline = 0.06
 
 [profile]
 base_size = 18
-base_size = invalid
 code_capsule = true
 code_capsule_pad = 0.3
 table_style = "grid"
 para_separation = "indent"
+para_space_after = 0.5
 
 [future-layout]
-# Recognized keys in every non-anchor section share the override namespace.
+# Unknown tables remain opaque to typography.
 para_space_after = 0.5

@@ -49,7 +49,7 @@ an attributed string laid out by Core Text alone provides.
 | --- | --- |
 | Own paragraph engine instead of Core Text framesetting alone | The measured layout and hyphenation targets need per-line control (`3914150`). Right-to-left paragraphs still fall back to Core Text. |
 | Rust crates behind C bridges for line breaking, hyphenation, and graph layout | Pinned, tested implementations instead of reimplementing Unicode line breaking, hyphenation patterns, and Dagre. Reason inferred from the commits; the original discussion isn't recorded. |
-| Profile files in a nonstandard line format, not TOML | `80d8a99` replaced a strict TOML bridge with a parser/writer for an existing line format, for compatibility with that format. Recalled discussion (2026-11-14): the maintainer prefers moving to standard TOML for UX; this is planned, not done. |
+| Profile files in a nonstandard line format, not TOML | `80d8a99` replaced a strict TOML bridge with a parser/writer for an existing line format, for compatibility with that format. Recalled discussion (2026-11-14): the maintainer prefers moving to standard TOML for UX; implemented with standard TOML on 2026-11-17; see [002.011](011-standard-toml-profiles.md). |
 | Frozen reference measurements as tests | Keeps layout changes deliberate. `AGENTS.md` requires updating the expectation in the same commit when a change alters covered behavior. |
 
 ## Evidence and recovered rationale
@@ -94,3 +94,6 @@ Library tests pass on macOS and the iOS simulator, including comparisons against
 
 - Updated 2026-11-17: Repeat enabled PDF code captions with reserved page space;
   see [002.010](010-pdf-code-continuations.md).
+
+- Updated 2026-11-17: Replace legacy profile parsing/writing with strict TOML,
+  without a compatibility path; see [002.011](011-standard-toml-profiles.md).

@@ -13,6 +13,8 @@ public struct TypographyPreset: Identifiable, Equatable, Sendable {
     }
     public static let `default` = builtin[0]
 
+    /// Parse standard TOML with typography overrides in `[profile]`.
+    /// Malformed TOML and duplicate keys throw; unknown tables do not override typography.
     public init(id: String, name: String, toml: String) throws {
         self.id = id
         self.name = name

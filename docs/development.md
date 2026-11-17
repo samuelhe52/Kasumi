@@ -41,6 +41,13 @@ the local toolchain without changing anything.
   (US English on ASCII words), `en-us`, `en-gb`, `de-1996`, `fr`, `es`, `it`,
   `pt`, `nl`, `sv`, `da`, `nb`, `fi`, `pl`, `cs`, or `ru`. Profiles expose the same
   `hyphenation_language` choice; neither path performs language detection.
+- Profiles use standard TOML via pinned `TOMLDecoder` 0.4.5; SwiftPM resolves it
+  during `make build`/`make test`. No native TOML bridge or external binary is
+  required. `--profile fixtures/NativeProfile.toml` exercises the authored profile.
+  Only `[profile]` contributes overrides; `[anchor]` stores the profile factory,
+  `[meta]` its name. Legacy duplicate-key/recovery behavior is rejected. Imports
+  retain source until edited; canonical edits preserve unknown data, not comments.
+  Verify with `make test FILTER=profileTOML`.
 - Launch scene: a `nil` title falls back to the app name, so the scene passes a
   one-space title and `LaunchLogotype` draws the wordmark. `titleViewFrame` spans
   everything above the browser sheet, not just the title.

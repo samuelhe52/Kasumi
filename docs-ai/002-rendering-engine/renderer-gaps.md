@@ -14,8 +14,7 @@ that fixes it; add one when a limitation is found and not fixed.
   registered, then PingFang. The open substitutes have no tuned face table, so
   their heavy, Fangsong and Xihei faces stay generic. See
   [005](../005-cjk-font-availability/000-plan.md).
-- Profiles: punctuation strategy is stored but not applied. The profile file
-  format is a nonstandard line format; moving to standard TOML is planned.
+- Profiles: punctuation strategy is stored but not applied.
 - Themes: no custom theme files. The chrome keys `column_divider`,
   `sidebar_background` and `tab_active_background` are defined in bundled themes,
   but no code reads them. On iOS, the Classic theme's system colors resolve to

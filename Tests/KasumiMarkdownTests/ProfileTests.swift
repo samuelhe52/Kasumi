@@ -200,7 +200,7 @@ fileprivate let nativeProfileFactories: [ProfileFactoryExpectation] = [
     #expect(switched.dark && switched.widthLimit == 720)
 }
 
-@Test func profileFileUsesNativeTypesAndNonAnchorNamespace() throws {
+@Test func profileFileUsesStandardTOMLTypesAndProfileNamespace() throws {
     let source = """
         [profile]
         base_size = nan
@@ -217,7 +217,7 @@ fileprivate let nativeProfileFactories: [ProfileFactoryExpectation] = [
         base_size = 25
         """
     let values = try ProfileValues.parse(source)
-    #expect(values[.baseSize] == .number(25))
+    #expect(values[.baseSize] == nil)
     #expect(values[.lineSpacing] == .number(3))
     #expect(values[.hanScale] == .number(0.5))
     #expect(values[.cjkLatinGap] == nil)
@@ -225,14 +225,14 @@ fileprivate let nativeProfileFactories: [ProfileFactoryExpectation] = [
     #expect(values[.tableStyle] == nil)
     #expect(values[.headingScale] == nil)
     #expect(values[.headingWeight] == .strings(["bold", "Unrecognized"]))
-    #expect(values[.codeFamily] == nil)  // Native strings require double quotes.
+    #expect(values[.codeFamily] == .string("Custom Mono"))
     let normalized = try values.source()
     #expect(try ProfileValues.parse(normalized) == values)
     #expect(!normalized.contains("unknown_key"))
     #expect(!normalized.contains("[other]"))
 }
 
-@Test func profileImportAndTargetedEditsPreserveCommentsUnknownKeysAndEnvelope() throws {
+@Test func profileImportAndCanonicalEditsRetainUnknownDataAndEnvelope() throws {
     let source = """
         # authored external profile — preserve this header
         [meta] # envelope
@@ -259,19 +259,19 @@ fileprivate let nativeProfileFactories: [ProfileFactoryExpectation] = [
     #expect(try library.selected.exportedSource() == source)
     try library.set(.number(17.125), for: .baseSize)
     let edited = try library.selected.exportedSource()
-    #expect(edited.contains("  base_size = 17.125  # reading size"))
-    #expect(edited.contains("future_feature = ['one', 'two'] # preserve unknown setting"))
+    #expect(edited.contains("base_size = 17.125"))
+    #expect(edited.contains("future_feature = [\"one\", \"two\"]"))
     #expect(edited.contains("future_anchor = { enabled = true }"))
-    #expect(edited.contains("[extension.vendor]\nliteral = '中文 # not a comment'"))
-    #expect(edited.hasPrefix("# authored external profile — preserve this header\n[meta] # envelope\n"))
+    #expect(edited.contains("vendor = { literal = \"中文 # not a comment\" }"))
+    #expect(try ProfileFileDocument(edited).name == "Imported Reader")
     #expect(try ProfileValues.parse(edited)[.baseSize] == .number(17.125))
     try library.set(nil, for: .baseSize)
     #expect(library.selected.delta[.baseSize] == nil)
     #expect(library.selected.effective[.baseSize] == .number(14))
     let output = try library.selected.exportedSource()
     #expect(try ProfileFileDocument(output).name == "Imported Reader")
-    #expect(output.contains("# base_size = 17.125  # reading size"))
-    #expect(output.contains("future_feature = ['one', 'two'] # preserve unknown setting"))
+    #expect(!output.contains("base_size = 17.125"))
+    #expect(output.contains("future_feature = [\"one\", \"two\"]"))
 }
 
 @Test func profileCloneResetAndAnchorUseSparseSnapshotsWithEmptyDeltas() throws {
@@ -347,10 +347,10 @@ fileprivate let nativeProfileFactories: [ProfileFactoryExpectation] = [
     try library.reset()
     try library.rename("Renamed")
     let output = try library.selected.exportedSource()
-    #expect(output.hasPrefix("# retained header\n"))
+    #expect(try ProfileFileDocument(output).name == "Renamed")
     for line in [
-        "extra = 'meta' # retained", "future = 'anchor' # retained", "future = 'delta' # retained",
-        "keep = 'verbatim' # retained"
+        "extra = \"meta\"", "future = \"anchor\"", "future = \"delta\"",
+        "keep = \"verbatim\""
     ] { #expect(output.contains(line)) }
     #expect(try ProfileValues.parse(output, table: "anchor")[.baseSize] == .number(20))
     #expect(try ProfileValues.parse(output)[.baseSize] == nil)
@@ -383,9 +383,9 @@ fileprivate let nativeProfileFactories: [ProfileFactoryExpectation] = [
     #expect(library.missingSelection && library.selected.id == "serif")
     #expect(!library.profiles.contains { $0.id == "profile" })
     let invalidValue = "[profile]\nbase_size = ["
-    _ = try library.importProfile(invalidValue, suggestedName: "Broken")
-    #expect(library.selected.delta.isEmpty)
-    #expect(try library.selected.exportedSource() == invalidValue)
+    let unchanged = library
+    #expect(throws: (any Error).self) { _ = try library.importProfile(invalidValue, suggestedName: "Broken") }
+    #expect(library == unchanged)
 }
 
 @Test func profileLibraryCodableAndFactoryRebasePreserveDeltasWithoutTrustingStoredFactories() throws {
@@ -421,35 +421,11 @@ fileprivate let nativeProfileFactories: [ProfileFactoryExpectation] = [
 }
 
 @Test func profileDocumentMutationFailuresCannotPartiallyChangeLibraryState() throws {
-    // Native profiles ignore this unknown scalar. It must not prevent adding
-    // an anchor header or updating the recognized fields/name later.
-    let source =
-        "anchor = 17 # opaque, not a native profile key\n[meta]\nname = \"Recovery\"\n[profile]\nbase_size = 20\n"
     var library = ProfileLibrary()
-    let initial = library
-    do { _ = try library.importProfile(source, suggestedName: "Recovery") } catch {
-        #expect(library == initial)
-        return
-    }
-    let operations: [(String, (inout ProfileLibrary) throws -> Void)] = [
-        ("reset", { try $0.reset() }),
-        ("anchor", { try $0.setAsAnchor() }),
-        ("rename", { try $0.rename("Changed") })
-    ]
-    for (name, operation) in operations {
-        var edited = library
-        do {
-            try operation(&edited)
-            let exported = try edited.selected.exportedSource()
-            #expect(
-                try ProfileValues.parse(exported, table: "anchor") == edited.selected.factory,
-                "\(name) anchor/model coherence")
-            #expect(try ProfileValues.parse(exported) == edited.selected.delta, "\(name) delta/model coherence")
-            #expect(try ProfileFileDocument(exported).name == edited.selected.name)
-            #expect(exported.contains("anchor = 17 # opaque, not a native profile key"))
-        } catch {
-            let unchanged = edited == library
-            #expect(unchanged, "\(name) must leave the imported profile intact when synchronization fails")
-        }
-    }
+    _ = try library.importProfile("[meta]\nname = \"Recovery\"\n[profile]\nbase_size = 20\n", suggestedName: "Recovery")
+    let unchanged = library
+    #expect(throws: ProfileFileDocument.FileError.self) { try library.rename(String(repeating: "x", count: 4 * 1024 * 1024)) }
+    #expect(library == unchanged)
+    #expect(throws: ProfileFileDocument.FileError.self) { try library.set(.string(String(repeating: "x", count: 4 * 1024 * 1024)), for: .latinFamily) }
+    #expect(library == unchanged)
 }

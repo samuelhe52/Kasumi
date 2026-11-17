@@ -1,5 +1,5 @@
 {
-  "originHash" : "cbfba00057a59dfeace37865995e379b63c4a49a4bf03fa0e0dfbece08b51359",
+  "originHash" : "97bf2850fb04f483987f3b30519e2e459a616b417b38dd15c0e753dc918d8a44",
   "pins" : [
     {
       "identity" : "swift-cmark",
@@ -17,6 +17,15 @@
       "state" : {
         "revision" : "25cb61d3482054b09ae76ca4f281b1bfe7fe5a43",
         "version" : "0.9.0"
+      }
+    },
+    {
+      "identity" : "tomldecoder",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/dduan/TOMLDecoder.git",
+      "state" : {
+        "revision" : "a2bbd2796fe3064e107de18cb56031052c4fa899",
+        "version" : "0.4.5"
       }
     }
   ],

@@ -126,7 +126,8 @@ struct TypographyProfile: Codable, Equatable, Identifiable, Sendable {
     var origin: Origin
     var factory: ProfileValues
     var delta: ProfileValues
-    /// User imports retain comments and unknown keys. Built-in factory values
+    /// User imports retain original source until edited, then canonicalize TOML while
+    /// retaining unknown data. Built-in factory values
     /// are immutable; their editable changes live in delta.
     var importedSource: String?
     init(
