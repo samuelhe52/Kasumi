@@ -143,7 +143,7 @@ import os
         guard session != nil else { return }
         let viewport = scroll.contentView.bounds
         guard viewport.width.isFinite, viewport.height.isFinite, viewport.width > 0, viewport.height > 0 else { return }
-        let visible = viewport.insetBy(dx: 0, dy: -viewport.height * 0.25)
+        let visible = viewport.insetBy(dx: 0, dy: -viewport.height * 0.75)
         if let rendered, rendered.size.width == viewport.width, installedHeight == viewport.height,
             !rendered.needsLayout(in: visible), let installed = state.installed
         {
@@ -162,7 +162,7 @@ import os
                 let top = max(0, min(max(0, next.size.height - request.height), self.anchor.value.flatMap { next.y(for: $0) } ?? 0))
                 let rect = CGRect(x: 0, y: top, width: request.width, height: request.height)
                     .intersection(CGRect(origin: .zero, size: next.size))
-                guard self.state.accepts(request) else {
+                guard self.state.accepts(request, coversDesiredViewport: !next.needsLayout(in: rect)) else {
                     _ = self.state.complete(request)
                     continue
                 }
@@ -171,7 +171,9 @@ import os
                 let preview = await Task.detached(priority: .userInitiated) { LabPreview.paint(next, rect: rect, scale: scale) }.value
                 self.signposter.endInterval("ViewportPaint", paintInterval)
                 let liveTop = max(0, min(max(0, next.size.height - request.height), self.anchor.value.flatMap { next.y(for: $0) } ?? top))
-                if self.state.complete(request) {
+                let liveRect = CGRect(x: 0, y: liveTop, width: request.width, height: request.height)
+                    .intersection(CGRect(origin: .zero, size: next.size))
+                if self.state.complete(request, coversDesiredViewport: !next.needsLayout(in: liveRect)) {
                     let install = self.signposter.beginInterval("Install", id: self.signposter.makeSignpostID())
                     self.adjusting = true
                     self.rendered = next

@@ -212,8 +212,10 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         guard isActive, !finished, bounds.width.isFinite, bounds.width > 0, bounds.height.isFinite, bounds.height > 0,
             document != nil, style != nil
         else { return }
+        // Refill while most of the one-screen layout buffer still remains;
+        // waiting until only a quarter-screen remains cannot absorb paint tails.
         let visible = CGRect(x: 0, y: topY, width: bounds.width, height: bounds.height)
-            .insetBy(dx: 0, dy: -bounds.height * 0.25)
+            .insetBy(dx: 0, dy: -bounds.height * 0.75)
         if pendingReveal == nil, let installed = reflow.installed, installed.width == bounds.width,
             installed.generation == generation, rendered?.needsLayout(in: visible) == false
         {
@@ -251,11 +253,12 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
                         worker.cancel()
                     }
                     guard !Task.isCancelled else { break }
-                    guard self.reflow.accepts(request) else {
+                    let rect = self.visibleRect(in: next, restoring: self.reflowAnchor.value)
+                    let coversViewport = !next.needsLayout(in: rect)
+                    guard self.reflow.accepts(request, coversDesiredViewport: coversViewport) else {
                         _ = self.reflow.complete(request)
                         continue
                     }
-                    let rect = self.visibleRect(in: next, restoring: self.reflowAnchor.value)
                     let scale = max(1, self.traitCollection.displayScale)
                     let tableOffsets = self.installedRevision == revision ? self.page?.tableOffsets ?? [:] : [:]
                     // Prepaint only the viewport, off-main, before publishing.
@@ -275,7 +278,8 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
                         painter.cancel()
                     }
                     guard !Task.isCancelled else { break }
-                    if self.reflow.complete(request) {
+                    let liveRect = self.visibleRect(in: next, restoring: self.reflowAnchor.value)
+                    if self.reflow.complete(request, coversDesiredViewport: !next.needsLayout(in: liveRect)) {
                         let appearanceChanged = self.installedGeneration != request.generation
                         self.installedGeneration = request.generation
                         self.install(

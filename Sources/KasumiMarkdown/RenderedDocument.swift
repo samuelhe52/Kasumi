@@ -59,7 +59,8 @@ public final class RenderedDocument: @unchecked Sendable {
     private let baseURL: URL?
     private let layoutLock = NSLock()
     private let lines: [Line]
-    private let semanticBoundaries: [Int]
+    private let semanticSource: NSString
+    private var semanticLength: Int { semanticSource.length }
     private let semanticText: String
     private let estimatedRegions: [CGRect]
     private let estimatedPrefixBottoms: [CGFloat]
@@ -162,7 +163,7 @@ public final class RenderedDocument: @unchecked Sendable {
         }
         let semantic = built.semanticContent ?? DocumentSemanticContent(built.textMap)
         semanticText = semantic.text
-        semanticBoundaries = semantic.boundaries
+        semanticSource = semantic.text as NSString
     }
 
     /// `rect` and the CGContext must use document coordinates (top-left, y down).
@@ -215,7 +216,7 @@ public final class RenderedDocument: @unchecked Sendable {
     }
 
     public var documentRange: TextRange {
-        TextRange(position(0), position((semanticBoundaries.last ?? 0)))
+        TextRange(position(0), position(semanticLength))
     }
 
     /// Moves by semantic UTF-16 code units, as required by UIKit text input.
@@ -225,7 +226,7 @@ public final class RenderedDocument: @unchecked Sendable {
     public func position(from start: TextPosition, offset: Int) -> TextPosition? {
         guard start.owner == owner else { return nil }
         let (next, overflow) = start.offset.addingReportingOverflow(offset)
-        guard !overflow, next >= 0, next <= (semanticBoundaries.last ?? 0) else { return nil }
+        guard !overflow, next >= 0, next <= semanticLength else { return nil }
         return position(next)
     }
 
@@ -290,7 +291,7 @@ public final class RenderedDocument: @unchecked Sendable {
         guard let rendered = readingIndex.renderedRange(intersectingVerticalRange: range),
             let semantic = layout.textMap.semanticRange(forRenderedRange: rendered)
         else { return nil }
-        let limit = semanticBoundaries.last ?? 0
+        let limit = semanticLength
         let start = min(limit, semantic.location)
         let end = min(limit, NSMaxRange(semantic))
         guard end > start else { return nil }
@@ -485,24 +486,14 @@ public final class RenderedDocument: @unchecked Sendable {
     }
     private func checked(_ range: TextRange) -> NSRange? {
         guard range.lowerBound.owner == owner, range.upperBound.owner == owner else { return nil }
-        let length = (semanticBoundaries.last ?? 0)
+        let length = semanticLength
         let lower = min(length, max(0, range.lowerBound.offset))
         let upper = min(length, max(lower, range.upperBound.offset))
         return NSRange(location: lower, length: upper - lower)
     }
 
     private func nearestSemanticBoundary(to offset: Int) -> Int {
-        var lower = 0
-        var upper = semanticBoundaries.count
-        while lower < upper {
-            let middle = (lower + upper) / 2
-            if semanticBoundaries[middle] < offset { lower = middle + 1 } else { upper = middle }
-        }
-        guard lower > 0 else { return 0 }
-        guard lower < semanticBoundaries.count else { return semanticBoundaries.last ?? 0 }
-        let a = semanticBoundaries[lower - 1]
-        let b = semanticBoundaries[lower]
-        return offset - a <= b - offset ? a : b
+        SemanticTextBoundary.nearest(in: semanticSource, to: offset)
     }
 
     private func line(containing offset: Int) -> Line? {

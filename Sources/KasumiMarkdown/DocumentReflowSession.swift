@@ -25,8 +25,9 @@ public actor DocumentReflowSession {
     /// Measures paragraphs near the anchor, with overscan, and estimates offscreen
     /// heights. Text/search remain complete; offscreen geometry is approximate.
     /// Request another snapshot when `needsLayout(in:)` is true after scrolling.
-    /// Table cells and attachment-bearing paragraphs stay exact; their presence
-    /// does not force offscreen surrounding text into full layout.
+    /// Offscreen prose, tables and math keep semantic text with estimated geometry.
+    /// Visible tables refine as a unit. Resource-dependent images and diagram
+    /// fallbacks keep their exact storage path.
     public func render(width: CGFloat, viewportHeight: CGFloat, anchor: ReadingAnchor? = nil) -> RenderedDocument {
         autoreleasepool {
             RenderedDocument(
@@ -61,8 +62,65 @@ final class ReflowPreparation {
     private(set) var attributedBuilds = 0
     private(set) var shapedBuilds = 0
     private(set) var semanticBuilds = 0
+    var shapedParagraphCount: Int { paragraphs.values.filter(\.didShape).count }
     private var documentParagraphs: [ParagraphSemanticContent] = []
     private var documentSemantic: DocumentSemanticContent?
+    private var placeholders: [Key: (runs: [InlineRun], value: NSAttributedString)] = [:]
+    private struct TableWidthRequest: Equatable {
+        let rows: [[[InlineRun]]]
+        let width: CGFloat
+        let em: CGFloat
+        let padding: CGFloat
+        let scrollable: Bool
+    }
+    private var tableWidthCache: [Int: (request: TableWidthRequest, values: [CGFloat])] = [:]
+
+    func placeholder(block: Int, slot: Int, runs: [InlineRun]) -> NSAttributedString {
+        let key = Key(block: block, slot: slot)
+        if let old = placeholders[key], old.runs == runs { return old.value }
+        if let old = placeholders[key] {
+            let id = ObjectIdentifier(old.value)
+            retained.remove(id)
+            paragraphs[id] = nil
+        }
+        let value = NSAttributedString(string: runs.map { $0.footnoteDisplay ?? $0.text }.joined())
+        placeholders[key] = (runs, value)
+        retained.insert(ObjectIdentifier(value))
+        return value
+    }
+
+    func cachedTableWidths(
+        block: Int, rows: [[[InlineRun]]], width: CGFloat, em: CGFloat, padding: CGFloat, scrollable: Bool
+    ) -> [CGFloat]? {
+        guard !rows.joined().joined().contains(where: { $0.traits.contains(.image) }) else { return nil }
+        let request = TableWidthRequest(rows: rows, width: width, em: em, padding: padding, scrollable: scrollable)
+        guard let old = tableWidthCache[block], old.request == request else { return nil }
+        return old.values
+    }
+
+    func tableWidths(
+        block: Int, rows: [[[InlineRun]]], width: CGFloat, em: CGFloat, padding: CGFloat, scrollable: Bool,
+        build: () -> [CGFloat]
+    ) -> [CGFloat] {
+        // Image availability/dimensions can change independently of the session.
+        guard !rows.joined().joined().contains(where: { $0.traits.contains(.image) }) else { return build() }
+        let request = TableWidthRequest(rows: rows, width: width, em: em, padding: padding, scrollable: scrollable)
+        if let old = tableWidthCache[block], old.request == request { return old.values }
+        let values = build()
+        tableWidthCache[block] = (request, values)
+        return values
+    }
+
+    private var viewportSelection: (width: CGFloat, paragraphs: Set<Int>)?
+
+    func selectedParagraphs(width: CGFloat) -> Set<Int> {
+        viewportSelection?.width == width ? viewportSelection!.paragraphs : []
+    }
+
+    func rememberSelectedParagraphs(_ paragraphs: Set<Int>, width: CGFloat) {
+        viewportSelection = (width, paragraphs)
+    }
+
     private var heights: [Int: (width: CGFloat, height: CGFloat)] = [:]
 
     func height(at index: Int, width: CGFloat, prepared: ParagraphPreparation, lineHeight: CGFloat) -> CGFloat {
@@ -122,7 +180,7 @@ final class ReflowPreparation {
         {
             return documentSemantic
         }
-        let value = DocumentSemanticContent(DocumentTextMap(storage))
+        let value = DocumentSemanticContent(DocumentTextMap(storage), reusing: documentSemantic)
         documentParagraphs = contents
         documentSemantic = value
         semanticBuilds += 1
@@ -137,10 +195,16 @@ final class ParagraphPreparation {
     let hasRTL: Bool
     let fontSize: CGFloat
     let verbatim: Bool
-    let input: ShapedParagraphInput?
+    private(set) var didShape = false
+    lazy var input: ShapedParagraphInput? = {
+        guard !verbatim && !hasRTL && attributed.length > 0 else { return nil }
+        didShape = true
+        return ParagraphShaper.shape(attributed, fallbackSize: fontSize)
+    }()
     let hasDecorationCandidates: Bool
     let semanticContent: ParagraphSemanticContent
     let estimatedAdvance: CGFloat
+    var geometry: ParagraphLayoutGeometry?
     private var cachedItems: (indent: Float, options: ParagraphProfileOptions, value: ParagraphEngine.Prepared)?
     private(set) var itemBuilds = 0
 
@@ -164,11 +228,10 @@ final class ParagraphPreparation {
             (0x0590...0x08ff).contains($0.value) || (0xfb1d...0xfdff).contains($0.value)
                 || (0xfe70...0xfefc).contains($0.value)
         }
-        input =
-            !verbatim && !hasRTL && attributed.length > 0
-            ? ParagraphShaper.shape(attributed, fallbackSize: fontSize) : nil
-        estimatedAdvance =
-            input.map { CGFloat($0.clusters.reduce(Float(0)) { $0 + $1.advance }) }
-            ?? CGFloat(attributed.length) * fontSize
+        // Estimation must not shape the entire offscreen document. Refine these
+        // approximate advances with actual heights when the paragraph is visited.
+        estimatedAdvance = attributed.string.unicodeScalars.reduce(CGFloat(0)) {
+            $0 + fontSize * ($1.value < 0x2e80 ? 0.5 : 1)
+        }
     }
 }

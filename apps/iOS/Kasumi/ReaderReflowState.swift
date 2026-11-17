@@ -28,17 +28,23 @@ struct ReaderReflowState {
         return desired
     }
 
-    func accepts(_ request: Request) -> Bool {
-        running == request && desired?.generation == request.generation && desired?.anchor == request.anchor
+    func accepts(_ request: Request, coversDesiredViewport: Bool = false) -> Bool {
+        guard running == request, let desired, desired.generation == request.generation else { return false }
+        return desired.anchor == request.anchor
+            || (coversDesiredViewport && desired.width == request.width && desired.height == request.height)
     }
 
     /// Finish only after viewport painting, so it shares the same concurrency
     /// bound as typesetting. Intermediate widths may publish; stale styles may not.
-    mutating func complete(_ request: Request) -> Bool {
+    mutating func complete(_ request: Request, coversDesiredViewport: Bool = false) -> Bool {
         guard running == request else { return false }
-        let publish = accepts(request) && desired != installed
+        let publish = accepts(request, coversDesiredViewport: coversDesiredViewport) && desired != installed
         running = nil
-        if publish { installed = request }
+        if publish {
+            // Coverage was checked against the latest target after prepainting.
+            installed = coversDesiredViewport && desired?.width == request.width && desired?.height == request.height
+                ? desired : request
+        }
         return publish
     }
 

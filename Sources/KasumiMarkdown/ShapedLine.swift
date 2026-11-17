@@ -9,7 +9,7 @@ struct ShapedFragment {
         case eager(FragmentMaterialization)
         case deferred(LineFragmentStore, Int)
     }
-    private let geometry: FragmentGeometry
+    let geometry: FragmentGeometry
     private let paintSource: PaintSource
 
     init(_ geometry: FragmentGeometry, paint: FragmentMaterialization) {
@@ -88,7 +88,8 @@ struct ShapedLine {
     let range: NSRange
     /// Logical source line. Fragment geometry below governs native paragraph
     /// drawing and hit testing; this line also supports the verbatim path.
-    let line: CTLine
+    private let logical: LogicalLine
+    var line: CTLine { logical.value }
     let origin: CGPoint
     let ascent: CGFloat
     let descent: CGFloat
@@ -96,6 +97,35 @@ struct ShapedLine {
     var fragments: [ShapedFragment] = []
     var hyphen: ShapedHyphen? = nil
     var adjustmentRatio: Float = 0
+
+    init(
+        range: NSRange, line: CTLine, origin: CGPoint, ascent: CGFloat, descent: CGFloat, width: CGFloat,
+        fragments: [ShapedFragment] = [], hyphen: ShapedHyphen? = nil, adjustmentRatio: Float = 0
+    ) {
+        self.range = range
+        logical = LogicalLine(line: line)
+        self.origin = origin
+        self.ascent = ascent
+        self.descent = descent
+        self.width = width
+        self.fragments = fragments
+        self.hyphen = hyphen
+        self.adjustmentRatio = adjustmentRatio
+    }
+
+    init(
+        range: NSRange, factory: ParagraphFragmentFactory, origin: CGPoint, ascent: CGFloat, descent: CGFloat,
+        width: CGFloat, fragments: [ShapedFragment], adjustmentRatio: Float
+    ) {
+        self.range = range
+        logical = LogicalLine(factory: factory, range: range)
+        self.origin = origin
+        self.ascent = ascent
+        self.descent = descent
+        self.width = width
+        self.fragments = fragments
+        self.adjustmentRatio = adjustmentRatio
+    }
 
     func offset(forStringIndex index: Int, affinity: SourceBoundaryAffinity = .followingFragment) -> CGFloat {
         guard !fragments.isEmpty else { return CTLineGetOffsetForStringIndex(line, index, nil) }
@@ -140,5 +170,22 @@ struct ShapedLine {
 
     private func distance(_ x: CGFloat, from fragment: ShapedFragment) -> CGFloat {
         max(fragment.x - x, max(0, x - fragment.x - fragment.width))
+    }
+}
+
+/// Owned by one snapshot; accessed under that snapshot's layout lock.
+private final class LogicalLine {
+    private var built: CTLine?
+    private var factory: ParagraphFragmentFactory?
+    private let range: NSRange
+
+    init(line: CTLine) { built = line; range = NSRange(location: 0, length: 0) }
+    init(factory: ParagraphFragmentFactory, range: NSRange) { self.factory = factory; self.range = range }
+    var value: CTLine {
+        if let built { return built }
+        let line = factory!.textLine(range)
+        built = line
+        factory = nil
+        return line
     }
 }

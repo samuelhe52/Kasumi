@@ -79,7 +79,10 @@ struct DocumentTextMap: Equatable {
     private let semanticLength: Int
 
     init(_ attributed: NSAttributedString) {
-        var text = ""
+        // Foundation substrings can remain foreign Swift strings. Appending
+        // their UTF-8 views one scalar at a time dominated mixed refinement.
+        // Assemble in UTF-16, then transcode once to native contiguous UTF-8.
+        let text = NSMutableString(capacity: attributed.length)
         var segments: [Segment] = []
         var semanticLength = 0
         let source = attributed.string as NSString
@@ -89,7 +92,7 @@ struct DocumentTextMap: Equatable {
                 Segment(
                     rendered: range, semantic: NSRange(location: semanticLength, length: length),
                     replacement: replacement))
-            text += part
+            text.append(part)
             semanticLength += length
         }
         attributed.enumerateAttribute(.kasumiSemanticText, in: NSRange(location: 0, length: attributed.length)) {
@@ -106,7 +109,9 @@ struct DocumentTextMap: Equatable {
                 append(replacement ?? source.substring(with: range), range: range, replacement: replacement != nil)
             }
         }
-        self.string = text
+        var native = text as String
+        native.makeContiguousUTF8()
+        self.string = native
         self.segments = segments
         renderedLength = attributed.length
         self.semanticLength = semanticLength

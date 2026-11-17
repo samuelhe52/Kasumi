@@ -73,7 +73,8 @@ struct DocumentLayout {
 enum DocumentTypesetter {
     static func layout(
         _ document: ParsedDocument, width: CGFloat, style: Typography, insets: DocumentInsets = .reader,
-        scrollableTables: Bool = false, preparation: ReflowPreparation? = nil, viewport: ViewportConstruction? = nil
+        scrollableTables: Bool = false, preparation: ReflowPreparation? = nil, viewport: ViewportConstruction? = nil,
+        buildSemanticContent: Bool = true
     )
         -> DocumentLayout
     {
@@ -135,15 +136,20 @@ enum DocumentTypesetter {
         paragraphValues[.hangingPunctuation] = .flag(style.hangingPunctuation)
         paragraphValues[.autoRaggedNarrow] = .flag(style.narrowMeasureRagged)
         paragraphValues[.autoRaggedMeasureEm] = .number(style.narrowMeasureEm)
+        let defaultFont = style.font()
         var preparationBlock = -1
         var preparationSlot = 0
         var forceExactParagraphs = false
+        var deferBlock = false
         func attributed(
             _ runs: [InlineRun], size: Double? = nil, heading: Bool = false, code: Bool = false,
-            headingLevel: Int? = nil, imageMaxWidth: CGFloat? = nil
+            headingLevel: Int? = nil, imageMaxWidth: CGFloat? = nil, allowPlaceholder: Bool = true
         ) -> NSAttributedString {
             let slot = preparationSlot
             preparationSlot += 1
+            if allowPlaceholder, deferBlock, let preparation {
+                return preparation.placeholder(block: preparationBlock, slot: slot, runs: runs)
+            }
             func build() -> NSAttributedString {
                 style.attributed(
                     runs, size: size, heading: heading, code: code, headingLevel: headingLevel,
@@ -225,7 +231,21 @@ enum DocumentTypesetter {
         for (blockIndex, block) in document.blocks.enumerated() {
             preparationBlock = blockIndex
             preparationSlot = 0
-            forceExactParagraphs = [.table, .image, .math, .diagram].contains(block.kind)
+            let count: Int
+            if block.kind == .table, let first = block.rows.first {
+                count = block.rows.reduce(0) { $0 + min(first.count, $1.count) }
+            } else {
+                count = 1 + (block.prefix.isEmpty ? 0 : 1) + (block.footnoteLabel == nil ? 0 : 1)
+            }
+            let selected = viewport.map { viewport in
+                (paragraphs.count..<(paragraphs.count + count)).contains { viewport.selected.contains($0) }
+            } ?? true
+            // Resource-dependent images and diagram fallbacks retain their exact
+            // storage path. Other offscreen blocks need only semantic text.
+            deferBlock = viewport != nil && !selected && block.kind != .image && block.kind != .diagram
+                && !block.runs.contains(where: { $0.traits.contains(.image) })
+                && !block.rows.joined().joined().contains(where: { $0.traits.contains(.image) })
+            forceExactParagraphs = !deferBlock && [.table, .image, .math, .diagram].contains(block.kind)
             if block.kind == .heading {
                 let size = style.size * style.headingScale(block.level)
                 let fontSize = style.headingSize(block.level)
@@ -245,7 +265,9 @@ enum DocumentTypesetter {
                     attributed(block.runs), x: left, y: y, width: measure, size: style.size, alignment: .centered)
                 y += style.size * 0.65
             } else if block.kind == .math {
-                let math = attachment {
+                let math = deferBlock
+                    ? preparation!.placeholder(block: blockIndex, slot: 0, runs: block.runs)
+                    : attachment {
                     MathAttachment(source: block.text, size: style.size, display: true, options: style.mathOptions)
                         .attributed(
                             color: style.textColor, fallbackFont: style.font(size: style.size * 0.88, code: true))
@@ -273,12 +295,22 @@ enum DocumentTypesetter {
                 let cells = block.rows.enumerated().map { row, cells in
                     cells.map { attributed($0, heading: row == 0) }
                 }
-                let widths =
-                    viewport?.tableWidths[blockIndex]
-                    ?? TableColumns.widths(
-                        cells: cells, count: columns, measure: measure, em: style.size,
+                let widths = deferBlock
+                    ? (preparation?.cachedTableWidths(
+                        block: blockIndex, rows: block.rows, width: measure, em: style.size,
                         padding: horizontalPadding, scrollable: scrollableTables)
-                viewport?.tableWidths[blockIndex] = widths
+                        ?? Array(repeating: measure / CGFloat(columns), count: columns))
+                    : viewport?.tableWidths[blockIndex]
+                    ?? {
+                        func build() -> [CGFloat] {
+                            TableColumns.widths(cells: cells, count: columns, measure: measure, em: style.size,
+                                               padding: horizontalPadding, scrollable: scrollableTables)
+                        }
+                        return preparation?.tableWidths(
+                            block: blockIndex, rows: block.rows, width: measure, em: style.size,
+                            padding: horizontalPadding, scrollable: scrollableTables, build: build) ?? build()
+                    }()
+                if !deferBlock { viewport?.tableWidths[blockIndex] = widths }
                 let tableWidth = widths.reduce(0, +)
                 let tableLeft = left + max(0, (measure - tableWidth) / 2)
                 let paragraphStart = paragraphs.count
@@ -373,17 +405,17 @@ enum DocumentTypesetter {
                 if !block.prefix.isEmpty {
                     let slot = listSlots[blockIndex] ?? style.size * 0.78
                     let x = left + inset - markerGap - slot
-                    let marker = NSMutableAttributedString(attributedString: attributed([InlineRun(block.prefix)]))
+                    let marker = NSMutableAttributedString(attributedString: attributed([InlineRun(block.prefix)], allowPlaceholder: false))
                     if block.prefix == "•" {
                         marker.addAttribute(
                             .foregroundColor, value: PlatformColor.clear,
                             range: NSRange(location: 0, length: marker.length))
-                        let baseline = max(style.font().ascender, style.size)
+                        let baseline = max(defaultFont.ascender, style.size)
                         backgrounds.append(
                             PaintedRect(
                                 rect: CGRect(
                                     x: x + (slot - bulletDiameter) / 2,
-                                    y: y + baseline - style.font().xHeight / 2 - bulletDiameter / 2,
+                                    y: y + baseline - defaultFont.xHeight / 2 - bulletDiameter / 2,
                                     width: bulletDiameter, height: bulletDiameter), color: style.textColor,
                                 radius: bulletDiameter / 2))
                     }
@@ -416,7 +448,7 @@ enum DocumentTypesetter {
                 let firstRun =
                     attr.length > 0
                     ? attr.attribute(.kasumiParagraphRun, at: 0, effectiveRange: nil) as? ParagraphRunStyle : nil
-                let firstRunEm = firstRun.map { CTFontGetSize($0.baseFont) } ?? style.font().pointSize
+                let firstRunEm = firstRun.map { CTFontGetSize($0.baseFont) } ?? defaultFont.pointSize
                 let indent =
                     bodyParagraph && (style.indentFirstParagraph || !firstBodyParagraph)
                     ? firstRunEm * style.firstLineIndent : 0
@@ -428,7 +460,7 @@ enum DocumentTypesetter {
                 {
                     // Lines put all their leading below the baseline, so center the bar
                     // on the body font's cap height instead, one line height per line.
-                    let capMiddle = style.font().capHeight / 2
+                    let capMiddle = defaultFont.capHeight / 2
                     let halfLine = style.size * style.lineSpacing / 2
                     let barTop = placed.origin.y + first.origin.y - capMiddle - halfLine
                     let barBottom = placed.origin.y + last.origin.y - capMiddle + halfLine
@@ -458,10 +490,12 @@ enum DocumentTypesetter {
                         ? (nextIsBody ? style.paraSpaceBetween : style.paraSpaceAfter) : style.paraSpaceAfter)
             }
         }
-        let semantic = preparation?.semanticContent(paragraphs: paragraphs, storage: storage)
+        let semantic = buildSemanticContent ? preparation?.semanticContent(paragraphs: paragraphs, storage: storage) : nil
+        let textMap = buildSemanticContent
+            ? (semantic?.textMap ?? DocumentTextMap(storage)) : DocumentTextMap(NSAttributedString(string: ""))
         return DocumentLayout(
             width: width, height: y + insets.bottom, text: storage,
-            textMap: semantic?.textMap ?? DocumentTextMap(storage),
+            textMap: textMap,
             paragraphs: paragraphs, backgrounds: backgrounds, rules: rules, headingPositions: headings,
             anchorPositions: anchors, imageBounds: imageBounds, paginationGroups: paginationGroups, tables: tables,
             semanticContent: semantic)

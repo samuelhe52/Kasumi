@@ -14,8 +14,33 @@ struct MarkdownExtensions {
     let mathPrefix: String
     let definitionLabelsByLine: [Int: String]
     let definitionOrder: [String]
+    private static let footnoteReference = try! NSRegularExpression(pattern: #"\[\^([^\]]+)\]"#)
 
     init(source: String) {
+        // Delimiters are ASCII bytes. Grapheme-aware substring searches over a
+        // long CJK document can cost more than the parse they are meant to skip.
+        var previous: UInt8 = 0
+        var hasExtensions = false
+        var hasFootnotes = false
+        for byte in source.utf8 {
+            if byte == 36 || (previous == 92 && (byte == 40 || byte == 91)) || (previous == 91 && byte == 94) {
+                hasExtensions = true
+            }
+            if previous == 91 && byte == 94 { hasFootnotes = true }
+            previous = byte
+        }
+        if !hasExtensions {
+            markdown = source
+            math = [:]
+            var prefix = "\u{E000}kasumi.math."
+            if source.utf8.contains(0xee) {
+                while source.contains(prefix) { prefix += "." }
+            }
+            mathPrefix = prefix
+            definitionLabelsByLine = [:]
+            definitionOrder = []
+            return
+        }
         let initial = Markdown.Document(parsing: source)
         var codeLines: Set<Int> = []
         func gatherCodeLines(_ node: any Markup) {
@@ -25,9 +50,9 @@ struct MarkdownExtensions {
                 node.children.forEach(gatherCodeLines)
             }
         }
-        gatherCodeLines(initial)
+        if hasFootnotes { gatherCodeLines(initial) }
         let definition = try! NSRegularExpression(pattern: #"^ {0,3}\[\^([^\]]+)\]:[ \t]*(.*)$"#)
-        var lines = source.components(separatedBy: "\n")
+        var lines = hasFootnotes ? source.components(separatedBy: "\n") : []
         var labels: [Int: String] = [:]
         var order: [String] = []
         var active: String?
@@ -52,7 +77,7 @@ struct MarkdownExtensions {
         }
         definitionLabelsByLine = labels
         definitionOrder = order
-        let prepared = lines.joined(separator: "\n")
+        let prepared = hasFootnotes ? lines.joined(separator: "\n") : source
         let bytes = Array(prepared.utf8)
         var lineStarts = [0]
         for (index, byte) in bytes.enumerated() where byte == 10 { lineStarts.append(index + 1) }
@@ -72,10 +97,12 @@ struct MarkdownExtensions {
                 node.children.forEach(gatherExcluded)
             }
         }
-        gatherExcluded(Markdown.Document(parsing: prepared))
+        gatherExcluded(labels.isEmpty ? initial : Markdown.Document(parsing: prepared))
         excluded.sort { $0.lowerBound < $1.lowerBound }
         var prefix = "\u{E000}kasumi.math."
-        while prepared.contains(prefix) { prefix += "." }
+        if prepared.utf8.contains(0xee) {
+            while prepared.contains(prefix) { prefix += "." }
+        }
         mathPrefix = prefix
         var tokens: [String: MathSource] = [:]
         var output: [UInt8] = []
@@ -181,8 +208,17 @@ struct MarkdownExtensions {
             }
             let finish = closing + width
             let marker = prefix + String(tokens.count) + "\u{E001}"
-            let lowerLine = bytes[..<cursor].filter { $0 == 10 }.count + 1
-            let upperLine = lowerLine + bytes[cursor..<finish].filter { $0 == 10 }.count
+            func lineNumber(at offset: Int) -> Int {
+                var lower = 0
+                var upper = lineStarts.count
+                while lower < upper {
+                    let middle = lower + (upper - lower) / 2
+                    if lineStarts[middle] <= offset { lower = middle + 1 } else { upper = middle }
+                }
+                return lower
+            }
+            let lowerLine = lineNumber(at: cursor)
+            let upperLine = lineNumber(at: finish)
             tokens[marker] = MathSource(
                 text: String(decoding: bytes[contentStart..<closing], as: UTF8.self), display: display,
                 sourceLines: lowerLine...upperLine)
@@ -198,6 +234,9 @@ struct MarkdownExtensions {
     }
 
     func textRuns(_ text: String, traits: Set<InlineRun.Trait>, destination: String?) -> [InlineRun] {
+        guard text.utf8.contains(0xee) || text.utf8.contains(61) else {
+            return text.isEmpty ? [] : [InlineRun(text, traits: traits, destination: destination)]
+        }
         let pattern = NSRegularExpression.escapedPattern(for: mathPrefix) + #"[0-9]+\uE001|==([^\n=]+)=="#
         let regex = try! NSRegularExpression(pattern: pattern)
         let ns = text as NSString
@@ -229,7 +268,8 @@ struct MarkdownExtensions {
 
     func resolveFootnotes(in blocks: inout [DocumentBlock]) {
         let labels = Set(definitionOrder)
-        let regex = try! NSRegularExpression(pattern: #"\[\^([^\]]+)\]"#)
+        guard !definitionOrder.isEmpty else { return }
+        let regex = Self.footnoteReference
         var referenced: [String] = []
         func annotate(_ runs: [InlineRun]) -> [InlineRun] {
             runs.flatMap { run -> [InlineRun] in

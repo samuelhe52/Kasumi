@@ -52,9 +52,16 @@ construction materializes the lines that need decoration geometry.
 [Viewport-first layout](002-rendering-engine/009-viewport-layout.md) now measures
 text paragraphs around the reading anchor with overscan, retaining indexed
 offscreen height estimates. Scrolling requests refined immutable snapshots.
-Mixed documents now keep surrounding text viewport-based while measuring table
-cells and attachments exactly; see [mixed coverage](002-rendering-engine/011-mixed-viewport-coverage.md).
-Very large tables/attachments and single paragraphs remain whole-layout costs.
+[Incremental reflow](002-rendering-engine/015-incremental-reflow.md) now defers
+eligible offscreen text, tables and formulas using semantic placeholders. Nearby
+tables refine as a unit; resource-dependent images and diagram fallbacks remain
+exact. Immutable paragraph geometry and table widths are reused, while Core Text
+objects remain snapshot-local. Publication checks current viewport coverage when
+the anchor moves, and one screen of overscan buffers scrolling. Cold preparation
+also avoids redundant parsing and document-wide grapheme indexing. A very large
+visible table, resource-heavy block or individual paragraph can still dominate.
+See the earlier [mixed coverage](002-rendering-engine/011-mixed-viewport-coverage.md)
+record for the preceding exact-attachment policy.
 [Glyph paint reuse](002-rendering-engine/010-glyph-paint-reuse.md) now shares
 immutable source-range paint values across widths, reducing repeated extraction
 while keeping Core Text objects snapshot-local. [Paint-only cache hits](002-rendering-engine/013-paint-without-caret-materialization.md)
@@ -66,7 +73,8 @@ retains semantic offsets and word boundaries across unchanged text, recreating
 positions for each snapshot. [Viewport highlights](007-reader-interactions/004-viewport-find-highlights.md)
 now use a conservative visible text envelope and numeric match index to skip
 distant results, with overscan for scrolling. Remaining work targets native
-prepainting, broader lazy coverage, UI installation and snapshot-release tails;
+prepainting, indexed block placement, resource-heavy lazy coverage, UI installation
+and snapshot-release tails;
 a giant individual match can still request broad selection geometry.
 
 Retained after milestone closure; not prerequisites for starting Reader 2:

@@ -92,6 +92,60 @@ import Testing
         #expect(cache.semanticBuilds == 1)
     }
 
+    @Test func semanticRefinementKeepsCurrentRenderedMapAndLiteralGraphemeBoundaries() {
+        let raw = DocumentSemanticContent(DocumentTextMap(NSAttributedString(string: "x + 1\n")))
+        let attachment = NSMutableAttributedString(string: "\u{fffc}", attributes: [.kasumiSemanticText: "x + 1"])
+        attachment.append(NSAttributedString(string: "\n"))
+        let refined = DocumentSemanticContent(DocumentTextMap(attachment), reusing: raw)
+        #expect(refined.text == raw.text)
+        #expect(raw.textMap.renderedOffset(forSemanticOffset: 3) == 3)
+        #expect(refined.textMap.renderedOffset(forSemanticOffset: 3) == 0)
+        let composed = DocumentSemanticContent(DocumentTextMap(NSAttributedString(string: "é\n")))
+        let decomposed = DocumentSemanticContent(DocumentTextMap(NSAttributedString(string: "e\u{301}\n")), reusing: composed)
+        #expect(composed.text.utf16.count == 1 && decomposed.text.utf16.count == 2)
+        #expect(ParagraphSemanticContent(NSAttributedString(string: "abc")).readingKey
+            == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad")
+    }
+
+    @Test func localSemanticSnappingMatchesSwiftCharacterBoundaries() {
+        let samples = ["", "ASCII\r\ntext", "汉\u{301}𠀀é", "e\u{301}\u{308}", "👩🏽‍💻🇨🇳🇺🇸", "क्षि क्‍ष", "각", "a\u{200d}b", "1️⃣👨‍👩‍👧‍👦"]
+        for text in samples {
+            var boundaries = [0]
+            for character in text { boundaries.append(boundaries.last! + String(character).utf16.count) }
+            for offset in -1...(text.utf16.count + 1) {
+                let expected = boundaries.min { abs($0 - offset) < abs($1 - offset) }!
+                #expect(SemanticTextBoundary.nearest(in: text as NSString, to: offset) == expected)
+            }
+        }
+    }
+
+    @Test func cachedGeometryRecreatesSnapshotLocalLinesAndInvalidatesLayoutOptions() throws {
+        let style = RenderStyle(fontSize: 16, widthLimit: nil).typography
+        let text = style.attributed([InlineRun(String(repeating: "中文 words and text. ", count: 12))])
+        let prepared = ParagraphPreparation(text, fontSize: 16, verbatim: false)
+        func layout(_ width: CGFloat, spacing: CGFloat = 1.7) -> ParagraphLayout {
+            ParagraphTypesetter.layout(
+                text, width: width, fontSize: 16, lineSpacing: spacing,
+                preparation: prepared, deferFragments: true)
+        }
+        let first = layout(400)
+        let geometry = try #require(prepared.geometry)
+        let next = layout(400)
+        #expect(prepared.geometry === geometry)
+        #expect(first.lines.map(\.origin) == next.lines.map(\.origin))
+        #expect(first.lines.map(\.width) == next.lines.map(\.width))
+        let a = try #require(first.lines.first)
+        let b = try #require(next.lines.first)
+        #expect(a.line !== b.line)
+        #expect(!b.fragments[0].isMaterialized)
+        _ = a.fragments[0].materialized
+        #expect(!b.fragments[0].isMaterialized)
+        let changed = layout(400, spacing: 2)
+        #expect(prepared.geometry !== geometry && changed.height != first.height)
+        let resized = layout(250)
+        #expect(resized.lines.count > first.lines.count)
+    }
+
     @Test func sessionSnapshotsKeepIndependentPixelsAndInteractions() async throws {
         let doc = MarkdownDocument(markdown: source, baseURL: testRepositoryURL.appendingPathComponent("fixtures"))
         let style = RenderStyle(fontSize: 16, widthLimit: nil)

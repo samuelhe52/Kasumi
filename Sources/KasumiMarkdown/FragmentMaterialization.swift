@@ -4,13 +4,12 @@ import Foundation
 /// Snapshot-local factory. Its typesetter is never retained by reflow preparation
 /// or shared with another snapshot. Access after publication requires layoutLock.
 final class ParagraphFragmentFactory {
-    private let typesetter: CTTypesetter
+    private lazy var typesetter = CTTypesetterCreateWithAttributedString(attributed)
     private let source: NSString
     private let attributed: NSAttributedString
     private let glyphPaintCache: FragmentGlyphPaintCache?
 
     init(_ attributed: NSAttributedString, glyphPaintCache: FragmentGlyphPaintCache? = nil) {
-        typesetter = CTTypesetterCreateWithAttributedString(attributed)
         source = attributed.string as NSString
         self.attributed = attributed
         self.glyphPaintCache = glyphPaintCache

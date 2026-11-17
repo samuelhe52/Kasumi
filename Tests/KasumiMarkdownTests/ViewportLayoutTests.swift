@@ -52,6 +52,20 @@ import Testing
         #expect(!original.hasEstimatedGeometry)
     }
 
+    @Test func coldViewportPreparesOnlyVisibleDrawingTextAndKeepsSearchComplete() throws {
+        let document = MarkdownDocument(markdown: source)
+        let preparation = ReflowPreparation()
+        let partial = RenderedDocument(
+            document, width: 600, style: style, scrollableTables: false, preparation: preparation,
+            viewport: ViewportLayoutRequest(height: 500, anchor: nil))
+        #expect(preparation.attributedBuilds < 15)
+        #expect(preparation.shapedParagraphCount < 15)
+        #expect(partial.ranges(matching: "Paragraph 79.").count == 1)
+        let full = RenderedDocument(document, width: 600, style: style)
+        #expect(partial.text(in: partial.documentRange) == full.text(in: full.documentRange))
+        #expect(try pixels(partial, top: 0) == pixels(full, top: 0))
+    }
+
     @Test func deepNavigationAndPoorEstimatesRefineTheSemanticTarget() async throws {
         let document = MarkdownDocument(markdown: source)
         let session = DocumentReflowSession(document, style: style)
@@ -251,6 +265,48 @@ import Testing
         }
         #expect(imageWidths[1] > imageWidths[0] && imageWidths[0] > imageWidths[2])
         #expect(retained.count == 3)
+    }
+
+    @Test func offscreenTablesAndMathDeferThenRefineWithExactPixelsAndSemanticOffsets() async throws {
+        let body = (0..<50).map { "Paragraph \($0). " + String(repeating: "中文 text words. ", count: 10) }
+        let mixed = """
+            | Feature | Formula | Text |
+            | --- | --- | --- |
+            | Measurement | $x_i + 1$ | 中文 and `inline code` |
+
+            $$
+            \\frac{1}{3} + x^2
+            $$
+            """
+        let document = MarkdownDocument(markdown: (body + [mixed] + body).joined(separator: "\n\n"))
+        let preparation = ReflowPreparation()
+        let request = ViewportLayoutRequest(height: 500, anchor: nil)
+        let layout = DocumentTypesetter.viewportLayout(
+            document.parsed, width: 500, style: style.typography, insets: style.insets,
+            scrollableTables: true, preparation: preparation, request: request)
+        #expect(layout.paragraphs.filter { $0.tableIndex != nil }.allSatisfy { $0.paragraph.estimate != nil })
+        #expect(attachmentIdentities(layout.text).isEmpty)
+        let session = DocumentReflowSession(document, style: style, scrollableTables: true)
+        let initial = await session.render(width: 500, viewportHeight: 500)
+        let full = RenderedDocument(document, width: 500, style: style, scrollableTables: true)
+        let originalPixels = try pixels(initial, top: 0)
+        #expect(initial.text(in: initial.documentRange) == full.text(in: full.documentRange))
+        var measuredTable: RenderedTable?
+        for query in ["Measurement", "x_i + 1", "inline code", "frac"] {
+            let match = try #require(initial.ranges(matching: query).first)
+            let anchor = try #require(initial.readingAnchor(at: match.lowerBound))
+            let exact = await session.render(width: 500, viewportHeight: 500, anchor: anchor)
+            let top = try #require(exact.y(for: anchor))
+            let referenceTop = try #require(full.y(for: anchor))
+            #expect(!exact.needsLayout(in: CGRect(x: 0, y: top, width: 500, height: 500)))
+            #expect(exact.text(in: exact.documentRange) == full.text(in: full.documentRange))
+            #expect(try pixels(exact, top: top) == pixels(full, top: referenceTop))
+            if query == "Measurement" { measuredTable = exact.tables.first }
+        }
+        let returned = await session.render(width: 500, viewportHeight: 500)
+        #expect(returned.tables.first?.frame.size == measuredTable?.frame.size)
+        #expect(returned.tables.first?.contentWidth == measuredTable?.contentWidth)
+        #expect(try pixels(initial, top: 0) == originalPixels)
     }
 
     @Test func linkedParagraphDefersItsUnadornedLines() async throws {

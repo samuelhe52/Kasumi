@@ -64,6 +64,30 @@ import Testing
         #expect(!state.needsLayout)
     }
 
+    @Test func movingAnchorPublishesCoveredProgressAndRechecksAfterPainting() throws {
+        var state = ReaderReflowState()
+        let generation = UUID()
+        func anchor(_ offset: Int) -> ReadingAnchor {
+            ReadingAnchor(blockKey: "a", blockIndex: 0, offset: offset, blockCount: 100, verticalFraction: 0)
+        }
+        state.request(width: 400, generation: generation, anchor: anchor(0), height: 700)
+        let first = try #require({ state.begin() }())
+        state.request(width: 400, generation: generation, anchor: anchor(20), height: 700)
+        #expect(state.accepts(first, coversDesiredViewport: true))
+        #expect({ state.complete(first, coversDesiredViewport: true) }())
+        #expect(state.installed?.anchor == anchor(20) && !state.needsLayout)
+        state.request(width: 400, generation: generation, anchor: anchor(40), height: 700)
+        let painting = try #require({ state.begin() }())
+        state.request(width: 400, generation: generation, anchor: anchor(60), height: 700)
+        #expect(state.accepts(painting, coversDesiredViewport: true))
+        state.request(width: 400, generation: generation, anchor: anchor(900), height: 700)
+        #expect(!{ state.complete(painting, coversDesiredViewport: false) }())
+        let next = try #require({ state.begin() }())
+        state.request(width: 500, generation: generation, anchor: anchor(950), height: 700)
+        #expect(!state.accepts(next, coversDesiredViewport: true))
+        #expect(!{ state.complete(next, coversDesiredViewport: true) }())
+    }
+
     @Test func returnToInstalledWidthAndShutdownDiscardObsoleteWork() throws {
         var state = ReaderReflowState()
         let generation = UUID()

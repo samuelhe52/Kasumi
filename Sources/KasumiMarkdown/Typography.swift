@@ -366,6 +366,12 @@ enum ParagraphTypesetter {
         // not implement bidi painting yet.
         let hasRTL = prepared.hasRTL
         if !verbatim && !hasRTL {
+            let request = ParagraphLayoutGeometry.Request(
+                width: width, fontSize: fontSize, lineSpacing: lineSpacing, alignment: alignment, indent: indent,
+                profileValues: profileValues, outerWidth: outerWidth, baseEm: baseEm)
+            if deferFragments, let preparation, let geometry = preparation.geometry, geometry.request == request {
+                return geometry.paragraph(preparation)
+            }
             let paragraph = MeasuredParagraphTypesetter.layout(
                 attributed, width: width, fontSize: fontSize, lineSpacing: lineSpacing,
                 alignment: alignment, indent: indent, profileValues: profileValues, outerWidth: outerWidth,
@@ -374,7 +380,9 @@ enum ParagraphTypesetter {
                     indent: Float(indent), options: profileValues.map(ParagraphProfileOptions.init(values:)) ?? .init()),
                 deferFragments: deferFragments,
                 glyphPaintCache: preparation != nil ? prepared.glyphPaintCache : nil)
-            return finish(paragraph)
+            let result = finish(paragraph)
+            if deferFragments, let preparation { preparation.geometry = ParagraphLayoutGeometry(result, request: request) }
+            return result
         }
         var legacyAlignment = alignment
         var legacyAutoRagged = false
