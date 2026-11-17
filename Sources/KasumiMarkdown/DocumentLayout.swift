@@ -167,12 +167,12 @@ enum DocumentTypesetter {
                 // Color inside the cached build: ReflowPreparation reuses shaping by
                 // the identity of the string it retains, so coloring afterwards
                 // would miss that cache on every reflow.
-                CodeSyntax.applying(
+                MissingGlyphFallback.applying(to: CodeSyntax.applying(
                     syntax,
                     to: style.attributed(
                         runs, size: size, heading: heading, code: code, headingLevel: headingLevel,
                         baseURL: document.baseURL, imageMaxWidth: imageMaxWidth ?? measure),
-                    theme: theme)
+                    theme: theme))
             }
             func prepared() -> NSAttributedString {
                 preparation?.attributed(
@@ -294,9 +294,10 @@ enum DocumentTypesetter {
                 let math = deferBlock
                     ? preparation!.placeholder(block: blockIndex, slot: 0, runs: block.runs)
                     : attachment {
-                    MathAttachment(source: block.text, size: style.size, display: true, options: style.mathOptions)
-                        .attributed(
-                            color: style.textColor, fallbackFont: style.font(size: style.size * 0.88, code: true))
+                    MissingGlyphFallback.applying(to:
+                        MathAttachment(source: block.text, size: style.size, display: true, options: style.mathOptions)
+                            .attributed(
+                                color: style.textColor, fallbackFont: style.font(size: style.size * 0.88, code: true)))
                 }!
                 y += style.size * 0.5
                 y += place(

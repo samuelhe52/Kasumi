@@ -45,6 +45,9 @@ that fixes it; add one when a limitation is found and not fixed.
   pixel default and 32,768 pixels per axis. This does not cap total process memory.
   Layout and ImageIO finalization are synchronous cancellation boundaries. See
   [008](../008-reader-export/001-action.md).
+- Fonts: missing visible graphemes use a hollow square after normal font
+  fallback. Reader semantic text retains the original grapheme.
+  See [missing glyphs](028-missing-glyphs.md).
 - Drawing: tile drawing is serialized by a lock in `RenderedDocument`, because
   Core Text line objects are shared between tiles and Apple limits each to one
   thread at a time.

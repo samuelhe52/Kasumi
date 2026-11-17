@@ -97,7 +97,7 @@ struct DocumentTextMap: Equatable {
         }
         attributed.enumerateAttribute(.kasumiSemanticText, in: NSRange(location: 0, length: attributed.length)) {
             value, range, _ in
-            let replacement = value as? String
+            let replacement = (value as? MissingGlyphFallback.Source)?.text ?? value as? String
             if let replacement, (range.location..<NSMaxRange(range)).allSatisfy({ source.character(at: $0) == 0xFFFC })
             {
                 // NSAttributedString coalesces equal adjacent attribute values;

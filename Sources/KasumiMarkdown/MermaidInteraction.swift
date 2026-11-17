@@ -95,7 +95,8 @@ final class PlacedDiagram {
         let positioned = positionedLabel(index)
         let x = min(positioned.bounds.width, max(0, point.x - positioned.bounds.minX))
         let offset = CTLineGetStringIndexForPosition(positioned.line, CGPoint(x: x, y: 0))
-        return label.range.location + min(label.range.length, max(0, offset))
+        let semantic = positioned.textMap?.semanticOffset(forRenderedOffset: offset) ?? offset
+        return label.range.location + min(label.range.length, max(0, semantic))
     }
 
     func caretRect(at offset: Int) -> CGRect? {
@@ -106,7 +107,9 @@ final class PlacedDiagram {
         else { return nil }
         let label = attachment.labels[index]
         let positioned = positionedLabel(index)
-        let x = CTLineGetOffsetForStringIndex(positioned.line, offset - label.range.location, nil)
+        let local = offset - label.range.location
+        let rendered = positioned.textMap?.renderedOffset(forSemanticOffset: local) ?? local
+        let x = CTLineGetOffsetForStringIndex(positioned.line, rendered, nil)
         let bounds = positioned.bounds
         let rect = CGRect(x: bounds.minX + x, y: bounds.minY, width: 0, height: bounds.height)
             .applying(sceneToDocument)
@@ -120,7 +123,8 @@ final class PlacedDiagram {
             guard overlap.length > 0 else { return [] }
             let positioned = positionedLabel(index)
             let local = NSRange(location: overlap.location - label.range.location, length: overlap.length)
-            return CoreTextRangeGeometry.extents(in: positioned.line, for: local).map {
+            let rendered = positioned.textMap?.renderedRange(for: local) ?? local
+            return CoreTextRangeGeometry.extents(in: positioned.line, for: rendered).map {
                 CGRect(
                     x: positioned.bounds.minX + $0.lowerBound, y: positioned.bounds.minY,
                     width: $0.upperBound - $0.lowerBound, height: positioned.bounds.height

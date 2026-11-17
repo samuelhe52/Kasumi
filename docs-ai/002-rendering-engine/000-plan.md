@@ -120,3 +120,4 @@ Library tests pass on macOS and the iOS simulator, including comparisons against
 
 - Updated 2026-11-18: Preserve clickable links through PDF pagination. See [026-pdf-links.md](026-pdf-links.md).
 - Updated 2026-11-18: Expose diagram label selection and node links. See [027-diagram-interactions.md](027-diagram-interactions.md).
+- Updated 2026-11-18: Paint a hollow square when font fallback is exhausted. See [028-missing-glyphs.md](028-missing-glyphs.md).

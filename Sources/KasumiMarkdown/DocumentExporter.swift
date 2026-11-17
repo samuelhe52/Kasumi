@@ -338,7 +338,7 @@ enum DocumentExporter {
                         string: value,
                         attributes: [.font: PlatformFont.systemFont(ofSize: 10), .foregroundColor: style.secondaryColor]
                     )
-                    let line = CTLineCreateWithAttributedString(attributed)
+                    let line = CTLineCreateWithAttributedString(MissingGlyphFallback.applying(to: attributed))
                     let width = CGFloat(CTLineGetTypographicBounds(line, nil, nil, nil))
                     context.saveGState()
                     context.translateBy(x: max(m.left, (size.width - width) / 2), y: y)

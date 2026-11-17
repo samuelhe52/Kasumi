@@ -59,7 +59,7 @@ struct MermaidTextStyle {
                 offset += count
             }
         }
-        return string
+        return MissingGlyphFallback.applying(to: string)
     }
     func measure(_ text: String, role: Int) -> CGSize {
         let line = CTLineCreateWithAttributedString(attributed(text, role: role, color: CGColor(gray: 0, alpha: 1)))
@@ -76,10 +76,12 @@ struct MermaidTextStyle {
         let line: CTLine
         let bounds: CGRect
         let baseline: CGFloat
+        let textMap: DocumentTextMap?
     }
 
     func positionedLine(_ text: String, in rect: CGRect, role: Int, color: CGColor) -> PositionedLine {
-        let line = CTLineCreateWithAttributedString(attributed(text, role: role, color: color))
+        let styled = attributed(text, role: role, color: color)
+        let line = CTLineCreateWithAttributedString(styled)
         var ascent: CGFloat = 0
         var descent: CGFloat = 0
         var leading: CGFloat = 0
@@ -87,7 +89,7 @@ struct MermaidTextStyle {
         let extra = native ? max(0, rect.height - ascent - descent - leading) / 2 : 0
         return PositionedLine(
             line: line, bounds: CGRect(x: rect.minX, y: rect.minY + extra, width: rect.width, height: ascent + descent),
-            baseline: rect.minY + extra + ascent)
+            baseline: rect.minY + extra + ascent, textMap: styled.string == text ? nil : DocumentTextMap(styled))
     }
 
     func draw(_ text: String, in rect: CGRect, role: Int, color: CGColor, linked: Bool, context: CGContext) {

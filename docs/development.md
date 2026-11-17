@@ -149,6 +149,9 @@ Run the narrowest filter: `make test FILTER=<name>` for package tests and
   tests in `Tests/KasumiMarkdownTests/` for page and hit geometry. In the
   simulator, tap a linked node, long-press its label, and open the exported
   PDF in Preview to check an internal destination.
+- **Missing glyphs.** The missing-glyph test uses U+10FFFF. In the reader
+  a hollow square should appear and Find should still match the original
+  character. The PDF text layer contains the square.
 
 ## Third-party notices
 
