@@ -163,6 +163,34 @@ struct DocumentTextMap: Equatable {
         return start.map { NSRange(location: $0, length: end - $0) }
     }
 
+    /// Expand touched replacements in both directions, including a wrapped
+    /// unavailable-image label whose rendered line ends inside the replacement.
+    func semanticRange(forRenderedRange range: NSRange) -> NSRange? {
+        guard range.length > 0 else { return nil }
+        var lower = 0
+        var upper = segments.count
+        while lower < upper {
+            let middle = lower + (upper - lower) / 2
+            if NSMaxRange(segments[middle].rendered) <= range.location { lower = middle + 1 } else { upper = middle }
+        }
+        var start: Int?
+        var end = 0
+        for segment in segments[lower...].prefix(while: { $0.rendered.location < NSMaxRange(range) }) {
+            let overlap = NSIntersectionRange(range, segment.rendered)
+            guard overlap.length > 0 else { continue }
+            let semantic =
+                segment.replacement
+                ? segment.semantic
+                : NSRange(
+                    location: segment.semantic.location + overlap.location - segment.rendered.location,
+                    length: overlap.length)
+            guard semantic.length > 0 else { continue }
+            start = min(start ?? semantic.location, semantic.location)
+            end = max(end, NSMaxRange(semantic))
+        }
+        return start.map { NSRange(location: $0, length: end - $0) }
+    }
+
     /// Carets at attachment interiors snap to the object's leading edge.
     func renderedOffset(forSemanticOffset offset: Int) -> Int {
         let offset = min(semanticLength, max(0, offset))

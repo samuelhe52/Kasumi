@@ -51,6 +51,26 @@ import Testing
                 #expect(map.renderedRange(for: selected) == expected)
             }
         }
+        for offset in 0...source.length {
+            for length in 0...(source.length - offset) {
+                let selected = NSRange(location: offset, length: length)
+                let overlaps = spans.compactMap { span -> NSRange? in
+                    let overlap = NSIntersectionRange(selected, span.rendered)
+                    guard overlap.length > 0 else { return nil }
+                    let semantic =
+                        span.replacement
+                        ? span.semantic
+                        : NSRange(
+                            location: span.semantic.location + overlap.location - span.rendered.location,
+                            length: overlap.length)
+                    return semantic.length > 0 ? semantic : nil
+                }
+                let expected = overlaps.first.map { first in
+                    NSRange(location: first.location, length: NSMaxRange(overlaps.last!) - first.location)
+                }
+                #expect(map.semanticRange(forRenderedRange: selected) == expected)
+            }
+        }
         let empty = DocumentTextMap(NSAttributedString(string: ""))
         #expect(empty.renderedRange(for: NSRange(location: 0, length: 0)) == nil)
         #expect(empty.renderedOffset(forSemanticOffset: 0) == 0)

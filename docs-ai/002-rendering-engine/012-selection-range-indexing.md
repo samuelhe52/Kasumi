@@ -96,8 +96,8 @@ improvement claim. These samples do not establish native frame rate.
 
 Reader matching and word-boundary reuse are now handled by
 [007.003](../007-reader-interactions/003-retained-find-matches.md); direct public
-searches still scan semantic text. The reader still constructs paths for every match,
-including offscreen estimated matches. Huge selections must visit every
+searches still scan semantic text. Reader highlight paths are now windowed by
+[007.004](../007-reader-interactions/004-viewport-find-highlights.md). Huge selections must visit every
 overlapping line/paragraph and can materialize their fragments. UI installation,
 final snapshot-release tails, cold preparation and offscreen table/attachment
 layout remain separate optimization targets.

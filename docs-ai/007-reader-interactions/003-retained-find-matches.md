@@ -92,8 +92,8 @@ external test dependency.
 
 The first search after content/query changes still runs synchronously, and a first
 word-boundary request still segments the complete text. Exact text validation and
-position reconstruction still scale with text/match count. Highlight paths still
-cover all matches, including offscreen estimates. Native prepainting remains a
+position reconstruction still scale with text/match count. Highlight windowing is
+now handled by [004](004-viewport-find-highlights.md). Native prepainting remains a
 separate measured cost; this change does not virtualize tables/attachments or
 establish continuous-drag frame rate.
 

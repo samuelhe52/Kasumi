@@ -280,6 +280,23 @@ public final class RenderedDocument: @unchecked Sendable {
         }
     }
 
+    /// A conservative semantic envelope of text overlapping a vertical window.
+    /// Includes all table columns and full attachment replacements; unmeasured
+    /// text contributes its whole paragraph. It can include intervening offscreen
+    /// text. Exact selection geometry remains available through `selectionRects`.
+    /// Empty/nonfinite windows or windows without searchable text return nil.
+    /// This query does not materialize deferred glyphs or refine estimates.
+    public func textRange(intersectingVerticalRange range: Range<CGFloat>) -> TextRange? {
+        guard let rendered = readingIndex.renderedRange(intersectingVerticalRange: range),
+            let semantic = layout.textMap.semanticRange(forRenderedRange: rendered)
+        else { return nil }
+        let limit = semanticBoundaries.last ?? 0
+        let start = min(limit, semantic.location)
+        let end = min(limit, NSMaxRange(semantic))
+        guard end > start else { return nil }
+        return textRange(NSRange(location: start, length: end - start))
+    }
+
     public func selectionRects(for range: TextRange) -> [CGRect] {
         guard let semantic = checked(range), semantic.length > 0,
             let rendered = layout.textMap.renderedRange(for: semantic)

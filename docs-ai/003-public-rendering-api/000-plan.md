@@ -78,3 +78,4 @@ simulator through `make test-ios FILTER=PublicAPITests`.
 
 - Updated 2026-11-17: Added document-scoped reflow sessions — see [002.006](../002-rendering-engine/006-reflow-preparation.md).
 - Updated 2026-11-17: Added opt-in viewport snapshots and coverage/semantic navigation queries — see [002.009](../002-rendering-engine/009-viewport-layout.md).
+- Updated 2026-11-17: Added a metadata-only conservative vertical text-range query for viewport clients — see [007.004](../007-reader-interactions/004-viewport-find-highlights.md).

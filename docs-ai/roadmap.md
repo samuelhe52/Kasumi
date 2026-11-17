@@ -61,8 +61,11 @@ while keeping Core Text objects snapshot-local. [Selection lookup](002-rendering
 now seeks into overlapping source intervals when Find requests highlight geometry.
 [Reader Find matching](007-reader-interactions/003-retained-find-matches.md) now
 retains semantic offsets and word boundaries across unchanged text, recreating
-positions for each snapshot. Remaining work targets highlight-path construction,
-native prepainting, broader lazy coverage, UI installation and snapshot-release tails.
+positions for each snapshot. [Viewport highlights](007-reader-interactions/004-viewport-find-highlights.md)
+now use a conservative visible text envelope and numeric match index to skip
+distant results, with overscan for scrolling. Remaining work targets native
+prepainting, broader lazy coverage, UI installation and snapshot-release tails;
+a giant individual match can still request broad selection geometry.
 
 Retained after milestone closure; not prerequisites for starting Reader 2:
 

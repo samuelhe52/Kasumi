@@ -158,6 +158,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         rebuildIfNeeded()
         updateScrollExtent()
         updateKeyboardInset()
+        updateHighlightViewport()
         adjusting = wasAdjusting
     }
 
@@ -379,6 +380,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
             reflowAnchor.moved(in: rendered, atY: max(0, offset + adjustedContentInset.top))
         }
         setContentOffset(CGPoint(x: 0, y: offset), animated: animated)
+        updateHighlightViewport()
         if trackingAnchor && !animated {
             reflowAnchor.moved(in: rendered, atY: topY)
         }
@@ -404,11 +406,16 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        updateHighlightViewport()
         guard !adjusting else { return }
         if isDragging || isDecelerating { pendingReveal = nil }
         reflowAnchor.moved(in: rendered, atY: topY)
         reportPosition()
         rebuildIfNeeded()
+    }
+    private func updateHighlightViewport() {
+        guard let page else { return }
+        page.updateHighlightViewport(page.convert(bounds, from: self))
     }
     private func reportPosition() {
         guard window != nil, let rendered else { return }
@@ -573,6 +580,8 @@ fileprivate final class ReaderPageView: ReaderTextInputView {
     private let currentHighlight = CAShapeLayer()
     private var highlightedMatches: [TextRange] = []
     private var highlightedIndex: Int?
+    private var highlightIndex: ReaderHighlightIndex?
+    private var highlightWindow = CGRect.null
     private var tableScrollViews: [ReaderTableScrollView] = []
     private var seedLayer: CALayer?
     private var tileLayer: ReaderTileLayer?
@@ -605,6 +614,8 @@ fileprivate final class ReaderPageView: ReaderTextInputView {
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
     func refine(_ next: RenderedDocument, scale: CGFloat, preview: ReaderPagePreview?, previewRect: CGRect) {
+        highlightIndex = nil
+        highlightWindow = .null
         replaceRendered(next)
         installDrawingLayers(scale: scale, preview: preview, previewRect: previewRect)
         installTables(scale: scale, preview: preview)
@@ -652,18 +663,41 @@ fileprivate final class ReaderPageView: ReaderTextInputView {
     }
 
     func highlight(matches: [TextRange], current: Int?) {
-        guard matches != highlightedMatches || current != highlightedIndex else { return }
+        let changed = matches != highlightedMatches
+        guard changed || current != highlightedIndex else { return }
+        if changed { highlightIndex = ReaderHighlightIndex(matches, in: rendered) }
         highlightedMatches = matches
         highlightedIndex = current
+        paintHighlights()
+    }
+
+    func updateHighlightViewport(_ viewport: CGRect) {
+        guard viewport.minY.isFinite, viewport.maxY.isFinite, viewport.height > 0 else { return }
+        let visible = viewport.intersection(bounds)
+        guard !visible.isNull, !visible.isEmpty else {
+            if !highlightWindow.isNull {
+                highlightWindow = .null
+                paintHighlights()
+            }
+            return
+        }
+        if !highlightWindow.isNull, highlightWindow.minY <= visible.minY, highlightWindow.maxY >= visible.maxY {
+            return
+        }
+        highlightWindow = visible.insetBy(dx: 0, dy: -max(128, visible.height * 0.5)).intersection(bounds)
         paintHighlights()
     }
 
     private func paintHighlights() {
         let others = CGMutablePath()
         let active = CGMutablePath()
-        for (index, range) in highlightedMatches.enumerated() {
-            for rect in selectionGeometry(for: range) {
-                (index == highlightedIndex ? active : others).addRect(rect)
+        if !highlightWindow.isNull, !highlightedMatches.isEmpty, let highlightIndex {
+            let candidates = highlightIndex.candidates(
+                in: rendered, verticalRange: highlightWindow.minY..<highlightWindow.maxY)
+            for index in candidates {
+                for rect in selectionGeometry(for: highlightedMatches[index]) where rect.intersects(highlightWindow) {
+                    (index == highlightedIndex ? active : others).addRect(rect)
+                }
             }
         }
         CATransaction.begin()

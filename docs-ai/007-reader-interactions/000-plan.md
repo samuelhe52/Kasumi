@@ -66,3 +66,4 @@ renderer shaping changes already present in the working tree.
 - Completed 2026-11-16; see the [action record](001-action.md) for implementation and validation limits.
 - Updated 2026-11-16: replace the custom top bar with the keyboard-attached system find navigator — see [002](002-system-find-navigator.md).
 - Updated 2026-11-17: Retain exact semantic search offsets and word boundaries across reflows, recreating snapshot-owned positions — see [003](003-retained-find-matches.md).
+- Updated 2026-11-17: Bound Find highlight geometry to an overscanned viewport using conservative semantic envelopes — see [004](004-viewport-find-highlights.md).

@@ -35,6 +35,7 @@ struct ReadingPositionIndex {
         let textMap: DocumentTextMap
         let lines: [Line]
         let originY: CGFloat
+        let textOffset: Int
         let estimate: (top: CGFloat, height: CGFloat, lineHeight: CGFloat)?
     }
     private struct Line {
@@ -79,7 +80,7 @@ struct ReadingPositionIndex {
             }
             blocks.append(
                 Block(
-                    key: key, textMap: map, lines: blockLines, originY: item.origin.y,
+                    key: key, textMap: map, lines: blockLines, originY: item.origin.y, textOffset: item.textOffset,
                     estimate: paragraph.estimate.map { (item.origin.y, paragraph.height, $0.lineHeight) }))
             indices[key, default: []].append(index)
             lines += blockLines
@@ -120,6 +121,29 @@ struct ReadingPositionIndex {
                 verticalFraction: y < estimate.top ? Double((y - estimate.top) / max(1, estimate.lineHeight)) : 0)
         }
         return anchor(block: block, offset: line.semanticOffset, verticalFraction: Double((y - line.top) / line.height))
+    }
+
+    /// Reuse the Y-sorted metadata, conservatively including all table columns
+    /// and whole estimated paragraphs. No line/glyph materialization is needed.
+    func renderedRange(intersectingVerticalRange range: Range<CGFloat>) -> NSRange? {
+        guard range.lowerBound.isFinite, range.upperBound.isFinite, !range.isEmpty else { return nil }
+        var lower = 0
+        var upper = prefixBottoms.count
+        while lower < upper {
+            let middle = lower + (upper - lower) / 2
+            // Selection rectangles have a one-point minimum height, including
+            // fractional estimated matches extending beyond the paragraph end.
+            if prefixBottoms[middle] > range.lowerBound - 1 { upper = middle } else { lower = middle + 1 }
+        }
+        var start: Int?
+        var end = 0
+        for line in lines[lower...].prefix(while: { $0.top < range.upperBound })
+        where line.bottom + 1 > range.lowerBound && line.range.length > 0 {
+            let offset = blocks[line.block].textOffset
+            start = min(start ?? (offset + line.range.location), offset + line.range.location)
+            end = max(end, offset + NSMaxRange(line.range))
+        }
+        return start.map { NSRange(location: $0, length: end - $0) }
     }
 
     func anchor(block: Int, offset: Int, verticalFraction: Double = 0) -> ReadingAnchor? {
