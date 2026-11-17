@@ -85,3 +85,4 @@ Library tests pass on macOS and the iOS simulator, including comparisons against
 - Updated 2026-11-17: Reuse immutable source-range glyph paint values across reflows — see [010-glyph-paint-reuse.md](010-glyph-paint-reuse.md).
 - Updated 2026-11-17: Keep surrounding text viewport-based in mixed documents and defer unadorned lines in linked paragraphs — see [011-mixed-viewport-coverage.md](011-mixed-viewport-coverage.md).
 - Updated 2026-11-17: Seek directly into semantic spans and source intervals for selection geometry — see [012-selection-range-indexing.md](012-selection-range-indexing.md).
+- Updated 2026-11-17: Paint warm glyph records without constructing fragment caret objects — see [013-paint-without-caret-materialization.md](013-paint-without-caret-materialization.md).

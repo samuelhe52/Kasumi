@@ -35,6 +35,14 @@ struct ShapedFragment {
         case .deferred(let store, let index): return store.value(at: index)
         }
     }
+    /// Immutable paint can outlive cache eviction during this draw. Querying it
+    /// never creates the CTLine and grapheme records used by interaction.
+    var cachedGlyphPaint: FragmentGlyphPaint? {
+        switch paintSource {
+        case .eager(let value): return value.glyphPaint
+        case .deferred(let store, let index): return store.cachedGlyphPaint(at: index)
+        }
+    }
     var isMaterialized: Bool {
         switch paintSource {
         case .eager: return true
@@ -43,12 +51,16 @@ struct ShapedFragment {
     }
     var line: CTLine { materialized.line }
     var glyphInset: CGFloat { materialized.glyphInset }
-    var boundaries: [Int] { materialized.boundaries }
+    var boundaries: [Int] { cachedGlyphPaint?.carets?.boundaries ?? materialized.boundaries }
 
     func offset(for index: Int) -> CGFloat {
         guard range.length > 0 else { return x }
         if index <= range.location { return x }
         if index >= NSMaxRange(range) { return x + width }
+        if let carets = cachedGlyphPaint?.carets, let offset = carets.interiorOffset(for: index) {
+            guard carets.naturalWidth > 0 else { return x }
+            return x + min(width, max(0, offset / carets.naturalWidth * width))
+        }
         let paint = materialized
         let natural = CGFloat(CTLineGetTypographicBounds(paint.line, nil, nil, nil)) - paint.glyphInset
         guard natural > 0 else { return x }

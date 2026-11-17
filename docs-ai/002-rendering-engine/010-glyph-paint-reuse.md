@@ -93,3 +93,13 @@ these numbers do not isolate a single extraction/rasterization cost.
   Fragment CTLine/grapheme construction remains snapshot-local. Decoration and
   attachment coverage, active Find, installation, and final UI release tails
   remain separate work; native smoothness has not been measured.
+
+
+## Follow-up
+
+[Paint-only reuse](013-paint-without-caret-materialization.md) lets warm immutable
+value hits draw without constructing snapshot-local fragment CTLines or caret
+records. Bounded natural caret geometry also stays reusable. Snapshot-local
+CTLines remain independently built for misses, unsupported or long fragments,
+non-grapheme UTF-16 offsets, and explicit layout-object access. The measurements above describe the
+original implementation, before that follow-up.

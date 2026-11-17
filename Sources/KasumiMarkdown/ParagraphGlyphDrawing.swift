@@ -12,7 +12,7 @@ import CoreText
 enum ParagraphGlyphDrawing {
     /// Extract only the values that direct glyph drawing supports. Unsupported
     /// paint retains the original snapshot-local CTLine/CTRun fallback below.
-    static func prepare(_ text: CTLine, attributed: NSAttributedString) -> FragmentGlyphPaint? {
+    static func prepare(_ text: CTLine, attributed: NSAttributedString, boundaries: [Int]) -> FragmentGlyphPaint? {
         var prepared: [FragmentGlyphPaint.Run] = []
         var inset: CGFloat = 0
         for (index, run) in (CTLineGetGlyphRuns(text) as! [CTRun]).enumerated() {
@@ -40,7 +40,9 @@ enum ParagraphGlyphDrawing {
             if index == 0 { inset = max(0, positions[0].x) }
             prepared.append(.init(font: fontValue as! CTFont, color: color, glyphs: glyphs, positions: positions))
         }
-        return FragmentGlyphPaint(runs: prepared, leadingInset: inset)
+        return FragmentGlyphPaint(
+            runs: prepared, leadingInset: inset,
+            carets: FragmentCaretGeometry(line: text, inset: inset, boundaries: boundaries))
     }
 
     static func draw(_ line: ShapedLine, attributed: NSAttributedString, in context: CGContext) {
@@ -145,9 +147,13 @@ enum ParagraphGlyphDrawing {
         }
 
         for fragment in line.fragments {
-            let paint = fragment.materialized
-            let x = fragment.x + fragment.drawOffset - paint.glyphInset
-            if let prepared = paint.glyphPaint {
+            // A warm value hit needs neither the snapshot's CTLine nor its
+            // caret map. A miss still materializes the owning line as before.
+            let cached = fragment.cachedGlyphPaint
+            // Keep long fragments on the former path rather than move their
+            // unbounded caret work into UI highlight installation.
+            if let prepared = cached?.carets != nil ? cached : fragment.materialized.glyphPaint {
+                let x = fragment.x + fragment.drawOffset - prepared.leadingInset
                 for run in prepared.runs {
                     if let previous = batchFont, !CFEqual(previous, run.font) || batchColor != run.color { flush() }
                     batchFont = run.font
@@ -158,6 +164,8 @@ enum ParagraphGlyphDrawing {
                     }
                 }
             } else {
+                let paint = fragment.materialized
+                let x = fragment.x + fragment.drawOffset - paint.glyphInset
                 append(paint.line, at: x, usesSourceAttributes: true)
             }
         }

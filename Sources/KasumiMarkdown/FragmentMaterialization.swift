@@ -22,6 +22,10 @@ final class ParagraphFragmentFactory {
             : CTTypesetterCreateLine(typesetter, CFRange(location: range.location, length: range.length))
     }
 
+    func cachedGlyphPaint(_ range: NSRange) -> FragmentGlyphPaint? {
+        glyphPaintCache?.cachedValue(for: range)
+    }
+
     func materialize(_ range: NSRange) -> FragmentMaterialization {
         // Keep interior grapheme carets even when one measured cluster contains
         // a ligature. This is the same source-backed cut as the eager path.
@@ -34,7 +38,7 @@ final class ParagraphFragmentFactory {
         if range.length > 0 { boundaries.append(NSMaxRange(range)) }
         let line = textLine(range)
         let glyphPaint = glyphPaintCache?.value(for: range) {
-            ParagraphGlyphDrawing.prepare(line, attributed: attributed)
+            ParagraphGlyphDrawing.prepare(line, attributed: attributed, boundaries: boundaries)
         }
         // Core Text adds contextual CJK/Latin spacing at fragment edges. The
         // engine already placed the fragment, so remove that leading inset.
@@ -69,6 +73,11 @@ final class LineFragmentStore {
     }
 
     var isMaterialized: Bool { values != nil }
+
+    func cachedGlyphPaint(at index: Int) -> FragmentGlyphPaint? {
+        if let values { return values[index].glyphPaint }
+        return factory?.cachedGlyphPaint(ranges[index])
+    }
 
     func value(at index: Int) -> FragmentMaterialization {
         if let values { return values[index] }

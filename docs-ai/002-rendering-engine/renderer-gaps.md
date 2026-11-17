@@ -54,15 +54,18 @@ that fixes it; add one when a limitation is found and not fixed.
   skip decoration processing after preparation finds no candidates. Image/math
   paragraphs bypass preparation reuse to preserve width-dependent attachments
   and independent Core Text ownership. Session-prepared paragraphs materialize
-  fragment drawing/caret data per accessed line under the snapshot lock. Underline
+  fragment CTLines per accessed line under the snapshot lock when needed. Underline
   construction touches genuinely decorated lines while other lines stay lazy.
   Session-prepared measured paragraphs also reuse
-  immutable source-range font/color/glyph/position values through a synchronized
-  cache; CTLine/CTRun/CTTypesetter ownership remains snapshot-local. Cold misses
-  and unsupported paint still need extraction/fallback. Unprepared attachment
-  paragraphs remain eager. Exact line breaking and
+  immutable source-range font/color/glyph/position and bounded natural caret
+  values through a synchronized cache; CTLine/CTRun/CTTypesetter ownership remains snapshot-local. Cold misses
+  and unsupported paint still need extraction/fallback. Warm paint-value hits skip
+  snapshot-local fragment CTLines; ordinary interaction also reuses bounded natural
+  caret geometry. Long fragments and non-grapheme UTF-16 positions retain their
+  existing materialization fallback. Unprepared attachment paragraphs remain eager. Exact line breaking and
   logical CTLines build only for measured paragraphs in viewport mode. First-use
-  painting incurs materialization. Selection lookup seeks into overlapping semantic
+  painting incurs materialization on misses, long fragments or unsupported paint.
+  Selection lookup seeks into overlapping semantic
   spans and source intervals rather than scanning the document per match. Reader
   Find reuses semantic matching across unchanged text and builds highlight paths
   around an overscanned viewport. A conservative envelope can include extra table
@@ -70,7 +73,8 @@ that fixes it; add one when a limitation is found and not fixed.
   perform full text search. Old snapshot disposal can also add UI-thread cost. See
   [reflow preparation](006-reflow-preparation.md), [metadata reuse](007-reflow-metadata.md),
   [lazy fragments](008-lazy-fragments.md), [viewport layout](009-viewport-layout.md),
-  [glyph paint reuse](010-glyph-paint-reuse.md), [live reflow](../004-ios-reader/006-live-reflow.md),
+  [glyph paint reuse](010-glyph-paint-reuse.md), [paint-only reuse](013-paint-without-caret-materialization.md),
+  [live reflow](../004-ios-reader/006-live-reflow.md),
   [mixed coverage](011-mixed-viewport-coverage.md), [selection lookup](012-selection-range-indexing.md),
   [retained Find matches](../007-reader-interactions/003-retained-find-matches.md),
   [viewport highlights](../007-reader-interactions/004-viewport-find-highlights.md),

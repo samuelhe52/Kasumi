@@ -57,7 +57,9 @@ cells and attachments exactly; see [mixed coverage](002-rendering-engine/011-mix
 Very large tables/attachments and single paragraphs remain whole-layout costs.
 [Glyph paint reuse](002-rendering-engine/010-glyph-paint-reuse.md) now shares
 immutable source-range paint values across widths, reducing repeated extraction
-while keeping Core Text objects snapshot-local. [Selection lookup](002-rendering-engine/012-selection-range-indexing.md)
+while keeping Core Text objects snapshot-local. [Paint-only cache hits](002-rendering-engine/013-paint-without-caret-materialization.md)
+also skip fragment CTLine construction and reuse bounded natural caret geometry
+for interaction; cold, long-fragment and unsupported paint retain the existing path. [Selection lookup](002-rendering-engine/012-selection-range-indexing.md)
 now seeks into overlapping source intervals when Find requests highlight geometry.
 [Reader Find matching](007-reader-interactions/003-retained-find-matches.md) now
 retains semantic offsets and word boundaries across unchanged text, recreating
