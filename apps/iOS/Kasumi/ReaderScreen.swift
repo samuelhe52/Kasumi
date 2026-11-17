@@ -100,6 +100,17 @@ struct ReaderScreen: View {
                     }
                 }
             }
+            .toolbarTitleMenu {
+                Button("Copy Markdown", systemImage: "doc.on.doc") {
+                    UIPasteboard.general.string = document.text
+                }
+                .disabled(document.snapshot == nil)
+                if let url = document.fileURL {
+                    ShareLink(item: url) {
+                        Label("Share", systemImage: "square.and.arrow.up")
+                    }
+                }
+            }
             .background(paper.ignoresSafeArea())
             .sheet(isPresented: $showOutline) { outlineSheet }
             .sheet(isPresented: $showExport) {
