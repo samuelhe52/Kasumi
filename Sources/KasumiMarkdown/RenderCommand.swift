@@ -11,6 +11,8 @@ package enum RenderCommand {
         var style = Typography()
         var width = 800.0
         var hyphenationLanguage: String?
+        var themeFile: DocumentThemePair?
+        var selectedBuiltinTheme = false
         var index = 3
         enum ArgumentError: LocalizedError {
             case invalid(String)
@@ -35,12 +37,14 @@ package enum RenderCommand {
                 width = value
                 continue
             }
-            guard ["--preset", "--profile", "--theme", "--code-radius", "--hyphenation-language"].contains(argument), index < arguments.count else {
+            guard ["--preset", "--profile", "--theme", "--theme-file", "--code-radius", "--hyphenation-language"].contains(argument), index < arguments.count else {
                 throw ArgumentError.invalid("Unknown or incomplete option: \(argument)")
             }
             let value = arguments[index]
             index += 1
             switch argument {
+            case "--theme-file":
+                themeFile = try DocumentThemePair(contentsOf: URL(fileURLWithPath: value))
             case "--hyphenation-language":
                 guard ProfileField.hyphenationLanguage.specification.choices.contains(value) else {
                     throw ArgumentError.invalid("Unsupported hyphenation language: \(value)")
@@ -62,12 +66,17 @@ package enum RenderCommand {
                     String(contentsOfFile: value, encoding: .utf8), suggestedName: "Render profile")
                 style = style.applying(library.selected.effective)
             default:
+                selectedBuiltinTheme = true
                 guard let theme = DocumentThemeCatalog.themes.first(where: { $0.id == value }) else {
                     throw ArgumentError.invalid("Unknown theme: \(value)")
                 }
                 style.dark = theme.dark
                 if theme.dark { style.darkThemeID = theme.id } else { style.lightThemeID = theme.id }
             }
+        }
+        if let themeFile {
+            guard !selectedBuiltinTheme else { throw ArgumentError.invalid("Choose either --theme or --theme-file.") }
+            style.explicitTheme = (style.dark ? themeFile.dark : themeFile.light).inheritingClassicDocument
         }
         if let hyphenationLanguage {
             style = style.applying(style.profileValues.merging(ProfileValues([.hyphenationLanguage: .string(hyphenationLanguage)])))

@@ -164,7 +164,7 @@ fileprivate struct ThemeDefinition: Decodable, Sendable {
     }
 }
 
-fileprivate enum ThemeColorDefinition: Decodable, Sendable {
+enum ThemeColorDefinition: Decodable, Sendable {
     case srgb(DocumentColor)
     case genericRGB([Double])
     case system(SystemColor)

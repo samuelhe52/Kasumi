@@ -1,5 +1,6 @@
 import CryptoKit
 import Foundation
+import ImageIO
 import Testing
 
 @testable import KasumiMarkdown
@@ -171,5 +172,83 @@ import Testing
     }
     for preset in TypographyPreset.builtin {
         #expect(preset.defaultFontSize == CGFloat(Typography().applying(preset.values).size))
+    }
+}
+
+@Test func themeFileLoadsSparsePairsAndKeepsBuiltinCatalogIndependent() throws {
+    let builtin = DocumentTheme.builtin
+    let url = testRepositoryURL.appendingPathComponent("fixtures/CustomTheme.json")
+    let pair = try DocumentThemePair(contentsOf: url)
+    #expect(pair.id == "ink" && pair.name == "Ink")
+    #expect(pair.light.appearance == .light && pair.dark.appearance == .dark)
+    #expect(pair.light.id == "ink-light" && pair.dark.id == "ink-dark")
+    #expect(pair.light.document["paper"] == DocumentColor(hex: "#FFF8EA"))
+    #expect(pair.dark.document["paper"] == DocumentColor(hex: "#182020"))
+    #expect(pair.light.syntax["keyword"] == DocumentColor(hex: "#985030"))
+    #expect(pair.light.document["rule"] == nil)
+    for theme in [pair.light, pair.dark] {
+        let typography = RenderStyle(theme: theme).typography
+        let classic = DocumentThemeCatalog.theme(id: "default-" + theme.appearance.rawValue, dark: theme.dark)
+        #expect(typography.documentTheme.document["rule"] == classic.document["rule"])
+        let document = DocumentParser.parse("```swift\nlet word = \"value\"\n```")
+        let layout = DocumentTypesetter.layout(document, width: 300, style: typography)
+        let text = try #require(layout.paragraphs.first?.paragraph.attributed)
+        let color = try #require(text.attribute(.foregroundColor, at: 0, effectiveRange: nil) as? PlatformColor)
+        let expected = try #require(theme.syntax["keyword"])
+        let actual = PlatformColors.srgb(color.cgColor)
+        #expect(abs(actual.red - expected.red) < 1e-12)
+        #expect(abs(actual.green - expected.green) < 1e-12)
+        #expect(abs(actual.blue - expected.blue) < 1e-12)
+    }
+    #expect(DocumentTheme.builtin == builtin)
+}
+
+@Test func themeFileValidatesEnvelopeAndReusesNativeColorGrammar() throws {
+    func file(_ palette: String, version: Int = 1, id: String = "test") -> Data {
+        Data("{\"schema_version\":\(version),\"id\":\"\(id)\",\"name\":\"Test\",\"light\":\(palette),\"dark\":{}}".utf8)
+    }
+    let pair = try DocumentThemePair(json: file(##"{"document":{"text":{"system":"textColor"},"paper":{"space":"sRGB","rgba":[0.1,0.2,0.3,0.4]}}}"##))
+    #expect(pair.light.document["text"] == DocumentThemeCatalog.theme(id: "default-light", dark: false).document["text"])
+    #expect(pair.light.document["paper"] == DocumentColor(red: 0.1, green: 0.2, blue: 0.3, alpha: 0.4))
+    for palette in [
+        ##"{"document":{"paper":"#xyz"}}"##,
+        ##"{"document":{"paper":{"space":"sRGB","rgba":[1,2,3,4]}}}"##,
+        ##"{"document":{"paper":{"system":"notAColor"}}}"##,
+        ##"{"document":{"paper":{"space":"unknown","rgba":[0,0,0,1]}}}"##,
+        ##"{"syntax":{"keyword":false}}"##
+    ] { #expect(throws: (any Error).self) { _ = try DocumentThemePair(json: file(palette)) } }
+    #expect(throws: DocumentThemeFileError.self) { _ = try DocumentThemePair(json: file("{}", version: 2)) }
+    #expect(throws: DocumentThemeFileError.self) { _ = try DocumentThemePair(json: file("{}", id: " ")) }
+    #expect(throws: (any Error).self) { _ = try DocumentThemePair(json: Data(##"{"schema_version":1,"id":"x","name":"X","light":{}}"##.utf8)) }
+    #expect(throws: DocumentThemeFileError.self) { _ = try DocumentThemePair(json: Data(repeating: 32, count: 4 * 1024 * 1024 + 1)) }
+}
+
+@Test func themeFileCLISelectsAppearanceAndRejectsConflictingSelections() async throws {
+    let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let input = directory.appendingPathComponent("input.md")
+    try "A custom theme.\n\n```swift\nlet word = \"value\"\n```".write(to: input, atomically: true, encoding: .utf8)
+    let file = testRepositoryURL.appendingPathComponent("fixtures/CustomTheme.json").path
+    let output = directory.appendingPathComponent("output.png")
+    for (arguments, expected): ([String], [UInt8]) in [
+        (["--theme-file", file], [255, 248, 234]),
+        (["--dark", "--theme-file", file], [24, 32, 32]),
+        (["--theme-file", file, "--dark"], [24, 32, 32])
+    ] {
+        _ = try await RenderCommand.run(["KasumiRender", input.path, output.path, "240"] + arguments)
+        let source = try #require(CGImageSourceCreateWithURL(output as CFURL, nil))
+        let image = try #require(CGImageSourceCreateImageAtIndex(source, 0, nil))
+        let context = try #require(CGContext(
+            data: nil, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4,
+            space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+        context.draw(image, in: CGRect(x: 0, y: 0, width: image.width, height: image.height))
+        let pixel = try #require(context.data).assumingMemoryBound(to: UInt8.self)
+        for index in 0..<3 { #expect(abs(Int(pixel[index]) - Int(expected[index])) <= 1) }
+    }
+    for arguments in [["--theme", "one-light", "--theme-file", file], ["--theme-file", file, "--theme", "one-dark"]] {
+        await #expect(throws: (any Error).self) {
+            try await RenderCommand.run(["KasumiRender", input.path, output.path] + arguments)
+        }
     }
 }

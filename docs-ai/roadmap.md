@@ -64,7 +64,8 @@ Retained after milestone closure; not prerequisites for starting Reader 2:
 - Standard TOML profile files — implemented 2026-11-17, library/CLI only;
   [002.011](002-rendering-engine/011-standard-toml-profiles.md). No legacy profile
   compatibility or new reader settings.
-- Custom theme files — next, library/CLI only.
+- Custom JSON theme-pair files — implemented 2026-11-17, library/CLI only;
+  [003.002](003-public-rendering-api/002-theme-files.md). Reader import UI is deferred.
 - Known limitations: [renderer gaps](002-rendering-engine/renderer-gaps.md).
   Ligature-span and Han combining-mark width repairs shipped on 2026-11-16;
   see [002.002](002-rendering-engine/002-shaped-cluster-integrity.md).

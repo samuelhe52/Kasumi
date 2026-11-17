@@ -87,10 +87,20 @@ files use `[meta]` for their name and `[anchor]` for a saved factory snapshot;
 unrelated tables never contribute typography overrides. The reader currently
 offers built-in presets only.
 
+Load a custom light/dark theme with `try DocumentThemePair(contentsOf: url)` or
+`try DocumentThemePair(json: data)`, then pass its `.light` or `.dark` theme to
+`RenderStyle`. [CustomTheme.json](fixtures/CustomTheme.json) shows the version-1
+format: `schema_version`, `id`, `name`, and `light`/`dark` palettes containing
+optional `document`, `chrome`, and `syntax` color maps. Colors use `#RRGGBB` or
+`#RRGGBBAA`; the bundled RGBA/system-color forms are also accepted. Omitted
+document colors inherit Classic for the chosen appearance. Files are limited
+to 4 MiB; loading does not change the built-in catalog.
+
 The `KasumiRender` command renders a file without launching the app:
 
 ```sh
 swift run KasumiRender fixtures/Rendering.md out.png 800 --preset serif --theme mono-light
+swift run KasumiRender fixtures/Rendering.md out.png 800 --theme-file fixtures/CustomTheme.json --dark
 ```
 
 ## Origins

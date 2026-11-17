@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "id": "ink",
+  "name": "Ink",
+  "light": {
+    "document": {
+      "paper": "#FFF8EA",
+      "text": "#282820",
+      "heading": "#305A50",
+      "link": "#366B91"
+    },
+    "syntax": { "keyword": "#985030", "string": "#305A50" }
+  },
+  "dark": {
+    "document": {
+      "paper": "#182020",
+      "text": "#F0E8D8",
+      "heading": "#A0C8B0",
+      "link": "#90B8D8"
+    },
+    "syntax": { "keyword": "#E8A878", "string": "#A0C8B0" }
+  }
+}

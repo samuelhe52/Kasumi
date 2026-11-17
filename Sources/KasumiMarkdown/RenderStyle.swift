@@ -65,14 +65,9 @@ public struct RenderStyle: Sendable, Equatable {
     var typography: Typography {
         var result = Typography().applying(preset.values)
         result.codeBlockStyle = codeBlockStyle
-        let appearance = theme.appearance
-        result.dark = appearance == .dark
-        let base = DocumentThemeCatalog.theme(id: "default-" + appearance.rawValue, dark: result.dark)
+        result.dark = theme.appearance == .dark
         // Sparse themes inherit Classic from the selected theme's appearance.
-        result.explicitTheme = DocumentTheme(
-            id: theme.id, name: theme.name, appearance: appearance,
-            document: base.document.merging(theme.document) { _, selected in selected },
-            chrome: theme.chrome, syntax: theme.syntax)
+        result.explicitTheme = theme.inheritingClassicDocument
         if let fontSize, fontSize.isFinite, fontSize > 0 { result.size = fontSize }
         result.limitWidth = widthLimit != nil
         if let widthLimit { result.widthLimit = widthLimit.isFinite ? max(1, widthLimit) : 960 }

@@ -74,3 +74,6 @@ simulator through `make test-ios FILTER=PublicAPITests`.
   and control colors belong to the reader. See
   [002.008](../002-rendering-engine/008-code-block-style-boundary.md), which
   revises the initial API in [002.007](../002-rendering-engine/007-code-block-presentation.md).
+
+- Updated 2026-11-17: Add stateless versioned JSON theme-pair loading and CLI
+  selection; see [003.002](002-theme-files.md).

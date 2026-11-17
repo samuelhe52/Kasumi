@@ -15,7 +15,8 @@ that fixes it; add one when a limitation is found and not fixed.
   their heavy, Fangsong and Xihei faces stay generic. See
   [005](../005-cjk-font-availability/000-plan.md).
 - Profiles: punctuation strategy is stored but not applied.
-- Themes: no custom theme files. The chrome keys `column_divider`,
+- Themes: custom theme files are library/CLI-only; the reader selects built-ins.
+  The chrome keys `column_divider`,
   `sidebar_background` and `tab_active_background` are defined in bundled themes,
   but no code reads them. On iOS, the Classic theme's system colors resolve to
   UIKit's semantic colors, so it differs slightly from macOS.

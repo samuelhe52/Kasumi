@@ -48,6 +48,10 @@ the local toolchain without changing anything.
   `[meta]` its name. Legacy duplicate-key/recovery behavior is rejected. Imports
   retain source until edited; canonical edits preserve unknown data, not comments.
   Verify with `make test FILTER=profileTOML`.
+- Custom theme files: `--theme-file fixtures/CustomTheme.json` (add `--dark` for
+  its dark palette). It is mutually exclusive with `--theme`. Verify parser,
+  sparse inheritance, syntax colors and CLI raster output with
+  `make test FILTER=themeFile`; no reader import UI or global registration.
 - Launch scene: a `nil` title falls back to the app name, so the scene passes a
   one-space title and `LaunchLogotype` draws the wordmark. `titleViewFrame` spans
   everything above the browser sheet, not just the title.
