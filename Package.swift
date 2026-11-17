@@ -17,6 +17,10 @@ let package = Package(
         .binaryTarget(name: "KasumiDagreNative", path: "\(native)/kasumi_dagre.xcframework"),
         .binaryTarget(name: "KasumiLineBreakNative", path: "\(native)/kasumi_linebreak.xcframework"),
         .binaryTarget(name: "KasumiHyphenationNative", path: "\(native)/kasumi_hyphenation.xcframework"),
+        .binaryTarget(name: "KasumiSyntaxNative", path: "\(native)/kasumi_syntax.xcframework"),
+        .target(
+            name: "CSyntax", dependencies: ["KasumiSyntaxNative"], path: "packages/NativeSyntax/Bridge",
+            publicHeadersPath: "include"),
         .target(
             name: "CDagre", dependencies: ["KasumiDagreNative"], path: "packages/NativeDagre/Bridge",
             publicHeadersPath: "include"),
@@ -29,7 +33,7 @@ let package = Package(
         .target(
             name: "KasumiMarkdown",
             dependencies: [
-                "CDagre", "CLineBreak", "CHyphenation", .product(name: "Markdown", package: "swift-markdown")
+                "CDagre", "CLineBreak", "CHyphenation", "CSyntax", .product(name: "Markdown", package: "swift-markdown")
             ],
             resources: [.copy("Bundled")]
         ),

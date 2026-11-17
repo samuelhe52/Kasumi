@@ -31,7 +31,7 @@ NATIVE_INPUTS := scripts/build-native \
 		-not -path '*/target/*' 2>/dev/null)
 
 .DEFAULT_GOAL := help
-.PHONY: help native build test test-ios app run-sim run-device launch-sim check clean
+.PHONY: help native build test test-ios app run-sim run-device launch-sim test-syntax-native syntax-notices render check clean
 
 help: ## List available targets
 	@awk 'BEGIN { FS = ":.*## " } /^[a-z-]+:.*## / { printf "  %-8s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
@@ -46,6 +46,17 @@ $(NATIVE_STAMP): $(NATIVE_INPUTS)
 
 build: native ## Build the Swift package
 	swift build
+
+test-syntax-native: ## Test the Syntect bridge on the host (no simulator)
+	CARGO_TARGET_DIR=$(CURDIR)/.build/native/target cargo test --locked --manifest-path packages/NativeSyntax/Cargo.toml
+
+syntax-notices: ## Extract the pinned grammar bundle's license notices
+	CARGO_TARGET_DIR=$(CURDIR)/.build/native/target cargo run --locked --quiet --manifest-path packages/NativeSyntax/Cargo.toml --example grammar-notices > packages/NativeSyntax/Notices/GRAMMAR-LICENSES.md
+
+# INPUT and OUTPUT are required. RENDER_ARGS accepts the CLI's optional flags.
+render: build ## Render a Markdown fixture without launching the app
+	@test -n "$(INPUT)" -a -n "$(OUTPUT)" || { echo "Use make render INPUT=<file> OUTPUT=<file.png|jpg|pdf> [RENDER_ARGS=...]" >&2; exit 1; }
+	swift run --skip-build KasumiRender "$(INPUT)" "$(OUTPUT)" $(RENDER_ARGS)
 
 test: native ## Run swift test (optionally FILTER=<name>)
 	swift test $(if $(FILTER),--filter '$(FILTER)')

@@ -37,3 +37,4 @@ mkdir -p "$output_dir"
 build NativeDagre kasumi_dagre
 build NativeLineBreak kasumi_linebreak
 build NativeHyphenation kasumi_hyphenation
+build NativeSyntax kasumi_syntax

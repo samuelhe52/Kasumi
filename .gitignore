@@ -13,6 +13,7 @@
 /packages/NativeLineBreak/target/
 /packages/NativeHyphenation/target/
 /packages/NativeTOML/target/
+/packages/NativeSyntax/target/
 build/
 DerivedData/
 xcuserdata/

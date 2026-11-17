@@ -51,6 +51,12 @@ the local toolchain without changing anything.
 Run the narrowest filter: `make test FILTER=<name>` for package tests and
 `make test-ios FILTER=<name>` for simulator tests.
 
+- **Code highlighting:** `make test-syntax-native` and `make test FILTER=CodeSyntaxTests`.
+  Render `fixtures/SyntaxHighlighting.md` with
+  `make render INPUT=fixtures/SyntaxHighlighting.md OUTPUT=<file.png|pdf>` and
+  `RENDER_ARGS='800 --theme one-light'` or `'360 --theme one-dark'` for wrapping.
+  These checks need no simulator. `make syntax-notices` regenerates the pinned
+  grammar notices. See [002.006](../docs-ai/002-rendering-engine/006-syntax-highlighting.md).
 - **Export:** `make test FILTER='Export|Pagination|PublicAPITests'`. Run it after
   any export change. Memory guard and measurements:
   [008](../docs-ai/008-reader-export/001-action.md).

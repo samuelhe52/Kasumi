@@ -1,0 +1,16 @@
+Native reader syntax-highlighting dependency
+
+Syntect 5.3.0: MIT; Tristan Hume, Keith Hall, Google Inc and other contributors.
+https://github.com/trishume/syntect
+
+two-face 0.5.2+bat-0.26.1: MIT OR Apache-2.0; CosmicHorror/CosmicHarper.
+https://codeberg.org/CosmicHarper/two-face
+Uses the bat-curated precompiled grammar bundle with the pure-Rust fancy-regex
+backend. Grammar authors have separate notices preserved in GRAMMAR-LICENSES.md.
+No two-face themes are used.
+
+All exact package versions and registry checksums are recorded in Cargo.lock
+and dependencies.json. Complete registry license files, including build-time
+packages, are preserved in CODE-LICENSES.txt. The registry sources are unmodified;
+Kasumi's bridge adds language aliases, palette categories, UTF-16 mapping, and
+input-size guards. Notice bundling into the app remains a separate roadmap item.

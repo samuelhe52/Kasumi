@@ -347,8 +347,9 @@ enum DocumentTypesetter {
                             caption, x: left + inset, y: y, width: contentWidth, size: style.size * 0.75,
                             alignment: .leading) + 4
                 }
-                let attr = attributed(
+                let base = attributed(
                     block.runs, size: style.size * (isCode ? 0.88 : 1), code: isCode, imageMaxWidth: contentWidth)
+                let attr = CodeSyntax.applying(block.syntaxTokens, to: base, theme: theme)
                 let alignment: ParagraphAlignment = isCode ? .leading : style.alignment
                 let bodyParagraph =
                     block.kind == .paragraph && block.level == 0 && block.prefix.isEmpty && block.footnoteLabel == nil

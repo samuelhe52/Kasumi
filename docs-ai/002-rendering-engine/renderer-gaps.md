@@ -16,9 +16,14 @@ that fixes it; add one when a limitation is found and not fixed.
 - Profiles: punctuation strategy and subscript shift are stored but not
   applied. The profile file format is a nonstandard line format; moving to
   standard TOML is planned.
-- Themes: no syntax highlighting, no custom theme files; chrome colors are kept
+- Themes: no custom theme files; chrome colors are kept
   but not fully applied. On iOS, the Classic theme's system colors resolve to
   UIKit's semantic colors, so it differs slightly from macOS.
+- Code highlighting: explicit supported fence languages only; unlabeled/unknown
+  blocks remain plain. Blocks above 256 KiB UTF-8, lines above 16 KiB excluding LF,
+  language info above 128 bytes, and parse failures fall back to plain. The
+  pure-Rust grammar bundle excludes some Oniguruma-only variants. See
+  [002.006](006-syntax-highlighting.md).
 - Math: limited LaTeX coverage beyond the tested cases. `\[...\]` display math
   is recognized only when `\[` opens a line and `\]` ends one, so mid-line
   `\[x\]` stays an escaped bracket, while a line wrapped in escaped brackets

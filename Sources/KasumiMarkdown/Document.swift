@@ -24,6 +24,7 @@ struct DocumentBlock: Identifiable, Sendable {
     var level: Int = 0
     var prefix = ""
     var language: String?
+    var syntaxTokens: [CodeSyntax.Token] = []
     var rows: [[[InlineRun]]] = []
     var alignments: [String] = []
     var destination: String?
@@ -89,6 +90,10 @@ enum DocumentParser {
                     node, kind: language == "mermaid" ? .diagram : .code,
                     runs: [InlineRun(code.code.hasSuffix("\n") ? String(code.code.dropLast()) : code.code)],
                     language: language)
+                if blocks[blocks.count - 1].kind == .code {
+                    blocks[blocks.count - 1].syntaxTokens = CodeSyntax.tokens(
+                        in: blocks[blocks.count - 1].text, language: language)
+                }
             case is ThematicBreak:
                 append(node, kind: .rule, runs: [])
             case let table as Markdown.Table:
