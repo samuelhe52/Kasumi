@@ -40,6 +40,7 @@ public struct RenderStyle: Sendable, Equatable {
     /// Nil allows the full available width after insets.
     public var widthLimit: CGFloat?
     public var insets: DocumentInsets
+    public var codeBlockStyle: CodeBlockStyle
     /// Open families to use ahead of the Apple faces they replace, when the
     /// client has registered them: "Noto Serif SC" (Songti SC), "Noto Serif TC"
     /// (Songti TC) and "LXGW WenKai Lite" (Kaiti SC emphasis). Empty uses Apple's
@@ -48,17 +49,20 @@ public struct RenderStyle: Sendable, Equatable {
 
     public init(
         preset: TypographyPreset = .default, theme: DocumentTheme = .default,
-        fontSize: CGFloat? = nil, widthLimit: CGFloat? = 960, insets: DocumentInsets = .reader
+        fontSize: CGFloat? = nil, widthLimit: CGFloat? = 960, insets: DocumentInsets = .reader,
+        codeBlockStyle: CodeBlockStyle = .init()
     ) {
         self.preset = preset
         self.theme = theme
         self.fontSize = fontSize
         self.widthLimit = widthLimit
         self.insets = insets
+        self.codeBlockStyle = codeBlockStyle
     }
 
     var typography: Typography {
         var result = Typography().applying(preset.values)
+        result.codeBlockStyle = codeBlockStyle
         let appearance = theme.appearance
         result.dark = appearance == .dark
         let base = DocumentThemeCatalog.theme(id: "default-" + appearance.rawValue, dark: result.dark)

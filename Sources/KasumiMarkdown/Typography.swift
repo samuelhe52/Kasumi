@@ -52,6 +52,8 @@ struct Typography: Codable, Equatable, Sendable {
         lightThemeID = try values.decodeIfPresent(String.self, forKey: .lightThemeID) ?? lightThemeID
         darkThemeID = try values.decodeIfPresent(String.self, forKey: .darkThemeID) ?? darkThemeID
     }
+    // Per-render presentation; not a persisted typography preference.
+    var codeBlockStyle = CodeBlockStyle()
     var explicitTheme: DocumentTheme? = nil
     /// Use LXGW WenKai Lite ahead of Apple's Kaiti for Kai emphasis.
     var preferOpenKai = false

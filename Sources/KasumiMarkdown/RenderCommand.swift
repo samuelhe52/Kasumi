@@ -22,6 +22,10 @@ package enum RenderCommand {
         while index < arguments.count {
             let argument = arguments[index]
             index += 1
+            if argument == "--code-caption" {
+                style.codeBlockStyle.caption = .init()
+                continue
+            }
             if argument == "--dark" {
                 style.dark = true
                 continue
@@ -30,12 +34,17 @@ package enum RenderCommand {
                 width = value
                 continue
             }
-            guard ["--preset", "--profile", "--theme"].contains(argument), index < arguments.count else {
+            guard ["--preset", "--profile", "--theme", "--code-radius"].contains(argument), index < arguments.count else {
                 throw ArgumentError.invalid("Unknown or incomplete option: \(argument)")
             }
             let value = arguments[index]
             index += 1
             switch argument {
+            case "--code-radius":
+                guard let radius = Double(value), radius.isFinite, radius >= 0 else {
+                    throw ArgumentError.invalid("Invalid code corner radius: \(value)")
+                }
+                style.codeBlockStyle.cornerRadius = radius
             case "--preset":
                 guard let profile = BuiltinProfiles.all.first(where: { $0.id == value }) else {
                     throw ArgumentError.invalid("Unknown preset: \(value)")

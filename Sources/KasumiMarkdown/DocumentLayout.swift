@@ -59,6 +59,7 @@ struct DocumentLayout {
     var imageBounds: [CGRect]
     var paginationGroups: [Range<CGFloat>]
     var tables: [RenderedTable] = []
+    var codeBlocks: [CodeBlockLayout] = []
 }
 
 enum DocumentTypesetter {
@@ -72,6 +73,8 @@ enum DocumentTypesetter {
         let measure = style.limitWidth ? min(available, style.widthLimit) : available
         let left = insets.left + (available - measure) / 2
         let theme = style.documentTheme
+        let codeStyle = style.codeBlockStyle.resolved
+        let codePadding = codeStyle.padding(fitting: measure)
         let markerInset = style.profileValues.resolved(.markerInset).number! * style.size
         let markerGap = style.profileValues.resolved(.listMarkerGap).number!
         let bulletDiameter = style.profileValues.resolved(.listBulletSize).number! * style.size
@@ -122,6 +125,7 @@ enum DocumentTypesetter {
         var imageBounds: [CGRect] = []
         var paginationGroups: [Range<CGFloat>] = []
         var tables: [RenderedTable] = []
+        var codeBlocks: [CodeBlockLayout] = []
         var paragraphValues = style.profileValues
         paragraphValues[.hangingPunctuation] = .flag(style.hangingPunctuation)
         paragraphValues[.autoRaggedNarrow] = .flag(style.narrowMeasureRagged)
@@ -290,7 +294,7 @@ enum DocumentTypesetter {
                 let isCode = block.kind == .code || block.kind == .diagram
                 var inset: CGFloat =
                     isCode
-                    ? 14 : block.kind == .quote ? quoteStep * CGFloat(max(1, block.level)) : listInsets[blockIndex] ?? 0
+                    ? codePadding.left : block.kind == .quote ? quoteStep * CGFloat(max(1, block.level)) : listInsets[blockIndex] ?? 0
                 if let label = block.footnoteLabel, let display = block.footnoteDisplay {
                     // Styled like the in-text reference: script size, raised by the superscript shift.
                     let marker = attributed([InlineRun(display, traits: [.footnote])])
@@ -309,7 +313,7 @@ enum DocumentTypesetter {
                             width: max(1, markerWidth + 1), size: style.size, alignment: .leading)
                     }
                 }
-                let contentWidth = max(12, measure - inset - (isCode ? 14 : 0))
+                let contentWidth = max(12, measure - inset - (isCode ? codePadding.right : 0))
                 if !block.prefix.isEmpty {
                     let slot = listSlots[blockIndex] ?? style.size * 0.78
                     let x = left + inset - markerGap - slot
@@ -330,7 +334,8 @@ enum DocumentTypesetter {
                     _ = place(marker, x: x, y: y, width: slot + 1, size: style.size, alignment: .trailing)
                 }
                 let top = y
-                if isCode { y += 10 }
+                if isCode { y += (codeStyle.caption?.height ?? 0) + codePadding.top }
+                let codeContentTop = y
                 if block.kind == .diagram && style.mermaidEnabled {
                     let reason: String
                     do {
@@ -383,11 +388,34 @@ enum DocumentTypesetter {
                 }
                 if bodyParagraph { firstBodyParagraph = false }
                 if isCode {
-                    y += 10
-                    backgrounds.append(
-                        PaintedRect(
-                            rect: CGRect(x: left, y: top, width: measure, height: y - top),
-                            color: theme.color("code_block_background")!))
+                    let contentFrame = CGRect(
+                        x: left + inset, y: codeContentTop, width: contentWidth, height: y - codeContentTop)
+                    y += codePadding.bottom
+                    let frame = CGRect(x: left, y: top, width: measure, height: y - top)
+                    if codeStyle.drawsBackground {
+                        backgrounds.append(
+                            PaintedRect(
+                                rect: frame,
+                                color: codeStyle.backgroundColor?.nsColor ?? theme.color("code_block_background")!,
+                                radius: codeStyle.cornerRadius))
+                    }
+                    codeBlocks.append(
+                        CodeBlockLayout(
+                            id: block.id, frame: frame, contentFrame: contentFrame, language: block.language,
+                            source: block.codeSource ?? block.text, style: style))
+                    // Keep the decorative header with the first code line, and
+                    // the rounded bottom padding with the final line. Long
+                    // blocks can still paginate between their ordinary lines.
+                    var headerBottom = codeContentTop
+                    if let body = paragraphs.last, let first = body.paragraph.lines.first {
+                        headerBottom = max(headerBottom, body.origin.y + first.origin.y + first.descent)
+                    }
+                    if headerBottom > top { paginationGroups.append(top..<headerBottom) }
+                    if let last = paragraphs.last, let line = last.paragraph.lines.last {
+                        paginationGroups.append((last.origin.y + line.origin.y - line.ascent)..<y)
+                    } else {
+                        paginationGroups.append(top..<y)
+                    }
                 }
                 let next = blockIndex + 1 < document.blocks.count ? document.blocks[blockIndex + 1] : nil
                 let nextIsBody =
@@ -402,7 +430,8 @@ enum DocumentTypesetter {
         return DocumentLayout(
             width: width, height: y + insets.bottom, text: storage, textMap: DocumentTextMap(storage),
             paragraphs: paragraphs, backgrounds: backgrounds, rules: rules, headingPositions: headings,
-            anchorPositions: anchors, imageBounds: imageBounds, paginationGroups: paginationGroups, tables: tables)
+            anchorPositions: anchors, imageBounds: imageBounds, paginationGroups: paginationGroups, tables: tables,
+            codeBlocks: codeBlocks)
     }
 
     static func anchorSlug(_ text: String) -> String {
@@ -441,6 +470,9 @@ enum DocumentTypesetter {
             } else {
                 context.fill(background.rect)
             }
+        }
+        if tableIndex == nil {
+            for code in layout.codeBlocks { code.drawLabel(in: context) }
         }
         for rule in layout.rules where include(rule.tableIndex) {
             let bounds = CGRect(

@@ -23,7 +23,8 @@ that fixes it; add one when a limitation is found and not fixed.
   blocks remain plain. Blocks above 256 KiB UTF-8, lines above 16 KiB excluding LF,
   language info above 128 bytes, and parse failures fall back to plain. The
   pure-Rust grammar bundle excludes some Oniguruma-only variants. See
-  [002.006](006-syntax-highlighting.md).
+  [002.006](006-syntax-highlighting.md). Long PDF code blocks with captions enabled continue
+  without repeating the caption; see [code styles](008-code-block-style-boundary.md).
 - Math: limited LaTeX coverage beyond the tested cases. `\[...\]` display math
   is recognized only when `\[` opens a line and `\]` ends one, so mid-line
   `\[x\]` stays an escaped bracket, while a line wrapped in escaped brackets

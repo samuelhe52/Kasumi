@@ -1,0 +1,134 @@
+import CoreGraphics
+import CoreText
+import Foundation
+import Testing
+
+@testable import KasumiMarkdown
+
+@Suite struct CodeBlockPresentationTests {
+    @Test func copyPayloadAndCaptionsStayOutsideSemanticText() throws {
+        let code = "\tlet café = \"👩‍💻\";\n\n"
+        let source =
+            "```RuSt title=example\n" + code
+            + "```\n\n```\nplain\n```\n\n```unknown-language\nliteral\n```\n\n```swift\n```"
+        let document = MarkdownDocument(markdown: source)
+        let rendered = RenderedDocument(
+            document, width: 360, style: RenderStyle(codeBlockStyle: CodeBlockStyle(caption: .init())))
+        #expect(rendered.codeBlocks.map(\.language) == ["RuSt", nil, "unknown-language", "swift"])
+        #expect(rendered.codeBlocks[0].source == code)
+        #expect(rendered.codeBlocks[1].source == "plain\n")
+        #expect(rendered.codeBlocks[2].source == "literal\n")
+        #expect(rendered.codeBlocks[3].source.isEmpty)
+        #expect(Set(rendered.codeBlocks.map(\.id)).count == 4)
+        #expect(rendered.ranges(matching: "Rust").isEmpty)
+        #expect(rendered.ranges(matching: "unknown-language").isEmpty)
+        #expect(!rendered.text(in: rendered.documentRange).contains("Copy"))
+        let match = try #require(rendered.ranges(matching: "café").first)
+        #expect(rendered.text(in: match) == "café")
+        #expect(
+            rendered.selectionRects(for: match).allSatisfy {
+                $0.minY >= rendered.codeBlocks[0].contentFrame.minY
+            })
+    }
+
+    @Test func publicStylesKeepDefaultsIndependentAndCaptionsOptional() throws {
+        let document = MarkdownDocument(markdown: "```rust\nlet x = 1;\n```")
+        let basic = RenderedDocument(document, width: 360, style: RenderStyle())
+        let normal = try #require(basic.codeBlocks.first)
+        #expect(normal.captionFrame == nil)
+        #expect(abs(normal.contentFrame.minY - normal.frame.minY - 10) < 0.001)
+        #expect(abs(normal.frame.maxY - normal.contentFrame.maxY - 10) < 0.001)
+
+        let customStyle = CodeBlockStyle(
+            drawsBackground: false, cornerRadius: 7,
+            padding: .init(top: 5, left: 8, bottom: 3, right: 6), caption: .init(height: 31))
+        let custom = RenderedDocument(document, width: 360, style: RenderStyle(codeBlockStyle: customStyle))
+        let block = try #require(custom.codeBlocks.first)
+        #expect(block.captionFrame?.height == 31)
+        #expect(abs(block.contentFrame.minY - block.frame.minY - 36) < 0.001)
+        #expect(abs(block.contentFrame.minX - block.frame.minX - 8) < 0.001)
+        #expect(abs(block.frame.maxX - block.contentFrame.maxX - 6) < 0.001)
+        #expect(abs(block.frame.maxY - block.contentFrame.maxY - 3) < 0.001)
+        #expect(basic.text(in: basic.documentRange) == custom.text(in: custom.documentRange))
+        #expect(normal.source == block.source)
+        #expect(normal.captionFrame == nil)  // A second style never mutates a snapshot.
+        var typography = RenderStyle(codeBlockStyle: customStyle).typography
+        let noBackground = DocumentTypesetter.layout(document.parsed, width: 360, style: typography)
+        #expect(noBackground.backgrounds.isEmpty)
+        typography.codeBlockStyle.caption = nil
+        let noCaption = DocumentTypesetter.layout(document.parsed, width: 360, style: typography)
+        #expect(noCaption.codeBlocks[0].block.captionFrame == nil)
+        #expect(abs(noBackground.height - noCaption.height - 31) < 0.001)
+    }
+
+    @Test(arguments: ["one-light", "one-dark"])
+    func roundedCornersAndCaptionReachTheRaster(_ theme: String) throws {
+        var style = Typography()
+        style.codeBlockStyle = CodeBlockStyle(
+            backgroundColor: DocumentColor(red: 0.1, green: 0.4, blue: 0.7), cornerRadius: 10, caption: .init())
+        style.dark = theme.hasSuffix("dark")
+        if style.dark { style.darkThemeID = theme } else { style.lightThemeID = theme }
+        let document = DocumentParser.parse("```rust\nlet value = 42;\n```")
+        let layout = DocumentTypesetter.layout(document, width: 360, style: style)
+        let code = try #require(layout.codeBlocks.first)
+        let width = 360
+        let height = Int(ceil(layout.height))
+        let context = try #require(
+            CGContext(
+                data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: width * 4,
+                space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+        context.translateBy(x: 0, y: CGFloat(height))
+        context.scaleBy(x: 1, y: -1)
+        context.setFillColor(style.paperColor.cgColor)
+        context.fill(CGRect(x: 0, y: 0, width: width, height: height))
+        DocumentTypesetter.draw(layout, in: context)
+        let bytes = try #require(context.data).assumingMemoryBound(to: UInt8.self)
+        func rgb(_ color: PlatformColor) throws -> [Int] {
+            let color = try #require(color.kasumiSRGB)
+            return [color.redComponent, color.greenComponent, color.blueComponent].map { Int(round($0 * 255)) }
+        }
+        func matches(_ x: Int, _ y: Int, _ rgb: [Int]) -> Bool {
+            let offset = (y * width + x) * 4
+            return (0..<3).allSatisfy { abs(Int(bytes[offset + $0]) - rgb[$0]) <= 3 }
+        }
+        let frame = code.block.frame
+        let paper = try rgb(style.paperColor)
+        let background = try rgb(try #require(style.codeBlockStyle.backgroundColor?.nsColor))
+        #expect(matches(Int(frame.minX) + 1, Int(frame.minY) + 1, paper))
+        #expect(matches(Int(frame.maxX) - 2, Int(frame.maxY) - 2, paper))
+        #expect(matches(Int(frame.midX), Int(frame.minY) + 2, background))
+        let caption = try rgb(style.secondaryColor)
+        var captionPixels = 0
+        let labelFrame = try #require(code.labelFrame)
+        for y in Int(labelFrame.minY)..<Int(labelFrame.maxY) {
+            for x in Int(labelFrame.minX)..<Int(labelFrame.maxX) where matches(x, y, caption) {
+                captionPixels += 1
+            }
+        }
+        #expect(captionPixels > 5)
+        style.codeBlockStyle.drawsBackground = false
+        let unpainted = DocumentTypesetter.layout(document, width: 360, style: style)
+        context.setFillColor(style.paperColor.cgColor)
+        context.fill(CGRect(x: 0, y: 0, width: width, height: height))
+        DocumentTypesetter.draw(unpainted, in: context)
+        #expect(matches(Int(frame.midX), Int(frame.minY) + 2, paper))
+    }
+
+    @Test func paginationKeepsHeaderWithFirstLineWithoutShrinkingLongBlocks() throws {
+        let lines = (0..<30).map { "let value_\($0) = \($0);" }.joined(separator: "\n")
+        let document = DocumentParser.parse("Before.\n\n```rust\n" + lines + "\n```\n\nAfter.")
+        var style = Typography()
+        style.codeBlockStyle = CodeBlockStyle(cornerRadius: 10, padding: .init(top: 0, left: 14, bottom: 12, right: 14), caption: .init())
+        let layout = DocumentTypesetter.layout(document, width: 360, style: style, insets: .zero)
+        let code = try #require(layout.codeBlocks.first)
+        let paragraph = try #require(
+            layout.paragraphs.first { $0.paragraph.attributed.string.hasPrefix("let value_0") })
+        let first = try #require(paragraph.paragraph.lines.first)
+        let firstBottom = paragraph.origin.y + first.origin.y + first.descent
+        let pages = try DocumentPaginator.pages(for: layout, contentHeight: code.block.frame.minY + 48)
+        #expect(pages.count > 2)
+        #expect(pages.allSatisfy { abs($0.scale - 1) < 0.001 })
+        #expect(!pages.contains { $0.range.upperBound > code.block.frame.minY && $0.range.upperBound < firstBottom })
+        #expect(pages.last!.range.upperBound >= code.block.frame.maxY)
+    }
+}

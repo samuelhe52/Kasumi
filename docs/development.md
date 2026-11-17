@@ -51,12 +51,18 @@ the local toolchain without changing anything.
 Run the narrowest filter: `make test FILTER=<name>` for package tests and
 `make test-ios FILTER=<name>` for simulator tests.
 
-- **Code highlighting:** `make test-syntax-native` and `make test FILTER=CodeSyntaxTests`.
-  Render `fixtures/SyntaxHighlighting.md` with
+- **Code highlighting and panels:** `make test-syntax-native` and
+  `make test FILTER='CodeSyntaxTests|CodeBlockPresentationTests'`. Render `fixtures/SyntaxHighlighting.md` with
   `make render INPUT=fixtures/SyntaxHighlighting.md OUTPUT=<file.png|pdf>` and
-  `RENDER_ARGS='800 --theme one-light'` or `'360 --theme one-dark'` for wrapping.
-  These checks need no simulator. `make syntax-notices` regenerates the pinned
-  grammar notices. See [002.006](../docs-ai/002-rendering-engine/006-syntax-highlighting.md).
+  `RENDER_ARGS='800 --theme one-light --code-caption --code-radius 10'` or
+  `'360 --theme one-dark --code-caption --code-radius 10'` for wrapping. Omitting
+  the code options verifies the library's caption-free, square defaults.
+  These checks need no simulator. Use `make syntax-notices` to regenerate grammar
+  notices from the pinned crate; registry/grammar provenance lives in
+  `packages/NativeSyntax/Notices/`. See
+  [002.006](../docs-ai/002-rendering-engine/006-syntax-highlighting.md).
+  Optional caption/style behavior is documented in
+  [002.008](../docs-ai/002-rendering-engine/008-code-block-style-boundary.md).
 - **Export:** `make test FILTER='Export|Pagination|PublicAPITests'`. Run it after
   any export change. Memory guard and measurements:
   [008](../docs-ai/008-reader-export/001-action.md).

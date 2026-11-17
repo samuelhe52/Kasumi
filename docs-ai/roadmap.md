@@ -45,8 +45,10 @@ Retained after milestone closure; not prerequisites for starting Reader 2:
 
 ## Library
 
-- Reader code-block syntax highlighting with Syntect — implemented 2026-11-17;
-  [002.006](002-rendering-engine/006-syntax-highlighting.md).
+- Reader code-block highlighting with Syntect is implemented;
+  [002.006](002-rendering-engine/006-syntax-highlighting.md). Configurable code
+  styles and optional captions are implemented in the library; reader controls
+  follow separately. See [002.008](002-rendering-engine/008-code-block-style-boundary.md).
 
 - Ready-made UIKit/AppKit views and SwiftUI wrappers, extracted from the reader
   once its views settle ([003](003-public-rendering-api/000-plan.md)).

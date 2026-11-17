@@ -48,6 +48,8 @@ public final class RenderedDocument: @unchecked Sendable {
     public let size: CGSize
     public let backgroundColor: CGColor
     public var tables: [RenderedTable] { layout.tables }
+    /// Block/content/caption bounds and original source/language, separate from selectable text.
+    public var codeBlocks: [RenderedCodeBlock] { layout.codeBlocks.map(\.block) }
     private let owner = UUID()
     private let layout: DocumentLayout
     private let readingIndex: ReadingPositionIndex

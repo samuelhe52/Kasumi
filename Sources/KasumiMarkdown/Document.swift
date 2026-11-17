@@ -25,6 +25,7 @@ struct DocumentBlock: Identifiable, Sendable {
     var prefix = ""
     var language: String?
     var syntaxTokens: [CodeSyntax.Token] = []
+    var codeSource: String?
     var rows: [[[InlineRun]]] = []
     var alignments: [String] = []
     var destination: String?
@@ -90,6 +91,7 @@ enum DocumentParser {
                     node, kind: language == "mermaid" ? .diagram : .code,
                     runs: [InlineRun(code.code.hasSuffix("\n") ? String(code.code.dropLast()) : code.code)],
                     language: language)
+                blocks[blocks.count - 1].codeSource = code.code
                 if blocks[blocks.count - 1].kind == .code {
                     blocks[blocks.count - 1].syntaxTokens = CodeSyntax.tokens(
                         in: blocks[blocks.count - 1].text, language: language)

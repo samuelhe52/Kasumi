@@ -33,10 +33,12 @@ Public types (`d44143f`, `377d584`):
 - `MarkdownDocument` parses Markdown, plain text, or raw file data and exposes the
   outline (`OutlineItem`).
 - `RenderStyle` combines a `TypographyPreset` and a `DocumentTheme` chosen by the
-  client; `DocumentThemePair` holds a light and dark theme.
+  client; `DocumentThemePair` holds a light and dark theme. `CodeBlockStyle`
+  controls background, radius, padding, and optional language captions.
 - `RenderedDocument` is an immutable layout. It draws by rect, and handles hit
   testing, selection rects and text, search (`SearchOptions`), links, outline and
-  anchor rects, and reading anchors (`ReadingAnchor`).
+  anchor rects, reading anchors (`ReadingAnchor`), and immutable code-panel
+  geometry/source (`RenderedCodeBlock`).
 - `DocumentExport` returns PDF and PNG data.
 - `FontAvailability` reports missing font families.
 
@@ -66,4 +68,7 @@ simulator through `make test-ios FILTER=PublicAPITests`.
 
 ## Amendments
 
-None yet.
+- Updated 2026-11-17: Add configurable `RenderStyle.codeBlockStyle` and immutable
+  block/content/optional-caption bounds, raw language metadata, and complete
+  parsed code literals. No Copy control geometry is part of the library API.
+  See [002.008](../002-rendering-engine/008-code-block-style-boundary.md).
