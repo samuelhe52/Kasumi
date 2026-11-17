@@ -27,7 +27,7 @@ final class ReaderCodeCopyButton: UIButton {
         showCopied(true)
         UIAccessibility.post(notification: .announcement, argument: String(localized: "Code copied"))
         resetTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(1.5))
+            try? await Task.sleep(for: .seconds(0.75))
             guard !Task.isCancelled else { return }
             self?.showCopied(false)
         }
@@ -36,18 +36,17 @@ final class ReaderCodeCopyButton: UIButton {
 
     private func showCopied(_ copied: Bool) {
         var config = UIButton.Configuration.plain()
-        config.image = UIImage(systemName: copied ? "checkmark" : "doc.on.doc")
-        config.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: 13)
-        if bounds.width >= 80 { config.title = copied ? String(localized: "Copied") : String(localized: "Copy") }
-        config.imagePadding = 5
-        config.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 6, bottom: 0, trailing: 6)
+        config.image = UIImage(
+            systemName: copied ? "checkmark" : "doc.on.doc",
+            withConfiguration: UIImage.SymbolConfiguration(pointSize: 10, weight: .regular))
+        config.contentInsets = .zero
         config.baseForegroundColor = tintColor
-        config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
-            var result = incoming
-            result.font = UIFont.systemFont(ofSize: 12, weight: .medium)
-            return result
+
+        UIView.transition(with: self, duration: 0.2, options: [.transitionCrossDissolve, .allowAnimatedContent]) {
+            self.configuration = config
+            self.layoutIfNeeded()
         }
-        configuration = config
+
         accessibilityLabel =
             copied
             ? String(localized: "Copied code") : String(localized: "Copy code")

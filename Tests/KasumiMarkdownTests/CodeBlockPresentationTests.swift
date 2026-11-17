@@ -40,7 +40,7 @@ import Testing
             let code = try #require(layout.codeBlocks.first)
             let button = try #require(ReaderCodeBlockStyle.copyButtonFrame(in: code.block))
             #expect(code.block.frame.contains(button))
-            #expect(button.height == 44 && button.width >= 44)
+            #expect(button.height == 36 && button.width == 44)
             let labelFrame = try #require(code.labelFrame)
             #expect(labelFrame.isEmpty || labelFrame.maxX <= button.minX)
             #expect(code.block.contentFrame.minY >= button.maxY)

@@ -5,16 +5,14 @@ import KasumiMarkdown
 /// renderer only receives generic padding and optional caption-row dimensions.
 enum ReaderCodeBlockStyle {
     static let reading = CodeBlockStyle(
-        cornerRadius: 10, padding: .init(top: 0, left: 14, bottom: 12, right: 14),
-        caption: .init(height: 44, insets: .init(top: 0, left: 0, bottom: 0, right: 88)))
+        cornerRadius: 10, padding: .init(top: 0, left: 12, bottom: 10, right: 12),
+        caption: .init(height: 36, insets: .init(top: 0, left: 0, bottom: 0, right: 44)))
 
     static let exporting = CodeBlockStyle(
         cornerRadius: 10, padding: .init(top: 0, left: 14, bottom: 12, right: 14), caption: .init())
 
     static func copyButtonFrame(in block: RenderedCodeBlock) -> CGRect? {
-        guard let row = block.captionFrame, row.height >= 44, row.width >= 44 else { return nil }
-        let width: CGFloat = row.width >= 180 ? 88 : 44
-        let trailing = min(6, max(0, (row.width - width) / 2))
-        return CGRect(x: row.maxX - trailing - width, y: row.midY - 22, width: width, height: 44)
+        guard let row = block.captionFrame, row.height >= 36, row.width >= 44 else { return nil }
+        return CGRect(x: row.maxX - 44, y: row.minY, width: 44, height: 36)
     }
 }
