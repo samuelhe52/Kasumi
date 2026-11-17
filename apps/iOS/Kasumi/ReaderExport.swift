@@ -289,11 +289,9 @@ struct ReaderExportSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarBackButtonHidden()
             .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(job.busy ? "Cancel" : "Close", systemImage: "xmark") {
                         if job.busy { job.cancel() } else { dismiss() }
-                    } label: {
-                        if job.busy { Text("Cancel") } else { Text("Done") }
                     }
                     .disabled(job.cancelling)
                     .accessibilityIdentifier(job.busy ? "export-cancel" : "export-done")

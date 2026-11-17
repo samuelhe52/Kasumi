@@ -227,7 +227,9 @@ struct ReaderScreen: View {
                 .navigationBarTitleDisplayMode(.inline)
                 .navigationBarBackButtonHidden()
                 .toolbar {
-                    ToolbarItem(placement: .confirmationAction) { Button("Done") { showOutline = false } }
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Close", systemImage: "xmark") { showOutline = false }
+                    }
                 }
         }
         .presentationDetents([.large])
