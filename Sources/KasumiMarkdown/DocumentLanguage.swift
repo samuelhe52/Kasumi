@@ -28,56 +28,53 @@ struct DocumentLanguageAnalysis: Equatable, Sendable {
         "a v na z do se je že to pro jak ale jsou který která nebo také jako při není byl",
         "и в на с не что это для как но из по от к у за он она они который также есть"
     ]
-    private static let votes: [String: UInt16] = {
-        var result: [String: UInt16] = [:]
-        for (index, words) in stopwords.enumerated() {
-            for word in words.split(separator: " ") { result[String(word), default: 0] |= 1 << index }
+    /// A normalized stopword's UTF-8 bytes fit in two machine words. Zero bytes
+    /// never occur in the authored lexicon or sampled letter tokens, so padding
+    /// is unambiguous. Keep matching allocation-free without constructing a trie
+    /// at the first parse in each process.
+    private struct WordKey: Hashable {
+        var low: UInt64 = 0
+        var high: UInt64 = 0
+        @inline(__always) mutating func append(_ byte: UInt8, at index: Int) {
+            if index < 8 { low |= UInt64(byte) << (index * 8) }
+            else { high |= UInt64(byte) << ((index - 8) * 8) }
         }
-        return result
-    }()
-
-    private struct WordNode {
-        var next: [UInt32: Int] = [:]
-        var mask: UInt16 = 0
-        var word = 0
     }
-    private struct WordMatcher {
-        let nodes: [WordNode]
-        let ascii: [Int]
+    private struct Vote {
+        var mask: UInt16
+        let word: Int
     }
-    // Match bounded tokens directly instead of allocating and lowercasing a
-    // String for each word, including words that never occur in the lexicon.
-    private static let wordMatcher: WordMatcher = {
-        var nodes = [WordNode()]
-        var ascii = [Int](repeating: -1, count: 26)
-        for (wordIndex, entry) in votes.sorted(by: { $0.key < $1.key }).enumerated() {
-            var node = 0
-            for scalar in entry.key.unicodeScalars {
-                if (97...122).contains(scalar.value) {
-                    let slot = node * 26 + Int(scalar.value - 97)
-                    if ascii[slot] >= 0 { node = ascii[slot] }
-                    else {
-                        let next = nodes.count
-                        nodes.append(WordNode())
-                        ascii.append(contentsOf: repeatElement(-1, count: 26))
-                        ascii[slot] = next
-                        node = next
-                    }
-                    continue
-                }
-                if let next = nodes[node].next[scalar.value] { node = next }
-                else {
-                    let next = nodes.count
-                    nodes.append(WordNode())
-                    ascii.append(contentsOf: repeatElement(-1, count: 26))
-                    nodes[node].next[scalar.value] = next
-                    node = next
+    private static let votes: [WordKey: Vote] = {
+        var result: [WordKey: Vote] = [:]
+        result.reserveCapacity(stopwords.count * 32)
+        @inline(__always) func record(_ key: WordKey, language: Int) {
+            let nextWord = result.count
+            result[key, default: Vote(mask: 0, word: nextWord)].mask |= 1 << language
+        }
+        @inline(__always) func scan<Bytes: Sequence>(_ bytes: Bytes, language: Int) where Bytes.Element == UInt8 {
+            var key = WordKey()
+            var length = 0
+            for byte in bytes {
+                if byte == 32 {
+                    if length > 0 { record(key, language: language) }
+                    key = WordKey()
+                    length = 0
+                } else {
+                    precondition(length < 16, "Widen WordKey before adding a longer stopword")
+                    key.append(byte, at: length)
+                    length += 1
                 }
             }
-            nodes[node].mask = entry.value
-            nodes[node].word = wordIndex
+            if length > 0 { record(key, language: language) }
         }
-        return WordMatcher(nodes: nodes, ascii: ascii)
+        for (index, words) in stopwords.enumerated() {
+            let scanned = words.utf8.withContiguousStorageIfAvailable { bytes in
+                scan(bytes, language: index)
+                return true
+            } ?? false
+            if !scanned { scan(words.utf8, language: index) }
+        }
+        return result
     }()
 
     static func dictionary(for tag: String) -> String? {
@@ -95,36 +92,36 @@ struct DocumentLanguageAnalysis: Equatable, Sendable {
     private struct Sampler {
         var scores = [Int](repeating: 0, count: languages.count)
         var distinct = [Int](repeating: 0, count: languages.count)
-        let matcher = wordMatcher
-        let nodes = wordMatcher.nodes
+        let lexicon = votes
         var occurrences = [UInt8](repeating: 0, count: votes.count)
         var scalars = 0
         var words = 0
-        var tokenNode = 0
+        var token = WordKey()
+        var tokenBytes = 0
         var tokenScalars = 0
-        @inline(__always) mutating func advance(_ value: UInt32) {
-            guard tokenNode >= 0 else { return }
-            if (97...122).contains(value) { tokenNode = matcher.ascii[tokenNode * 26 + Int(value - 97)] }
-            else { tokenNode = nodes[tokenNode].next[value] ?? -1 }
+        @inline(__always) mutating func append(_ byte: UInt8) {
+            if tokenBytes < 16 { token.append(byte, at: tokenBytes) }
+            tokenBytes += 1
         }
         @inline(__always) mutating func letter(_ value: UInt32) {
             tokenScalars += 1
-            if tokenScalars > 48 { tokenNode = -1; return }
-            if value < 128 { advance(value <= 90 ? value + 32 : value) }
-            else if tokenNode >= 0 {
-                for scalar in String(UnicodeScalar(value)!).lowercased().unicodeScalars { advance(scalar.value) }
+            guard tokenScalars <= 48, tokenBytes <= 16 else { return }
+            if value < 128 { append(UInt8(value <= 90 ? value + 32 : value)) }
+            else {
+                for byte in String(UnicodeScalar(value)!).lowercased().utf8 { append(byte) }
             }
         }
         @inline(__always) mutating func flush() {
             guard tokenScalars > 0 else { return }
             words += 1
-            let matched = tokenNode
-            tokenNode = 0
+            let key = token
+            let length = tokenBytes
+            token = WordKey()
+            tokenBytes = 0
             tokenScalars = 0
-            guard matched >= 0 else { return }
-            let mask = nodes[matched].mask
-            guard mask != 0 else { return }
-            let word = nodes[matched].word
+            guard length <= 16, let vote = lexicon[key] else { return }
+            let mask = vote.mask
+            let word = vote.word
             let prior = occurrences[word]
             guard prior < 4 else { return }
             occurrences[word] = prior + 1

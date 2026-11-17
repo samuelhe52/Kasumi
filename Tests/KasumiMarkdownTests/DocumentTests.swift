@@ -34,6 +34,31 @@ import Testing
     #expect(parsed.blocks[1].text.contains("\\frac{1}{2}\\,dx"))
 }
 
+@Test func inlineMarkerScanningPreservesTextAndTraits() throws {
+    let extensions = MarkdownExtensions(source: "$x+y$")
+    let marker = try #require(extensions.math.keys.first)
+    let traits: Set<InlineRun.Trait> = [.strong, .link]
+    let destination = "https://example.com"
+    for text in ["", "ordinary prose", String(repeating: "plain text ", count: 100), "中文 Café 🙂", "\u{E123} literal", "a = b"] {
+        let runs = extensions.textRuns(text, traits: traits, destination: destination)
+        #expect(runs == (text.isEmpty ? [] : [InlineRun(text, traits: traits, destination: destination)]))
+    }
+    let runs = extensions.textRuns("before \(marker) ==marked== after", traits: traits, destination: destination)
+    #expect(runs.map(\.text) == ["before ", "x+y", " ", "marked", " after"])
+    #expect(runs[1].traits == traits.union([.math]))
+    #expect(runs[3].traits == traits.union([.highlight]))
+    #expect(runs.allSatisfy { $0.destination == destination && $0.traits.isSuperset(of: traits) })
+
+    let literal = "\u{E000}kasumi.math.0\u{E001}"
+    for source in [literal, "Math $x+y$.\n\n" + literal + "\n\nA [^a].\n\n[^a]: Note"] {
+        let protected = MarkdownExtensions(source: source)
+        #expect(!source.contains(protected.mathPrefix))
+        let parsed = DocumentParser.parse(source)
+        #expect(parsed.blocks.contains { $0.text == literal })
+        #expect(source == literal || parsed.blocks.flatMap(\.runs).contains { $0.traits.contains(.math) })
+    }
+}
+
 @Test func mathLineIndexPreservesSourceRangesAcrossManyExpressionsAndCode() throws {
     let source = (0..<60).map { index in
         "Paragraph \(index) $x_\(index)$\n\n```text\n$not_math$\n```\n\n$$\ny_\(index)\n$$"

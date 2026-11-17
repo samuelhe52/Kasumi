@@ -19,21 +19,27 @@ struct MarkdownExtensions {
     init(source: String) {
         // Delimiters are ASCII bytes. Grapheme-aware substring searches over a
         // long CJK document can cost more than the parse they are meant to skip.
-        var previous: UInt8 = 0
-        var hasExtensions = false
-        var hasFootnotes = false
-        for byte in source.utf8 {
-            if byte == 36 || (previous == 92 && (byte == 40 || byte == 91)) || (previous == 91 && byte == 94) {
-                hasExtensions = true
+        @inline(__always) func markers<Bytes: Sequence>(in bytes: Bytes) -> (extensions: Bool, footnotes: Bool, privateUse: Bool)
+        where Bytes.Element == UInt8 {
+            var previous: UInt8 = 0
+            var result = (extensions: false, footnotes: false, privateUse: false)
+            for byte in bytes {
+                if byte == 36 || (previous == 92 && (byte == 40 || byte == 91)) || (previous == 91 && byte == 94) {
+                    result.extensions = true
+                }
+                if previous == 91 && byte == 94 { result.footnotes = true }
+                if byte == 0xee { result.privateUse = true }
+                previous = byte
             }
-            if previous == 91 && byte == 94 { hasFootnotes = true }
-            previous = byte
+            return result
         }
-        if !hasExtensions {
+        let found = source.utf8.withContiguousStorageIfAvailable { markers(in: $0) } ?? markers(in: source.utf8)
+        let hasFootnotes = found.footnotes
+        if !found.extensions {
             markdown = source
             math = [:]
             var prefix = "\u{E000}kasumi.math."
-            if source.utf8.contains(0xee) {
+            if found.privateUse {
                 while source.contains(prefix) { prefix += "." }
             }
             mathPrefix = prefix
@@ -100,7 +106,7 @@ struct MarkdownExtensions {
         gatherExcluded(labels.isEmpty ? initial : Markdown.Document(parsing: prepared))
         excluded.sort { $0.lowerBound < $1.lowerBound }
         var prefix = "\u{E000}kasumi.math."
-        if prepared.utf8.contains(0xee) {
+        if found.privateUse {
             while prepared.contains(prefix) { prefix += "." }
         }
         mathPrefix = prefix
@@ -234,7 +240,14 @@ struct MarkdownExtensions {
     }
 
     func textRuns(_ text: String, traits: Set<InlineRun.Trait>, destination: String?) -> [InlineRun] {
-        guard text.utf8.contains(0xee) || text.utf8.contains(61) else {
+        // Ordinary prose needs neither the marker regex nor two generic UTF-8
+        // walks. Check both ASCII '=' and the private-use marker's leading byte
+        // together, using direct buffer access when String can provide it.
+        let hasMarkers = text.utf8.withContiguousStorageIfAvailable { bytes in
+            for byte in bytes where byte == 0xee || byte == 61 { return true }
+            return false
+        } ?? text.utf8.contains(where: { $0 == 0xee || $0 == 61 })
+        guard hasMarkers else {
             return text.isEmpty ? [] : [InlineRun(text, traits: traits, destination: destination)]
         }
         let pattern = NSRegularExpression.escapedPattern(for: mathPrefix) + #"[0-9]+\uE001|==([^\n=]+)=="#

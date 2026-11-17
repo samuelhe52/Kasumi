@@ -58,6 +58,7 @@ enum DocumentParser {
         }
         let frontMatter = DocumentFrontMatter.extract(source)
         let extensions = MarkdownExtensions(source: frontMatter.markdown)
+        let hasDisplayMath = extensions.math.values.contains { $0.display }
         let ast = Markdown.Document(parsing: extensions.markdown)
         var blocks: [DocumentBlock] = []
         func append(
@@ -80,8 +81,9 @@ enum DocumentParser {
                     level: heading.level)
             case let paragraph as Paragraph:
                 let runs = inline(paragraph, extensions: extensions, keepLineBreaks: keepLineBreaks)
-                let marker = paragraph.plainText.trimmingCharacters(in: .whitespacesAndNewlines)
-                if let math = extensions.math[marker], math.display {
+                let math = hasDisplayMath
+                    ? extensions.math[paragraph.plainText.trimmingCharacters(in: .whitespacesAndNewlines)] : nil
+                if let math, math.display {
                     append(node, kind: .math, runs: [InlineRun(math.text)])
                     blocks[blocks.count - 1].sourceLines = math.sourceLines
                 } else if runs.count == 1, runs[0].traits.contains(.image) {
