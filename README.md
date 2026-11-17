@@ -64,64 +64,43 @@ make run-device  # build and run on a connected iPhone or iPad
 
 ## Using the library
 
-KasumiMarkdown supports arm64 macOS 13, iOS 17 and iOS Simulator. Release tags use
-prebuilt Rust XCFrameworks. Development commits use local native builds: clone the
-repository, run `make native-local`, and add the checkout as a local Swift package.
-The first release has not yet been published. A tagged checkout can also use local
-binaries with `make native-local`; this changes its `Package.swift` locally. Run
-`make native-release` to select its published binaries again.
+Add KasumiMarkdown to your `Package.swift` dependencies:
+
+```swift
+.package(url: "https://github.com/OWNER/Kasumi.git", from: "VERSION")
+```
+
+Render a document into any `CGContext`:
 
 ```swift
 import KasumiMarkdown
 
 let document = MarkdownDocument(markdown: source)
-let style = RenderStyle()  // default preset and theme
-let rendered = RenderedDocument(document, width: 390, style: style)
+let rendered = RenderedDocument(document, width: 390, style: RenderStyle())
+rendered.draw(in: context, rect: visibleRect)
+```
 
-rendered.draw(in: context, rect: visibleRect)  // any CGContext
-let pdf = try DocumentExport.pdf(document, style: style)
+Export to PDF or PNG:
+
+```swift
+let pdf = try DocumentExport.pdf(document, style: RenderStyle())
 let png = try DocumentExport.png(rendered, scale: 2)
 ```
 
-`RenderedDocument` also answers hit-testing, selection rectangles, text search, outline positions and link lookups for one immutable layout. Presets and themes are public values that clients can define.
+Search the layout and look up links:
 
-Custom presets accept standard TOML through `TypographyPreset(id:name:toml:)`.
-Put overrides in `[profile]`, for example `hyphenation_language = "fr"` or
-`base_size = 18`. Malformed syntax and duplicate keys throw errors. Profile
-files use `[meta]` for their name and `[anchor]` for a saved factory snapshot;
-unrelated tables never contribute typography overrides. The reader currently
-offers built-in presets only.
+```swift
+let matches = rendered.ranges(matching: "typography")
+let url = rendered.link(at: tapPoint)
+```
 
-Automatic hyphenation uses a supported front-matter `lang:` tag, then a bounded
-stopword vote over prose, then US English. The result is cached when parsing and
-exposed as `MarkdownDocument.automaticHyphenationLanguage`; an explicit preset
-language takes precedence. English regional spelling is not guessed: use
-`en-GB` in front matter or `en-gb` in the profile for British patterns.
-
-`punct_strategy = "fold"` displays the eight ASCII marks `, . ; : ! ? ( )` as
-full-width punctuation near Han text; `"spacing"` keeps the original marks and
-adds ⅛ em on each adjoining non-whitespace side. The default is `"faithful"`.
-These display policies preserve original punctuation for library/reader copy,
-search and accessibility, and protect numbers, code, math, links and footnote
-markers. Paragraphs containing kana or Hangul stay literal. Han-only Japanese
-is ambiguous under this lightweight script heuristic. Both modes are available
-in the CLI as `--punct-strategy fold` or `--punct-strategy spacing`.
-
-Load a custom light/dark theme with `try DocumentThemePair(contentsOf: url)` or
-`try DocumentThemePair(json: data)`, then pass its `.light` or `.dark` theme to
-`RenderStyle`. [CustomTheme.json](fixtures/CustomTheme.json) shows the version-1
-format: `schema_version`, `id`, `name`, and `light`/`dark` palettes containing
-optional `document`, `chrome`, and `syntax` color maps. Colors use `#RRGGBB` or
-`#RRGGBBAA`; the bundled RGBA/system-color forms are also accepted. Omitted
-document colors inherit Classic for the chosen appearance. Files are limited
-to 4 MiB; loading does not change the built-in catalog.
-
-The `KasumiRender` command renders a file without launching the app:
+Or render a file from the command line:
 
 ```sh
 swift run KasumiRender fixtures/Rendering.md out.png 800 --preset serif --theme mono-light
-swift run KasumiRender fixtures/Rendering.md out.png 800 --theme-file fixtures/CustomTheme.json --dark
 ```
+
+See the [library guide](docs/library.md) for installation details, custom presets and themes, language and punctuation options, and the command-line renderer.
 
 ## Origins
 
