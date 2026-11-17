@@ -162,7 +162,121 @@ import Testing
         }
     }
 
-    @Test func textBlocksFallbackAndSnapshotExportsPreserveExactOutput() async throws {
+    @Test func mixedViewportFreezesInputsAndKeepsTablesAndAttachmentsExact() async throws {
+        let body = source.components(separatedBy: "\n\n")
+        let mixed = #"""
+            ## Mixed content
+
+            | Long header first | Long header second | Formula/picture |
+            | --- | --- | --- |
+            | A long cell with words and 中文 text wrapping inside the column. | Another long cell with words and 中文 text. | $x+1$ |
+            | More wrapping text in the first column. | More wrapping text in the second column. | ![tiny](images/tiny.png) |
+
+            Inline formula $\frac{1}{3}$ in a paragraph.
+
+            ![wide](images/wide%20sample.png)
+
+            $$
+            x^2+1
+            $$
+
+            ```mermaid
+            graph LR
+            A[Start] --> B[End]
+            ```
+            """#
+        let document = MarkdownDocument(
+            markdown: (Array(body.prefix(40)) + [mixed] + Array(body.suffix(40))).joined(separator: "\n\n"),
+            baseURL: testRepositoryURL.appendingPathComponent("fixtures"))
+        let preparation = ReflowPreparation()
+        var retained: [DocumentLayout] = []
+        var previousObjects = Set<ObjectIdentifier>()
+        var imageWidths: [CGFloat] = []
+        for width: CGFloat in [400, 800, 320] {
+            let full = RenderedDocument(document, width: width, style: style, scrollableTables: true)
+            let anchor = try #require(full.readingAnchor(forAnchor: "mixed-content"))
+            let request = ViewportLayoutRequest(height: 800, anchor: anchor)
+            let layout = DocumentTypesetter.viewportLayout(
+                document.parsed, width: width, style: style.typography, insets: style.insets,
+                scrollableTables: true, preparation: preparation, request: request)
+            let storageObjects = attachmentIdentities(layout.text)
+            let paragraphObjects = layout.paragraphs.reduce(into: Set<ObjectIdentifier>()) {
+                $0.formUnion(attachmentIdentities($1.paragraph.attributed))
+            }
+            #expect(storageObjects.count >= 6 && storageObjects == paragraphObjects)
+            #expect(storageObjects.isDisjoint(with: previousObjects))
+            previousObjects.formUnion(storageObjects)
+            #expect(layout.textMap == DocumentTextMap(layout.text))
+            for item in layout.paragraphs
+            where item.tableIndex != nil || !attachmentIdentities(item.paragraph.attributed).isEmpty {
+                #expect(item.paragraph.estimate == nil)
+            }
+            imageWidths.append(try #require(layout.imageBounds.map(\.width).max()))
+            retained.append(layout)
+            let partial = RenderedDocument(
+                document, width: width, style: style, scrollableTables: true, preparation: preparation,
+                viewport: request)
+            #expect(partial.hasEstimatedGeometry)
+            #expect(partial.paragraphStatistics.measured < partial.paragraphStatistics.total / 2)
+            #expect(partial.text(in: partial.documentRange) == full.text(in: full.documentRange))
+            let y = try #require(partial.y(for: anchor))
+            let referenceY = try #require(full.y(for: anchor))
+            #expect(!partial.needsLayout(in: CGRect(x: 0, y: y, width: width, height: 500)))
+            let actual = try pixels(partial, top: y)
+            let expected = try pixels(full, top: referenceY)
+            #expect(actual == expected)
+            let table = try #require(partial.tables.first)
+            let reference = try #require(full.tables.first)
+            #expect(table.contentWidth == reference.contentWidth && table.frame.width == reference.frame.width)
+            #expect(abs(table.frame.height - reference.frame.height) < 0.000_001)
+            for x in [CGFloat(0), max(0, table.contentWidth - 200)] {
+                let region = CGRect(x: x, y: 0, width: 200, height: min(200, table.frame.height.rounded(.down)))
+                let a = try tablePixels(partial, rect: region)
+                let b = try tablePixels(full, rect: region)
+                #expect(a == b)
+            }
+            for query in ["wide", "x^2+1", "graph LR"] {
+                let match = try #require(full.ranges(matching: query).first)
+                let target = try #require(full.readingAnchor(at: match.lowerBound))
+                let revealed = RenderedDocument(
+                    document, width: width, style: style, scrollableTables: true, preparation: preparation,
+                    viewport: ViewportLayoutRequest(height: 500, anchor: target))
+                let actualY = try #require(revealed.y(for: target))
+                let expectedY = try #require(full.y(for: target))
+                #expect(!revealed.needsLayout(in: CGRect(x: 0, y: actualY, width: width, height: 500)))
+                let actual = try pixels(revealed, top: actualY)
+                let expected = try pixels(full, top: expectedY)
+                #expect(actual == expected)
+            }
+        }
+        #expect(imageWidths[1] > imageWidths[0] && imageWidths[0] > imageWidths[2])
+        #expect(retained.count == 3)
+    }
+
+    @Test func linkedParagraphDefersItsUnadornedLines() async throws {
+        let words = String(repeating: "普通中文 text before and after the link. ", count: 30)
+        let document = MarkdownDocument(markdown: words + "[agp linked](https://example.com) " + words)
+        let session = DocumentReflowSession(document, style: style)
+        for width: CGFloat in [400, 600] {
+            let lazy = await session.render(width: width)
+            let eager = RenderedDocument(document, width: width, style: style)
+            let initial = lazy.fragmentStatistics
+            #expect(initial.materialized > 0 && initial.materialized < initial.total / 4)
+            let actual = try pixels(lazy, top: 0)
+            let expected = try pixels(eager, top: 0)
+            #expect(actual == expected)
+            #expect(lazy.fragmentStatistics.materialized < initial.total)
+            let match = try #require(lazy.ranges(matching: "agp linked").first)
+            let reference = try #require(eager.ranges(matching: "agp linked").first)
+            let rect = try #require(lazy.selectionRects(for: match).first)
+            let linkedPixels = try pixels(lazy, top: max(0, rect.minY - 100))
+            let referencePixels = try pixels(eager, top: max(0, rect.minY - 100))
+            #expect(linkedPixels == referencePixels)
+            #expect(lazy.selectionRects(for: match) == eager.selectionRects(for: reference))
+        }
+    }
+
+    @Test func textBlocksAndMixedAttachmentsPreserveExactVisibleOutput() async throws {
         let blocks = """
             # Heading
 
@@ -216,9 +330,14 @@ import Testing
         ] {
             let doc = MarkdownDocument(markdown: source + "\n\n" + attachment)
             let result = await DocumentReflowSession(doc, style: style).render(width: 400, viewportHeight: 500)
-            #expect(!result.hasEstimatedGeometry)
+            #expect(result.hasEstimatedGeometry)
+            #expect(result.paragraphStatistics.measured < result.paragraphStatistics.total / 2)
+            #expect(!result.needsLayout(in: CGRect(x: 0, y: 0, width: 400, height: 500)))
             let exact = RenderedDocument(doc, width: 400, style: style)
-            #expect(result.size == exact.size)
+            #expect(result.text(in: result.documentRange) == exact.text(in: exact.documentRange))
+            let visible = try pixels(result, top: 0)
+            let reference = try pixels(exact, top: 0)
+            #expect(visible == reference)
         }
         let giant = MarkdownDocument(markdown: String(repeating: "中文 English text ", count: 200))
         let single = await DocumentReflowSession(giant, style: style).render(width: 400, viewportHeight: 500)
@@ -243,5 +362,30 @@ import Testing
         let source = try #require(CGImageSourceCreateWithData(data as CFData, nil))
         let image = try #require(CGImageSourceCreateImageAtIndex(source, 0, nil))
         return try #require(image.dataProvider?.data) as Data
+    }
+
+    private func attachmentIdentities(_ attributed: NSAttributedString) -> Set<ObjectIdentifier> {
+        var objects = Set<ObjectIdentifier>()
+        for key in [NSAttributedString.Key.kasumiMath, .kasumiImage, .kasumiDiagram] {
+            attributed.enumerateAttribute(key, in: NSRange(location: 0, length: attributed.length)) { value, _, _ in
+                if let value { objects.insert(ObjectIdentifier(value as AnyObject)) }
+            }
+        }
+        return objects
+    }
+
+    private func tablePixels(_ document: RenderedDocument, rect: CGRect) throws -> Data {
+        let width = Int(rect.width * 2)
+        let height = Int(rect.height * 2)
+        let context = try #require(
+            CGContext(
+                data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: width * 4,
+                space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+        context.scaleBy(x: 2, y: 2)
+        context.translateBy(x: 0, y: rect.height)
+        context.scaleBy(x: 1, y: -1)
+        context.translateBy(x: -rect.minX, y: -rect.minY)
+        document.drawTable(at: 0, in: context, rect: rect)
+        return Data(bytes: try #require(context.data), count: context.bytesPerRow * context.height)
     }
 }

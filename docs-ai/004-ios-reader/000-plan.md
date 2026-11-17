@@ -86,3 +86,4 @@ paste consent prompt on a device (`make run-device`).
   semantic anchors, and non-scrolling Find remaps — see [006-live-reflow.md](006-live-reflow.md).
 - Updated 2026-11-17: Rebase anchors on installed content revisions and track keyboard-driven Find scrolling — see [007-reflow-anchor-lifecycle.md](007-reflow-anchor-lifecycle.md).
 - Updated 2026-11-17: Refine viewport snapshots on scrolling and semantic navigation, preserving same-content selection — see [002.009](../002-rendering-engine/009-viewport-layout.md).
+- Updated 2026-11-17: Preserve horizontal table scroll ownership and offsets across mixed-content refinement — see [002.011](../002-rendering-engine/011-mixed-viewport-coverage.md).

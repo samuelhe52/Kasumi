@@ -43,24 +43,28 @@ that fixes it; add one when a limitation is found and not fixed.
   height estimates for offscreen paragraphs. Scroll/navigation requests refine
   immutable snapshots while preserving a semantic anchor. Text metadata still
   scales with document length, and one huge paragraph still breaks in full.
-  Documents with tables or attachments currently fall back to exact full layout.
+  Mixed documents retain viewport layout for surrounding text. Table cells and
+  attachment-bearing paragraphs/blocks stay exact, even offscreen; a large table
+  or giant attachment paragraph can still dominate construction.
   Resize requests are coalesced by the reader. `DocumentReflowSession` retains
   attributed text and measured input, paragraph items, and semantic metadata
   between widths; active break candidates accumulate totals rather than
   rescanning each line. Plain paragraphs
   skip decoration processing after preparation finds no candidates. Image/math
   paragraphs bypass preparation reuse to preserve width-dependent attachments
-  and independent Core Text ownership. Session-prepared undecorated paragraphs
-  materialize fragment drawing/caret data per accessed line under the snapshot
-  lock. Session-prepared paragraphs without underline candidates also reuse
+  and independent Core Text ownership. Session-prepared paragraphs materialize
+  fragment drawing/caret data per accessed line under the snapshot lock. Underline
+  construction touches genuinely decorated lines while other lines stay lazy.
+  Session-prepared measured paragraphs also reuse
   immutable source-range font/color/glyph/position values through a synchronized
   cache; CTLine/CTRun/CTTypesetter ownership remains snapshot-local. Cold misses
-  and unsupported paint still need extraction/fallback. Decorated/unprepared
+  and unsupported paint still need extraction/fallback. Unprepared attachment
   paragraphs remain eager. Exact line breaking and
   logical CTLines build only for measured paragraphs in viewport mode. First-use
   painting incurs materialization, and old snapshot disposal and active Find can
   add UI-thread cost. See
   [reflow preparation](006-reflow-preparation.md), [metadata reuse](007-reflow-metadata.md),
   [lazy fragments](008-lazy-fragments.md), [viewport layout](009-viewport-layout.md),
-  [glyph paint reuse](010-glyph-paint-reuse.md), [live reflow](../004-ios-reader/006-live-reflow.md)
+  [glyph paint reuse](010-glyph-paint-reuse.md), [live reflow](../004-ios-reader/006-live-reflow.md),
+  [mixed coverage](011-mixed-viewport-coverage.md),
   and [reader anchor lifecycle](../004-ios-reader/007-reflow-anchor-lifecycle.md).

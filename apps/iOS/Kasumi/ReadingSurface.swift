@@ -233,6 +233,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
                     }
                     let rect = self.visibleRect(in: next, restoring: self.reflowAnchor.value)
                     let scale = max(1, self.traitCollection.displayScale)
+                    let tableOffsets = self.installedRevision == revision ? self.page?.tableOffsets ?? [:] : [:]
                     // Prepaint only the viewport, off-main, before publishing.
                     // Painting and layout share one worker slot, even during drag.
                     let painter = Task.detached(priority: .userInitiated) {
@@ -240,7 +241,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
                             "ViewportPaint", id: Self.signposter.makeSignpostID())
                         defer { Self.signposter.endInterval("ViewportPaint", interval) }
                         try Task.checkCancellation()
-                        let image = ReaderPageView.preview(next, rect: rect, scale: scale)
+                        let image = ReaderPageView.preview(next, rect: rect, scale: scale, tableOffsets: tableOffsets)
                         try Task.checkCancellation()
                         return image
                     }
@@ -288,6 +289,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         let selection = installedRevision == revision ? page?.selectionOffsets : nil
         let hadTextFocus = page?.isFirstResponder == true
         let sameContent = installedRevision == revision
+        let tableOffsets = sameContent ? page?.tableOffsets ?? [:] : [:]
         installedRevision = revision
         let animate = !UIAccessibility.isReduceMotionEnabled && window != nil
         let widthChanged = rendered?.size.width != next.size.width
@@ -297,12 +299,13 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         transitionOverlay?.removeFromSuperview()
         transitionOverlay = overlay
         let nextPage: ReaderPageView
-        if sameContent, !animateReplacement, !widthChanged, next.tables.isEmpty, let page {
+        if sameContent, !animateReplacement, !widthChanged, let page {
             page.refine(next, scale: max(1, traitCollection.displayScale), preview: preview, previewRect: previewRect)
             nextPage = page
         } else {
             nextPage = ReaderPageView(
-                rendered: next, scale: max(1, traitCollection.displayScale), preview: preview, previewRect: previewRect)
+                rendered: next, scale: max(1, traitCollection.displayScale), preview: preview, previewRect: previewRect,
+                tableOffsets: tableOffsets)
             content.addSubview(nextPage)
             page?.clearSelection()
             page?.removeFromSuperview()
@@ -443,7 +446,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
     }
 
     private func displayFindResults(_ matches: [TextRange], current: Int?, scroll: Bool) {
-        if let current, matches.indices.contains(current) {
+        if scroll, let current, matches.indices.contains(current) {
             page?.reveal(matches[current])
         }
         page?.highlight(matches: matches, current: current)
@@ -531,19 +534,24 @@ fileprivate final class ReaderPageView: ReaderTextInputView {
     private var tableScrollViews: [ReaderTableScrollView] = []
     private var seedLayer: CALayer?
     private var tileLayer: ReaderTileLayer?
-    init(rendered: RenderedDocument, scale: CGFloat, preview: ReaderPagePreview?, previewRect: CGRect) {
+    var tableOffsets: [Int: CGFloat] {
+        Dictionary(uniqueKeysWithValues: tableScrollViews.map { ($0.tableID, $0.contentOffset.x) })
+    }
+
+    init(
+        rendered: RenderedDocument, scale: CGFloat, preview: ReaderPagePreview?, previewRect: CGRect,
+        tableOffsets: [Int: CGFloat] = [:]
+    ) {
         super.init(rendered: rendered)
         layer.anchorPoint = .zero
         layer.position = .zero
         backgroundColor = UIColor(cgColor: rendered.backgroundColor)
         installDrawingLayers(scale: scale, preview: preview, previewRect: previewRect)
-        for table in rendered.tables where table.isScrollable {
-            let scroll = ReaderTableScrollView(
-                rendered: rendered, table: table, scale: scale, preview: preview?.tables[table.id])
-            scroll.onScroll = { [weak self] in self?.paintHighlights() }
-            scroll.onBeginDragging = { [weak self] in self?.clearSelection() }
-            tableScrollViews.append(scroll)
-            addSubview(scroll)
+        installTables(scale: scale, preview: preview)
+        for scroll in tableScrollViews {
+            let x = min(
+                max(0, tableOffsets[scroll.tableID] ?? 0), max(0, scroll.contentSize.width - scroll.bounds.width))
+            scroll.setContentOffset(CGPoint(x: x, y: 0), animated: false)
         }
         matchHighlights.fillColor = UIColor.systemYellow.withAlphaComponent(0.3).cgColor
         currentHighlight.fillColor = UIColor.systemOrange.withAlphaComponent(0.45).cgColor
@@ -557,6 +565,28 @@ fileprivate final class ReaderPageView: ReaderTextInputView {
     func refine(_ next: RenderedDocument, scale: CGFloat, preview: ReaderPagePreview?, previewRect: CGRect) {
         replaceRendered(next)
         installDrawingLayers(scale: scale, preview: preview, previewRect: previewRect)
+        installTables(scale: scale, preview: preview)
+    }
+
+    private func installTables(scale: CGFloat, preview: ReaderPagePreview?) {
+        var existing = Dictionary(uniqueKeysWithValues: tableScrollViews.map { ($0.tableID, $0) })
+        var next: [ReaderTableScrollView] = []
+        for table in rendered.tables where table.isScrollable {
+            let scroll: ReaderTableScrollView
+            if let retained = existing.removeValue(forKey: table.id) {
+                retained.refine(rendered: rendered, table: table, scale: scale, preview: preview?.tables[table.id])
+                scroll = retained
+            } else {
+                scroll = ReaderTableScrollView(
+                    rendered: rendered, table: table, scale: scale, preview: preview?.tables[table.id])
+                scroll.onScroll = { [weak self] in self?.paintHighlights() }
+                scroll.onBeginDragging = { [weak self] in self?.clearSelection() }
+                addSubview(scroll)
+            }
+            next.append(scroll)
+        }
+        for obsolete in existing.values { obsolete.removeFromSuperview() }
+        tableScrollViews = next
     }
 
     private func installDrawingLayers(scale: CGFloat, preview: ReaderPagePreview?, previewRect: CGRect) {
@@ -632,7 +662,9 @@ fileprivate final class ReaderPageView: ReaderTextInputView {
         scroll.setContentOffset(CGPoint(x: offset, y: 0), animated: false)
     }
 
-    nonisolated static func preview(_ rendered: RenderedDocument, rect: CGRect, scale: CGFloat) -> ReaderPagePreview? {
+    nonisolated static func preview(
+        _ rendered: RenderedDocument, rect: CGRect, scale: CGFloat, tableOffsets: [Int: CGFloat] = [:]
+    ) -> ReaderPagePreview? {
         guard !rect.isNull, !rect.isEmpty else { return nil }
         let format = UIGraphicsImageRendererFormat()
         format.scale = scale
@@ -645,7 +677,8 @@ fileprivate final class ReaderPageView: ReaderTextInputView {
         for table in rendered.tables where table.isScrollable {
             let visible = rect.intersection(table.frame)
             guard !visible.isNull, !visible.isEmpty else { continue }
-            let local = visible.offsetBy(dx: -table.frame.minX, dy: -table.frame.minY)
+            let x = min(max(0, tableOffsets[table.id] ?? 0), max(0, table.contentWidth - table.frame.width))
+            let local = visible.offsetBy(dx: x - table.frame.minX, dy: -table.frame.minY)
             let seed = UIGraphicsImageRenderer(size: local.size, format: format).image { context in
                 context.cgContext.translateBy(x: -local.minX, y: -local.minY)
                 rendered.drawTable(at: table.id, in: context.cgContext, rect: local)

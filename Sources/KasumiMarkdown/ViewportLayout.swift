@@ -9,8 +9,37 @@ struct ViewportLayoutRequest {
 /// snapshot. Repeated placement passes reuse them while estimate corrections
 /// reveal additional paragraphs above/below the anchor.
 final class ViewportConstruction {
+    private struct InputKey: Hashable {
+        let block: Int
+        let slot: Int
+    }
+    private enum Attachment {
+        case rendered(NSAttributedString)
+        case unavailable
+    }
     var selected = Set<Int>()
     var exact: [Int: ParagraphLayout] = [:]
+    var tableWidths: [Int: [CGFloat]] = [:]
+    private var inputs: [InputKey: NSAttributedString] = [:]
+    private var attachments: [Int: Attachment] = [:]
+
+    func attributed(block: Int, slot: Int, build: () -> NSAttributedString) -> NSAttributedString {
+        let key = InputKey(block: block, slot: slot)
+        if let value = inputs[key] { return value }
+        let value = build()
+        inputs[key] = value
+        return value
+    }
+
+    func attachment(block: Int, build: () -> NSAttributedString?) -> NSAttributedString? {
+        if let value = attachments[block] {
+            if case .rendered(let attributed) = value { return attributed }
+            return nil
+        }
+        let value = build()
+        attachments[block] = value.map(Attachment.rendered) ?? .unavailable
+        return value
+    }
 }
 
 extension DocumentTypesetter {
@@ -18,17 +47,6 @@ extension DocumentTypesetter {
         _ document: ParsedDocument, width: CGFloat, style: Typography, insets: DocumentInsets,
         scrollableTables: Bool, preparation: ReflowPreparation, request: ViewportLayoutRequest
     ) -> DocumentLayout {
-        // Tables have coupled cell widths/heights. Attachment dimensions depend
-        // on resources and measure. Keep those documents on the exact path.
-        let supported = document.blocks.allSatisfy { block in
-            block.kind != .table && block.kind != .image && block.kind != .math && block.kind != .diagram
-                && !block.runs.contains { !$0.traits.intersection([.image, .math]).isEmpty }
-        }
-        guard supported else {
-            return layout(
-                document, width: width, style: style, insets: insets, scrollableTables: scrollableTables,
-                preparation: preparation)
-        }
         let construction = ViewportConstruction()
         while true {
             let result = layout(

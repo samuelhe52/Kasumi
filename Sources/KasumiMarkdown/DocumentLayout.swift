@@ -137,6 +137,7 @@ enum DocumentTypesetter {
         paragraphValues[.autoRaggedMeasureEm] = .number(style.narrowMeasureEm)
         var preparationBlock = -1
         var preparationSlot = 0
+        var forceExactParagraphs = false
         func attributed(
             _ runs: [InlineRun], size: Double? = nil, heading: Bool = false, code: Bool = false,
             headingLevel: Int? = nil, imageMaxWidth: CGFloat? = nil
@@ -148,9 +149,31 @@ enum DocumentTypesetter {
                     runs, size: size, heading: heading, code: code, headingLevel: headingLevel,
                     baseURL: document.baseURL, imageMaxWidth: imageMaxWidth ?? measure)
             }
-            return preparation?.attributed(
-                block: preparationBlock, slot: slot, runs: runs, size: size, heading: heading, code: code,
-                level: headingLevel, build: build) ?? build()
+            func prepared() -> NSAttributedString {
+                preparation?.attributed(
+                    block: preparationBlock, slot: slot, runs: runs, size: size, heading: heading, code: code,
+                    level: headingLevel, build: build) ?? build()
+            }
+            if let viewport { return viewport.attributed(block: preparationBlock, slot: slot, build: prepared) }
+            return prepared()
+        }
+        func attachment(_ build: () -> NSAttributedString?) -> NSAttributedString? {
+            if let viewport { return viewport.attachment(block: preparationBlock, build: build) }
+            return build()
+        }
+        func diagram(_ block: DocumentBlock) -> NSAttributedString? {
+            attachment {
+                guard
+                    let scene = try? MermaidTypesetter.layout(
+                        block.text, size: 14, fontFamily: style.latinFamily, dark: style.dark,
+                        textStyle: .native(style),
+                        theme: style.documentTheme)
+                else { return nil }
+                return MermaidAttachment(
+                    source: block.text, scene: scene, fontSize: 14, fontFamily: style.latinFamily, dark: style.dark,
+                    maximumWidth: measure, renderScale: style.size / 16
+                ).attributed()
+            }
         }
         func place(
             _ attributed: NSAttributedString, x: CGFloat, y: CGFloat, width: CGFloat, size: CGFloat,
@@ -164,7 +187,9 @@ enum DocumentTypesetter {
             let paragraph: ParagraphLayout
             if let existing = viewport?.exact[index] {
                 paragraph = existing
-            } else if let viewport, !viewport.selected.contains(index), let preparation, let prepared {
+            } else if let viewport, !forceExactParagraphs, !viewport.selected.contains(index),
+                let preparation, let prepared
+            {
                 paragraph = ParagraphLayout(
                     attributed: prepared.attributed, lines: [],
                     height: preparation.height(
@@ -200,6 +225,7 @@ enum DocumentTypesetter {
         for (blockIndex, block) in document.blocks.enumerated() {
             preparationBlock = blockIndex
             preparationSlot = 0
+            forceExactParagraphs = [.table, .image, .math, .diagram].contains(block.kind)
             if block.kind == .heading {
                 let size = style.size * style.headingScale(block.level)
                 let fontSize = style.headingSize(block.level)
@@ -219,24 +245,19 @@ enum DocumentTypesetter {
                     attributed(block.runs), x: left, y: y, width: measure, size: style.size, alignment: .centered)
                 y += style.size * 0.65
             } else if block.kind == .math {
-                let math = MathAttachment(
-                    source: block.text, size: style.size, display: true, options: style.mathOptions)
+                let math = attachment {
+                    MathAttachment(source: block.text, size: style.size, display: true, options: style.mathOptions)
+                        .attributed(
+                            color: style.textColor, fallbackFont: style.font(size: style.size * 0.88, code: true))
+                }!
                 y += style.size * 0.5
                 y += place(
-                    math.attributed(
-                        color: style.textColor, fallbackFont: style.font(size: style.size * 0.88, code: true)), x: left,
+                    math, x: left,
                     y: y, width: measure, size: style.size, alignment: .centered)
                 y += style.size * 0.65
-            } else if block.kind == .diagram && style.mermaidEnabled,
-                let scene = try? MermaidTypesetter.layout(
-                    block.text, size: 14, fontFamily: style.latinFamily, dark: style.dark, textStyle: .native(style),
-                    theme: style.documentTheme)
-            {
-                let diagram = MermaidAttachment(
-                    source: block.text, scene: scene, fontSize: 14, fontFamily: style.latinFamily, dark: style.dark,
-                    maximumWidth: measure, renderScale: style.size / 16)
+            } else if block.kind == .diagram && style.mermaidEnabled, let diagram = diagram(block) {
                 y += style.size * 0.5
-                y += place(diagram.attributed(), x: left, y: y, width: measure, size: style.size, alignment: .centered)
+                y += place(diagram, x: left, y: y, width: measure, size: style.size, alignment: .centered)
                 y += style.size * 0.65
             } else if block.kind == .rule {
                 y += 12
@@ -252,9 +273,12 @@ enum DocumentTypesetter {
                 let cells = block.rows.enumerated().map { row, cells in
                     cells.map { attributed($0, heading: row == 0) }
                 }
-                let widths = TableColumns.widths(
-                    cells: cells, count: columns, measure: measure, em: style.size,
-                    padding: horizontalPadding, scrollable: scrollableTables)
+                let widths =
+                    viewport?.tableWidths[blockIndex]
+                    ?? TableColumns.widths(
+                        cells: cells, count: columns, measure: measure, em: style.size,
+                        padding: horizontalPadding, scrollable: scrollableTables)
+                viewport?.tableWidths[blockIndex] = widths
                 let tableWidth = widths.reduce(0, +)
                 let paragraphStart = paragraphs.count
                 let backgroundStart = backgrounds.count

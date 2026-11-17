@@ -25,7 +25,8 @@ public actor DocumentReflowSession {
     /// Measures paragraphs near the anchor, with overscan, and estimates offscreen
     /// heights. Text/search remain complete; offscreen geometry is approximate.
     /// Request another snapshot when `needsLayout(in:)` is true after scrolling.
-    /// Documents with tables or attachments currently use exact full layout.
+    /// Table cells and attachment-bearing paragraphs stay exact; their presence
+    /// does not force offscreen surrounding text into full layout.
     public func render(width: CGFloat, viewportHeight: CGFloat, anchor: ReadingAnchor? = nil) -> RenderedDocument {
         autoreleasepool {
             RenderedDocument(

@@ -359,6 +359,28 @@ import Testing
             let environment = ProcessInfo.processInfo.environment
             let repetitions = max(20, Int(environment["KASUMI_REFLOW_SAMPLES"] ?? "20") ?? 20)
             let viewportOnly = environment["KASUMI_REFLOW_VIEWPORT"] == "1"
+            let mixed = environment["KASUMI_REFLOW_MIXED"] == "1"
+            let mixedSuffix = """
+
+
+                | Feature | Value |
+                | --- | --- |
+                | Formula | $x+1$ |
+                | Picture | ![tiny](images/tiny.png) |
+
+                Inline formula $\\frac{1}{3}$ in a paragraph.
+
+                ![tiny](images/tiny.png)
+
+                $$
+                x^2+1
+                $$
+
+                ```mermaid
+                graph LR
+                A[Start] --> B[End]
+                ```
+                """
             let samples = [
                 (
                     "English",
@@ -373,8 +395,10 @@ import Testing
                     if let selected = environment["KASUMI_REFLOW_LANGUAGE"], selected != language { continue }
                     let paragraph = String(String(repeating: sentence, count: 500 / sentence.count + 1).prefix(500))
                     let doc = MarkdownDocument(
-                        markdown: Array(repeating: paragraph, count: count / 500).joined(separator: "\n\n"))
-                    let session = DocumentReflowSession(doc, style: style)
+                        markdown: Array(repeating: paragraph, count: count / 500).joined(separator: "\n\n")
+                            + (mixed ? mixedSuffix : ""),
+                        baseURL: mixed ? testRepositoryURL.appendingPathComponent("fixtures") : nil)
+                    let session = DocumentReflowSession(doc, style: style, scrollableTables: mixed)
                     var previous: RenderedDocument? = await session.render(width: 600)
                     let anchor = previous?.readingAnchor(atY: (previous?.size.height ?? 0) * 0.5)
                     var construction = [[Double]](repeating: [], count: 5)
@@ -426,7 +450,7 @@ import Testing
                         )
                     }
                     print(
-                        "REFLOW_SUMMARY \(language) chars=\(count) viewport=\(viewportOnly) n=\(repetitions * widths.count) construct=\(stats(construction.flatMap { $0 })) dispose=\(stats(disposal.flatMap { $0 })) draw=\(stats(painting.flatMap { $0 })) process-peak-rss-mib=\(rss)"
+                        "REFLOW_SUMMARY \(language) chars=\(count) viewport=\(viewportOnly) mixed=\(mixed) n=\(repetitions * widths.count) construct=\(stats(construction.flatMap { $0 })) dispose=\(stats(disposal.flatMap { $0 })) draw=\(stats(painting.flatMap { $0 })) process-peak-rss-mib=\(rss)"
                     )
                 }
             }

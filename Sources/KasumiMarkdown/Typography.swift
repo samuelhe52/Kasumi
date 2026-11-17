@@ -372,9 +372,8 @@ enum ParagraphTypesetter {
                 baseEm: baseEm, preparedInput: prepared.input,
                 preparedItems: prepared.items(
                     indent: Float(indent), options: profileValues.map(ParagraphProfileOptions.init(values:)) ?? .init()),
-                deferFragments: deferFragments && !prepared.hasDecorationCandidates,
-                glyphPaintCache: preparation != nil && !prepared.hasDecorationCandidates
-                    ? prepared.glyphPaintCache : nil)
+                deferFragments: deferFragments,
+                glyphPaintCache: preparation != nil ? prepared.glyphPaintCache : nil)
             return finish(paragraph)
         }
         var legacyAlignment = alignment

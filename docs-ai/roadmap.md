@@ -40,12 +40,14 @@ English and especially Chinese text. [Retained preparation and incremental
 break totals](002-rendering-engine/006-reflow-preparation.md) now reduce repeated
 work in the reader. [Semantic/item preparation and decoration filtering](002-rendering-engine/007-reflow-metadata.md)
 remove more repeated width-independent work. [Lazy fragments](002-rendering-engine/008-lazy-fragments.md)
-now defer offscreen drawing/caret objects in session-prepared undecorated paragraphs.
+now defer offscreen drawing/caret objects in session-prepared paragraphs; underline
+construction materializes the lines that need decoration geometry.
 [Viewport-first layout](002-rendering-engine/009-viewport-layout.md) now measures
 text paragraphs around the reading anchor with overscan, retaining indexed
 offscreen height estimates. Scrolling requests refined immutable snapshots.
-Documents containing tables or attachments still use exact full layout; very
-large single paragraphs still require whole-paragraph breaking.
+Mixed documents now keep surrounding text viewport-based while measuring table
+cells and attachments exactly; see [mixed coverage](002-rendering-engine/011-mixed-viewport-coverage.md).
+Very large tables/attachments and single paragraphs remain whole-layout costs.
 [Glyph paint reuse](002-rendering-engine/010-glyph-paint-reuse.md) now shares
 immutable source-range paint values across widths, reducing repeated extraction
 while keeping Core Text objects snapshot-local. Remaining work targets cold
