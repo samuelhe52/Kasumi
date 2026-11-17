@@ -13,12 +13,12 @@ import Testing
 
 @Test func themeResourcePreservesEveryBundledColor() throws {
     let expected = [
-        "mono-dark": "f7abcef16e94dc66306dd69a5355be5143fe3409b59dd595e32e26d7a206a864",
-        "mono-light": "aa2d3263246f4c51e6d962e6a32695928ab07e7ca916003afda45646fe736de3",
-        "one-dark": "c9f7b36788025ee9fe6eb6e92b6a35a2f266778612b643693ae385305377881c",
-        "one-light": "984c7fd8814ab31c5e9fe17c4b834c01ecfdf8d76ec62163ebb155d1a9dfdae6",
-        "solarized-dark": "09a21ad00752094348f76fdd3ec6159f373a6a2c2b12a5f1827eff75131a05d7",
-        "solarized-light": "b22967146a158c189c67125f5215db28df19aa91d9f5da8c88aa150cf159c5cc"
+        "mono-dark": "e1b149c289ecb5dc76f137c9202729e0531bad08a155959d1f26a0655f6ba254",
+        "mono-light": "bac9f4128dee77474fea2a1b49f836a6c8fcd343999aae6e720df6ccd28dbf3f",
+        "one-dark": "ac280c3d6cd82891c69351d38d51fbe2eaae5b980506b60bef9eb76e6106edd1",
+        "one-light": "e141c5d95be7fa981758091926716409e33d39b90cdab43493118b3c46831e21",
+        "solarized-dark": "c92a5a4edba1ddd405542f011540170a97fc1704506442e7c2124c470e84fc56",
+        "solarized-light": "52d39fd59adeb500c18e38ea2189a8294accf345becdb70c1479b749a3431bbf"
     ]
     let object = try #require(
         JSONSerialization.jsonObject(with: Data(contentsOf: DocumentThemeCatalog.resourceURL)) as? [String: Any])
@@ -39,7 +39,7 @@ import Testing
         let theme = DocumentThemeCatalog.theme(id: id, dark: false)
         #expect(theme.document.count == (id.hasPrefix("mono-") ? 46 : 45))
         #expect(theme.syntax.count == 5)
-        #expect(theme.chrome.count == 3)
+        #expect(theme.chrome.isEmpty)
         #expect(theme.dark == id.hasSuffix("-dark"))
         // Decoded model colors must preserve the original sRGB byte values.
         for section in ["document", "chrome", "syntax"] {

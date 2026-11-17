@@ -18,9 +18,7 @@ that fixes it; add one when a limitation is found and not fixed.
   containing kana/Hangul; Han-only Japanese is ambiguous under this script
   heuristic. Code, math, links, numeric separators and footnote markers stay literal.
 - Themes: custom theme files are library/CLI-only; the reader selects built-ins.
-  The chrome keys `column_divider`,
-  `sidebar_background` and `tab_active_background` are defined in bundled themes,
-  but no code reads them. On iOS, the Classic theme's system colors resolve to
+  On iOS, the Classic theme's system colors resolve to
   UIKit's semantic colors, so it differs slightly from macOS.
 - Code highlighting: explicit supported fence languages only; unlabeled/unknown
   blocks remain plain. Blocks above 256 KiB UTF-8, lines above 16 KiB excluding LF,
