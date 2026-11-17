@@ -140,6 +140,49 @@ fileprivate func mixedFontDrawingText() -> NSMutableAttributedString {
 }
 
 @Suite struct ParagraphDrawingTests {
+    @Test func linePaintSurvivesSharedCacheEviction() throws {
+        let storage = FragmentGlyphPaintCache.Storage()
+        let cache = FragmentGlyphPaintCache(storage: storage)
+        let text = NSMutableAttributedString(
+            string: "abc", attributes: [.font: PlatformFont.systemFont(ofSize: 14), .foregroundColor: PlatformColor.black])
+        text.addAttribute(.foregroundColor, value: PlatformColor.black.withAlphaComponent(0.5),
+                          range: NSRange(location: 2, length: 1))
+        let factory = ParagraphFragmentFactory(text, glyphPaintCache: cache)
+        let geometry = (0..<3).map {
+            FragmentGeometry(range: NSRange(location: $0, length: 1), x: CGFloat($0 * 10), width: 10,
+                             drawOffset: 0, capsuleLeft: 0, capsuleRight: 0)
+        }
+        let store = LineFragmentStore(factory: factory, geometry: geometry)
+        _ = store.value(at: 0)
+        let first = try #require(store.cachedGlyphPaint(at: 0))
+        let second = try #require(store.cachedGlyphPaint(at: 1))
+        let third = try #require(store.cachedGlyphPaint(at: 2))
+        if case .single(let a) = first.storage, case .single(let b) = second.storage,
+            case .single(let c) = third.storage {
+            #expect(a.color === b.color)
+            #expect(a.color != c.color && c.color.alpha == 0.5)
+        } else { Issue.record("Single-glyph paints were not compacted") }
+        storage.removeAll()
+        #expect(cache.cachedValue(for: geometry[0].range) == nil)
+        #expect(store.cachedGlyphPaint(at: 0) === first)
+        #expect(store.cachedGlyphPaint(at: 1) === second)
+        #expect(first.carets?.boundaries == [0, 1])
+        #expect(second.carets?.boundaries == [1, 2])
+    }
+
+    @Test func sharedGlyphStorageKeepsParagraphNamespacesIndependent() {
+        let storage = FragmentGlyphPaintCache.Storage()
+        let first = FragmentGlyphPaintCache(storage: storage)
+        let second = FragmentGlyphPaintCache(storage: storage)
+        let range = NSRange(location: 0, length: 1)
+        let paint = FragmentGlyphPaint(runs: [], leadingInset: 1, carets: nil)
+        #expect(first.value(for: range) { paint } === paint)
+        #expect(second.cachedValue(for: range) == nil)
+        #expect(second.value(for: range) { nil } == nil)
+        #expect(first.cachedValue(for: range) === paint)
+        #expect(second.value(for: range) { paint } == nil)
+    }
+
     @Test func reusedGlyphValuesKeepPixelsAndLayoutObjectsIndependent() throws {
         let text = NSMutableAttributedString(
             attributedString: Typography().attributed(
@@ -223,13 +266,13 @@ fileprivate func mixedFontDrawingText() -> NSMutableAttributedString {
             let paint = try #require(first.glyphPaint)
             #expect((paint.carets != nil) == (count == 63))
             let factory = ParagraphFragmentFactory(text, glyphPaintCache: cache)
-            let store = LineFragmentStore(factory: factory, ranges: [range])
-            let fragment = ShapedFragment(
-                .init(range: range, x: 0, width: 500, drawOffset: 0, capsuleLeft: 0, capsuleRight: 0),
-                store: store, index: 0)
+            let geometry = FragmentGeometry(
+                range: range, x: 0, width: 500, drawOffset: 0, capsuleLeft: 0, capsuleRight: 0)
+            let store = LineFragmentStore(factory: factory, geometry: [geometry])
+            let fragment = ShapedFragment(geometry, store: store, index: 0)
             let line = ShapedLine(
                 range: range, line: factory.textLine(range), origin: .zero, ascent: 12, descent: 3, width: 500,
-                fragments: [fragment])
+                fragments: .init([fragment]))
             let context = try #require(
                 CGContext(
                     data: nil, width: 600, height: 30, bitsPerComponent: 8, bytesPerRow: 0,

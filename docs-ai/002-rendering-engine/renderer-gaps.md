@@ -61,17 +61,32 @@ that fixes it; add one when a limitation is found and not fixed.
   interrupted warmup and documents outside the envelope can still outrun
   viewport refinement; this does not establish UIKit tile presentation behavior.
   Resize requests are coalesced by the reader. `DocumentReflowSession` retains
-  attributed text and measured input, paragraph items, and semantic metadata
-  between widths; active break candidates accumulate totals rather than
-  rescanning each line. Plain paragraphs
+  attributed text, measured input and semantic metadata between widths. Normal
+  sessions also retain paragraph items; optional idle preparation releases these
+  items after exact geometry becomes reusable, rebuilding them after a width
+  change when needed. Idle batches skip unused attributed-text assembly. Active
+  break candidates accumulate totals rather than rescanning each line. Plain paragraphs
   skip decoration processing after preparation finds no candidates. Image/math
   paragraphs bypass preparation reuse to preserve width-dependent attachments
   and independent Core Text ownership. Session-prepared paragraphs materialize
-  fragment CTLines per accessed line under the snapshot lock when needed. Underline
+  fragment CTLines on access under the snapshot lock, keeping only the last
+  fallback fragment per line. Line-local immutable paint references survive
+  shared-cache eviction, preserving fast revisits. Single-glyph paints and
+  endpoint-only carets use compact storage; paragraph factories share equal
+  resolved colors in bounded snapshot-local palettes. Deferred fragment wrappers
+  are projected from a shared immutable, tightly sized geometry array. Underline
   construction touches genuinely decorated lines while other lines stay lazy.
   Session-prepared measured paragraphs also reuse
   immutable source-range font/color/glyph/position and bounded natural caret
-  values through a synchronized cache. Width-dependent plain/decorated paragraph
+  values through a synchronized cache. Prepared paragraphs share a session-wide
+  cache with an 8 MB cost hint and 8,192 entry hint, using separate paragraph
+  namespaces; these hints exclude line-local paint and are not absolute process
+  bounds. The abandoned shared-cache-only prototype caused substantial return
+  latency regressions. [Compact preparation](017-compact-idle-preparation.md) now
+  restores return latency in the measured workloads, but first-traversal p99 is
+  still 0.6–2.2 ms higher. The standalone 200k engine peaks near 140 MB footprint;
+  the whole native Mac fast-check process peaks near 229 MB. iPhone memory and
+  frame presentation remain unmeasured. Width-dependent plain/decorated paragraph
   geometry and eligible table widths are also retained; hyphenated and legacy
   paragraphs keep their measurement path. CTLine/CTRun/CTTypesetter ownership
   remains snapshot-local. Cold misses
@@ -90,7 +105,7 @@ that fixes it; add one when a limitation is found and not fixed.
   [reflow preparation](006-reflow-preparation.md), [metadata reuse](007-reflow-metadata.md),
   [lazy fragments](008-lazy-fragments.md), [viewport layout](009-viewport-layout.md),
   [glyph paint reuse](010-glyph-paint-reuse.md), [paint-only reuse](013-paint-without-caret-materialization.md),
-  [incremental reflow](015-incremental-reflow.md), [idle preparation](016-fast-scroll-coverage.md),
+  [incremental reflow](015-incremental-reflow.md), [idle preparation](016-fast-scroll-coverage.md), [compact preparation](017-compact-idle-preparation.md),
   [live reflow](../004-ios-reader/006-live-reflow.md),
   [mixed coverage](011-mixed-viewport-coverage.md), [selection lookup](012-selection-range-indexing.md),
   [retained Find matches](../007-reader-interactions/003-retained-find-matches.md),

@@ -8,6 +8,7 @@ final class ParagraphFragmentFactory {
     private let source: NSString
     private let attributed: NSAttributedString
     private let glyphPaintCache: FragmentGlyphPaintCache?
+    private var palette: [CGColor] = []
 
     init(_ attributed: NSAttributedString, glyphPaintCache: FragmentGlyphPaintCache? = nil) {
         source = attributed.string as NSString
@@ -25,6 +26,12 @@ final class ParagraphFragmentFactory {
         glyphPaintCache?.cachedValue(for: range)
     }
 
+    private func canonicalColor(_ color: CGColor) -> CGColor {
+        if let existing = palette.first(where: { $0 == color }) { return existing }
+        if palette.count < 16 { palette.append(color) }
+        return color
+    }
+
     func materialize(_ range: NSRange) -> FragmentMaterialization {
         // Keep interior grapheme carets even when one measured cluster contains
         // a ligature. This is the same source-backed cut as the eager path.
@@ -37,7 +44,8 @@ final class ParagraphFragmentFactory {
         if range.length > 0 { boundaries.append(NSMaxRange(range)) }
         let line = textLine(range)
         let glyphPaint = glyphPaintCache?.value(for: range) {
-            ParagraphGlyphDrawing.prepare(line, attributed: attributed, boundaries: boundaries)
+            ParagraphGlyphDrawing.prepare(
+                line, attributed: attributed, boundaries: boundaries, canonicalColor: canonicalColor)
         }
         // Core Text adds contextual CJK/Latin spacing at fragment edges. The
         // engine already placed the fragment, so remove that leading inset.
@@ -60,32 +68,41 @@ struct FragmentMaterialization {
 
 /// Geometry stays immutable. The paint/caret cache changes only during
 /// single-threaded construction or under the owning snapshot's layoutLock.
-/// Stores hold source ranges, not fragments, avoiding a reference cycle.
+/// Stores share immutable geometry, not wrappers, avoiding a reference cycle.
 final class LineFragmentStore {
-    private var factory: ParagraphFragmentFactory?
-    private var ranges: [NSRange]
-    private var values: [FragmentMaterialization]?
+    private let factory: ParagraphFragmentFactory
+    private let geometry: [FragmentGeometry]
+    private var last: (index: Int, value: FragmentMaterialization)?
+    private var paintValues: [FragmentGlyphPaint?]?
 
-    init(factory: ParagraphFragmentFactory, ranges: [NSRange]) {
+    init(factory: ParagraphFragmentFactory, geometry: [FragmentGeometry]) {
         self.factory = factory
-        self.ranges = ranges
+        self.geometry = geometry
     }
 
-    var isMaterialized: Bool { values != nil }
+    var isMaterialized: Bool { last != nil || paintValues != nil }
+    func isMaterialized(at index: Int) -> Bool { last?.index == index || paintValues?[index] != nil }
 
     func cachedGlyphPaint(at index: Int) -> FragmentGlyphPaint? {
-        if let values { return values[index].glyphPaint }
-        return factory?.cachedGlyphPaint(ranges[index])
+        if let paintValues { return paintValues[index] }
+        if let last, last.index == index { return last.value.glyphPaint }
+        return factory.cachedGlyphPaint(geometry[index].range)
     }
 
     func value(at index: Int) -> FragmentMaterialization {
-        if let values { return values[index] }
-        guard let factory else { preconditionFailure("Unbuilt fragment store lost its factory") }
-        let built = ranges.map(factory.materialize)
-        values = built
-        self.factory = nil
-        ranges = []
-        return built[index]
+        if let last, last.index == index { return last.value }
+        if paintValues == nil {
+            // Extract a line together, as on the original deferred path. Keep
+            // compact immutable paint for fast revisits without retaining every
+            // fragment's Core Text layout objects or depending on NSCache hits.
+            let built = geometry.map { factory.materialize($0.range) }
+            paintValues = built.map(\.glyphPaint)
+            last = (index, built[index])
+            return built[index]
+        }
+        let built = factory.materialize(geometry[index].range)
+        last = (index, built)
+        return built
     }
 }
 

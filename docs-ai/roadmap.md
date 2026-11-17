@@ -62,7 +62,16 @@ also avoids redundant parsing and document-wide grapheme indexing. [Idle prepara
 bounded text/table/math documents after 200 ms of inactivity. Both reader hosts
 cancel on activity and retain progress; complete snapshots are reused at the
 same width. This covers jumps beyond overscan once preparation finishes, with
-additional retained geometry and memory. Documents outside the resource envelope,
+additional retained geometry and memory. [Compact preparation](002-rendering-engine/017-compact-idle-preparation.md)
+projects fragment wrappers from shared immutable geometry, releases reusable break
+items after measurement, and skips unused text assembly in idle batches. A shared
+session glyph-cache allowance and one fallback fragment per line also bound paint
+retention as more of the document is visited. The shared-cache-only prototype
+regressed return painting; line-local immutable paint retention and compact
+records now recover it in the measured workloads. First-traversal p99 remains
+0.6–2.2 ms higher, and the native Mac process peaks near 229 MB despite a roughly
+140 MB engine-only peak. Further work targets those costs and device validation. Shape input remains available for
+width changes, but break items may need rebuilding. Documents outside the resource envelope,
 and immediate jumps before readiness, still use viewport refinement. A very large
 visible table, resource-heavy block or individual paragraph can still dominate.
 See the earlier [mixed coverage](002-rendering-engine/011-mixed-viewport-coverage.md)

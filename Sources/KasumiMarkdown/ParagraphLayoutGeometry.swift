@@ -35,7 +35,7 @@ final class ParagraphLayoutGeometry {
         self.request = request
         lines = paragraph.lines.map {
             Line(range: $0.range, origin: $0.origin, ascent: $0.ascent, descent: $0.descent,
-                 width: $0.width, fragments: $0.fragments.map(\.geometry), adjustmentRatio: $0.adjustmentRatio)
+                 width: $0.width, fragments: $0.fragments.geometry, adjustmentRatio: $0.adjustmentRatio)
         }
         height = paragraph.height
         autoRagged = paragraph.autoRagged
@@ -46,10 +46,7 @@ final class ParagraphLayoutGeometry {
     func paragraph(_ preparation: ParagraphPreparation) -> ParagraphLayout {
         let factory = ParagraphFragmentFactory(preparation.attributed, glyphPaintCache: preparation.glyphPaintCache)
         let shaped = lines.map { line in
-            let store = LineFragmentStore(factory: factory, ranges: line.fragments.map(\.range))
-            let fragments = line.fragments.enumerated().map {
-                ShapedFragment($0.element, store: store, index: $0.offset)
-            }
+            let fragments = ShapedFragments(geometry: line.fragments, factory: factory)
             return ShapedLine(
                 range: line.range, factory: factory, origin: line.origin, ascent: line.ascent,
                 descent: line.descent, width: line.width, fragments: fragments, adjustmentRatio: line.adjustmentRatio)

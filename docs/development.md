@@ -153,3 +153,10 @@ same-binary control with idle preparation disabled. These commands require no
 simulator. The Mac harness shares renderer and scheduling code but uses AppKit
 and SDR bitmap painting; its results do not establish UIKit behavior or FPS.
 See `tools/ReflowLab/README.md` for the protocol and output boundaries.
+
+For memory comparisons, use fresh Release processes with identical document,
+width and viewport-paint lifetimes; record `/usr/bin/time -l` peak footprint and
+inspect a held `heap -s --sumObjectFields <pid>` separately. Also paint a full
+traversal: first-screen or preparation-only peaks miss retained paint growth.
+OS/font caches are not reset. Debug signing may be needed to attach Instruments
+to an ad hoc standalone probe; tracing overhead is excluded from timing results.

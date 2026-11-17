@@ -12,10 +12,14 @@ import CoreText
 enum ParagraphGlyphDrawing {
     /// Extract only the values that direct glyph drawing supports. Unsupported
     /// paint retains the original snapshot-local CTLine/CTRun fallback below.
-    static func prepare(_ text: CTLine, attributed: NSAttributedString, boundaries: [Int]) -> FragmentGlyphPaint? {
+    static func prepare(
+        _ text: CTLine, attributed: NSAttributedString, boundaries: [Int],
+        canonicalColor: (CGColor) -> CGColor = { $0 }
+    ) -> FragmentGlyphPaint? {
         var prepared: [FragmentGlyphPaint.Run] = []
         var inset: CGFloat = 0
-        for (index, run) in (CTLineGetGlyphRuns(text) as! [CTRun]).enumerated() {
+        let glyphRuns = CTLineGetGlyphRuns(text) as! [CTRun]
+        for (index, run) in glyphRuns.enumerated() {
             let values = CTRunGetAttributes(run) as NSDictionary
             let range = CTRunGetStringRange(run)
             let source =
@@ -29,10 +33,21 @@ enum ParagraphGlyphDrawing {
             guard let fontValue = values[kCTFontAttributeName] ?? values[NSAttributedString.Key.font.rawValue],
                 CFGetTypeID(fontValue as CFTypeRef) == CTFontGetTypeID()
             else { return nil }
-            let color =
+            let color = canonicalColor(
                 resolvedColor(source[.foregroundColor])
                 ?? resolvedColor(values[NSAttributedString.Key.foregroundColor.rawValue])
-                ?? resolvedColor(values[kCTForegroundColorAttributeName]) ?? CGColor(gray: 0, alpha: 1)
+                ?? resolvedColor(values[kCTForegroundColorAttributeName]) ?? CGColor(gray: 0, alpha: 1))
+            if glyphRuns.count == 1, count == 1 {
+                var glyph: CGGlyph = 0
+                var position = CGPoint.zero
+                CTRunGetGlyphs(run, CFRange(location: 0, length: 1), &glyph)
+                CTRunGetPositions(run, CFRange(location: 0, length: 1), &position)
+                inset = max(0, position.x)
+                return FragmentGlyphPaint(
+                    single: .init(font: fontValue as! CTFont, color: color, glyph: glyph, position: position),
+                    leadingInset: inset,
+                    carets: FragmentCaretGeometry(line: text, inset: inset, boundaries: boundaries))
+            }
             var glyphs = [CGGlyph](repeating: 0, count: count)
             var positions = [CGPoint](repeating: .zero, count: count)
             CTRunGetGlyphs(run, CFRange(location: 0, length: 0), &glyphs)
@@ -154,13 +169,22 @@ enum ParagraphGlyphDrawing {
             // unbounded caret work into UI highlight installation.
             if let prepared = cached?.carets != nil ? cached : fragment.materialized.glyphPaint {
                 let x = fragment.x + fragment.drawOffset - prepared.leadingInset
-                for run in prepared.runs {
-                    if let previous = batchFont, !CFEqual(previous, run.font) || batchColor != run.color { flush() }
-                    batchFont = run.font
-                    batchColor = run.color
-                    glyphs.append(contentsOf: run.glyphs)
-                    for position in run.positions {
-                        positions.append(CGPoint(x: position.x + x, y: position.y))
+                switch prepared.storage {
+                case .single(let glyph):
+                    if let previous = batchFont, !CFEqual(previous, glyph.font) || batchColor != glyph.color { flush() }
+                    batchFont = glyph.font
+                    batchColor = glyph.color
+                    glyphs.append(glyph.glyph)
+                    positions.append(CGPoint(x: glyph.position.x + x, y: glyph.position.y))
+                case .runs(let runs):
+                    for run in runs {
+                        if let previous = batchFont, !CFEqual(previous, run.font) || batchColor != run.color { flush() }
+                        batchFont = run.font
+                        batchColor = run.color
+                        glyphs.append(contentsOf: run.glyphs)
+                        for position in run.positions {
+                            positions.append(CGPoint(x: position.x + x, y: position.y))
+                        }
                     }
                 }
             } else {

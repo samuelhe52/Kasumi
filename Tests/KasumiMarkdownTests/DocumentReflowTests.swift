@@ -130,7 +130,10 @@ import Testing
         }
         let first = layout(400)
         let geometry = try #require(prepared.geometry)
+        #expect(prepared.itemBuilds == 1)
+        prepared.discardBreakItems()
         let next = layout(400)
+        #expect(prepared.itemBuilds == 1)
         #expect(prepared.geometry === geometry)
         #expect(first.lines.map(\.origin) == next.lines.map(\.origin))
         #expect(first.lines.map(\.width) == next.lines.map(\.width))
@@ -142,6 +145,7 @@ import Testing
         #expect(!b.fragments[0].isMaterialized)
         let changed = layout(400, spacing: 2)
         #expect(prepared.geometry !== geometry && changed.height != first.height)
+        #expect(prepared.itemBuilds == 2)
         let resized = layout(250)
         #expect(resized.lines.count > first.lines.count)
     }

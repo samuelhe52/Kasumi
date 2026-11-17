@@ -86,14 +86,17 @@ public actor DocumentReflowSession {
             let count = autoreleasepool {
                 let construction = ViewportConstruction()
                 construction.selected = Set(warmCursor..<(warmCursor + 8))
-                return DocumentTypesetter.layout(
+                let count = DocumentTypesetter.layout(
                     document.parsed, width: width, style: style.typography, insets: style.insets,
                     scrollableTables: scrollableTables, preparation: preparation, viewport: construction,
-                    buildSemanticContent: false).paragraphs.count
+                    buildSemanticContent: false, buildTextStorage: false).paragraphs.count
+                preparation.discardBreakItems(requiringGeometry: true)
+                return count
             }
             warmCursor += 8
             if warmCursor >= count {
                 warmSnapshot = render(width: width)
+                preparation.discardBreakItems(requiringGeometry: false)
                 break
             }
             await Task.yield()
@@ -125,11 +128,18 @@ final class ReflowPreparation {
     }
     private var attributes: [Key: Entry] = [:]
     private var paragraphs: [ObjectIdentifier: ParagraphPreparation] = [:]
+    private let glyphPaintStorage = FragmentGlyphPaintCache.Storage(countLimit: 8192, costLimit: 8 * 1024 * 1024)
     private var retained = Set<ObjectIdentifier>()
     private(set) var attributedBuilds = 0
     private(set) var shapedBuilds = 0
     private(set) var semanticBuilds = 0
     var shapedParagraphCount: Int { paragraphs.values.filter(\.didShape).count }
+
+    func discardBreakItems(requiringGeometry: Bool) {
+        for paragraph in paragraphs.values where !requiringGeometry || paragraph.geometry != nil {
+            paragraph.discardBreakItems()
+        }
+    }
     private var documentParagraphs: [ParagraphSemanticContent] = []
     private var documentSemantic: DocumentSemanticContent?
     private var placeholders: [Key: (runs: [InlineRun], value: NSAttributedString)] = [:]
@@ -230,7 +240,8 @@ final class ReflowPreparation {
         if let existing = paragraphs[id], existing.fontSize == fontSize, existing.verbatim == verbatim {
             return existing
         }
-        let value = ParagraphPreparation(attributed, fontSize: fontSize, verbatim: verbatim)
+        let value = ParagraphPreparation(
+            attributed, fontSize: fontSize, verbatim: verbatim, glyphPaintStorage: glyphPaintStorage)
         paragraphs[id] = value
         shapedBuilds += 1
         return value
@@ -257,7 +268,8 @@ final class ReflowPreparation {
 }
 
 final class ParagraphPreparation {
-    lazy var glyphPaintCache = FragmentGlyphPaintCache()
+    private let glyphPaintStorage: FragmentGlyphPaintCache.Storage?
+    lazy var glyphPaintCache = FragmentGlyphPaintCache(storage: glyphPaintStorage)
     let attributed: NSAttributedString
     let hasRTL: Bool
     let fontSize: CGFloat
@@ -275,6 +287,8 @@ final class ParagraphPreparation {
     private var cachedItems: (indent: Float, options: ParagraphProfileOptions, value: ParagraphEngine.Prepared)?
     private(set) var itemBuilds = 0
 
+    func discardBreakItems() { cachedItems = nil }
+
     func items(indent: Float, options: ParagraphProfileOptions) -> ParagraphEngine.Prepared? {
         guard let input else { return nil }
         if let cachedItems, cachedItems.indent == indent, cachedItems.options == options { return cachedItems.value }
@@ -285,7 +299,11 @@ final class ParagraphPreparation {
         return value
     }
 
-    init(_ source: NSAttributedString, fontSize: CGFloat, verbatim: Bool) {
+    init(
+        _ source: NSAttributedString, fontSize: CGFloat, verbatim: Bool,
+        glyphPaintStorage: FragmentGlyphPaintCache.Storage? = nil
+    ) {
+        self.glyphPaintStorage = glyphPaintStorage
         self.fontSize = fontSize
         self.verbatim = verbatim
         attributed = TextUnderline.normalized(source)

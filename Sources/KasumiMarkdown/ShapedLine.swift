@@ -46,7 +46,7 @@ struct ShapedFragment {
     var isMaterialized: Bool {
         switch paintSource {
         case .eager: return true
-        case .deferred(let store, _): return store.isMaterialized
+        case .deferred(let store, let index): return store.isMaterialized(at: index)
         }
     }
     var line: CTLine { materialized.line }
@@ -84,6 +84,44 @@ enum SourceBoundaryAffinity {
     case precedingFragment
 }
 
+/// Deferred lines share immutable geometry, while each snapshot owns its store.
+/// Projecting a wrapper on access avoids retaining one large wrapper per glyph.
+struct ShapedFragments: RandomAccessCollection {
+    private enum Storage {
+        case eager([ShapedFragment])
+        case deferred([FragmentGeometry], LineFragmentStore)
+    }
+    private let storage: Storage
+
+    init(_ fragments: [ShapedFragment]) { storage = .eager(fragments) }
+    init(geometry: [FragmentGeometry], factory: ParagraphFragmentFactory) {
+        storage = .deferred(geometry, LineFragmentStore(factory: factory, geometry: geometry))
+    }
+
+    var startIndex: Int { 0 }
+    var endIndex: Int {
+        switch storage {
+        case .eager(let fragments): return fragments.count
+        case .deferred(let geometry, _): return geometry.count
+        }
+    }
+    func index(after index: Int) -> Int { index + 1 }
+    func index(before index: Int) -> Int { index - 1 }
+    subscript(index: Int) -> ShapedFragment {
+        switch storage {
+        case .eager(let fragments): return fragments[index]
+        case .deferred(let geometry, let store): return ShapedFragment(geometry[index], store: store, index: index)
+        }
+    }
+
+    var geometry: [FragmentGeometry] {
+        switch storage {
+        case .eager(let fragments): return fragments.map(\.geometry)
+        case .deferred(let geometry, _): return geometry
+        }
+    }
+}
+
 struct ShapedLine {
     let range: NSRange
     /// Logical source line. Fragment geometry below governs native paragraph
@@ -94,13 +132,13 @@ struct ShapedLine {
     let ascent: CGFloat
     let descent: CGFloat
     let width: CGFloat
-    var fragments: [ShapedFragment] = []
+    let fragments: ShapedFragments
     var hyphen: ShapedHyphen? = nil
     var adjustmentRatio: Float = 0
 
     init(
         range: NSRange, line: CTLine, origin: CGPoint, ascent: CGFloat, descent: CGFloat, width: CGFloat,
-        fragments: [ShapedFragment] = [], hyphen: ShapedHyphen? = nil, adjustmentRatio: Float = 0
+        fragments: ShapedFragments = .init([]), hyphen: ShapedHyphen? = nil, adjustmentRatio: Float = 0
     ) {
         self.range = range
         logical = LogicalLine(line: line)
@@ -115,7 +153,7 @@ struct ShapedLine {
 
     init(
         range: NSRange, factory: ParagraphFragmentFactory, origin: CGPoint, ascent: CGFloat, descent: CGFloat,
-        width: CGFloat, fragments: [ShapedFragment], adjustmentRatio: Float
+        width: CGFloat, fragments: ShapedFragments, adjustmentRatio: Float
     ) {
         self.range = range
         logical = LogicalLine(factory: factory, range: range)

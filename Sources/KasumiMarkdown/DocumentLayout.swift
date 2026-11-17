@@ -74,10 +74,11 @@ enum DocumentTypesetter {
     static func layout(
         _ document: ParsedDocument, width: CGFloat, style: Typography, insets: DocumentInsets = .reader,
         scrollableTables: Bool = false, preparation: ReflowPreparation? = nil, viewport: ViewportConstruction? = nil,
-        buildSemanticContent: Bool = true
+        buildSemanticContent: Bool = true, buildTextStorage: Bool = true
     )
         -> DocumentLayout
     {
+        precondition(buildTextStorage || !buildSemanticContent)
         let available = max(20, width - insets.left - insets.right)
         let measure = style.limitWidth ? min(available, style.widthLimit) : available
         let left = insets.left + (available - measure) / 2
@@ -123,6 +124,7 @@ enum DocumentTypesetter {
         }
         var y = insets.top
         let storage = NSMutableAttributedString(string: "")
+        var storageLength = 0
         var paragraphs: [PlacedText] = []
         var backgrounds: [PaintedRect] = []
         var rules: [PaintedRule] = []
@@ -185,9 +187,12 @@ enum DocumentTypesetter {
             _ attributed: NSAttributedString, x: CGFloat, y: CGFloat, width: CGFloat, size: CGFloat,
             alignment: ParagraphAlignment, indent: CGFloat = 0, verbatim: Bool = false
         ) -> CGFloat {
-            let offset = storage.length
-            storage.append(attributed)
-            storage.append(NSAttributedString(string: "\n"))
+            let offset = storageLength
+            storageLength += attributed.length + 1
+            if buildTextStorage {
+                storage.append(attributed)
+                storage.append(NSAttributedString(string: "\n"))
+            }
             let prepared = preparation?.paragraph(attributed, fontSize: size, verbatim: verbatim)
             let index = paragraphs.count
             let paragraph: ParagraphLayout
