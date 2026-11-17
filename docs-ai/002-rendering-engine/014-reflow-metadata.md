@@ -1,4 +1,4 @@
-# 002.007 — Reuse reflow metadata and skip absent decorations
+# 002.014 — Reuse reflow metadata and skip absent decorations
 
 ## Context and intended change (2026-11-17)
 
@@ -133,4 +133,4 @@ viewport-height estimation, active Find work and explicit retirement ownership
 remain separate follow-ups. No interactive frame-rate or on-device smoothness
 claim is established.
 
-The following slice implements [lazy fragment materialization](008-lazy-fragments.md).
+The following slice implements [lazy fragment materialization](015-lazy-fragments.md).

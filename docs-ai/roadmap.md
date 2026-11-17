@@ -44,25 +44,25 @@ layout/viewport-paint pipeline and coalesced pending widths. See
 refresh paragraph keys after content revisions and track explicit clamped scrolling.
 Mac reproduction confirms that whole-document reflow still stalls on longer
 English and especially Chinese text. [Retained preparation and incremental
-break totals](002-rendering-engine/006-reflow-preparation.md) now reduce repeated
-work in the reader. [Semantic/item preparation and decoration filtering](002-rendering-engine/007-reflow-metadata.md)
-remove more repeated width-independent work. [Lazy fragments](002-rendering-engine/008-lazy-fragments.md)
+break totals](002-rendering-engine/013-reflow-preparation.md) now reduce repeated
+work in the reader. [Semantic/item preparation and decoration filtering](002-rendering-engine/014-reflow-metadata.md)
+remove more repeated width-independent work. [Lazy fragments](002-rendering-engine/015-lazy-fragments.md)
 now defer offscreen drawing/caret objects in session-prepared paragraphs; underline
 construction materializes the lines that need decoration geometry.
-[Viewport-first layout](002-rendering-engine/009-viewport-layout.md) now measures
+[Viewport-first layout](002-rendering-engine/016-viewport-layout.md) now measures
 text paragraphs around the reading anchor with overscan, retaining indexed
 offscreen height estimates. Scrolling requests refined immutable snapshots.
-[Incremental reflow](002-rendering-engine/015-incremental-reflow.md) now defers
+[Incremental reflow](002-rendering-engine/022-incremental-reflow.md) now defers
 eligible offscreen text, tables and formulas using semantic placeholders. Nearby
 tables refine as a unit; resource-dependent images and diagram fallbacks remain
 exact. Immutable paragraph geometry and table widths are reused, while Core Text
 objects remain snapshot-local. Publication checks current viewport coverage when
 the anchor moves, and one screen of overscan buffers scrolling. Cold preparation
-also avoids redundant parsing and document-wide grapheme indexing. [Idle preparation](002-rendering-engine/016-fast-scroll-coverage.md) now completes
+also avoids redundant parsing and document-wide grapheme indexing. [Idle preparation](002-rendering-engine/023-fast-scroll-coverage.md) now completes
 bounded text/table/math documents after 200 ms of inactivity. Both reader hosts
 cancel on activity and retain progress; complete snapshots are reused at the
 same width. This covers jumps beyond overscan once preparation finishes, with
-additional retained geometry and memory. [Compact preparation](002-rendering-engine/017-compact-idle-preparation.md)
+additional retained geometry and memory. [Compact preparation](002-rendering-engine/024-compact-idle-preparation.md)
 projects fragment wrappers from shared immutable geometry, releases reusable break
 items after measurement, and skips unused text assembly in idle batches. A shared
 session glyph-cache allowance and one fallback fragment per line also bound paint
@@ -74,13 +74,13 @@ records now recover it in the measured workloads. First-traversal p99 remains
 width changes, but break items may need rebuilding. Documents outside the resource envelope,
 and immediate jumps before readiness, still use viewport refinement. A very large
 visible table, resource-heavy block or individual paragraph can still dominate.
-See the earlier [mixed coverage](002-rendering-engine/011-mixed-viewport-coverage.md)
+See the earlier [mixed coverage](002-rendering-engine/018-mixed-viewport-coverage.md)
 record for the preceding exact-attachment policy.
-[Glyph paint reuse](002-rendering-engine/010-glyph-paint-reuse.md) now shares
+[Glyph paint reuse](002-rendering-engine/017-glyph-paint-reuse.md) now shares
 immutable source-range paint values across widths, reducing repeated extraction
-while keeping Core Text objects snapshot-local. [Paint-only cache hits](002-rendering-engine/013-paint-without-caret-materialization.md)
+while keeping Core Text objects snapshot-local. [Paint-only cache hits](002-rendering-engine/020-paint-without-caret-materialization.md)
 also skip fragment CTLine construction and reuse bounded natural caret geometry
-for interaction; cold, long-fragment and unsupported paint retain the existing path. [Selection lookup](002-rendering-engine/012-selection-range-indexing.md)
+for interaction; cold, long-fragment and unsupported paint retain the existing path. [Selection lookup](002-rendering-engine/019-selection-range-indexing.md)
 now seeks into overlapping source intervals when Find requests highlight geometry.
 [Reader Find matching](007-reader-interactions/003-retained-find-matches.md) now
 retains semantic offsets and word boundaries across unchanged text, recreating

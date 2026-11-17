@@ -1,4 +1,4 @@
-# 002.006 — Reflow preparation and break selection
+# 002.013 — Reflow preparation and break selection
 
 ## Context and intended changes (2026-11-17)
 
@@ -128,4 +128,4 @@ Viewport-first block measurement with indexed estimated heights remains the next
 architectural step. Interactive smoothness, memory peaks, and on-device behavior
 were not measured. This slice does not establish parity with another app.
 
-The next exact optimization slice is recorded in [007 — metadata reuse](007-reflow-metadata.md).
+The next exact optimization slice is recorded in [014 — metadata reuse](014-reflow-metadata.md).

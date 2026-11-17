@@ -1,4 +1,4 @@
-# 002.013 — Reuse glyph and caret values without fragment CTLines
+# 002.020 — Reuse glyph and caret values without fragment CTLines
 
 ## Context and intended change (2026-11-17)
 

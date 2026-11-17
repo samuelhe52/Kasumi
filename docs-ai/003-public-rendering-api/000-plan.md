@@ -43,12 +43,12 @@ Public types (`d44143f`, `377d584`):
 `DocumentReflowSession` adds a document/style-scoped actor that reuses
 width-independent preparation while returning ordinary immutable snapshots.
 Clients recreate the session when fonts or external resources change. See
-[reflow preparation](../002-rendering-engine/006-reflow-preparation.md).
+[reflow preparation](../002-rendering-engine/013-reflow-preparation.md).
 Its opt-in viewport overload measures nearby paragraphs and estimates offscreen
 geometry. `hasEstimatedGeometry` and `needsLayout(in:)` expose that distinction;
 clients request another snapshot when scrolling into unmeasured content. Semantic
 text stays complete. The default constructor and full-session overload remain
-exact. See [viewport layout](../002-rendering-engine/009-viewport-layout.md).
+exact. See [viewport layout](../002-rendering-engine/016-viewport-layout.md).
 
 Everything else in `Sources/KasumiMarkdown/` is internal. Font roles resolve
 through fallback chains. `Tests/KasumiMarkdownTests/PublicAPITests.swift` covers
@@ -76,6 +76,6 @@ simulator through `make test-ios FILTER=PublicAPITests`.
 
 ## Amendments
 
-- Updated 2026-11-17: Added document-scoped reflow sessions — see [002.006](../002-rendering-engine/006-reflow-preparation.md).
-- Updated 2026-11-17: Added opt-in viewport snapshots and coverage/semantic navigation queries — see [002.009](../002-rendering-engine/009-viewport-layout.md).
+- Updated 2026-11-17: Added document-scoped reflow sessions — see [002.013](../002-rendering-engine/013-reflow-preparation.md).
+- Updated 2026-11-17: Added opt-in viewport snapshots and coverage/semantic navigation queries — see [002.016](../002-rendering-engine/016-viewport-layout.md).
 - Updated 2026-11-17: Added a metadata-only conservative vertical text-range query for viewport clients — see [007.004](../007-reader-interactions/004-viewport-find-highlights.md).

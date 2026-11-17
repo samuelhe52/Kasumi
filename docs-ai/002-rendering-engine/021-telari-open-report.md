@@ -1,4 +1,4 @@
-# 002.014 — Telari first-screen diagnostic
+# 002.021 — Telari first-screen diagnostic
 
 Telari 0.6.3 includes a built-in diagnostic:
 

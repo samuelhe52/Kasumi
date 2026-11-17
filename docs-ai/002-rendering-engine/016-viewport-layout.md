@@ -1,4 +1,4 @@
-# 002.009 — Viewport-first paragraph layout
+# 002.016 — Viewport-first paragraph layout
 
 ## Context and intended change (2026-11-17)
 

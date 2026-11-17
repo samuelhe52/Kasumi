@@ -1,4 +1,4 @@
-# 002.008 — Defer offscreen fragment materialization
+# 002.015 — Defer offscreen fragment materialization
 
 ## Context and intended change (2026-11-17)
 
@@ -88,7 +88,7 @@ Implemented on `perf/live-text-reflow` on 2026-11-17.
 
 ## Mac measurement
 
-The same Release harness as [007](007-reflow-metadata.md): Apple M1 Pro,
+The same Release harness as [014](014-reflow-metadata.md): Apple M1 Pro,
 macOS 27.2.1; 500-character paragraphs, fixed 16 pt text, no width cap, widths
 800/500/400/700/440 pt, 20 samples per width, 100 per language/size. The baseline
 was captured on `c5342a5` before renderer edits. Construction, 2x middle-of-document

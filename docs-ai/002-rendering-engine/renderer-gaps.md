@@ -82,7 +82,7 @@ that fixes it; add one when a limitation is found and not fixed.
   cache with an 8 MB cost hint and 8,192 entry hint, using separate paragraph
   namespaces; these hints exclude line-local paint and are not absolute process
   bounds. The abandoned shared-cache-only prototype caused substantial return
-  latency regressions. [Compact preparation](017-compact-idle-preparation.md) now
+  latency regressions. [Compact preparation](024-compact-idle-preparation.md) now
   restores return latency in the measured workloads, but first-traversal p99 is
   still 0.6–2.2 ms higher. The standalone 200k engine peaks near 140 MB footprint;
   the whole native Mac fast-check process peaks near 229 MB. iPhone memory and
@@ -102,12 +102,12 @@ that fixes it; add one when a limitation is found and not fixed.
   around an overscanned viewport. A conservative envelope can include extra table
   candidates, and a giant match still requests broad selection geometry. Direct `ranges(matching:)` calls
   perform full text search. Old snapshot disposal can also add UI-thread cost. See
-  [reflow preparation](006-reflow-preparation.md), [metadata reuse](007-reflow-metadata.md),
-  [lazy fragments](008-lazy-fragments.md), [viewport layout](009-viewport-layout.md),
-  [glyph paint reuse](010-glyph-paint-reuse.md), [paint-only reuse](013-paint-without-caret-materialization.md),
-  [incremental reflow](015-incremental-reflow.md), [idle preparation](016-fast-scroll-coverage.md), [compact preparation](017-compact-idle-preparation.md),
+  [reflow preparation](013-reflow-preparation.md), [metadata reuse](014-reflow-metadata.md),
+  [lazy fragments](015-lazy-fragments.md), [viewport layout](016-viewport-layout.md),
+  [glyph paint reuse](017-glyph-paint-reuse.md), [paint-only reuse](020-paint-without-caret-materialization.md),
+  [incremental reflow](022-incremental-reflow.md), [idle preparation](023-fast-scroll-coverage.md), [compact preparation](024-compact-idle-preparation.md),
   [live reflow](../004-ios-reader/006-live-reflow.md),
-  [mixed coverage](011-mixed-viewport-coverage.md), [selection lookup](012-selection-range-indexing.md),
+  [mixed coverage](018-mixed-viewport-coverage.md), [selection lookup](019-selection-range-indexing.md),
   [retained Find matches](../007-reader-interactions/003-retained-find-matches.md),
   [viewport highlights](../007-reader-interactions/004-viewport-find-highlights.md),
   and [reader anchor lifecycle](../004-ios-reader/007-reflow-anchor-lifecycle.md).

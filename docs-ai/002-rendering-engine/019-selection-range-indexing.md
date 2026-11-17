@@ -1,4 +1,4 @@
-# 002.012 — Bound selection lookup to overlapping text
+# 002.019 — Bound selection lookup to overlapping text
 
 ## Context and intended change (2026-11-17)
 

@@ -1,4 +1,4 @@
-# 002.017 — Compact idle preparation and paint retention
+# 002.024 — Compact idle preparation and paint retention
 
 ## Origin and plan
 
@@ -136,7 +136,7 @@ at 20/29 ms and median warm width changes at 6/11 ms for 50k/200k. Parsing measu
   local and are not project build/test dependencies.
 
 The eligibility envelope, first/cold-jump and single-large-block limits from
-[016](016-fast-scroll-coverage.md) remain. Width changes may rebuild released
+[023](023-fast-scroll-coverage.md) remain. Width changes may rebuild released
 items. The implementation is complete. Remaining performance work is
 first-traversal paint overhead and native-app peak memory, rather than restoring
 the abandoned cache-eviction policy.

@@ -1,4 +1,4 @@
-# 002.011 — Extend viewport layout to mixed content
+# 002.018 — Extend viewport layout to mixed content
 
 ## Context and intended change (2026-11-17)
 

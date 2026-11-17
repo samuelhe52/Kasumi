@@ -1,4 +1,4 @@
-# 002.010 — Reuse source-range glyph paint values
+# 002.017 — Reuse source-range glyph paint values
 
 ## Context and intended change (2026-11-17)
 
@@ -97,7 +97,7 @@ these numbers do not isolate a single extraction/rasterization cost.
 
 ## Follow-up
 
-[Paint-only reuse](013-paint-without-caret-materialization.md) lets warm immutable
+[Paint-only reuse](020-paint-without-caret-materialization.md) lets warm immutable
 value hits draw without constructing snapshot-local fragment CTLines or caret
 records. Bounded natural caret geometry also stays reusable. Snapshot-local
 CTLines remain independently built for misses, unsupported or long fragments,

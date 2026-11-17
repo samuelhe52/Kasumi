@@ -127,7 +127,7 @@ break-candidate span scans without changing typography, and introduce viewport
 measurement with indexed estimated heights. Serializing full-document builds
 alone does not make latency independent of document length. No renderer
 optimization was applied during that investigation. The subsequent
-[renderer follow-up](../002-rendering-engine/006-reflow-preparation.md) implements
+[renderer follow-up](../002-rendering-engine/013-reflow-preparation.md) implements
 retained preparation and incremental break totals; viewport measurement remains
 outstanding. No interactive frame-rate claim is established. Local profiling artifacts and external comparison tools
 remain outside the repository.
