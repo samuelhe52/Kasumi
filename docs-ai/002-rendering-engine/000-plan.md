@@ -91,3 +91,6 @@ Library tests pass on macOS and the iOS simulator, including comparisons against
 - Updated 2026-11-17: Expose dictionary selection, retain Liang mixed-case matching,
   and remove unsupported subscript-shift customization; see
   [002.009](009-hyphenation-and-defaults.md).
+
+- Updated 2026-11-17: Repeat enabled PDF code captions with reserved page space;
+  see [002.010](010-pdf-code-continuations.md).

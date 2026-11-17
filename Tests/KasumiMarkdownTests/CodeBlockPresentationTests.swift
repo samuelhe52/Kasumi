@@ -1,6 +1,7 @@
 import CoreGraphics
 import CoreText
 import Foundation
+import PDFKit
 import Testing
 
 @testable import KasumiMarkdown
@@ -156,5 +157,38 @@ import Testing
         #expect(pages.allSatisfy { abs($0.scale - 1) < 0.001 })
         #expect(!pages.contains { $0.range.upperBound > code.block.frame.minY && $0.range.upperBound < firstBottom })
         #expect(pages.last!.range.upperBound >= code.block.frame.maxY)
+        #expect(pages.dropFirst().contains { $0.continuationHeader != nil })
+        for page in pages {
+            let headerHeight = page.continuationHeader.map { $0.upperBound - $0.lowerBound } ?? 0
+            #expect((page.range.upperBound - page.range.lowerBound + headerHeight) * page.scale <= code.block.frame.minY + 48 + 0.001)
+        }
+    }
+
+    @Test func pdfContinuationCaptionsPreserveEveryLineOnShortAndNormalPages() throws {
+        let lines = (0..<35).map { String(format: "item_%03d", $0) }
+        let source = "Before.\n\n```rust\n" + lines.joined(separator: "\n") + "\n```\n\n```python\nlast_marker\n```\n\nAfter."
+        let document = MarkdownDocument(markdown: source)
+        let style = RenderStyle(codeBlockStyle: ReaderCodeBlockStyle.exporting)
+        for height: CGFloat in [50, 100, 200] {
+            let data = try DocumentExport.pdf(document, style: style, pageSize: CGSize(width: 250, height: height), margins: .zero)
+            let pdf = try #require(PDFDocument(data: data))
+            var text = ""
+            for index in 0..<pdf.pageCount {
+                let page = try #require(pdf.page(at: index))
+                let content = page.string ?? ""
+                text += content + "\n"
+                if content.contains("item_") {
+                    #expect(content.components(separatedBy: "Rust").count == 2)
+                    let caption = try #require(pdf.findString("Rust", withOptions: []).first { $0.pages.contains(page) }?.bounds(for: page))
+                    let firstMarker = lines.first { content.contains($0) }!
+                    let code = try #require(pdf.findString(firstMarker, withOptions: []).first { $0.pages.contains(page) }?.bounds(for: page))
+                    #expect(caption.minY >= code.maxY - 0.1, "Caption and code must not overlap")
+                }
+            }
+            for line in lines + ["Before.", "After.", "last_marker"] {
+                #expect(text.components(separatedBy: line).count == 2, "Every source line appears exactly once: \(line)")
+            }
+            #expect(text.components(separatedBy: "Python").count == 2)
+        }
     }
 }

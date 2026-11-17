@@ -60,7 +60,8 @@ Run the narrowest filter: `make test FILTER=<name>` for package tests and
   `RENDER_ARGS='800 --theme one-light --code-caption --code-radius 10'` or
   `'360 --theme one-dark --code-caption --code-radius 10'` for wrapping. Omitting
   the code options verifies the library's caption-free, square defaults.
-  These checks need no simulator. Use `make syntax-notices` to regenerate grammar
+  Enabled captions repeat on PDF continuation pages with space reserved before
+  packing code lines. These checks need no simulator. Use `make syntax-notices` to regenerate grammar
   notices from the pinned crate; registry/grammar provenance lives in
   `packages/NativeSyntax/Notices/`. See
   [002.006](../docs-ai/002-rendering-engine/006-syntax-highlighting.md).

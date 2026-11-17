@@ -300,11 +300,23 @@ enum DocumentExporter {
                 context.setFillColor(style.paperColor.cgColor)
                 context.fill(mediaBox)
                 context.saveGState()
-                let occupiedHeight = min(contentHeight, (page.range.upperBound - page.range.lowerBound) * page.scale)
+                let continuationHeight = page.continuationHeader.map { $0.upperBound - $0.lowerBound } ?? 0
+                let occupiedHeight = min(contentHeight, (continuationHeight + page.range.upperBound - page.range.lowerBound) * page.scale)
                 context.clip(
                     to: CGRect(x: m.left, y: m.top + headerHeight, width: contentWidth, height: occupiedHeight))
                 context.translateBy(x: m.left + contentWidth * (1 - page.scale) / 2, y: m.top + headerHeight)
                 context.scaleBy(x: page.scale, y: page.scale)
+                if let header = page.continuationHeader {
+                    context.saveGState()
+                    context.clip(to: CGRect(x: 0, y: 0, width: contentWidth, height: continuationHeight))
+                    context.translateBy(x: 0, y: -header.lowerBound)
+                    DocumentTypesetter.draw(layout, in: context, sourceRange: header)
+                    context.restoreGState()
+                }
+                context.clip(to: CGRect(
+                    x: 0, y: continuationHeight, width: contentWidth,
+                    height: page.range.upperBound - page.range.lowerBound))
+                context.translateBy(x: 0, y: continuationHeight)
                 context.translateBy(x: 0, y: -page.range.lowerBound)
                 DocumentTypesetter.draw(layout, in: context, sourceRange: page.range)
                 context.restoreGState()

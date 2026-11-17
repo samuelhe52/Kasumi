@@ -50,7 +50,9 @@ Retained after milestone closure; not prerequisites for starting Reader 2:
   language captions, and Copy controls are implemented;
   [002.007](002-rendering-engine/007-code-block-presentation.md). Rendering-style
   configuration and reader/control separation are implemented;
-  [002.008](002-rendering-engine/008-code-block-style-boundary.md).
+  [002.008](002-rendering-engine/008-code-block-style-boundary.md). Enabled PDF
+  captions repeat on continuation pages;
+  [002.010](002-rendering-engine/010-pdf-code-continuations.md).
 
 - Ready-made UIKit/AppKit views and SwiftUI wrappers, extracted from the reader
   once its views settle ([003](003-public-rendering-api/000-plan.md)).

@@ -90,6 +90,6 @@ On macOS 27.2.1 arm64; no simulator/device launched or driven:
 ## Remaining limits
 
 Native taps, clipboard writes, feedback timing, scrolling from a control, and
-VoiceOver remain unverified at runtime under the no-simulator constraint. Captions
-are not repeated on continuation pages of long PDF code blocks. Syntax coverage
+VoiceOver remain unverified at runtime under the no-simulator constraint. Enabled captions are now repeated on PDF continuation pages; see
+[002.010](010-pdf-code-continuations.md). Syntax coverage
 and size fallbacks remain as recorded in [002.006](006-syntax-highlighting.md).
