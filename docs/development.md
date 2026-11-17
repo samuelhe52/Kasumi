@@ -148,6 +148,14 @@ Run the narrowest filter: `make test FILTER=<name>` for package tests and
   reader size or preset changes at a scrolled position. Cards must not move during
   selection. See [005.002](../docs-ai/005-cjk-font-availability/002-font-management-transitions.md).
 
+- **PDF links and diagrams.** Use the PDF link annotation and Mermaid export
+  tests in `Tests/KasumiMarkdownTests/` for page and hit geometry. In the
+  simulator, tap a linked node, long-press its label, and open the exported
+  PDF in Preview to check an internal destination.
+- **Missing glyphs.** The missing-glyph test uses U+10FFFF. In the reader
+  a hollow square should appear and Find should still match the original
+  character. The PDF text layer contains the square.
+
 ## Third-party notices
 
 Run `make licenses` after a native or Swift dependency version, a bundled font, or

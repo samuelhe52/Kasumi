@@ -22,6 +22,7 @@ enum MermaidEntities {
         var kind: Kind
         var nodes: [Node] = []
         var edges: [Edge] = []
+        var links: [String: String] = [:]
     }
     struct Metrics {
         var size: CGSize
@@ -220,6 +221,7 @@ enum MermaidEntities {
                 }
             }
         }
+        var links: [MermaidNodeLink] = []
         for (index, node) in graph.nodes.enumerated() {
             guard let rect = layout.nodes[node.id]?.rect else { continue }
             let metric = metrics[index]
@@ -235,6 +237,10 @@ enum MermaidEntities {
                                 x: rect.midX - measured.width / 2, y: y - measured.height / 2, width: measured.width,
                                 height: measured.height), role: text == node.title ? 8 : 6))
                     y += measured.height
+                }
+                if let target = graph.links[node.id] {
+                    links.append(.init(path: CGPath(rect: rect, transform: nil), target: target,
+                        labelCommands: (commands.count - 1)..<commands.count))
                 }
                 y = rect.minY + metric.header + 24
                 for text in node.fields {
@@ -319,7 +325,7 @@ enum MermaidEntities {
                 }
             }
         }
-        return MermaidScene(bounds: bounds, commands: commands, theme: theme)
+        return MermaidScene(bounds: bounds, commands: commands, theme: theme, links: links)
     }
 
     private static func point(on points: [CGPoint], distance: CGFloat) -> CGPoint? {
@@ -497,6 +503,20 @@ enum MermaidEntities {
                     graph.nodes[index].rows.append(row)
                 }
                 continue
+            }
+            if graph.kind == .classes {
+                if text.hasPrefix("click "),
+                    let (id, target) = MermaidNodeLink.parse(text.dropFirst(6), requiresHref: true)
+                {
+                    if MermaidNodeLink.isSafeTarget(target) { graph.links[id] = target }
+                    continue
+                }
+                if text.hasPrefix("link "),
+                    let (id, target) = MermaidNodeLink.parse(text.dropFirst(5))
+                {
+                    if MermaidNodeLink.isSafeTarget(target) { graph.links[id] = target }
+                    continue
+                }
             }
             if ["direction ", "namespace ", "note ", "style ", "classDef ", "cssClass "].contains(where: text.hasPrefix)
                 || text.contains("[")

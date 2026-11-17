@@ -69,6 +69,7 @@ struct DocumentLayout {
     var tables: [RenderedTable] = []
     var codeBlocks: [CodeBlockLayout] = []
     var semanticContent: DocumentSemanticContent? = nil
+    var diagrams: [Int: PlacedDiagram] = [:]
 }
 
 enum DocumentTypesetter {
@@ -142,6 +143,7 @@ enum DocumentTypesetter {
         var paginationGroups: [Range<CGFloat>] = []
         var tables: [RenderedTable] = []
         var codeBlocks: [CodeBlockLayout] = []
+        var diagrams: [Int: PlacedDiagram] = [:]
         var paragraphValues = style.profileValues
         paragraphValues[.hangingPunctuation] = .flag(style.hangingPunctuation)
         paragraphValues[.autoRaggedNarrow] = .flag(style.narrowMeasureRagged)
@@ -165,12 +167,12 @@ enum DocumentTypesetter {
                 // Color inside the cached build: ReflowPreparation reuses shaping by
                 // the identity of the string it retains, so coloring afterwards
                 // would miss that cache on every reflow.
-                CodeSyntax.applying(
+                MissingGlyphFallback.applying(to: CodeSyntax.applying(
                     syntax,
                     to: style.attributed(
                         runs, size: size, heading: heading, code: code, headingLevel: headingLevel,
                         baseURL: document.baseURL, imageMaxWidth: imageMaxWidth ?? measure),
-                    theme: theme)
+                    theme: theme))
             }
             func prepared() -> NSAttributedString {
                 preparation?.attributed(
@@ -243,6 +245,10 @@ enum DocumentTypesetter {
                     guard let diagram = value as? MermaidAttachment else { return }
                     let top = y + line.origin.y - diagram.size.height
                     paginationGroups.append(top..<(top + diagram.size.height))
+                    let left = x + line.origin.x + line.offset(forStringIndex: range.location)
+                    diagrams[index] = PlacedDiagram(
+                        attachment: diagram, topLeft: CGPoint(x: left, y: top),
+                        renderedOffset: offset + range.location)
                 }
             }
             return paragraph.height
@@ -288,9 +294,10 @@ enum DocumentTypesetter {
                 let math = deferBlock
                     ? preparation!.placeholder(block: blockIndex, slot: 0, runs: block.runs)
                     : attachment {
-                    MathAttachment(source: block.text, size: style.size, display: true, options: style.mathOptions)
-                        .attributed(
-                            color: style.textColor, fallbackFont: style.font(size: style.size * 0.88, code: true))
+                    MissingGlyphFallback.applying(to:
+                        MathAttachment(source: block.text, size: style.size, display: true, options: style.mathOptions)
+                            .attributed(
+                                color: style.textColor, fallbackFont: style.font(size: style.size * 0.88, code: true)))
                 }!
                 y += style.size * 0.5
                 y += place(
@@ -543,7 +550,7 @@ enum DocumentTypesetter {
             textMap: textMap,
             paragraphs: paragraphs, backgrounds: backgrounds, rules: rules, headingPositions: headings,
             anchorPositions: anchors, imageBounds: imageBounds, paginationGroups: paginationGroups, tables: tables,
-            codeBlocks: codeBlocks, semanticContent: semantic)
+            codeBlocks: codeBlocks, semanticContent: semantic, diagrams: diagrams)
     }
 
     static func anchorSlug(_ text: String) -> String {
@@ -555,7 +562,7 @@ enum DocumentTypesetter {
     /// Draw in a top-left, downward-positive graphics coordinate space.
     static func draw(
         _ layout: DocumentLayout, in context: CGContext, sourceRange: Range<CGFloat>? = nil,
-        excludingScrollableTables: Bool = false, tableIndex: Int? = nil
+        excludingScrollableTables: Bool = false, tableIndex: Int? = nil, pdfLinks: PDFLinkAnnotations? = nil
     ) {
         func include(_ index: Int?) -> Bool {
             if let tableIndex { return index == tableIndex }
@@ -601,7 +608,7 @@ enum DocumentTypesetter {
             context.addLine(to: rule.end)
             context.strokePath()
         }
-        for item in layout.paragraphs where include(item.tableIndex) {
+        for (index, item) in layout.paragraphs.enumerated() where include(item.tableIndex) {
             context.saveGState()
             defer { context.restoreGState() }
             clipTable(item.tableIndex)
@@ -619,6 +626,22 @@ enum DocumentTypesetter {
                     height: line.ascent + line.descent
                 ).insetBy(dx: -max(4, line.ascent), dy: -4)
                 guard ink.intersects(clip) else { continue }
+                if let pdfLinks {
+                    if let diagram = layout.diagrams[index] {
+                        for link in diagram.linkRects {
+                            pdfLinks.write(link.target, rect: link.rect, clip: clip, in: context)
+                        }
+                    }
+                    let attributed = item.paragraph.attributed
+                    attributed.enumerateAttribute(.link, in: line.range) { value, range, _ in
+                        guard let value else { return }
+                        for rect in line.linkRects(for: range, in: attributed) {
+                            pdfLinks.write(
+                                value, rect: rect.offsetBy(dx: item.origin.x + line.origin.x, dy: item.origin.y + line.origin.y),
+                                clip: clip, in: context)
+                        }
+                    }
+                }
                 context.saveGState()
                 context.translateBy(x: item.origin.x + line.origin.x, y: item.origin.y + line.origin.y)
                 context.scaleBy(x: 1, y: -1)

@@ -59,7 +59,7 @@ struct MermaidTextStyle {
                 offset += count
             }
         }
-        return string
+        return MissingGlyphFallback.applying(to: string)
     }
     func measure(_ text: String, role: Int) -> CGSize {
         let line = CTLineCreateWithAttributedString(attributed(text, role: role, color: CGColor(gray: 0, alpha: 1)))
@@ -72,19 +72,42 @@ struct MermaidTextStyle {
         let minimum: CGFloat = native ? ((role == 7 || role == 9 || role == 16) ? 21 : 0) : size
         return CGSize(width: max(0, width), height: max(minimum, natural))
     }
-    func draw(_ text: String, in rect: CGRect, role: Int, color: CGColor, context: CGContext) {
-        let line = CTLineCreateWithAttributedString(attributed(text, role: role, color: color))
+    struct PositionedLine {
+        let line: CTLine
+        let bounds: CGRect
+        let baseline: CGFloat
+        let textMap: DocumentTextMap?
+    }
+
+    func positionedLine(_ text: String, in rect: CGRect, role: Int, color: CGColor) -> PositionedLine {
+        let styled = attributed(text, role: role, color: color)
+        let line = CTLineCreateWithAttributedString(styled)
         var ascent: CGFloat = 0
         var descent: CGFloat = 0
         var leading: CGFloat = 0
         _ = CTLineGetTypographicBounds(line, &ascent, &descent, &leading)
         let extra = native ? max(0, rect.height - ascent - descent - leading) / 2 : 0
+        return PositionedLine(
+            line: line, bounds: CGRect(x: rect.minX, y: rect.minY + extra, width: rect.width, height: ascent + descent),
+            baseline: rect.minY + extra + ascent, textMap: styled.string == text ? nil : DocumentTextMap(styled))
+    }
+
+    func draw(_ text: String, in rect: CGRect, role: Int, color: CGColor, linked: Bool, context: CGContext) {
+        let positioned = positionedLine(text, in: rect, role: role, color: color)
         context.saveGState()
-        context.translateBy(x: rect.minX, y: rect.minY + ascent + extra)
+        context.translateBy(x: rect.minX, y: positioned.baseline)
         context.scaleBy(x: 1, y: -1)
         context.textMatrix = .identity
         context.textPosition = .zero
-        CTLineDraw(line, context)
+        CTLineDraw(positioned.line, context)
+        if linked {
+            let em = pointSize(role)
+            let depth = max(em * 0.185, positioned.bounds.maxY - positioned.baseline)
+            let thickness = max(0.5, em * 0.07)
+            context.setAlpha(0.4)
+            context.setFillColor(color)
+            context.fill(CGRect(x: 0, y: -depth - thickness, width: rect.width, height: thickness))
+        }
         context.restoreGState()
     }
 }

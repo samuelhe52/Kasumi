@@ -128,7 +128,7 @@ func nativeFlowGeometry(_ name: String) throws {
     }
 }
 
-@Test func mermaidDiagnosticsAndRenderingModePreserveSource() throws {
+@Test func mermaidDiagnosticsAndRenderingModeExposeLabelsOrSource() throws {
     #expect(throws: MermaidError.syntax(line: 2)) {
         try MermaidTypesetter.layout("graph LR\nA[", size: 16, fontFamily: "Helvetica", dark: false)
     }
@@ -144,7 +144,7 @@ func nativeFlowGeometry(_ name: String) throws {
     var style = Typography()
     let layout = DocumentTypesetter.layout(doc, width: 400, style: style)
     #expect(layout.text.string.contains("\u{FFFC}"))
-    #expect(layout.textMap.string.contains(source))
+    #expect(layout.textMap.string == "Find this\nFinish\n")
     #expect(layout.textMap.matches("Find this").count == 1)
     #expect(layout.paginationGroups.count == 1)
     style.mermaidEnabled = false

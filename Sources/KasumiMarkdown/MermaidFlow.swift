@@ -24,6 +24,7 @@ enum MermaidFlow {
     struct Graph {
         var nodes: [Node] = [], edges: [Edge] = []
         var direction: DagreOptions.Direction = .topToBottom
+        var links: [String: String] = [:]
     }
 
     static func layout(
@@ -86,6 +87,7 @@ enum MermaidFlow {
                 rankSeparation: independentClusters ? (outerHorizontal ? 75 : 65) : horizontal ? 50 : 40, marginX: 8,
                 marginY: 8, tieKeepFirst: true))
         var commands: [MermaidCommand] = []
+        var links: [MermaidNodeLink] = []
         var bounds = CGRect.null
         func include(_ rect: CGRect) { bounds = bounds.union(rect) }
         // Clusters paint behind edges and nodes, in source nesting order.
@@ -104,6 +106,10 @@ enum MermaidFlow {
                 commands.append(.coloredText(node.label, textRect, role: role, color: color))
             } else {
                 commands.append(.text(node.label, textRect, role: role))
+            }
+            if let target = graph.links[node.id] {
+                links.append(.init(path: CGPath(rect: textRect, transform: nil), target: target,
+                    labelCommands: (commands.count - 1)..<commands.count))
             }
             include(rect)
         }
@@ -192,6 +198,7 @@ enum MermaidFlow {
                     width: node.appearance.nodeWidth, dash: node.appearance.dash()))
             include(rect)
             include(path.boundingBoxOfPath)
+            let firstLabel = commands.count
             var y = rect.midY - labelSizes[i].height / 2 + (node.shape == .cylinder ? 10 : 0)
             for (j, text) in lines[i].enumerated() {
                 let m = measured[i][j]
@@ -206,9 +213,12 @@ enum MermaidFlow {
                 }
                 y += m.height
             }
+            if let target = graph.links[node.id] {
+                links.append(.init(path: path, target: target, labelCommands: firstLabel..<commands.count))
+            }
         }
         guard !bounds.isNull else { throw MermaidError.empty }
-        return MermaidScene(bounds: bounds, commands: commands, theme: theme)
+        return MermaidScene(bounds: bounds, commands: commands, theme: theme, links: links)
     }
 
     static func labelLines(_ source: String) -> [String] {
@@ -517,9 +527,14 @@ enum MermaidFlow {
                 explicitStyles.append((id, String(rest[space...])))
                 continue
             }
-            // The reference core accepts click metadata without adding paint
-            // commands. Interactive diagram links are not exposed by this ABI.
-            if statement.hasPrefix("click ") { continue }
+            if statement.hasPrefix("click ") {
+                if let (id, target) = MermaidNodeLink.parse(statement.dropFirst(6)),
+                    MermaidNodeLink.isSafeTarget(target)
+                {
+                    graph.links[id] = target
+                }
+                continue
+            }
             if statement.hasPrefix("linkStyle ") {
                 let rest = String(statement.dropFirst(10))
                 guard let space = rest.firstIndex(where: \.isWhitespace) else { throw MermaidError.syntax(line: line) }

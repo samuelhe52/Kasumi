@@ -256,6 +256,10 @@ public final class RenderedDocument: @unchecked Sendable {
                 return position(nearestSemanticBoundary(to: layout.textMap.semanticOffset(forRenderedOffset: rendered)))
             }
             guard let line = nearestLine(to: point) else { return position(0) }
+            if let diagram = layout.diagrams[line.paragraph], let offset = diagram.textOffset(at: point) {
+                let start = layout.textMap.semanticOffset(forRenderedOffset: diagram.renderedOffset)
+                return position(nearestSemanticBoundary(to: start + offset))
+            }
             let item = layout.paragraphs[line.paragraph]
             let local = line.shaped.stringIndex(forPosition: CGPoint(x: point.x - line.origin.x, y: 0))
             let rendered = item.textOffset + min(NSMaxRange(line.shaped.range), max(line.shaped.range.location, local))
@@ -276,6 +280,10 @@ public final class RenderedDocument: @unchecked Sendable {
             }
             guard let line = line(containing: rendered) else {
                 return CGRect(x: 0, y: 0, width: 1, height: 1)
+            }
+            if let diagram = layout.diagrams[line.paragraph] {
+                let start = layout.textMap.semanticOffset(forRenderedOffset: diagram.renderedOffset)
+                if let caret = diagram.caretRect(at: position.offset - start) { return caret }
             }
             let item = layout.paragraphs[line.paragraph]
             let x = line.origin.x + line.shaped.offset(forStringIndex: rendered - item.textOffset)
@@ -314,17 +322,26 @@ public final class RenderedDocument: @unchecked Sendable {
                 let middle = lower + (upper - lower) / 2
                 if NSMaxRange(lines[middle].range) <= rendered.location { lower = middle + 1 } else { upper = middle }
             }
-            let measured = lines[lower...].prefix(while: { $0.range.location < NSMaxRange(rendered) }).compactMap {
-                line -> CGRect? in
+            var measured: [CGRect] = []
+            for line in lines[lower...].prefix(while: { $0.range.location < NSMaxRange(rendered) }) {
                 let overlap = NSIntersectionRange(rendered, line.range)
-                guard overlap.length > 0 else { return nil }
+                guard overlap.length > 0 else { continue }
+                if let diagram = layout.diagrams[line.paragraph] {
+                    let start = layout.textMap.semanticOffset(forRenderedOffset: diagram.renderedOffset)
+                    let diagramRange = NSRange(location: start, length: diagram.attachment.semanticText.utf16.count)
+                    let overlap = NSIntersectionRange(semantic, diagramRange)
+                    guard overlap.length > 0 else { continue }
+                    let local = NSRange(location: overlap.location - start, length: overlap.length)
+                    measured.append(contentsOf: diagram.selectionRects(for: local))
+                    continue
+                }
                 let item = layout.paragraphs[line.paragraph]
                 let start = line.shaped.offset(forStringIndex: overlap.location - item.textOffset)
                 let end = line.shaped.offset(
                     forStringIndex: NSMaxRange(overlap) - item.textOffset, affinity: .precedingFragment)
-                return CGRect(
+                measured.append(CGRect(
                     x: line.origin.x + min(start, end), y: line.rect.minY,
-                    width: abs(end - start), height: line.rect.height)
+                    width: abs(end - start), height: line.rect.height))
             }
             lower = 0
             upper = layout.paragraphs.count
@@ -352,8 +369,8 @@ public final class RenderedDocument: @unchecked Sendable {
         }
     }
 
-    /// Formula/image/diagram objects expand back to source TeX, alt text, or
-    /// diagram source; code-capsule padding and synthetic glyphs contribute none.
+    /// Formula, image and diagram objects contribute source TeX, alt text and
+    /// visible labels respectively. Synthetic layout padding contributes no text.
     public func text(in range: TextRange) -> String {
         guard let selected = checked(range) else { return "" }
         return (semanticText as NSString).substring(with: selected)
@@ -399,7 +416,7 @@ public final class RenderedDocument: @unchecked Sendable {
 
     /// Accepts a slug or a URL fragment, including footnote anchors not in outline.
     public func rect(forAnchor anchor: String) -> CGRect? {
-        let key = (anchor.hasPrefix("#") ? String(anchor.dropFirst()) : anchor).removingPercentEncoding ?? anchor
+        let key = DocumentLink.anchorKey(anchor)
         guard let y = layout.anchorPositions[key] else { return nil }
         if let line = lines.first(where: { abs($0.rect.minY - y) < 0.01 }) { return line.rect }
         return CGRect(x: 0, y: y, width: size.width, height: 1)
@@ -408,7 +425,7 @@ public final class RenderedDocument: @unchecked Sendable {
     /// Semantic target for an estimated heading/footnote position. Refine around
     /// this anchor before applying the final navigation inset.
     public func readingAnchor(forAnchor anchor: String) -> ReadingAnchor? {
-        let key = (anchor.hasPrefix("#") ? String(anchor.dropFirst()) : anchor).removingPercentEncoding ?? anchor
+        let key = DocumentLink.anchorKey(anchor)
         guard let y = layout.anchorPositions[key],
             let index = layout.paragraphs.firstIndex(where: { abs($0.origin.y - y) < 0.01 })
         else { return nil }
@@ -419,6 +436,9 @@ public final class RenderedDocument: @unchecked Sendable {
         guard point.x.isFinite, point.y.isFinite else { return nil }
         return layoutLock.withLock {
             guard let line = nearestLine(to: point), line.rect.contains(point) else { return nil }
+            if let diagram = layout.diagrams[line.paragraph] {
+                return diagram.link(at: point).flatMap { DocumentLink.url($0, relativeTo: baseURL) }
+            }
             let item = layout.paragraphs[line.paragraph]
             let x = point.x - line.origin.x
             let insertion = line.shaped.stringIndex(forPosition: CGPoint(x: x, y: 0))
@@ -428,9 +448,7 @@ public final class RenderedDocument: @unchecked Sendable {
             guard index >= 0, index < item.paragraph.attributed.length,
                 let value = item.paragraph.attributed.attribute(.link, at: index, effectiveRange: nil)
             else { return nil }
-            if let url = value as? URL { return url }
-            guard let string = value as? String else { return nil }
-            return URL(string: string, relativeTo: string.hasPrefix("#") ? nil : baseURL)?.absoluteURL
+            return DocumentLink.url(value, relativeTo: baseURL)
         }
     }
 

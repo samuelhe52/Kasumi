@@ -286,6 +286,7 @@ enum DocumentExporter {
         try Task.checkCancellation()
         let slices = try DocumentPaginator.pages(for: layout, contentHeight: contentHeight)
         let pages = slices.isEmpty ? [DocumentPageSlice(range: 0..<0, scale: 1)] : slices
+        let links = PDFLinkAnnotations(layout: layout, baseURL: document.baseURL)
         var mediaBox = CGRect(origin: .zero, size: size)
         let metadata: [CFString: Any] = [kCGPDFContextTitle: options.title, kCGPDFContextCreator: "KasumiMarkdown"]
         guard let context = CGContext(consumer: consumer, mediaBox: &mediaBox, metadata as CFDictionary) else {
@@ -324,7 +325,8 @@ enum DocumentExporter {
                     height: page.range.upperBound - page.range.lowerBound))
                 context.translateBy(x: 0, y: continuationHeight)
                 context.translateBy(x: 0, y: -page.range.lowerBound)
-                DocumentTypesetter.draw(layout, in: context, sourceRange: page.range)
+                links.writeDestinations(in: context, range: page.range)
+                DocumentTypesetter.draw(layout, in: context, sourceRange: page.range, pdfLinks: links)
                 context.restoreGState()
                 func drawTemplate(_ template: String, y: CGFloat) {
                     let value = template.replacingOccurrences(of: "{page}", with: String(index + 1))
@@ -336,7 +338,7 @@ enum DocumentExporter {
                         string: value,
                         attributes: [.font: PlatformFont.systemFont(ofSize: 10), .foregroundColor: style.secondaryColor]
                     )
-                    let line = CTLineCreateWithAttributedString(attributed)
+                    let line = CTLineCreateWithAttributedString(MissingGlyphFallback.applying(to: attributed))
                     let width = CGFloat(CTLineGetTypographicBounds(line, nil, nil, nil))
                     context.saveGState()
                     context.translateBy(x: max(m.left, (size.width - width) / 2), y: y)

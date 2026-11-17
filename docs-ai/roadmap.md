@@ -130,6 +130,11 @@ Retained after milestone closure; not prerequisites for starting Reader 2:
   compatibility or new reader settings.
 - Custom JSON theme-pair files — closed 2026-11-18, library/CLI only;
   [003.002](003-public-rendering-api/002-theme-files.md). Reader import UI is deferred.
+- PDF link annotations and diagram interactions shipped on 2026-11-18.
+  See [002.026](002-rendering-engine/026-pdf-links.md) and
+  [002.027](002-rendering-engine/027-diagram-interactions.md).
+- The missing-glyph fallback uses a hollow square as of 2026-11-18.
+  See [002.028](002-rendering-engine/028-missing-glyphs.md).
 - Known limitations: [renderer gaps](002-rendering-engine/renderer-gaps.md).
   Ligature-span and Han combining-mark width repairs shipped on 2026-11-16;
   see [002.002](002-rendering-engine/002-shaped-cluster-integrity.md).

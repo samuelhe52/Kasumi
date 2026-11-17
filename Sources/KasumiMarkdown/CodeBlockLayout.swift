@@ -43,7 +43,8 @@ struct CodeBlockLayout {
             .foregroundColor: style.secondaryColor
         ]
         let name = Self.languageLabel(block.language)
-        let full = CTLineCreateWithAttributedString(NSAttributedString(string: name, attributes: attributes))
+        let full = CTLineCreateWithAttributedString(
+            MissingGlyphFallback.applying(to: NSAttributedString(string: name, attributes: attributes)))
         let ellipsis = CTLineCreateWithAttributedString(NSAttributedString(string: "…", attributes: attributes))
         label =
             labelBounds.isEmpty

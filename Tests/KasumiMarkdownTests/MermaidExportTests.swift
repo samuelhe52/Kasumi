@@ -61,3 +61,73 @@ import Testing
             dark: false)
     }
 }
+
+@Test func mermaidLabelSelectionAndNodeLinksTrackScaledDiagrams() throws {
+    let markdown = """
+        Before diagram.
+
+        ~~~mermaid
+        flowchart TB
+          A[Open guide] -->|Try this| B[Finish here]
+          A --> C[Unsafe link]
+          click A href "guide.html" "Tooltip"
+          click B "#after-diagram"
+          click C "javascript:alert(1)"
+        ~~~
+
+        ## After diagram
+        """
+    let document = MarkdownDocument(markdown: markdown, baseURL: URL(string: "https://example.com/help/"))
+    for width in [200.0, 500.0] {
+        let rendered = RenderedDocument(document, width: width, style: .init())
+        let word = try #require(rendered.ranges(matching: "guide").first)
+        let rect = try #require(rendered.selectionRects(for: word).first)
+        let point = CGPoint(x: rect.midX, y: rect.midY)
+        #expect(rendered.link(at: point)?.absoluteString == "https://example.com/help/guide.html")
+        let position = rendered.position(closestTo: point)
+        let selection = try #require(rendered.wordRange(at: position))
+        #expect(rendered.text(in: selection) == "guide")
+        let start = rendered.caretRect(for: word.lowerBound)
+        let end = rendered.caretRect(for: word.upperBound)
+        #expect(abs(start.minX - rect.minX) < 1 && abs(end.minX - rect.maxX) < 1)
+        let edge = try #require(rendered.ranges(matching: "Try this").first)
+        let edgeRect = try #require(rendered.selectionRects(for: edge).first)
+        #expect(rendered.link(at: CGPoint(x: edgeRect.midX, y: edgeRect.midY)) == nil)
+        let unsafe = try #require(rendered.ranges(matching: "Unsafe link").first)
+        let unsafeRect = try #require(rendered.selectionRects(for: unsafe).first)
+        #expect(rendered.link(at: CGPoint(x: unsafeRect.midX, y: unsafeRect.midY)) == nil)
+        #expect(rendered.ranges(matching: "click A").isEmpty)
+        #expect(rendered.selectionRects(for: rendered.documentRange).contains {
+            $0.insetBy(dx: -0.01, dy: -0.01).contains(rect)
+        })
+    }
+    var options = PDFExportOptions()
+    options.paperSize = CGSize(width: 255, height: 135)
+    options.margins = .init(top: 28, left: 30, bottom: 23, right: 38)
+    options.pageNumbers = false
+    let pdf = try #require(PDFDocument(data: DocumentExporter.pdfData(
+        document.parsed, style: Typography(), options: options)))
+    let pages = (0..<pdf.pageCount).compactMap { pdf.page(at: $0) }
+    let page = try #require(pages.first { $0.annotations.contains { $0.url?.path == "/help/guide.html" } })
+    let node = try #require(page.annotations.first { $0.url?.path == "/help/guide.html" })
+    #expect(page.selection(for: node.bounds)?.string?.contains("Open guide") == true)
+    #expect(node.bounds.minY >= options.margins.bottom - 0.01)
+    #expect(node.bounds.maxY <= options.paperSize.height - options.margins.top + 0.01)
+    let internalLink = try #require(page.annotations.first { $0.type == "Link" && $0.url == nil })
+    #expect(page.selection(for: internalLink.bounds)?.string?.contains("Finish here") == true)
+    #expect(internalLink.destination?.page?.string?.contains("After diagram") == true)
+    #expect(page.annotations.filter { $0.type == "Link" }.count == 2)
+}
+
+@Test func mermaidClassClickHrefUsesTheClassNode() throws {
+    let source = """
+        classDiagram
+        class Guide
+        click Guide href "https://example.com/guide"
+        """
+    let document = MarkdownDocument(markdown: "~~~mermaid\n\(source)\n~~~")
+    let rendered = RenderedDocument(document, width: 360, style: .init())
+    let label = try #require(rendered.ranges(matching: "Guide").first)
+    let rect = try #require(rendered.selectionRects(for: label).first)
+    #expect(rendered.link(at: CGPoint(x: rect.midX, y: rect.midY))?.absoluteString == "https://example.com/guide")
+}

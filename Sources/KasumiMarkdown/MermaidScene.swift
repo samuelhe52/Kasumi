@@ -36,6 +36,7 @@ struct MermaidScene {
     var commands: [MermaidCommand]
     var textStyle: MermaidTextStyle? = nil
     var theme: DocumentTheme? = nil
+    var links: [MermaidNodeLink] = []
 
     func draw(in context: CGContext, size: CGFloat, fontFamily: String, dark: Bool) {
         let textMetrics = textStyle ?? .uniform(size: size, fontFamily: fontFamily)
@@ -56,7 +57,8 @@ struct MermaidScene {
             }
             context.restoreGState()
         }
-        for command in commands {
+        let linkedLabels = Set(links.flatMap(\.labelCommands))
+        for (index, command) in commands.enumerated() {
             switch command {
             case .path(let path, let fill, let stroke, let width, let dash):
                 paint(path, fill: fill, stroke: stroke, width: width, dash: dash)
@@ -68,9 +70,10 @@ struct MermaidScene {
                 paint(CGPath(ellipseIn: rect, transform: nil), fill: fill, stroke: stroke, width: width)
             case .text(let text, let rect, let role):
                 textMetrics.draw(
-                    text, in: rect, role: role, color: MermaidPalette(dark: dark, theme: theme).text, context: context)
+                    text, in: rect, role: role, color: MermaidPalette(dark: dark, theme: theme).text,
+                    linked: linkedLabels.contains(index), context: context)
             case .coloredText(let text, let rect, let role, let color):
-                textMetrics.draw(text, in: rect, role: role, color: color, context: context)
+                textMetrics.draw(text, in: rect, role: role, color: color, linked: linkedLabels.contains(index), context: context)
             }
         }
     }

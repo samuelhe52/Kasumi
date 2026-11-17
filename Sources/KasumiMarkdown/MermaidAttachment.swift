@@ -18,6 +18,10 @@ final class MermaidAttachment: NSObject {
     let dark: Bool
     let scale: CGFloat
     let size: CGSize
+    let labels: [MermaidLabel]
+    let semanticText: String
+
+    var textStyle: MermaidTextStyle { scene.textStyle ?? .uniform(size: fontSize, fontFamily: fontFamily) }
 
     init(
         source: String, scene: MermaidScene, fontSize: CGFloat, fontFamily: String, dark: Bool, maximumWidth: CGFloat,
@@ -28,6 +32,14 @@ final class MermaidAttachment: NSObject {
         self.fontSize = fontSize
         self.fontFamily = fontFamily
         self.dark = dark
+        var offset = 0
+        labels = scene.selectableLabels.map { label in
+            var label = label
+            label.range = NSRange(location: offset, length: label.text.utf16.count)
+            offset = NSMaxRange(label.range) + 1
+            return label
+        }
+        semanticText = labels.map(\.text).joined(separator: "\n")
         // Include stroke ink so fitting/cropping cannot remove a border.
         let bounds = scene.bounds.insetBy(dx: -1, dy: -1)
         scale = min(renderScale, maximumWidth / max(1, bounds.width))
@@ -50,7 +62,7 @@ final class MermaidAttachment: NSObject {
             string: "\u{FFFC}",
             attributes: [
                 NSAttributedString.Key(kCTRunDelegateAttributeName as String): delegate,
-                .kasumiDiagram: self, .kasumiSemanticText: source, .foregroundColor: PlatformColor.clear
+                .kasumiDiagram: self, .kasumiSemanticText: semanticText, .foregroundColor: PlatformColor.clear
             ])
     }
     /// Called in the upward-positive baseline coordinates used by CTLine.

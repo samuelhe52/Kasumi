@@ -31,19 +31,25 @@ that fixes it; add one when a limitation is found and not fixed.
   is recognized only when `\[` opens a line and `\]` ends one, so mid-line
   `\[x\]` stays an escaped bracket, while a line wrapped in escaped brackets
   becomes math; `\(...\)` can't span lines.
-- Diagrams: no rich HTML labels; syntax outside the tested corpus may be
-  rejected; no links or selection inside diagrams.
+- Diagrams: rich HTML labels and sequence actor link menus are unsupported.
+  Rendered labels support selection and Find. Flowchart and class nodes
+  support URL links. See [diagram interactions](027-diagram-interactions.md).
 - Tables: document-based exports fit every column to the page and may still wrap
   heavily at very narrow widths. Compact tables are centered; overflowing reader
   tables start at the left edge of the reading measure. Snapshot image exports
   of a scrollable `RenderedDocument` capture its initial table viewport. Reader scrolling is
   presentation state, separate from the immutable snapshot. See
   [adaptive tables](005-table-layout.md) for behavior and validation limits.
-- Export: pagination details, PDF links, footnote edge cases, HTML/SVG images.
+- Export: pagination details, footnote edge cases, HTML/SVG images.
+  PDFs preserve resolvable links and internal destinations.
+  See [PDF links](026-pdf-links.md).
   Long PNG/JPG require a complete bitmap, bounded by a configurable 128 MiB raw
   pixel default and 32,768 pixels per axis. This does not cap total process memory.
   Layout and ImageIO finalization are synchronous cancellation boundaries. See
   [008](../008-reader-export/001-action.md).
+- Fonts: missing visible graphemes use a hollow square after normal font
+  fallback. Reader semantic text retains the original grapheme.
+  See [missing glyphs](028-missing-glyphs.md).
 - Drawing: tile drawing is serialized by a lock in `RenderedDocument`, because
   Core Text line objects are shared between tiles and Apple limits each to one
   thread at a time.
