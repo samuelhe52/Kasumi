@@ -372,7 +372,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         let animate = !UIAccessibility.isReduceMotionEnabled && window != nil
         let widthChanged = rendered?.size.width != next.size.width
         let overlay =
-            !firstLayout && animate && animateReplacement && !widthChanged
+            !firstLayout && animate && (animateReplacement || widthChanged)
             ? content.resizableSnapshotView(from: bounds, afterScreenUpdates: false, withCapInsets: .zero) : nil
         transitionOverlay?.removeFromSuperview()
         transitionOverlay = overlay
