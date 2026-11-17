@@ -30,7 +30,7 @@ new features are welcome. The first version includes:
   and drag and drop on iPad;
 - reading with selection, search, outline, saved reading position, themes and
   presets;
-- a plain source editor with live preview, side by side on iPad;
+- a plain source editor with live preview and Source/Preview switching;
 - export to PDF, long PNG, long JPG, print and the share sheet.
 
 ## Done means

@@ -26,12 +26,11 @@ or is reordered; record the work itself in a numbered entry.
    [008](008-reader-export/000-plan.md), closed 2026-11-17 by maintainer
    decision; file-backed export, paper/margin/font and image size/quality controls and cancellation. See
    [validation limits](008-reader-export/001-action.md#open-questions).
-4. Source editor with live preview; side by side on iPad —
+4. Source editor with live preview —
    [009](009-source-editor/000-plan.md), implemented 2026-11-17. Writable document sessions,
    encoding-preserving source edits, coalesced document undo/redo and
-   Source/Preview switching are implemented. The iPad side-by-side layout is
-   deferred until it can be checked on an iPad; see
-   [native editor chrome](009-source-editor/003-native-editor-chrome.md).
+   Source/Preview switching are implemented. All window sizes use the toggle;
+   the iPad side-by-side requirement was removed by maintainer decision on 2026-11-18.
    Validation uses only the iPhone simulator.
    See [validation limits](009-source-editor/001-action.md#open-questions).
 
@@ -99,7 +98,7 @@ Retained after milestone closure; not prerequisites for starting Reader 2:
 
 ## Library
 
-- Reader code-block syntax highlighting with Syntect — implemented 2026-11-17;
+- Reader code-block syntax highlighting with Syntect — closed 2026-11-18;
   [002.006](002-rendering-engine/006-syntax-highlighting.md). Rounded panels,
   language captions, and Copy controls are implemented;
   [002.007](002-rendering-engine/007-code-block-presentation.md). Rendering-style
@@ -114,17 +113,17 @@ Retained after milestone closure; not prerequisites for starting Reader 2:
   repository; [010](010-binary-distribution/001-action.md). A production release
   remains to be published.
 - Bundle license notices into the app.
-- Explicit profile/CLI hyphenation language selection — implemented 2026-11-17;
+- Explicit profile/CLI hyphenation language selection — closed 2026-11-18;
   [002.009](002-rendering-engine/009-hyphenation-and-defaults.md). Mixed-case words
   retain Liang pattern matching; math subscripts remain font-driven.
-- Cached automatic hyphenation-language selection — implemented 2026-11-17;
+- Cached automatic hyphenation-language selection — closed 2026-11-18;
   front-matter `lang`, bounded prose stopword vote, then US English. Opt-in
   punctuation folding and 1/8-em spacing are implemented for library/CLI clients;
   [002.012](002-rendering-engine/012-language-and-punctuation.md).
-- Standard TOML profile files — implemented 2026-11-17, library/CLI only;
+- Standard TOML profile files — closed 2026-11-18, library/CLI only;
   [002.011](002-rendering-engine/011-standard-toml-profiles.md). No legacy profile
   compatibility or new reader settings.
-- Custom JSON theme-pair files — implemented 2026-11-17, library/CLI only;
+- Custom JSON theme-pair files — closed 2026-11-18, library/CLI only;
   [003.002](003-public-rendering-api/002-theme-files.md). Reader import UI is deferred.
 - Known limitations: [renderer gaps](002-rendering-engine/renderer-gaps.md).
   Ligature-span and Han combining-mark width repairs shipped on 2026-11-16;

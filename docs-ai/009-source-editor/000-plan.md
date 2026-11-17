@@ -17,9 +17,8 @@ rendered reader as the preview.
 
 - Edit the open file in place using the native writable DocumentGroup session,
   autosave, and document undo/redo.
-- Keep reading as the initial mode; offer Source/Preview switching. A
-  side-by-side layout on wide iPad windows was planned and later deferred; see
-  [009.003](003-native-editor-chrome.md).
+- Keep reading as the initial mode; offer Source/Preview switching at all window
+  sizes.
 - Keep typing responsive through debounced, background parsing and the existing
   bounded rendering pipeline. Discard stale preview results.
 - Preserve unchanged bytes and the original encoding/BOM after editing. Reject
@@ -28,8 +27,9 @@ rendered reader as the preview.
 
 ### Non-goals
 
-Syntax highlighting, synchronized source/preview scrolling, and incremental
-parsing/layout are outside this milestone. (Formatting commands were also listed
+Side-by-side source/preview, syntax highlighting, synchronized source/preview
+scrolling, and incremental parsing/layout are outside this milestone.
+(Formatting commands were also listed
 here until the maintainer added a Markdown keyboard bar; see
 [009.004](004-markdown-keyboard-bar.md).)
 
@@ -68,8 +68,8 @@ here until the maintainer added a Markdown keyboard bar; see
   legacy encoding, supplementary Unicode and refused lossy writes.
 - App build for iPhone simulator; runtime source editing, preview, undo/redo,
   mode switching and disk persistence after closing/reopening.
-- iPad split composition is implemented and compiled but no iPad simulator may
-  be launched. Record that runtime validation limit explicitly.
+- Record the iPad runtime validation limit explicitly; no iPad simulator was
+  permitted during implementation.
 - Preserve existing uncommitted work and leave changes uncommitted.
 
 ## Amendments
@@ -83,3 +83,5 @@ here until the maintainer added a Markdown keyboard bar; see
 - Updated 2026-11-17: Markdown keyboard bar (heading, code, quote, link); the
   formatting non-goal is corrected above — see
   [004-markdown-keyboard-bar.md](004-markdown-keyboard-bar.md)
+- Updated 2026-11-18: maintainer removed the iPad side-by-side requirement from
+  the milestone; Source/Preview switching remains the editing layout at all widths.

@@ -10,8 +10,9 @@
 | 2026-11-17 | Refined editor spacing, controls, transitions and focus continuity; verified the iPhone flows and accessibility text sizing. | [009.002](002-editor-experience.md); working tree, uncommitted |
 | 2026-11-17 | Moved editing controls into native bars, restored soft edges, deferred the iPad split, reverted the layout worker and coalesced typing undo. | [009.003](003-native-editor-chrome.md); working tree, uncommitted |
 | 2026-11-17 | Added the Markdown keyboard bar with heading, code, quote and link commands. | [009.004](004-markdown-keyboard-bar.md); working tree, uncommitted |
+| 2026-11-18 | Removed the iPad side-by-side requirement from milestone 4 by maintainer decision; all widths retain Source/Preview switching. | Goal, roadmap and plan updated; documentation only |
 
-## Outcome and current state (as of 2026-11-17)
+## Outcome and current state (as of 2026-11-18)
 
 Documents open in reading mode. **Reader Actions > Edit** is the only
 source-editing entry point, as requested because editing is an infrequent use.
@@ -19,8 +20,8 @@ While editing, the navigation bar shows the title, a Source/Preview toggle and
 Done; Undo/Redo sit in the bottom bar. While typing, a bar above the keyboard
 carries Undo, Redo, Heading, Hide Keyboard, Code, Quote and Link
 ([009.004](004-markdown-keyboard-bar.md)). All
-widths use the toggle; the iPad side-by-side layout is deferred. Both panes run
-under soft bar edges. Native document creation was not added. See
+widths use the toggle; the iPad side-by-side layout is outside the milestone.
+Both panes run under soft bar edges. Native document creation was not added. See
 [editor experience](002-editor-experience.md) and
 [native editor chrome](003-native-editor-chrome.md).
 The editing surface has no ellipsis menu; Done restores reader actions.
@@ -79,6 +80,7 @@ Frozen expectations in `fixtures/reference/` were not changed.
   worker.
 - The iPad side-by-side layout was deferred in
   [009.003](003-native-editor-chrome.md) after it had compiled but never run.
+  The maintainer removed the requirement from the milestone on 2026-11-18.
 - GB18030 supports supplementary Unicode, so the proposed unrepresentable-scalar
   test was replaced with an actual supplementary-character round trip.
 
@@ -119,8 +121,8 @@ Frozen expectations in `fixtures/reference/` were not changed.
 
 ## Open questions
 
-- The iPad side-by-side layout is deferred. iPad editing (the toggle, the
-  inspector while editing, window resizing) has not been run.
+- iPad editing (the toggle, the inspector while editing, window resizing) has
+  not been run.
 - Real CJK IME composition, external-file conflicts, read-only file providers,
   physical-device saves and iCloud coordination were not exercised.
 - Whole-document parsing/layout remains synchronous inside background workers.

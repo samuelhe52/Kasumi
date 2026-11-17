@@ -30,8 +30,8 @@ complex while still leaving UX gaps. A review of the uncommitted work confirmed:
   Rejected: a segmented picker in `.principal`. On a 402 pt iPhone it sat beside
   the document title menu and pushed Undo, Redo and Done into the overflow menu.
 - **iPad split deferred.** The wide-window side-by-side layout is removed; every
-  width uses the Source/Preview toggle. It returns when it can be run and
-  checked on an iPad.
+  width uses the Source/Preview toggle. The maintainer subsequently removed the
+  side-by-side requirement from the milestone on 2026-11-18.
 - **Original layout worker.** `ReaderScrollView` keeps its cancel-and-respawn
   worker. The only changes are a gate that skips layout while the preview is
   hidden and a `setNeedsLayout` on reactivation, so a rotation made in Source is
