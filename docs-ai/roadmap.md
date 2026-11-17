@@ -57,8 +57,10 @@ cells and attachments exactly; see [mixed coverage](002-rendering-engine/011-mix
 Very large tables/attachments and single paragraphs remain whole-layout costs.
 [Glyph paint reuse](002-rendering-engine/010-glyph-paint-reuse.md) now shares
 immutable source-range paint values across widths, reducing repeated extraction
-while keeping Core Text objects snapshot-local. Remaining work targets cold
-painting, broader lazy coverage, and UI installation/Find tails.
+while keeping Core Text objects snapshot-local. [Selection lookup](002-rendering-engine/012-selection-range-indexing.md)
+now seeks into overlapping source intervals when Find requests highlight geometry.
+Remaining work targets repeated Find search/path construction, cold painting,
+broader lazy coverage, UI installation and snapshot-release tails.
 
 Retained after milestone closure; not prerequisites for starting Reader 2:
 

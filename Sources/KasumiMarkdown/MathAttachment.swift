@@ -144,9 +144,11 @@ struct DocumentTextMap: Equatable {
     }
 
     func renderedRange(for semanticRange: NSRange) -> NSRange? {
+        guard semanticRange.length > 0 else { return nil }
         var start: Int?
         var end = 0
-        for segment in segments {
+        let first = firstSegment(endingAfter: semanticRange.location)
+        for segment in segments[first...].prefix(while: { $0.semantic.location < NSMaxRange(semanticRange) }) {
             let overlap = NSIntersectionRange(semanticRange, segment.semantic)
             guard overlap.length > 0 else { continue }
             let range =
@@ -165,10 +167,22 @@ struct DocumentTextMap: Equatable {
     func renderedOffset(forSemanticOffset offset: Int) -> Int {
         let offset = min(semanticLength, max(0, offset))
         guard offset < semanticLength else { return renderedLength }
-        for segment in segments where NSLocationInRange(offset, segment.semantic) {
-            return segment.rendered.location + (segment.replacement ? 0 : offset - segment.semantic.location)
+        let index = firstSegment(endingAfter: offset)
+        guard index < segments.count else { return renderedLength }
+        let segment = segments[index]
+        return segment.rendered.location + (segment.replacement ? 0 : offset - segment.semantic.location)
+    }
+
+    /// Semantic intervals are ordered and disjoint, with possible empty spans
+    /// for synthetic padding. Skip those at the queried boundary as well.
+    private func firstSegment(endingAfter offset: Int) -> Int {
+        var lower = 0
+        var upper = segments.count
+        while lower < upper {
+            let middle = lower + (upper - lower) / 2
+            if NSMaxRange(segments[middle].semantic) <= offset { lower = middle + 1 } else { upper = middle }
         }
-        return renderedLength
+        return lower
     }
 
     func matches(_ query: String) -> [NSRange] {

@@ -285,7 +285,17 @@ public final class RenderedDocument: @unchecked Sendable {
             let rendered = layout.textMap.renderedRange(for: semantic)
         else { return [] }
         return layoutLock.withLock {
-            let measured = lines.compactMap { line -> CGRect? in
+            // Logical source ranges stay ordered even for RTL or table cells.
+            // Seek past preceding text rather than scanning it for every Find
+            // result. Keep all Core Text access under this snapshot's lock.
+            var lower = 0
+            var upper = lines.count
+            while lower < upper {
+                let middle = lower + (upper - lower) / 2
+                if NSMaxRange(lines[middle].range) <= rendered.location { lower = middle + 1 } else { upper = middle }
+            }
+            let measured = lines[lower...].prefix(while: { $0.range.location < NSMaxRange(rendered) }).compactMap {
+                line -> CGRect? in
                 let overlap = NSIntersectionRange(rendered, line.range)
                 guard overlap.length > 0 else { return nil }
                 let item = layout.paragraphs[line.paragraph]
@@ -296,16 +306,28 @@ public final class RenderedDocument: @unchecked Sendable {
                     x: line.origin.x + min(start, end), y: line.rect.minY,
                     width: abs(end - start), height: line.rect.height)
             }
-            let estimated = layout.paragraphs.compactMap { item -> CGRect? in
-                guard let estimate = item.paragraph.estimate else { return nil }
-                let paragraphRange = NSRange(location: item.textOffset, length: item.paragraph.attributed.length)
-                let overlap = NSIntersectionRange(rendered, paragraphRange)
-                guard overlap.length > 0 else { return nil }
-                let unit = item.paragraph.height / CGFloat(max(1, paragraphRange.length))
-                return CGRect(
-                    x: item.origin.x, y: item.origin.y + CGFloat(overlap.location - paragraphRange.location) * unit,
-                    width: estimate.width, height: max(1, CGFloat(overlap.length) * unit))
+            lower = 0
+            upper = layout.paragraphs.count
+            while lower < upper {
+                let middle = lower + (upper - lower) / 2
+                let item = layout.paragraphs[middle]
+                if item.textOffset + item.paragraph.attributed.length <= rendered.location {
+                    lower = middle + 1
+                } else {
+                    upper = middle
+                }
             }
+            let estimated = layout.paragraphs[lower...].prefix(while: { $0.textOffset < NSMaxRange(rendered) })
+                .compactMap { item -> CGRect? in
+                    guard let estimate = item.paragraph.estimate else { return nil }
+                    let paragraphRange = NSRange(location: item.textOffset, length: item.paragraph.attributed.length)
+                    let overlap = NSIntersectionRange(rendered, paragraphRange)
+                    guard overlap.length > 0 else { return nil }
+                    let unit = item.paragraph.height / CGFloat(max(1, paragraphRange.length))
+                    return CGRect(
+                        x: item.origin.x, y: item.origin.y + CGFloat(overlap.location - paragraphRange.location) * unit,
+                        width: estimate.width, height: max(1, CGFloat(overlap.length) * unit))
+                }
             return estimated.isEmpty ? measured : (measured + estimated).sorted { $0.minY < $1.minY }
         }
     }
