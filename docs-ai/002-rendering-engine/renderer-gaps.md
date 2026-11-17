@@ -6,8 +6,10 @@ that fixes it; add one when a limitation is found and not fixed.
 - Text: right-to-left paragraphs fall back to Core Text (no bidi painting in
   the paragraph engine); `unicode-linebreak` differs from 59 of 7,654 Unicode 15
   test vectors; characters missing from every installed font have no defined
-  fallback; hyphenation language is automatic only (US English for ASCII);
-  hyphenation splits camelCase and brand names ("Kasum-iMarkdown", "ma-cOS").
+  fallback; profiles cannot set the hyphenation language, so automatic selection
+  applies US English to ASCII words only, though the engine has dictionaries for
+  15 languages; hyphenation splits camelCase and brand names ("Kasum-iMarkdown",
+  "ma-cOS").
 - Fonts: the CJK faces the presets use aren't installed on iOS until a client
   downloads them; without them, Songti falls back to Noto Serif SC/TC when
   registered, then PingFang. The open substitutes have no tuned face table, so
@@ -16,8 +18,9 @@ that fixes it; add one when a limitation is found and not fixed.
 - Profiles: punctuation strategy and subscript shift are stored but not
   applied. The profile file format is a nonstandard line format; moving to
   standard TOML is planned.
-- Themes: no custom theme files; chrome colors are kept
-  but not fully applied. On iOS, the Classic theme's system colors resolve to
+- Themes: no custom theme files. The chrome keys `column_divider`,
+  `sidebar_background` and `tab_active_background` are defined in bundled themes,
+  but no code reads them. On iOS, the Classic theme's system colors resolve to
   UIKit's semantic colors, so it differs slightly from macOS.
 - Code highlighting: explicit supported fence languages only; unlabeled/unknown
   blocks remain plain. Blocks above 256 KiB UTF-8, lines above 16 KiB excluding LF,
