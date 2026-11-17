@@ -112,7 +112,9 @@ Retained after milestone closure; not prerequisites for starting Reader 2:
 - Distributable XCFrameworks — workflow implemented and tested in a temporary
   repository; [010](010-binary-distribution/001-action.md). A production release
   remains to be published.
-- Bundle license notices into the app.
+- Bundle license notices into the app — closed 2026-11-18. The notices under
+  `Sources/KasumiMarkdown/Bundled/Notices/` ship with the app, and the launch
+  screen offers Open Source Licenses.
 - Explicit profile/CLI hyphenation language selection — closed 2026-11-18;
   [002.009](002-rendering-engine/009-hyphenation-and-defaults.md). Mixed-case words
   retain Liang pattern matching; math subscripts remain font-driven.

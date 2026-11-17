@@ -14,6 +14,7 @@ struct KasumiApp: App {
         DocumentGroupLaunchScene(Text(verbatim: " ")) {
             Button("Paste Markdown") { launchStore.pasteFromClipboard() }
             Button("Open URL") { launchStore.remote() }
+            Button("Open Source Licenses") { launchStore.showLicenses = true }
         } background: {
             LaunchBackground()
                 .ignoresSafeArea()

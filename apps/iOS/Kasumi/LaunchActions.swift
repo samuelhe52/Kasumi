@@ -63,6 +63,7 @@ struct LaunchAlert: Identifiable {
 @MainActor @Observable
 final class LaunchStore {
     var showURLImport = false
+    var showLicenses = false
     var alert: LaunchAlert?
     @ObservationIgnored weak var window: UIWindow?
     @ObservationIgnored private var pendingOpen: URL?
@@ -171,6 +172,16 @@ struct LaunchPresenter: View {
                         .toolbar {
                             ToolbarItem(placement: .cancellationAction) {
                                 Button("Cancel", systemImage: "xmark") { store.showURLImport = false }
+                            }
+                        }
+                }
+            }
+            .sheet(isPresented: $store.showLicenses) {
+                NavigationStack {
+                    OpenSourceLicensesView()
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button("Close", systemImage: "xmark") { store.showLicenses = false }
                             }
                         }
                 }
