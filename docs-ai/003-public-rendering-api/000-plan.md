@@ -77,3 +77,8 @@ simulator through `make test-ios FILTER=PublicAPITests`.
 
 - Updated 2026-11-17: Add stateless versioned JSON theme-pair loading and CLI
   selection; see [003.002](002-theme-files.md).
+
+- Updated 2026-11-17: Expose the cached automatic hyphenation dictionary through
+  `MarkdownDocument.automaticHyphenationLanguage`; typography profiles control
+  display-only punctuation while semantic APIs preserve source marks. See
+  [002.012](../002-rendering-engine/012-language-and-punctuation.md).

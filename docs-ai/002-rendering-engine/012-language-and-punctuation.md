@@ -76,3 +76,70 @@ were corrected. A single-width dictionary comparison was expanded across widths
 because different dictionaries can legitimately choose the same line boundary.
 No frozen reference files changed. Punctuation and assembled-work validation are
 recorded in the following slice.
+
+## Punctuation slice and assembled outcome
+
+Implemented `faithful`/`fold`/`spacing` in shared typography, with
+`--punct-strategy` as a validated CLI override independent of profile argument
+order. Folding happens before font selection and shaping; an original-punctuation
+attribute preserves the one-to-one semantic mapping without changing source.
+Spacing uses kern advances rather than inserted characters; Han advance
+normalization explicitly retains the added padding. Consecutive eligible marks
+form one spacing group; matched parentheses transform together, while unmatched
+or protected pairs remain literal.
+
+The default `faithful` path avoids context scanning. Opt-in analysis computes
+nearest context in linear passes, bounds proximity to sixteen scalars and excludes
+protected runs. Paragraphs with kana/Hangul are vetoed, but Han-only Japanese is
+ambiguous. No statistical language recognizer is invoked for punctuation. PDF
+paint/text extraction follows displayed glyphs; the library/reader semantic APIs
+retain original punctuation, like the existing separation for math attachments.
+
+### Validation
+
+On Apple M1 Pro, 16 GiB RAM, macOS 27.2.1:
+
+- Initial focused tests passed all eight language/punctuation tests after correcting
+  the authored Markdown fixtures and a PDF extraction assertion affected by an
+  existing CJK font's compatibility-radical encoding.
+- `make test` passed 210 tests in 17 suites; the opt-in performance test was skipped.
+  This covered frozen paragraph/line-break/pagination observations, attachments,
+  tables, underlines, selection, exports, themes and existing public APIs. No frozen
+  reference files changed.
+- `make test FILTER=PunctuationPolicyTests` passed five final tests, including
+  matched emoji parentheses and CLI profile-override ordering/error nonmutation.
+  The public checks cover original text, copy/search, carets, links, tables, code
+  payloads and both image-layout widths plus PDF output.
+- `make app-check` passed for an unsigned generic iOS device, with only the existing
+  no-AppIntents-dependency metadata warnings. No simulator was used or booted.
+- `make render` generated faithful/spacing/fold 700 px PNGs and a captioned fold PDF
+  from `fixtures/LanguageAndPunctuation.md`. All three PNGs and the first PDF page
+  rendered by Poppler were inspected. Metadata is hidden, French hyphenation is
+  active, punctuation policies are visible, protected content remains literal,
+  and tables/footnotes remain legible. QA outputs are local and not retained.
+
+### Optimized cost measurements
+
+`make benchmark-typography` passed its opt-in release benchmark. These are warm
+synthetic timings, excluding parsing for the language-analysis measurements and
+excluding parsing/drawing for the complete-layout measurements. Five to fifteen
+repetitions follow one warm-up. They are neither an accuracy study nor iPhone
+performance measurements.
+
+| Operation | Median | p95 |
+| --- | ---: | ---: |
+| Language, 2,048 characters | 0.049 ms | 0.063 ms |
+| Language, 32,768 characters (word budget stops earlier) | 0.468 ms | 0.474 ms |
+| Language, 1,000,000 characters (same bounded sample) | 0.466 ms | 0.504 ms |
+| Language, 1,000 paragraphs of 512 characters (one document sample) | 0.412 ms | 0.441 ms |
+| Punctuation plans, 1,000 mixed paragraphs, faithful | 0.034 ms | 0.034 ms |
+| Punctuation plans, 1,000 mixed paragraphs, fold | 10.879 ms | 12.285 ms |
+| Punctuation plans, 1,000 mixed paragraphs, spacing | 10.818 ms | 10.900 ms |
+| Complete layout, 50 mixed paragraphs, faithful | 161.833 ms | 187.828 ms |
+| Complete layout, 50 mixed paragraphs, fold | 192.908 ms | 203.095 ms |
+| Complete layout, 50 mixed paragraphs, spacing | 197.204 ms | 299.302 ms |
+
+Automatic analysis is cached across reflows and exports; source reparsing creates
+new analysis. Whole-document layout is still not incremental. The new script
+heuristic and authored stopwords need broader accuracy evaluation before claiming
+reliable detection for short, specialist or mixed-language documents.

@@ -5,7 +5,7 @@ let arguments = CommandLine.arguments
 if arguments.count < 3 {
     FileHandle.standardError.write(
         Data(
-            "Usage: KasumiRender INPUT.md OUTPUT.png|OUTPUT.jpg|OUTPUT.pdf [PNG_WIDTH] [--preset ID] [--profile FILE.toml] [--theme ID | --theme-file FILE.json] [--dark] [--hyphenation-language TAG] [--code-caption] [--code-radius POINTS]\n"
+            "Usage: KasumiRender INPUT.md OUTPUT.png|OUTPUT.jpg|OUTPUT.pdf [PNG_WIDTH] [--preset ID] [--profile FILE.toml] [--theme ID | --theme-file FILE.json] [--dark] [--hyphenation-language TAG] [--punct-strategy faithful|spacing|fold] [--code-caption] [--code-radius POINTS]\n"
                 .utf8))
     exit(2)
 }

@@ -142,7 +142,8 @@ enum ParagraphShaper {
                             normalizesToEm(
                                 $0, font: actualFont, han: style?.hanFont, punctuation: style?.punctuationFont)
                         } ?? false
-                    let width = normalized ? CTFontGetSize(actualFont) : advances[glyph].width
+                    let padding = (attributes[NSAttributedString.Key.kasumiPunctuationPadding] as? CGFloat) ?? 0
+                    let width = normalized ? CTFontGetSize(actualFont) + padding : advances[glyph].width
                     measurements[cluster].advance += width
                 }
             }

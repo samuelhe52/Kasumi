@@ -31,7 +31,7 @@ NATIVE_INPUTS := scripts/build-native \
 		-not -path '*/target/*' 2>/dev/null)
 
 .DEFAULT_GOAL := help
-.PHONY: help native build test test-ios app run-sim run-device launch-sim test-syntax-native syntax-notices render app-check check clean
+.PHONY: help native build test test-ios app run-sim run-device launch-sim test-syntax-native syntax-notices render app-check check clean benchmark-typography
 
 help: ## List available targets
 	@awk 'BEGIN { FS = ":.*## " } /^[a-z-]+:.*## / { printf "  %-8s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
@@ -60,6 +60,9 @@ render: build ## Render a Markdown fixture without launching the app
 
 test: native ## Run swift test (optionally FILTER=<name>)
 	swift test $(if $(FILTER),--filter '$(FILTER)')
+
+benchmark-typography: native ## Measure bounded language and punctuation cost (optimized, no simulator)
+	KASUMI_TYPOGRAPHY_BENCHMARKS=1 swift test -c release --filter TypographyPerformanceTests
 
 # Xcode suite identifiers omit (), while function identifiers include it.
 # Selecting both forms lets FILTER accept either kind of name.

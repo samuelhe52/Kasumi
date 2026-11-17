@@ -209,7 +209,9 @@ struct Typography: Codable, Equatable, Sendable {
         let pointSize = size ?? self.size
         let theme = documentTheme
         let foreground = heading ? (theme.color("heading") ?? textColor) : theme.color("text")!
-        for run in runs {
+        let punctuation = code ? nil : PunctuationPlan.make(runs: runs, strategy: profileValues.resolved(.punctStrategy).string ?? "faithful")
+        var punctuationSpacing: [Int] = []
+        for (runIndex, run) in runs.enumerated() {
             let isCode = code || run.traits.contains(.code)
             let isFootnote = run.traits.contains(.footnote)
             // Native footnote references have source flag0x10, within the
@@ -267,8 +269,12 @@ struct Typography: Codable, Equatable, Sendable {
             }
             if let destination = run.destination { attributes[.link] = destination }
             if isFootnote { attributes[.baselineOffset] = pointSize * superscriptShift }
-            let displayed = run.footnoteDisplay ?? run.text
+            let displayed = run.footnoteDisplay ?? punctuation?.displayed(run.text, run: runIndex) ?? run.text
             let piece = NSMutableAttributedString(string: displayed, attributes: attributes)
+            punctuation?.markOriginals(in: piece, original: run.text, run: runIndex)
+            if punctuation?.strategy == "spacing" {
+                punctuationSpacing.append(contentsOf: punctuation!.offsets[runIndex].map { output.length + $0 })
+            }
             var selectedHan: PlatformFont?
             var selectedPunctuation: PlatformFont?
             if !isCode {
@@ -315,6 +321,7 @@ struct Typography: Codable, Equatable, Sendable {
                 append(piece, base: base, han: selectedHan, punctuation: selectedPunctuation, run: run, isCode: isCode)
             }
         }
+        PunctuationPlan.addSpacing(to: output, at: punctuationSpacing)
         return output
     }
 }

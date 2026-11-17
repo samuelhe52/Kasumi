@@ -93,6 +93,15 @@ exposed as `MarkdownDocument.automaticHyphenationLanguage`; an explicit preset
 language takes precedence. English regional spelling is not guessed: use
 `en-GB` in front matter or `en-gb` in the profile for British patterns.
 
+`punct_strategy = "fold"` displays the eight ASCII marks `, . ; : ! ? ( )` as
+full-width punctuation near Han text; `"spacing"` keeps the original marks and
+adds ⅛ em on each adjoining non-whitespace side. The default is `"faithful"`.
+These display policies preserve original punctuation for library/reader copy,
+search and accessibility, and protect numbers, code, math, links and footnote
+markers. Paragraphs containing kana or Hangul stay literal. Han-only Japanese
+is ambiguous under this lightweight script heuristic. Both modes are available
+in the CLI as `--punct-strategy fold` or `--punct-strategy spacing`.
+
 Load a custom light/dark theme with `try DocumentThemePair(contentsOf: url)` or
 `try DocumentThemePair(json: data)`, then pass its `.light` or `.dark` theme to
 `RenderStyle`. [CustomTheme.json](fixtures/CustomTheme.json) shows the version-1

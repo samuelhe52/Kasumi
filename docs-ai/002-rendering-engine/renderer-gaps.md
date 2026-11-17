@@ -14,7 +14,9 @@ that fixes it; add one when a limitation is found and not fixed.
   registered, then PingFang. The open substitutes have no tuned face table, so
   their heavy, Fangsong and Xihei faces stay generic. See
   [005](../005-cjk-font-availability/000-plan.md).
-- Profiles: punctuation strategy is stored but not applied.
+- Punctuation: opt-in spacing/folding uses local Han context and skips paragraphs
+  containing kana/Hangul; Han-only Japanese is ambiguous under this script
+  heuristic. Code, math, links, numeric separators and footnote markers stay literal.
 - Themes: custom theme files are library/CLI-only; the reader selects built-ins.
   The chrome keys `column_divider`,
   `sidebar_background` and `tab_active_background` are defined in bundled themes,

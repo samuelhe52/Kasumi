@@ -50,6 +50,13 @@ the local toolchain without changing anything.
   `[meta]` its name. Legacy duplicate-key/recovery behavior is rejected. Imports
   retain source until edited; canonical edits preserve unknown data, not comments.
   Verify with `make test FILTER=profileTOML`.
+- Punctuation: `--punct-strategy faithful|spacing|fold` overrides a profile in
+  either argument order. Render `fixtures/LanguageAndPunctuation.md` in all three
+  modes to inspect protected prose/code/math/links, tables, footnotes and Japanese/
+  Korean exclusions. `make test FILTER=PunctuationPolicyTests` checks geometry
+  and original-text interactions. `make benchmark-typography` runs opt-in release
+  benchmarks for bounded language analysis, punctuation scanning and full layout;
+  ordinary test runs skip that performance test. No simulator is needed.
 - Custom theme files: `--theme-file fixtures/CustomTheme.json` (add `--dark` for
   its dark palette). It is mutually exclusive with `--theme`. Verify parser,
   sparse inheritance, syntax colors and CLI raster output with

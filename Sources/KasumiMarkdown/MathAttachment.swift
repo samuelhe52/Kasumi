@@ -103,7 +103,18 @@ struct DocumentTextMap {
                     append(replacement, range: NSRange(location: offset, length: 1), replacement: true)
                 }
             } else {
-                append(replacement ?? source.substring(with: range), range: range, replacement: replacement != nil)
+                var original: NSMutableString?
+                if replacement == nil {
+                    attributed.enumerateAttribute(.kasumiOriginalPunctuation, in: range) { value, part, _ in
+                        guard let mark = value as? String else { return }
+                        if original == nil { original = NSMutableString(string: source.substring(with: range)) }
+                        // Folded ASCII marks occupy exactly one UTF-16 unit.
+                        original?.replaceCharacters(
+                            in: NSRange(location: part.location - range.location, length: part.length),
+                            with: String(repeating: mark, count: part.length))
+                    }
+                }
+                append(replacement ?? original.map { $0 as String } ?? source.substring(with: range), range: range, replacement: replacement != nil)
             }
         }
         self.string = text

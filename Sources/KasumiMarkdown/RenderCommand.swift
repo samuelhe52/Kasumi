@@ -11,6 +11,7 @@ package enum RenderCommand {
         var style = Typography()
         var width = 800.0
         var hyphenationLanguage: String?
+        var punctuationStrategy: String?
         var themeFile: DocumentThemePair?
         var selectedBuiltinTheme = false
         var index = 3
@@ -37,12 +38,17 @@ package enum RenderCommand {
                 width = value
                 continue
             }
-            guard ["--preset", "--profile", "--theme", "--theme-file", "--code-radius", "--hyphenation-language"].contains(argument), index < arguments.count else {
+            guard ["--preset", "--profile", "--theme", "--theme-file", "--code-radius", "--hyphenation-language", "--punct-strategy"].contains(argument), index < arguments.count else {
                 throw ArgumentError.invalid("Unknown or incomplete option: \(argument)")
             }
             let value = arguments[index]
             index += 1
             switch argument {
+            case "--punct-strategy":
+                guard ProfileField.punctStrategy.specification.choices.contains(value) else {
+                    throw ArgumentError.invalid("Unsupported punctuation strategy: \(value)")
+                }
+                punctuationStrategy = value
             case "--theme-file":
                 themeFile = try DocumentThemePair(contentsOf: URL(fileURLWithPath: value))
             case "--hyphenation-language":
@@ -80,6 +86,9 @@ package enum RenderCommand {
         }
         if let hyphenationLanguage {
             style = style.applying(style.profileValues.merging(ProfileValues([.hyphenationLanguage: .string(hyphenationLanguage)])))
+        }
+        if let punctuationStrategy {
+            style = style.applying(style.profileValues.merging(ProfileValues([.punctStrategy: .string(punctuationStrategy)])))
         }
         let output = URL(fileURLWithPath: arguments[2])
         if output.pathExtension.lowercased() == "pdf" {
