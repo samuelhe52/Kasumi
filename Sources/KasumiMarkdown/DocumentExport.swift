@@ -14,6 +14,9 @@ public enum DocumentExport {
         return try DocumentExporter.pdfData(document.parsed, style: style.typography, options: options)
     }
 
+    /// Export frozen geometry. Viewport snapshots support measured regions only;
+    /// exporting unmeasured content throws `DocumentExportError.incompleteLayout`.
+    /// Use the full-session overload or default constructor for a complete image.
     public static func png(_ rendered: RenderedDocument, scale: CGFloat = 2, region: CGRect? = nil) throws -> Data {
         try rendered.imageData(scale: scale, region: region)
     }
@@ -78,6 +81,7 @@ extension DocumentExport {
             options: options, to: url, progress: progress)
     }
 
+    /// Like `png`, this requires an exact layout for the requested image region.
     public static func jpeg(
         _ rendered: RenderedDocument, scale: CGFloat = 2, quality: CGFloat = 0.9, region: CGRect? = nil
     ) throws -> Data {

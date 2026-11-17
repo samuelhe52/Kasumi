@@ -340,6 +340,8 @@ struct ParagraphLayout {
     var diagnostics: [String] = []
     var underlines: [PaintedRect] = []
     var semanticContent: ParagraphSemanticContent? = nil
+    /// Only opt-in viewport snapshots contain these nonpaintable height slots.
+    var estimate: (width: CGFloat, lineHeight: CGFloat)? = nil
 }
 
 enum ParagraphTypesetter {

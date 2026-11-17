@@ -11,6 +11,7 @@ import UniformTypeIdentifiers
 public enum DocumentExportError: LocalizedError {
     case invalidGeometry, cannotCreateImage, cannotWriteImage, cannotCreatePDF, cannotWritePDF
     case imageTooLarge(width: Int, height: Int)
+    case incompleteLayout
     public var errorDescription: String? {
         switch self {
         case .invalidGeometry: "The export size or margins are invalid."
@@ -18,6 +19,7 @@ public enum DocumentExportError: LocalizedError {
         case .cannotWriteImage: "The image could not be written."
         case .cannotCreatePDF: "The PDF could not be created."
         case .cannotWritePDF: "The PDF could not be written."
+        case .incompleteLayout: "The requested image includes unmeasured text. Create a full layout before exporting."
         case .imageTooLarge(let width, let height):
             "The picture would be \(width)×\(height) pixels. Lower the scale or width, or export a PDF instead."
         }

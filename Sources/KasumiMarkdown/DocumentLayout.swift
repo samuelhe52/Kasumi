@@ -14,8 +14,16 @@ struct PlacedText {
     var tableIndex: Int? = nil
     var bounds: CGRect {
         CGRect(
-            x: origin.x, y: origin.y, width: paragraph.lines.map { $0.origin.x + $0.width }.max() ?? 0,
+            x: origin.x, y: origin.y,
+            width: paragraph.estimate?.width ?? (paragraph.lines.map { $0.origin.x + $0.width }.max() ?? 0),
             height: paragraph.height)
+    }
+    /// Unknown lines can paint outside their estimated body box, notably quote
+    /// bars centered on cap height. Allow one line height on each edge, at least
+    /// two points for the fixed-width quote stroke at tiny text sizes. This does
+    /// not change placement or the scroll extent.
+    var estimatedPaintBounds: CGRect {
+        bounds.insetBy(dx: 0, dy: -(paragraph.estimate.map { max(2, $0.lineHeight) } ?? 0))
     }
 }
 struct PaintedRect {
@@ -65,7 +73,7 @@ struct DocumentLayout {
 enum DocumentTypesetter {
     static func layout(
         _ document: ParsedDocument, width: CGFloat, style: Typography, insets: DocumentInsets = .reader,
-        scrollableTables: Bool = false, preparation: ReflowPreparation? = nil
+        scrollableTables: Bool = false, preparation: ReflowPreparation? = nil, viewport: ViewportConstruction? = nil
     )
         -> DocumentLayout
     {
@@ -152,10 +160,24 @@ enum DocumentTypesetter {
             storage.append(attributed)
             storage.append(NSAttributedString(string: "\n"))
             let prepared = preparation?.paragraph(attributed, fontSize: size, verbatim: verbatim)
-            let paragraph = ParagraphTypesetter.layout(
-                attributed, width: max(1, width), fontSize: size, lineSpacing: style.lineSpacing, alignment: alignment,
-                indent: indent, verbatim: verbatim, profileValues: paragraphValues, outerWidth: measure,
-                baseEm: style.size, preparation: prepared, deferFragments: prepared != nil)
+            let index = paragraphs.count
+            let paragraph: ParagraphLayout
+            if let existing = viewport?.exact[index] {
+                paragraph = existing
+            } else if let viewport, !viewport.selected.contains(index), let preparation, let prepared {
+                paragraph = ParagraphLayout(
+                    attributed: prepared.attributed, lines: [],
+                    height: preparation.height(
+                        at: index, width: max(1, width), prepared: prepared, lineHeight: size * style.lineSpacing),
+                    semanticContent: prepared.semanticContent, estimate: (max(1, width), size * style.lineSpacing))
+            } else {
+                paragraph = ParagraphTypesetter.layout(
+                    attributed, width: max(1, width), fontSize: size, lineSpacing: style.lineSpacing,
+                    alignment: alignment, indent: indent, verbatim: verbatim, profileValues: paragraphValues,
+                    outerWidth: measure, baseEm: style.size, preparation: prepared, deferFragments: prepared != nil)
+                viewport?.exact[index] = paragraph
+                preparation?.measuredHeight(paragraph.height, at: index, width: max(1, width))
+            }
             paragraphs.append(PlacedText(paragraph: paragraph, origin: CGPoint(x: x, y: y), textOffset: offset))
             for line in paragraph.lines {
                 attributed.enumerateAttribute(.kasumiImage, in: line.range) { value, range, _ in

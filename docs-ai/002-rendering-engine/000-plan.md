@@ -81,3 +81,4 @@ Library tests pass on macOS and the iOS simulator, including comparisons against
 - Updated 2026-11-17: Retain reflow preparation and remove repeated break scans — see [006-reflow-preparation.md](006-reflow-preparation.md).
 - Updated 2026-11-17: Reuse semantic and item preparation and skip absent decorations — see [007-reflow-metadata.md](007-reflow-metadata.md).
 - Updated 2026-11-17: Defer snapshot-local offscreen fragment materialization — see [008-lazy-fragments.md](008-lazy-fragments.md).
+- Updated 2026-11-17: Measure viewport paragraphs with indexed offscreen height estimates — see [009-viewport-layout.md](009-viewport-layout.md).

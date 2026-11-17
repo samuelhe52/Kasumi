@@ -47,6 +47,7 @@ public struct SearchOptions: OptionSet, Sendable {
 /// even though individual functions and font objects are thread-safe.
 /// https://developer.apple.com/documentation/CoreText
 public final class RenderedDocument: @unchecked Sendable {
+    /// Includes estimated offscreen heights in opt-in viewport snapshots.
     public let size: CGSize
     public let backgroundColor: CGColor
     public var tables: [RenderedTable] { layout.tables }
@@ -58,6 +59,29 @@ public final class RenderedDocument: @unchecked Sendable {
     private let lines: [Line]
     private let semanticBoundaries: [Int]
     private let semanticText: String
+    private let estimatedRegions: [CGRect]
+    private let estimatedPrefixBottoms: [CGFloat]
+
+    /// Viewport snapshots have estimated offscreen heights and geometry. Their
+    /// semantic text remains complete. Default/full snapshots always return false.
+    public var hasEstimatedGeometry: Bool { !estimatedRegions.isEmpty }
+
+    /// True when painting or interacting here needs a new viewport snapshot.
+    /// Geometry outside measured paragraphs is approximate until that refinement.
+    public func needsLayout(in rect: CGRect) -> Bool {
+        guard !rect.isNull, rect.minY.isFinite, rect.maxY.isFinite else { return false }
+        var lower = 0
+        var upper = estimatedPrefixBottoms.count
+        while lower < upper {
+            let middle = lower + (upper - lower) / 2
+            if estimatedPrefixBottoms[middle] > rect.minY { upper = middle } else { lower = middle + 1 }
+        }
+        return lower < estimatedRegions.count && estimatedRegions[lower].minY < rect.maxY
+    }
+
+    var paragraphStatistics: (total: Int, measured: Int) {
+        (layout.paragraphs.count, layout.paragraphs.filter { $0.paragraph.estimate == nil }.count)
+    }
 
     /// Internal instrumentation reads cache state without materializing fragments.
     var fragmentStatistics: (total: Int, materialized: Int) {
@@ -92,7 +116,7 @@ public final class RenderedDocument: @unchecked Sendable {
 
     init(
         _ document: MarkdownDocument, width: CGFloat, style: RenderStyle, scrollableTables: Bool,
-        preparation: ReflowPreparation?
+        preparation: ReflowPreparation?, viewport: ViewportLayoutRequest? = nil
     ) {
         precondition(width.isFinite && width > 0, "Layout width must be finite and positive")
         let insets = style.insets
@@ -100,11 +124,25 @@ public final class RenderedDocument: @unchecked Sendable {
             [insets.top, insets.left, insets.bottom, insets.right].allSatisfy { $0.isFinite && $0 >= 0 },
             "Layout insets must be finite and nonnegative")
         let typography = style.typography
-        var built = DocumentTypesetter.layout(
-            document.parsed, width: width, style: typography, insets: insets, scrollableTables: scrollableTables,
-            preparation: preparation)
+        var built: DocumentLayout
+        if let viewport, let preparation {
+            built = DocumentTypesetter.viewportLayout(
+                document.parsed, width: width, style: typography, insets: insets,
+                scrollableTables: scrollableTables, preparation: preparation, request: viewport)
+        } else {
+            built = DocumentTypesetter.layout(
+                document.parsed, width: width, style: typography, insets: insets, scrollableTables: scrollableTables,
+                preparation: preparation)
+        }
         built.text = NSAttributedString(attributedString: built.text)
         layout = built
+        estimatedRegions = built.paragraphs.filter { $0.paragraph.estimate != nil }.map(\.estimatedPaintBounds)
+            .sorted { $0.minY < $1.minY }
+        var maximum = -CGFloat.infinity
+        estimatedPrefixBottoms = estimatedRegions.map {
+            maximum = max(maximum, $0.maxY)
+            return maximum
+        }
         size = CGSize(width: built.width, height: built.height)
         backgroundColor = typography.paperColor.cgColor
         readingIndex = ReadingPositionIndex(layout: built)
@@ -128,6 +166,8 @@ public final class RenderedDocument: @unchecked Sendable {
     /// `rect` and the CGContext must use document coordinates (top-left, y down).
     /// Each caller owns its context. The clip protects adjacent tiles, and the
     /// existing sourceRange path excludes off-tile text/attachment drawing.
+    /// Unmeasured text is not painted: viewport clients must check `needsLayout`
+    /// and request a refined snapshot when moving outside the measured window.
     public func draw(in context: CGContext, rect: CGRect, excludingScrollableTables: Bool = false) {
         guard rect.minX.isFinite, rect.minY.isFinite, rect.width.isFinite, rect.height.isFinite,
             rect.width > 0, rect.height > 0
@@ -196,6 +236,20 @@ public final class RenderedDocument: @unchecked Sendable {
     public func position(closestTo point: CGPoint) -> TextPosition {
         guard point.x.isFinite, point.y.isFinite else { return documentRange.lowerBound }
         return layoutLock.withLock {
+            // Decide whether approximation is needed by vertical proximity, not
+            // full-measure estimated widths. This keeps covered margin taps on
+            // measured lines and offscreen gap/end hits near the queried Y.
+            func verticalDistance(_ item: PlacedText) -> CGFloat {
+                max(item.origin.y - point.y, max(0, point.y - item.origin.y - item.paragraph.height))
+            }
+            if hasEstimatedGeometry,
+                let item = layout.paragraphs.min(by: { verticalDistance($0) < verticalDistance($1) }),
+                item.paragraph.estimate != nil
+            {
+                let fraction = min(1, max(0, (point.y - item.origin.y) / max(1, item.paragraph.height)))
+                let rendered = item.textOffset + Int(CGFloat(item.paragraph.attributed.length) * fraction)
+                return position(nearestSemanticBoundary(to: layout.textMap.semanticOffset(forRenderedOffset: rendered)))
+            }
             guard let line = nearestLine(to: point) else { return position(0) }
             let item = layout.paragraphs[line.paragraph]
             let local = line.shaped.stringIndex(forPosition: CGPoint(x: point.x - line.origin.x, y: 0))
@@ -209,6 +263,12 @@ public final class RenderedDocument: @unchecked Sendable {
         guard position.owner == owner else { return .zero }
         return layoutLock.withLock {
             let rendered = layout.textMap.renderedOffset(forSemanticOffset: position.offset)
+            if let item = estimatedParagraph(containing: rendered), let estimate = item.paragraph.estimate {
+                let fraction = CGFloat(rendered - item.textOffset) / CGFloat(max(1, item.paragraph.attributed.length))
+                return CGRect(
+                    x: item.origin.x, y: item.origin.y + fraction * item.paragraph.height,
+                    width: 1, height: estimate.lineHeight)
+            }
             guard let line = line(containing: rendered) else {
                 return CGRect(x: 0, y: 0, width: 1, height: 1)
             }
@@ -223,7 +283,7 @@ public final class RenderedDocument: @unchecked Sendable {
             let rendered = layout.textMap.renderedRange(for: semantic)
         else { return [] }
         return layoutLock.withLock {
-            lines.compactMap { line in
+            let measured = lines.compactMap { line -> CGRect? in
                 let overlap = NSIntersectionRange(rendered, line.range)
                 guard overlap.length > 0 else { return nil }
                 let item = layout.paragraphs[line.paragraph]
@@ -234,6 +294,17 @@ public final class RenderedDocument: @unchecked Sendable {
                     x: line.origin.x + min(start, end), y: line.rect.minY,
                     width: abs(end - start), height: line.rect.height)
             }
+            let estimated = layout.paragraphs.compactMap { item -> CGRect? in
+                guard let estimate = item.paragraph.estimate else { return nil }
+                let paragraphRange = NSRange(location: item.textOffset, length: item.paragraph.attributed.length)
+                let overlap = NSIntersectionRange(rendered, paragraphRange)
+                guard overlap.length > 0 else { return nil }
+                let unit = item.paragraph.height / CGFloat(max(1, paragraphRange.length))
+                return CGRect(
+                    x: item.origin.x, y: item.origin.y + CGFloat(overlap.location - paragraphRange.location) * unit,
+                    width: estimate.width, height: max(1, CGFloat(overlap.length) * unit))
+            }
+            return estimated.isEmpty ? measured : (measured + estimated).sorted { $0.minY < $1.minY }
         }
     }
 
@@ -290,6 +361,16 @@ public final class RenderedDocument: @unchecked Sendable {
         return CGRect(x: 0, y: y, width: size.width, height: 1)
     }
 
+    /// Semantic target for an estimated heading/footnote position. Refine around
+    /// this anchor before applying the final navigation inset.
+    public func readingAnchor(forAnchor anchor: String) -> ReadingAnchor? {
+        let key = (anchor.hasPrefix("#") ? String(anchor.dropFirst()) : anchor).removingPercentEncoding ?? anchor
+        guard let y = layout.anchorPositions[key],
+            let index = layout.paragraphs.firstIndex(where: { abs($0.origin.y - y) < 0.01 })
+        else { return nil }
+        return readingIndex.anchor(block: index, offset: 0)
+    }
+
     public func link(at point: CGPoint) -> URL? {
         guard point.x.isFinite, point.y.isFinite else { return nil }
         return layoutLock.withLock {
@@ -314,6 +395,20 @@ public final class RenderedDocument: @unchecked Sendable {
             ?? ReadingAnchor(blockKey: "", blockIndex: 0, offset: 0, blockCount: 0, verticalFraction: 0)
     }
 
+    /// A semantic navigation target, including text in an unmeasured paragraph.
+    /// Use this rather than capturing an approximate offscreen rectangle's Y.
+    public func readingAnchor(at position: TextPosition) -> ReadingAnchor? {
+        guard position.owner == owner else { return nil }
+        let rendered = layout.textMap.renderedOffset(forSemanticOffset: position.offset)
+        guard let index = layout.paragraphs.lastIndex(where: { $0.textOffset <= rendered }) else { return nil }
+        let item = layout.paragraphs[index]
+        let content = item.paragraph.semanticContent ?? ParagraphSemanticContent(item.paragraph.attributed)
+        return readingIndex.anchor(
+            block: index,
+            offset: content.textMap.semanticOffset(
+                forRenderedOffset: min(item.paragraph.attributed.length, max(0, rendered - item.textOffset))))
+    }
+
     public func y(for anchor: ReadingAnchor) -> CGFloat? {
         if lines.isEmpty, anchor.blockCount == 0 { return 0 }
         return readingIndex.y(for: anchor)
@@ -323,13 +418,23 @@ public final class RenderedDocument: @unchecked Sendable {
     func imageData(
         scale: CGFloat, region: CGRect?, format: DocumentImageFormat = .png, quality: CGFloat = 0.9
     ) throws -> Data {
-        try layoutLock.withLock {
+        if hasEstimatedGeometry {
+            guard let region, !needsLayout(in: region) else { throw DocumentExportError.incompleteLayout }
+        }
+        return try layoutLock.withLock {
             var style = Typography()
             style.explicitTheme = DocumentTheme(
                 id: "snapshot", name: "Snapshot", appearance: .light,
                 document: ["paper": PlatformColors.srgb(backgroundColor)])
             return try DocumentExporter.imageData(
                 layout, style: style, scale: scale, region: region, format: format, quality: quality)
+        }
+    }
+
+    private func estimatedParagraph(containing offset: Int) -> PlacedText? {
+        layout.paragraphs.first {
+            $0.paragraph.estimate != nil && offset >= $0.textOffset
+                && offset <= $0.textOffset + $0.paragraph.attributed.length
         }
     }
 
@@ -365,11 +470,12 @@ public final class RenderedDocument: @unchecked Sendable {
     }
 
     private func nearestLine(to point: CGPoint) -> Line? {
-        func distance(_ line: Line) -> CGFloat {
-            let dx = max(line.rect.minX - point.x, max(0, point.x - line.rect.maxX))
-            let dy = max(line.rect.minY - point.y, max(0, point.y - line.rect.maxY))
-            return dx * dx + dy * dy
-        }
-        return lines.min { distance($0) < distance($1) }
+        lines.min { distance(from: point, to: $0.rect) < distance(from: point, to: $1.rect) }
+    }
+
+    private func distance(from point: CGPoint, to rect: CGRect) -> CGFloat {
+        let dx = max(rect.minX - point.x, max(0, point.x - rect.maxX))
+        let dy = max(rect.minY - point.y, max(0, point.y - rect.maxY))
+        return dx * dx + dy * dy
     }
 }

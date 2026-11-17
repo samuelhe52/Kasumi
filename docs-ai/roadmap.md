@@ -33,14 +33,20 @@ or is reordered; record the work itself in a numbered entry.
 Live window-resize reflow was implemented on 2026-11-17 with one background
 layout/viewport-paint pipeline and coalesced pending widths. See
 [004.006](004-ios-reader/006-live-reflow.md) for validation and performance limits.
+[Anchor lifecycle corrections](004-ios-reader/007-reflow-anchor-lifecycle.md)
+refresh paragraph keys after content revisions and track explicit clamped scrolling.
 Mac reproduction confirms that whole-document reflow still stalls on longer
 English and especially Chinese text. [Retained preparation and incremental
 break totals](002-rendering-engine/006-reflow-preparation.md) now reduce repeated
 work in the reader. [Semantic/item preparation and decoration filtering](002-rendering-engine/007-reflow-metadata.md)
 remove more repeated width-independent work. [Lazy fragments](002-rendering-engine/008-lazy-fragments.md)
 now defer offscreen drawing/caret objects in session-prepared undecorated paragraphs.
-Exact full-document line geometry still builds before publication; viewport
-measurement with estimated heights is still needed for document-length scaling.
+[Viewport-first layout](002-rendering-engine/009-viewport-layout.md) now measures
+text paragraphs around the reading anchor with overscan, retaining indexed
+offscreen height estimates. Scrolling requests refined immutable snapshots.
+Documents containing tables or attachments still use exact full layout; very
+large single paragraphs still require whole-paragraph breaking. Further work
+targets viewport painting, broader lazy coverage, and UI installation/Find tails.
 
 Retained after milestone closure; not prerequisites for starting Reader 2:
 

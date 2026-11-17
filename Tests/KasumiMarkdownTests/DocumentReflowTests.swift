@@ -334,6 +334,7 @@ import Testing
         func macReflowTimings() async throws {
             let environment = ProcessInfo.processInfo.environment
             let repetitions = max(20, Int(environment["KASUMI_REFLOW_SAMPLES"] ?? "20") ?? 20)
+            let viewportOnly = environment["KASUMI_REFLOW_VIEWPORT"] == "1"
             let samples = [
                 (
                     "English",
@@ -351,6 +352,7 @@ import Testing
                         markdown: Array(repeating: paragraph, count: count / 500).joined(separator: "\n\n"))
                     let session = DocumentReflowSession(doc, style: style)
                     var previous: RenderedDocument? = await session.render(width: 600)
+                    let anchor = previous?.readingAnchor(atY: (previous?.size.height ?? 0) * 0.5)
                     var construction = [[Double]](repeating: [], count: 5)
                     var disposal = construction
                     var painting = construction
@@ -364,20 +366,23 @@ import Testing
                                 bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
                     }
                     // Warm viewport glyph rasterization independently of the timed samples.
-                    paint(try #require(previous), context: contexts[0], width: 600)
+                    paint(try #require(previous), context: contexts[0], width: 600, anchor: anchor)
                     for _ in 0..<repetitions {
                         for (index, width) in widths.enumerated() {
                             let start = ContinuousClock.now
-                            var next: RenderedDocument? = await session.render(width: width)
+                            var next: RenderedDocument? =
+                                viewportOnly
+                                ? await session.render(width: width, viewportHeight: 800, anchor: anchor)
+                                : await session.render(width: width)
                             construction[index].append(milliseconds(since: start))
                             let firstSample = construction[index].count == 1
                             let beforePaint = firstSample ? next?.fragmentStatistics : nil
                             let paintStart = ContinuousClock.now
-                            paint(try #require(next), context: contexts[index], width: width)
+                            paint(try #require(next), context: contexts[index], width: width, anchor: anchor)
                             painting[index].append(milliseconds(since: paintStart))
                             if let beforePaint, let afterPaint = next?.fragmentStatistics {
                                 fragmentCounts[index] =
-                                    "built-before=\(beforePaint.materialized) built-after=\(afterPaint.materialized) total=\(afterPaint.total)"
+                                    "built-before=\(beforePaint.materialized) built-after=\(afterPaint.materialized) total=\(afterPaint.total) paragraphs=\(next!.paragraphStatistics.measured)/\(next!.paragraphStatistics.total)"
                             }
                             let releaseStart = ContinuousClock.now
                             releaseSnapshot(&previous)
@@ -397,7 +402,7 @@ import Testing
                         )
                     }
                     print(
-                        "REFLOW_SUMMARY \(language) chars=\(count) n=\(repetitions * widths.count) construct=\(stats(construction.flatMap { $0 })) dispose=\(stats(disposal.flatMap { $0 })) draw=\(stats(painting.flatMap { $0 })) process-peak-rss-mib=\(rss)"
+                        "REFLOW_SUMMARY \(language) chars=\(count) viewport=\(viewportOnly) n=\(repetitions * widths.count) construct=\(stats(construction.flatMap { $0 })) dispose=\(stats(disposal.flatMap { $0 })) draw=\(stats(painting.flatMap { $0 })) process-peak-rss-mib=\(rss)"
                     )
                 }
             }
@@ -418,8 +423,8 @@ import Testing
             snapshot = nil
         }
 
-        private func paint(_ snapshot: RenderedDocument, context: CGContext, width: CGFloat) {
-            let top = max(0, (snapshot.size.height - 800) / 2)
+        private func paint(_ snapshot: RenderedDocument, context: CGContext, width: CGFloat, anchor: ReadingAnchor?) {
+            let top = min(max(0, snapshot.size.height - 800), max(0, anchor.flatMap { snapshot.y(for: $0) } ?? 0))
             let rect = CGRect(x: 0, y: top, width: width, height: 800)
             context.saveGState()
             context.scaleBy(x: 2, y: 2)

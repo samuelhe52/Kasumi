@@ -52,8 +52,9 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
     private var layoutTask: Task<Void, Never>?
     private var generation = UUID()
     private var reflow = ReaderReflowState()
-    private var reflowAnchor: ReadingAnchor?
+    private var reflowAnchor = ReaderReflowAnchorState()
     private var installedGeneration: UUID?
+    private var installedRevision: UUID?
     private var finished = false
     private var lastJump: UUID?
     private var adjusting = false
@@ -66,6 +67,12 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
     private var presentedFindRequest = 0
     private let unobscuredViewport = UILayoutGuide()
     private var currentFindRect: CGRect?
+    private var currentFindAnchor: ReadingAnchor?
+    private enum PendingReveal {
+        case anchor(String, CGFloat)
+        case find
+    }
+    private var pendingReveal: PendingReveal?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -148,7 +155,15 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         contentInset.bottom = inset
         verticalScrollIndicatorInsets.bottom = inset
         if let currentFindRect {
-            setTop(max(0, currentFindRect.minY - 24))
+            setTop(max(0, currentFindRect.minY - 24), trackingAnchor: true)
+            if rendered?.needsLayout(in: currentFindRect.insetBy(dx: 0, dy: -1)) == true,
+                let currentFindAnchor
+            {
+                reflowAnchor.navigate(to: currentFindAnchor)
+                pendingReveal = .find
+            }
+            reportPosition()
+            rebuildIfNeeded()
         }
     }
 
@@ -170,21 +185,38 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
     private var topY: CGFloat { max(0, contentOffset.y + adjustedContentInset.top) }
 
     private func rebuildIfNeeded() {
-        guard !finished, bounds.width.isFinite, bounds.width > 0, document != nil, style != nil else { return }
-        reflow.request(width: bounds.width, generation: generation)
+        guard !finished, bounds.width.isFinite, bounds.width > 0, bounds.height.isFinite, bounds.height > 0,
+            document != nil, style != nil
+        else { return }
+        let visible = CGRect(x: 0, y: topY, width: bounds.width, height: bounds.height)
+            .insetBy(dx: 0, dy: -bounds.height * 0.25)
+        if pendingReveal == nil, let installed = reflow.installed, installed.width == bounds.width,
+            installed.generation == generation, rendered?.needsLayout(in: visible) == false
+        {
+            // Return to an already covered viewport, including while obsolete
+            // work runs. Do not turn every scroll callback into a render request.
+            reflow.request(
+                width: installed.width, generation: installed.generation, anchor: installed.anchor,
+                height: installed.height)
+        } else {
+            reflowAnchor.captureIfNeeded(in: rendered, atY: topY, restoring: restoreAnchor)
+            reflow.request(
+                width: bounds.width, generation: generation, anchor: reflowAnchor.value, height: bounds.height)
+        }
         guard layoutTask == nil, reflow.needsLayout else { return }
         // Do not cancel on width or style changes: synchronous typesetting cannot
         // stop midway. Drain the newest request after the current pipeline ends.
         layoutTask = Task { [weak self] in
-            while let self, let request = self.reflow.begin(), let session = self.reflowSession {
-                if self.reflowAnchor == nil {
-                    self.reflowAnchor = self.rendered?.readingAnchor(atY: self.topY) ?? self.restoreAnchor
-                }
+            while let self, let request = self.reflow.begin(), let session = self.reflowSession,
+                let revision = self.revision
+            {
+                self.reflowAnchor.captureIfNeeded(in: self.rendered, atY: self.topY, restoring: self.restoreAnchor)
                 let worker = Task.detached(priority: .userInitiated) {
                     let interval = Self.signposter.beginInterval("Layout", id: Self.signposter.makeSignpostID())
                     defer { Self.signposter.endInterval("Layout", interval) }
                     try Task.checkCancellation()
-                    let next = await session.render(width: request.width)
+                    let next = await session.render(
+                        width: request.width, viewportHeight: request.height, anchor: request.anchor)
                     try Task.checkCancellation()
                     return next
                 }
@@ -199,7 +231,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
                         _ = self.reflow.complete(request)
                         continue
                     }
-                    let rect = self.visibleRect(in: next, restoring: self.reflowAnchor)
+                    let rect = self.visibleRect(in: next, restoring: self.reflowAnchor.value)
                     let scale = max(1, self.traitCollection.displayScale)
                     // Prepaint only the viewport, off-main, before publishing.
                     // Painting and layout share one worker slot, even during drag.
@@ -222,7 +254,8 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
                         let appearanceChanged = self.installedGeneration != request.generation
                         self.installedGeneration = request.generation
                         self.install(
-                            next, restoring: self.reflowAnchor, preview: preview, previewRect: rect,
+                            next, revision: revision, restoring: self.reflowAnchor.value, preview: preview,
+                            previewRect: rect,
                             animateReplacement: appearanceChanged)
                     }
                 } catch {
@@ -244,13 +277,18 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
     }
 
     private func install(
-        _ next: RenderedDocument, restoring anchor: ReadingAnchor?, preview: ReaderPagePreview?, previewRect: CGRect,
+        _ next: RenderedDocument, revision: UUID, restoring anchor: ReadingAnchor?, preview: ReaderPagePreview?,
+        previewRect: CGRect,
         animateReplacement: Bool
     ) {
         let interval = Self.signposter.beginInterval("Install", id: Self.signposter.makeSignpostID())
         defer { Self.signposter.endInterval("Install", interval) }
         adjusting = true
         let firstLayout = rendered == nil
+        let selection = installedRevision == revision ? page?.selectionOffsets : nil
+        let hadTextFocus = page?.isFirstResponder == true
+        let sameContent = installedRevision == revision
+        installedRevision = revision
         let animate = !UIAccessibility.isReduceMotionEnabled && window != nil
         let widthChanged = rendered?.size.width != next.size.width
         let overlay =
@@ -258,13 +296,20 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
             ? content.resizableSnapshotView(from: bounds, afterScreenUpdates: false, withCapInsets: .zero) : nil
         transitionOverlay?.removeFromSuperview()
         transitionOverlay = overlay
-        let nextPage = ReaderPageView(
-            rendered: next, scale: max(1, traitCollection.displayScale), preview: preview, previewRect: previewRect)
-        content.addSubview(nextPage)
-        page?.clearSelection()
-        page?.removeFromSuperview()
+        let nextPage: ReaderPageView
+        if sameContent, !animateReplacement, !widthChanged, next.tables.isEmpty, let page {
+            page.refine(next, scale: max(1, traitCollection.displayScale), preview: preview, previewRect: previewRect)
+            nextPage = page
+        } else {
+            nextPage = ReaderPageView(
+                rendered: next, scale: max(1, traitCollection.displayScale), preview: preview, previewRect: previewRect)
+            content.addSubview(nextPage)
+            page?.clearSelection()
+            page?.removeFromSuperview()
+        }
         rendered = next
         page = nextPage
+        if let selection { nextPage.restoreSelection(selection) }
         nextPage.onLink = { [weak self] url in self?.follow(url) }
         backgroundColor = UIColor(cgColor: next.backgroundColor)
         window?.backgroundColor = backgroundColor
@@ -272,13 +317,16 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         headings = outline.compactMap { item in next.rect(for: item).map { (item.id, $0.minY) } }
         updateScrollExtent()
         setTop(anchor.flatMap { next.y(for: $0) } ?? 0)
+        reflowAnchor.didInstall(next, revision: revision, atY: topY)
         viewport?.rendered = next
         adjusting = false
         jumpIfNeeded()
         findSession.install(next, scroll: false)
+        revealPendingTarget()
         presentFindIfNeeded()
         openingIndicator.stopAnimating()
         if firstLayout { becomeFirstResponder() }
+        if selection != nil && hadTextFocus { nextPage.becomeFirstResponder() }
         if let overlay {
             overlay.frame = bounds
             overlay.isUserInteractionEnabled = false
@@ -305,10 +353,18 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         window?.backgroundColor = backgroundColor
     }
 
-    private func setTop(_ y: CGFloat, animated: Bool = false) {
+    private func setTop(_ y: CGFloat, animated: Bool = false, trackingAnchor: Bool = false) {
         let minimum = -adjustedContentInset.top
         let maximum = max(minimum, contentSize.height - bounds.height + adjustedContentInset.bottom)
-        setContentOffset(CGPoint(x: 0, y: min(maximum, max(minimum, y - adjustedContentInset.top))), animated: animated)
+        let offset = min(maximum, max(minimum, y - adjustedContentInset.top))
+        if trackingAnchor {
+            pendingReveal = nil
+            reflowAnchor.moved(in: rendered, atY: max(0, offset + adjustedContentInset.top))
+        }
+        setContentOffset(CGPoint(x: 0, y: offset), animated: animated)
+        if trackingAnchor && !animated {
+            reflowAnchor.moved(in: rendered, atY: topY)
+        }
     }
 
     private func jumpIfNeeded() {
@@ -316,23 +372,32 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
             let rendered, let rect = rendered.rect(forAnchor: id)
         else { return }
         lastJump = viewport.jumpRevision
-        reflowAnchor = rendered.readingAnchor(atY: max(0, rect.minY - headingTopInset))
+        let approximate = rendered.needsLayout(in: rect.insetBy(dx: 0, dy: -1))
         adjusting = true
-        setTop(max(0, rect.minY - headingTopInset), animated: !UIAccessibility.isReduceMotionEnabled)
+        setTop(
+            max(0, rect.minY - headingTopInset), animated: !approximate && !UIAccessibility.isReduceMotionEnabled,
+            trackingAnchor: true)
         adjusting = false
+        if approximate, let anchor = rendered.readingAnchor(forAnchor: id) {
+            reflowAnchor.navigate(to: anchor)
+            pendingReveal = .anchor(id, headingTopInset)
+        }
         reportPosition()
+        rebuildIfNeeded()
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         guard !adjusting else { return }
-        reflowAnchor = rendered?.readingAnchor(atY: topY)
+        if isDragging || isDecelerating { pendingReveal = nil }
+        reflowAnchor.moved(in: rendered, atY: topY)
         reportPosition()
+        rebuildIfNeeded()
     }
     private func reportPosition() {
         guard window != nil, let rendered else { return }
         let y = topY
         let heading = headings.last { $0.1 <= y + headingTopInset }?.0 ?? headings.first?.0
-        viewport?.moved(anchor: reflowAnchor ?? rendered.readingAnchor(atY: y), heading: heading)
+        viewport?.moved(anchor: reflowAnchor.value ?? rendered.readingAnchor(atY: y), heading: heading)
     }
     func finish() {
         finished = true
@@ -387,9 +452,23 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
             return page?.selectionGeometry(for: matches[index]).first
                 ?? rendered.selectionRects(for: matches[index]).first
         }
+        currentFindAnchor = current.flatMap { index in
+            guard matches.indices.contains(index) else { return nil }
+            return rendered?.readingAnchor(at: matches[index].lowerBound)
+        }
+        if current == nil, case .find = pendingReveal { pendingReveal = nil }
         guard scroll, let rect = currentFindRect else { return }
-        reflowAnchor = rendered?.readingAnchor(atY: max(0, rect.minY - 24))
-        setTop(max(0, rect.minY - 24), animated: !UIAccessibility.isReduceMotionEnabled)
+        let approximate = rendered?.needsLayout(in: rect.insetBy(dx: 0, dy: -1)) == true
+        setTop(
+            max(0, rect.minY - 24), animated: !approximate && !UIAccessibility.isReduceMotionEnabled,
+            trackingAnchor: true)
+        if approximate, let current, matches.indices.contains(current),
+            let anchor = rendered?.readingAnchor(at: matches[current].lowerBound)
+        {
+            reflowAnchor.navigate(to: anchor)
+            pendingReveal = .find
+        }
+        rebuildIfNeeded()
     }
 
     private func follow(_ url: URL) {
@@ -397,14 +476,45 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         if let fragment = url.fragment, url.scheme == nil || (url.isFileURL && url.path == fileURL?.path) {
             // An unresolved same-document fragment is not an external URL.
             guard let rect = rendered.rect(forAnchor: fragment) else { return }
-            reflowAnchor = rendered.readingAnchor(atY: max(0, rect.minY - 8))
+            let approximate = rendered.needsLayout(in: rect.insetBy(dx: 0, dy: -1))
             adjusting = true
-            setTop(max(0, rect.minY - 8), animated: !UIAccessibility.isReduceMotionEnabled)
+            setTop(
+                max(0, rect.minY - 8), animated: !approximate && !UIAccessibility.isReduceMotionEnabled,
+                trackingAnchor: true)
             adjusting = false
+            if approximate, let anchor = rendered.readingAnchor(forAnchor: fragment) {
+                reflowAnchor.navigate(to: anchor)
+                pendingReveal = .anchor(fragment, 8)
+            }
             reportPosition()
+            rebuildIfNeeded()
         } else {
             openLink?(url)
         }
+    }
+
+    private func revealPendingTarget() {
+        guard let pendingReveal, let rendered else { return }
+        let rect: CGRect?
+        let inset: CGFloat
+        switch pendingReveal {
+        case .anchor(let id, let topInset):
+            rect = rendered.rect(forAnchor: id)
+            inset = topInset
+        case .find:
+            rect = currentFindRect
+            inset = 24
+        }
+        guard let rect else {
+            self.pendingReveal = nil
+            return
+        }
+        guard !rendered.needsLayout(in: rect.insetBy(dx: 0, dy: -1)) else { return }
+        self.pendingReveal = nil
+        let wasAdjusting = adjusting
+        adjusting = true
+        setTop(max(0, rect.minY - inset), trackingAnchor: true)
+        adjusting = wasAdjusting
     }
 }
 
@@ -419,23 +529,14 @@ fileprivate final class ReaderPageView: ReaderTextInputView {
     private var highlightedMatches: [TextRange] = []
     private var highlightedIndex: Int?
     private var tableScrollViews: [ReaderTableScrollView] = []
+    private var seedLayer: CALayer?
+    private var tileLayer: ReaderTileLayer?
     init(rendered: RenderedDocument, scale: CGFloat, preview: ReaderPagePreview?, previewRect: CGRect) {
         super.init(rendered: rendered)
         layer.anchorPoint = .zero
         layer.position = .zero
         backgroundColor = UIColor(cgColor: rendered.backgroundColor)
-        if let image = preview?.image {
-            let seed = CALayer()
-            seed.frame = previewRect
-            seed.contents = image
-            seed.contentsScale = scale
-            layer.addSublayer(seed)
-        }
-        let tiles = ReaderTileLayer(rendered: rendered)
-        tiles.frame = bounds
-        tiles.contentsScale = scale
-        tiles.tileSize = CGSize(width: 512, height: 512)
-        layer.addSublayer(tiles)
+        installDrawingLayers(scale: scale, preview: preview, previewRect: previewRect)
         for table in rendered.tables where table.isScrollable {
             let scroll = ReaderTableScrollView(
                 rendered: rendered, table: table, scale: scale, preview: preview?.tables[table.id])
@@ -452,6 +553,31 @@ fileprivate final class ReaderPageView: ReaderTextInputView {
         accessibilityLabel = rendered.text(in: rendered.documentRange)
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    func refine(_ next: RenderedDocument, scale: CGFloat, preview: ReaderPagePreview?, previewRect: CGRect) {
+        replaceRendered(next)
+        installDrawingLayers(scale: scale, preview: preview, previewRect: previewRect)
+    }
+
+    private func installDrawingLayers(scale: CGFloat, preview: ReaderPagePreview?, previewRect: CGRect) {
+        seedLayer?.removeFromSuperlayer()
+        tileLayer?.removeFromSuperlayer()
+        seedLayer = nil
+        if let image = preview?.image {
+            let seed = CALayer()
+            seed.frame = previewRect
+            seed.contents = image
+            seed.contentsScale = scale
+            layer.insertSublayer(seed, at: 0)
+            seedLayer = seed
+        }
+        let tiles = ReaderTileLayer(rendered: rendered)
+        tiles.frame = bounds
+        tiles.contentsScale = scale
+        tiles.tileSize = CGSize(width: 512, height: 512)
+        layer.insertSublayer(tiles, at: seedLayer == nil ? 0 : 1)
+        tileLayer = tiles
+    }
 
     func highlight(matches: [TextRange], current: Int?) {
         guard matches != highlightedMatches || current != highlightedIndex else { return }

@@ -21,6 +21,19 @@ public actor DocumentReflowSession {
                 document, width: width, style: style, scrollableTables: scrollableTables, preparation: preparation)
         }
     }
+
+    /// Measures paragraphs near the anchor, with overscan, and estimates offscreen
+    /// heights. Text/search remain complete; offscreen geometry is approximate.
+    /// Request another snapshot when `needsLayout(in:)` is true after scrolling.
+    /// Documents with tables or attachments currently use exact full layout.
+    public func render(width: CGFloat, viewportHeight: CGFloat, anchor: ReadingAnchor? = nil) -> RenderedDocument {
+        autoreleasepool {
+            RenderedDocument(
+                document, width: width, style: style, scrollableTables: scrollableTables, preparation: preparation,
+                viewport: viewportHeight.isFinite && viewportHeight > 0
+                    ? ViewportLayoutRequest(height: viewportHeight, anchor: anchor) : nil)
+        }
+    }
 }
 
 /// Confined to a session's actor. Only normalized text, fonts, and measured
@@ -49,6 +62,19 @@ final class ReflowPreparation {
     private(set) var semanticBuilds = 0
     private var documentParagraphs: [ParagraphSemanticContent] = []
     private var documentSemantic: DocumentSemanticContent?
+    private var heights: [Int: (width: CGFloat, height: CGFloat)] = [:]
+
+    func height(at index: Int, width: CGFloat, prepared: ParagraphPreparation, lineHeight: CGFloat) -> CGFloat {
+        if let old = heights[index] {
+            if old.width == width { return old.height }
+            return max(lineHeight, ceil(old.height / lineHeight * old.width / width) * lineHeight)
+        }
+        return max(lineHeight, ceil(prepared.estimatedAdvance / width) * lineHeight)
+    }
+
+    func measuredHeight(_ height: CGFloat, at index: Int, width: CGFloat) {
+        heights[index] = (width, height)
+    }
 
     func attributed(
         block: Int, slot: Int, runs: [InlineRun], size: Double?, heading: Bool, code: Bool, level: Int?,
@@ -112,6 +138,7 @@ final class ParagraphPreparation {
     let input: ShapedParagraphInput?
     let hasDecorationCandidates: Bool
     let semanticContent: ParagraphSemanticContent
+    let estimatedAdvance: CGFloat
     private var cachedItems: (indent: Float, options: ParagraphProfileOptions, value: ParagraphEngine.Prepared)?
     private(set) var itemBuilds = 0
 
@@ -138,5 +165,8 @@ final class ParagraphPreparation {
         input =
             !verbatim && !hasRTL && attributed.length > 0
             ? ParagraphShaper.shape(attributed, fallbackSize: fontSize) : nil
+        estimatedAdvance =
+            input.map { CGFloat($0.clusters.reduce(Float(0)) { $0 + $1.advance }) }
+            ?? CGFloat(attributed.length) * fontSize
     }
 }

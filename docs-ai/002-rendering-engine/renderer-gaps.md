@@ -38,18 +38,24 @@ that fixes it; add one when a limitation is found and not fixed.
 - Drawing: tile drawing is serialized by a lock in `RenderedDocument`, because
   Core Text line objects are shared between tiles and Apple limits each to one
   thread at a time.
-- Reflow: each immutable snapshot still typesets the complete document; resize
-  requests are coalesced by the reader, but publication cadence depends on
-  document complexity. `DocumentReflowSession` retains attributed text and measured
-  input, paragraph items, and semantic metadata between widths; active break
-  candidates accumulate totals rather than rescanning each line. Plain paragraphs
+- Reflow: default/full snapshots typeset the complete document. The opt-in
+  viewport mode measures nearby text paragraphs with overscan, leaving indexed
+  height estimates for offscreen paragraphs. Scroll/navigation requests refine
+  immutable snapshots while preserving a semantic anchor. Text metadata still
+  scales with document length, and one huge paragraph still breaks in full.
+  Documents with tables or attachments currently fall back to exact full layout.
+  Resize requests are coalesced by the reader. `DocumentReflowSession` retains
+  attributed text and measured input, paragraph items, and semantic metadata
+  between widths; active break candidates accumulate totals rather than
+  rescanning each line. Plain paragraphs
   skip decoration processing after preparation finds no candidates. Image/math
   paragraphs bypass preparation reuse to preserve width-dependent attachments
   and independent Core Text ownership. Session-prepared undecorated paragraphs
   materialize fragment drawing/caret data per accessed line under the snapshot
-  lock. Decorated/unprepared paragraphs remain eager. Exact line breaking,
-  logical CTLines and document geometry still build for the complete document;
-  this is not viewport-only layout. First-use painting incurs materialization,
-  and old snapshot disposal and active Find can add UI-thread cost. See
+  lock. Decorated/unprepared paragraphs remain eager. Exact line breaking and
+  logical CTLines build only for measured paragraphs in viewport mode. First-use
+  painting incurs materialization, and old snapshot disposal and active Find can
+  add UI-thread cost. See
   [reflow preparation](006-reflow-preparation.md), [metadata reuse](007-reflow-metadata.md),
-  [lazy fragments](008-lazy-fragments.md) and [live reflow](../004-ios-reader/006-live-reflow.md).
+  [lazy fragments](008-lazy-fragments.md), [viewport layout](009-viewport-layout.md), [live reflow](../004-ios-reader/006-live-reflow.md)
+  and [reader anchor lifecycle](../004-ios-reader/007-reflow-anchor-lifecycle.md).

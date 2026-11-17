@@ -1,4 +1,5 @@
 import Foundation
+import KasumiMarkdown
 
 /// Main-actor-owned scheduling state. A width change replaces only the pending
 /// request; synchronous typesetting already in flight is allowed to finish.
@@ -6,6 +7,8 @@ struct ReaderReflowState {
     struct Request: Equatable, Sendable {
         let generation: UUID
         let width: CGFloat
+        var anchor: ReadingAnchor? = nil
+        var height: CGFloat = 0
     }
 
     private(set) var desired: Request?
@@ -14,9 +17,9 @@ struct ReaderReflowState {
 
     var needsLayout: Bool { desired != nil && desired != installed }
 
-    mutating func request(width: CGFloat, generation: UUID) {
+    mutating func request(width: CGFloat, generation: UUID, anchor: ReadingAnchor? = nil, height: CGFloat = 0) {
         guard width.isFinite, width > 0 else { return }
-        desired = Request(generation: generation, width: width)
+        desired = Request(generation: generation, width: width, anchor: anchor, height: height)
     }
 
     mutating func begin() -> Request? {
@@ -26,7 +29,7 @@ struct ReaderReflowState {
     }
 
     func accepts(_ request: Request) -> Bool {
-        running == request && desired?.generation == request.generation
+        running == request && desired?.generation == request.generation && desired?.anchor == request.anchor
     }
 
     /// Finish only after viewport painting, so it shares the same concurrency
@@ -42,4 +45,32 @@ struct ReaderReflowState {
     mutating func stop() {
         desired = nil
     }
+}
+
+/// Main-actor-owned anchor policy. Width/style generations freeze a semantic
+/// location; a newly installed content revision adopts its current paragraph keys.
+struct ReaderReflowAnchorState {
+    private(set) var value: ReadingAnchor?
+    private var installedRevision: UUID?
+
+    mutating func captureIfNeeded(
+        in rendered: RenderedDocument?, atY top: CGFloat, restoring fallback: ReadingAnchor?
+    ) {
+        guard value == nil else { return }
+        value = rendered?.readingAnchor(atY: top) ?? fallback
+    }
+
+    mutating func didInstall(_ rendered: RenderedDocument, revision: UUID, atY top: CGFloat) {
+        guard installedRevision != revision else { return }
+        installedRevision = revision
+        value = rendered.readingAnchor(atY: top)
+    }
+
+    /// Explicit navigation must use this even when incidental scroll delegate
+    /// callbacks are suppressed. Pass the actual top after nonanimated clamping.
+    mutating func moved(in rendered: RenderedDocument?, atY top: CGFloat) {
+        value = rendered?.readingAnchor(atY: top)
+    }
+
+    mutating func navigate(to anchor: ReadingAnchor) { value = anchor }
 }
