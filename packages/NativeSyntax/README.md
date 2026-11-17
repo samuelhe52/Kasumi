@@ -10,12 +10,12 @@ XCFramework slices. No simulator is booted or used. `make test-syntax-native`
 tests the host-side bridge; `make test FILTER=CodeSyntaxTests` checks integration
 with the parser, themes, typography, text map, and raster drawing.
 
-`Bridge/include/CSyntax.h` defines the caller-owned, two-pass C ABI. It emits
-sorted, non-overlapping UTF-16 spans with five palette roles. No characters or
-newlines are inserted or removed. Parser state persists within a block, not
-between blocks. Grammar data is lazily initialized once and shared immutably.
-The Swift parser retains tokens for the lifetime of its parsed document; there
-is no process-wide source/token cache.
+`Bridge/include/CSyntax.h` defines the C bridge. Swift uses the synchronous
+visitor to copy sorted, non-overlapping UTF-16 spans with five palette roles
+after one parser pass. Rust lends its span buffer for the duration of the
+callback. The count/fill entry point remains available. Parser state
+persists within a block. Immutable grammar data is initialized on first use,
+and copied Swift tokens live with the parsed document.
 
 Fence languages are case-insensitive; the first whitespace-delimited word is
 used, with common aliases such as `py`, `js`, `ts`, `sh`, `c++`, `c#`, and `yml`.

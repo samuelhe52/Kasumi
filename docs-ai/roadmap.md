@@ -106,6 +106,9 @@ Retained after milestone closure; not prerequisites for starting Reader 2:
   [002.008](002-rendering-engine/008-code-block-style-boundary.md). Enabled PDF
   captions repeat on continuation pages;
   [002.010](002-rendering-engine/010-pdf-code-continuations.md).
+  [One-pass span delivery](002-rendering-engine/025-one-pass-syntax-spans.md)
+  removes duplicate tokenization. First-use grammar setup remains a cold parsing
+  cost.
 
 - Ready-made UIKit/AppKit views and SwiftUI wrappers, extracted from the reader
   once its views settle ([003](003-public-rendering-api/000-plan.md)).

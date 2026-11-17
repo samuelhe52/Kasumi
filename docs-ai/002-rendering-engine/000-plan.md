@@ -117,3 +117,5 @@ Library tests pass on macOS and the iOS simulator, including comparisons against
 - Updated 2026-11-17: Prepare bounded documents during idle time to cover rapid scrolling — see [023-fast-scroll-coverage.md](023-fast-scroll-coverage.md).
 
 - Updated 2026-11-17: Compact prepared geometry, release reusable break items, and bound paint retention — see [024-compact-idle-preparation.md](024-compact-idle-preparation.md).
+
+- Updated 2026-11-18: Deliver native highlighting spans with one parser pass — see [025-one-pass-syntax-spans.md](025-one-pass-syntax-spans.md).

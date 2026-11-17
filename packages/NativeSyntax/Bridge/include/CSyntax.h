@@ -41,6 +41,22 @@ size_t kasumi_syntax_highlight(const uint8_t *source, size_t source_length,
                               const uint8_t *language, size_t language_length,
                               KasumiSyntaxSpan *output, size_t capacity);
 
+typedef void (*KasumiSyntaxVisitor)(const KasumiSyntaxSpan *spans, size_t count,
+                                   void *context);
+
+/* Highlight once and synchronously visit the immutable result. The visitor is
+ * called exactly once on success, including zero spans (NULL pointer/count 0).
+ * Spans are borrowed only for the duration of that callback: do not retain or
+ * free the pointer. Context is passed through unchanged and may be NULL. The
+ * callback must return normally; it must not throw or unwind through Rust.
+ * Returns the span count, or SIZE_MAX with no callback on invalid input/parser
+ * failure. A NULL visitor is invalid. Other input/range/limit semantics match
+ * kasumi_syntax_highlight. No ownership crosses the call boundary.
+ */
+size_t kasumi_syntax_highlight_visit(const uint8_t *source, size_t source_length,
+                                    const uint8_t *language, size_t language_length,
+                                    KasumiSyntaxVisitor visitor, void *context);
+
 #ifdef __cplusplus
 }
 #endif

@@ -52,6 +52,9 @@ covered behavior deliberately changes.
 
 Implemented on `feat/syntect-highlighting`.
 
+The Swift adapter's bridge was later updated to a synchronous borrowed-span
+visitor. See [002.025](025-one-pass-syntax-spans.md) for the current contract.
+
 - `packages/NativeSyntax` pins Syntect 5.3.0 and two-face 0.5.2+bat-0.26.1, uses
   the pure-Rust fancy-regex backend, and preserves registry and grammar notices.
   `scripts/build-native` and `Package.swift` include the new XCFramework/C target.

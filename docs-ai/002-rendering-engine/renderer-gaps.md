@@ -23,8 +23,10 @@ that fixes it; add one when a limitation is found and not fixed.
 - Code highlighting: explicit supported fence languages only; unlabeled/unknown
   blocks remain plain. Blocks above 256 KiB UTF-8, lines above 16 KiB excluding LF,
   language info above 128 bytes, and parse failures fall back to plain. The
-  pure-Rust grammar bundle excludes some Oniguruma-only variants. See
-  [002.006](006-syntax-highlighting.md).
+  pure-Rust grammar bundle excludes some Oniguruma-only variants. The bridge
+  visits each code block's native spans after one tokenization pass. First use
+  still loads the syntax set and initializes grammar state and regexes. See
+  [002.006](006-syntax-highlighting.md) and [002.025](025-one-pass-syntax-spans.md).
 - Math: limited LaTeX coverage beyond the tested cases. `\[...\]` display math
   is recognized only when `\[` opens a line and `\]` ends one, so mid-line
   `\[x\]` stays an escaped bracket, while a line wrapped in escaped brackets

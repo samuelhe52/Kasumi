@@ -98,6 +98,9 @@ Run the narrowest filter: `make test FILTER=<name>` for package tests and
   notices from the pinned crate; registry/grammar provenance lives in
   `packages/NativeSyntax/Notices/`. See
   [002.006](../docs-ai/002-rendering-engine/006-syntax-highlighting.md).
+  The native tests compare the synchronous span visitor with the count/fill
+  bridge and check that the visitor runs one parser pass. See
+  [002.025](../docs-ai/002-rendering-engine/025-one-pass-syntax-spans.md).
   `make app-check` compiles the reader's native Copy controls for a generic iOS
   device with signing disabled, without launching a simulator or device. Control
   identifier: `reader-code-copy-<block ID>`. See
