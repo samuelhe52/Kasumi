@@ -9,21 +9,41 @@ enum ParagraphHyphenation {
         guard let selection = Selection(language) else { return [] }
         var result = Set<Int>()
         var word = String.UnicodeScalarView()
+        var wordLength = 0
+        var rejectedWord = false
         var wordStart = 0
         var position = 0
+        let tag = Array(selection.tag.utf8)
         func flush() {
-            guard !word.isEmpty else { return }
-            for offset in breaks(in: word, selection: selection) { result.insert(wordStart + offset) }
-            word = String.UnicodeScalarView()
+            if wordLength >= 2 + selection.rightMinimum {
+                for offset in breaks(in: word, tag: tag) { result.insert(wordStart + offset) }
+            }
+            if wordLength > 0 {
+                word = String.UnicodeScalarView()
+                wordLength = 0
+            }
+            rejectedWord = false
         }
         for scalar in text.unicodeScalars {
-            let belongs =
-                selection.automatic
-                ? asciiLetter(scalar.value)
-                : (scalar.properties.isAlphabetic || (48...57).contains(scalar.value) || combining(scalar.value))
+            let value = scalar.value
+            let ascii = asciiLetter(value)
+            let belongs = ascii || (!selection.automatic && (
+                value < 128 ? (48...57).contains(value) : scalar.properties.isAlphabetic || combining(value)
+            ))
             if belongs {
-                if word.isEmpty { wordStart = position }
-                word.append(scalar)
+                if !rejectedWord {
+                    if selection.accepts(value, ascii: ascii) {
+                        if wordLength == 0 { wordStart = position }
+                        word.append(scalar)
+                        wordLength += 1
+                    } else {
+                        // An unsupported scalar invalidates the whole word.
+                        // Skip the rest without allocating a copy of that run.
+                        rejectedWord = true
+                        word = String.UnicodeScalarView()
+                        wordLength = 0
+                    }
+                }
             } else {
                 flush()
             }
@@ -51,6 +71,12 @@ enum ParagraphHyphenation {
             russian = tag == "ru"
             rightMinimum = ["en-us", "en-gb", "pt", "cs"].contains(tag) ? 3 : 2
         }
+
+        func accepts(_ value: UInt32, ascii: Bool) -> Bool {
+            if value < 128 { return ascii && !russian }
+            if russian { return (0x0400...0x04FF).contains(value) }
+            return (0x00C0...0x024F).contains(value) || (0x1E00...0x1EFF).contains(value)
+        }
     }
 
     private static func asciiLetter(_ value: UInt32) -> Bool {
@@ -62,24 +88,12 @@ enum ParagraphHyphenation {
             || (0x20D0...0x20FF).contains(value) || (0xFE20...0xFE2F).contains(value)
     }
 
-    private static func breaks(in word: String.UnicodeScalarView, selection: Selection) -> [Int] {
-        guard word.count >= 2 + selection.rightMinimum else { return [] }
+    private static func breaks(in word: String.UnicodeScalarView, tag: [UInt8]) -> [Int] {
         var lowercase = String()
         var sourceOffset = 0
         var lowerOffset = 0
         var sourceBoundaries = [0: 0]
         for scalar in word {
-            let value = scalar.value
-            if selection.automatic {
-                guard asciiLetter(value) else { return [] }
-            } else {
-                guard !combining(value), !(48...57).contains(value) else { return [] }
-                let supported =
-                    selection.russian
-                    ? (0x0400...0x04FF).contains(value)
-                    : (asciiLetter(value) || (0x00C0...0x024F).contains(value) || (0x1E00...0x1EFF).contains(value))
-                guard supported else { return [] }
-            }
             let mapped = String(scalar).lowercased()
             // Native rejects expanding case maps (notably capital dotted I).
             guard mapped.unicodeScalars.count == 1 else { return [] }
@@ -89,7 +103,6 @@ enum ParagraphHyphenation {
             sourceBoundaries[lowerOffset] = sourceOffset
         }
         let bytes = Array(lowercase.utf8)
-        let tag = Array(selection.tag.utf8)
         return bytes.withUnsafeBufferPointer { input in
             tag.withUnsafeBufferPointer { language in
                 let required = kasumi_hyphenate(

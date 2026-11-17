@@ -125,6 +125,11 @@ fileprivate struct HyphenationNativeWord: Decodable {
                     .isEmpty)
         }
         #expect(ParagraphHyphenation.opportunities(in: "İnternationalization", language: "en-us").isEmpty)
+        #expect(ParagraphHyphenation.opportunities(in: "hyphenation中文", language: "en-us").isEmpty)
+        let prefix = String(repeating: "中文", count: 2_048) + "hyphenation / "
+        #expect(
+            ParagraphHyphenation.opportunities(in: prefix + "hyphenation", language: "en-us")
+                == Set([2, 6, 7].map { prefix.utf8.count + $0 }))
         #expect(ParagraphHyphenation.opportunities(in: "hyphenation", language: "not-a-language").isEmpty)
         #expect(ParagraphHyphenation.opportunities(in: "hyphenation", language: "EN-US") == Set([2, 6, 7]))
     }

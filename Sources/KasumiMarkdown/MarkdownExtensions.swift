@@ -1,6 +1,33 @@
 import Foundation
 import Markdown
 
+/// Uses the parser's source ranges to keep TeX out of literal code and HTML.
+private struct MathExclusions: MarkupWalker {
+    let lineStarts: [Int]
+    let sourceLength: Int
+    var ranges: [Range<Int>] = []
+
+    mutating func defaultVisit(_ markup: any Markup) {
+        if markup.childCount > 0 { descendInto(markup) }
+    }
+
+    mutating func visitCodeBlock(_ codeBlock: CodeBlock) { record(codeBlock.range) }
+    mutating func visitInlineCode(_ inlineCode: InlineCode) { record(inlineCode.range) }
+    mutating func visitHTMLBlock(_ html: HTMLBlock) { record(html.range) }
+    mutating func visitInlineHTML(_ html: InlineHTML) { record(html.range) }
+
+    private mutating func record(_ range: SourceRange?) {
+        guard let range, let lower = byteOffset(range.lowerBound), let upper = byteOffset(range.upperBound)
+        else { return }
+        ranges.append(lower..<upper)
+    }
+
+    private func byteOffset(_ location: SourceLocation) -> Int? {
+        guard location.line > 0, location.line <= lineStarts.count, location.column > 0 else { return nil }
+        return min(sourceLength, lineStarts[location.line - 1] + location.column - 1)
+    }
+}
+
 /// Owns syntax that the GFM adapter does not represent: TeX source and footnotes.
 /// Math is protected before Markdown unescapes punctuation or parses underscores.
 struct MarkdownExtensions {
@@ -14,7 +41,15 @@ struct MarkdownExtensions {
     let mathPrefix: String
     let definitionLabelsByLine: [Int: String]
     let definitionOrder: [String]
+    private static let defaultMathPrefix = "\u{E000}kasumi.math."
+    private static let defaultInlinePattern = inlinePattern(prefix: defaultMathPrefix)
+    private static let footnoteDefinition = try! NSRegularExpression(pattern: #"^ {0,3}\[\^([^\]]+)\]:[ \t]*(.*)$"#)
     private static let footnoteReference = try! NSRegularExpression(pattern: #"\[\^([^\]]+)\]"#)
+
+    private static func inlinePattern(prefix: String) -> NSRegularExpression {
+        let pattern = NSRegularExpression.escapedPattern(for: prefix) + #"[0-9]+\uE001|==([^\n=]+)=="#
+        return try! NSRegularExpression(pattern: pattern)
+    }
 
     init(source: String) {
         // Delimiters are ASCII bytes. Grapheme-aware substring searches over a
@@ -38,7 +73,7 @@ struct MarkdownExtensions {
         if !found.extensions {
             markdown = source
             math = [:]
-            var prefix = "\u{E000}kasumi.math."
+            var prefix = Self.defaultMathPrefix
             if found.privateUse {
                 while source.contains(prefix) { prefix += "." }
             }
@@ -57,7 +92,6 @@ struct MarkdownExtensions {
             }
         }
         if hasFootnotes { gatherCodeLines(initial) }
-        let definition = try! NSRegularExpression(pattern: #"^ {0,3}\[\^([^\]]+)\]:[ \t]*(.*)$"#)
         var lines = hasFootnotes ? source.components(separatedBy: "\n") : []
         var labels: [Int: String] = [:]
         var order: [String] = []
@@ -73,7 +107,7 @@ struct MarkdownExtensions {
             active = nil
             guard !codeLines.contains(index + 1) else { continue }
             let ns = line as NSString
-            if let match = definition.firstMatch(in: line, range: NSRange(location: 0, length: ns.length)) {
+            if let match = Self.footnoteDefinition.firstMatch(in: line, range: NSRange(location: 0, length: ns.length)) {
                 let label = ns.substring(with: match.range(at: 1))
                 labels[index + 1] = label
                 if !order.contains(label) { order.append(label) }
@@ -87,25 +121,11 @@ struct MarkdownExtensions {
         let bytes = Array(prepared.utf8)
         var lineStarts = [0]
         for (index, byte) in bytes.enumerated() where byte == 10 { lineStarts.append(index + 1) }
-        func byteOffset(_ location: SourceLocation) -> Int? {
-            guard location.line > 0, location.line <= lineStarts.count, location.column > 0 else { return nil }
-            return min(bytes.count, lineStarts[location.line - 1] + location.column - 1)
-        }
-        var excluded: [Range<Int>] = []
-        func gatherExcluded(_ node: any Markup) {
-            if node is CodeBlock || node is InlineCode || node is HTMLBlock || node is InlineHTML {
-                if let range = node.range, let lower = byteOffset(range.lowerBound),
-                    let upper = byteOffset(range.upperBound)
-                {
-                    excluded.append(lower..<upper)
-                }
-            } else {
-                node.children.forEach(gatherExcluded)
-            }
-        }
-        gatherExcluded(labels.isEmpty ? initial : Markdown.Document(parsing: prepared))
+        var exclusions = MathExclusions(lineStarts: lineStarts, sourceLength: bytes.count)
+        exclusions.visit(labels.isEmpty ? initial : Markdown.Document(parsing: prepared))
+        var excluded = exclusions.ranges
         excluded.sort { $0.lowerBound < $1.lowerBound }
-        var prefix = "\u{E000}kasumi.math."
+        var prefix = Self.defaultMathPrefix
         if found.privateUse {
             while prepared.contains(prefix) { prefix += "." }
         }
@@ -250,8 +270,7 @@ struct MarkdownExtensions {
         guard hasMarkers else {
             return text.isEmpty ? [] : [InlineRun(text, traits: traits, destination: destination)]
         }
-        let pattern = NSRegularExpression.escapedPattern(for: mathPrefix) + #"[0-9]+\uE001|==([^\n=]+)=="#
-        let regex = try! NSRegularExpression(pattern: pattern)
+        let regex = mathPrefix == Self.defaultMathPrefix ? Self.defaultInlinePattern : Self.inlinePattern(prefix: mathPrefix)
         let ns = text as NSString
         var cursor = 0
         var result: [InlineRun] = []

@@ -71,6 +71,10 @@ import Testing
         #expect(inline.sourceLines == (index * 10 + 1)...(index * 10 + 1))
         #expect(display.sourceLines == (index * 10 + 7)...(index * 10 + 9))
     }
+    let literalDelimiters = MarkdownExtensions(
+        source: "Text `$inline$` and <span title=\"$attribute$\">real $y$</span>.\n\n"
+            + "<div>\n$block$\n</div>\n\n```text\n$fenced$\n```\n\n    $indented$\n")
+    #expect(literalDelimiters.math.values.map(\.text) == ["y"])
     let parsed = DocumentParser.parse("Text $x$.\n\nA note [^a].\n\n[^a]: $y$\n    continued $z$\n")
     #expect(parsed.blocks.contains { $0.footnoteLabel == "a" && $0.runs.contains { $0.traits.contains(.math) } })
     #expect(parsed.blocks.flatMap(\.runs).contains { $0.footnoteDisplay == "1" })
