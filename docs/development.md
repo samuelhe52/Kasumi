@@ -140,3 +140,13 @@ Run the narrowest filter: `make test FILTER=<name>` for package tests and
 
   Wait a few seconds before driving the UI. An unreadable path stays on the launch
   scene and logs `KasumiOpen: cannot read <path>`.
+
+## Native reflow measurements
+
+`make run-reflow-lab` opens the standalone Mac harness. `make check-reflow-lab`
+runs its offscreen smoke check; `make benchmark-reflow-lab` records 50k/200k
+construction and painting phases, and `make check-reflow-scrolling` samples
+coverage during asynchronous native scrolling. These commands require no
+simulator. The Mac harness shares renderer and scheduling code but uses AppKit
+and SDR bitmap painting; its results do not establish UIKit behavior or FPS.
+See `tools/ReflowLab/README.md` for the protocol and output boundaries.

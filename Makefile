@@ -32,7 +32,7 @@ NATIVE_INPUTS := scripts/build-native \
 		-not -path '*/target/*' 2>/dev/null)
 
 .DEFAULT_GOAL := help
-.PHONY: help native build test test-ios app run-sim run-device launch-sim check clean
+.PHONY: help native build test test-ios app run-sim run-device launch-sim check clean reflow-lab run-reflow-lab check-reflow-lab check-reader-scrolling benchmark-reflow-lab check-reflow-scrolling
 
 help: ## List available targets
 	@awk 'BEGIN { FS = ":.*## " } /^[a-z-]+:.*## / { printf "  %-8s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
@@ -93,6 +93,27 @@ launch-sim: ## Install and launch the last built app on the booted simulator, wi
 	[ -z "$$newer" ] || echo "Warning: sources are newer than the built app, e.g. $$newer"; \
 	xcrun simctl install "$$udid" "$$app_path" && \
 	xcrun simctl launch --terminate-running-process "$$udid" $(BUNDLE_ID)
+
+reflow-lab: native ## Build a standalone macOS live-reflow test window (Release)
+	swift build -c release --product KasumiReflowLab
+	./scripts/package-reflow-lab
+
+run-reflow-lab: reflow-lab ## Open the macOS test window
+	open build/KasumiReflowLab.app
+
+check-reflow-lab: reflow-lab ## Run offscreen macOS harness smoke checks
+	build/KasumiReflowLab.app/Contents/MacOS/KasumiReflowLab --smoke-check build/reflow-lab-smoke.json
+
+check-reflow-scrolling: reflow-lab ## Check 50k/200k mixed scrolling coverage in the native Mac harness
+	build/KasumiReflowLab.app/Contents/MacOS/KasumiReflowLab --scroll-check build/reflow-lab-scrolling.json
+
+benchmark-reflow-lab: reflow-lab ## Measure native Mac 50k/200k construction and viewport painting
+	build/KasumiReflowLab.app/Contents/MacOS/KasumiReflowLab --benchmark build/reflow-lab-benchmark.json
+
+check-reader-scrolling: app ## Profile iOS scrolling on the only booted simulator (DEVICE=<UDID>, CONFIGURATION=Release)
+	@test "$(CONFIGURATION)" = Release || { echo "Use CONFIGURATION=Release for scrolling measurements."; exit 1; }
+	@test -n "$(DEVICE)" || { echo "Set DEVICE to an already booted simulator UDID."; exit 1; }
+	./scripts/check-reader-scrolling --device "$(DEVICE)"
 
 check: ## Check the local toolchain (read-only)
 	./scripts/check-environment

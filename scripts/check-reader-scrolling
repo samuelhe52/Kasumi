@@ -1,0 +1,204 @@
+#!/usr/bin/env python3
+"""Profile fixed-width scrolling in an already booted iOS Simulator.
+
+Uses sim-use for every UI action. Never boots a simulator or changes reader code.
+Display-callback gaps are scheduling proxies, not GPU presentation measurements.
+"""
+import argparse
+import datetime
+import json
+import os
+from pathlib import Path
+import re
+import signal
+import statistics
+import sys
+import subprocess
+import time
+import uuid
+
+ROOT = Path(__file__).resolve().parent.parent
+BUNDLE = 'com.samuelhe.Kasumi'
+
+def command(args, **kwargs):
+    completed = subprocess.run(args, capture_output=True, text=True, **kwargs)
+    if completed.returncode:
+        print(completed.stdout, completed.stderr, file=sys.stderr)
+        completed.check_returncode()
+    if 'PROCESS DISAPPEARED' in completed.stdout + completed.stderr:
+        raise RuntimeError('Simulator process disappeared; stop and inspect the reported crash')
+    return completed.stdout
+
+def stats(values):
+    if not values:
+        return None
+    ordered = sorted(values)
+    return {'n': len(values), 'median': statistics.median(ordered),
+            'p95': ordered[int(.95 * (len(ordered) - 1))],
+            'p99': ordered[int(.99 * (len(ordered) - 1))], 'max': ordered[-1]}
+
+def corpus(name):
+    english = 'The reader should reflow text smoothly while the window changes size. Words and punctuation remain clear, and the reading position stays stable. '
+    chinese = '窗口大小改变时，阅读器应当流畅地重新排列文字。中文标点、字体和段落之间的距离都应保持准确；滚动阅读时，不应出现明显延迟。阅读位置需要保持稳定。'
+    sentence = english if name == 'english' else chinese
+    if name == 'single':
+        return (sentence * (50000 // len(sentence) + 1))[:50000]
+    paragraph = (sentence * 10)[:500]
+    parts = [f'# Scroll check: {name}']
+    for i in range(100):
+        parts.append(f'Paragraph {i}. ' + paragraph)
+        if name == 'mixed' and i % 10 == 0:
+            parts.append('> **Bold**, *emphasis*, `inline code`, and a [link](https://example.invalid).\n\n| Feature | Value |\n| --- | --- |\n| Formula | $x_i+1$ |\n| Scripts | 中文 English 🙂 |\n\n$$\n\\frac{1}{3}+x^2\n$$\n\n```swift\nlet message = "Scroll check"\n```')
+    return '\n\n'.join(parts)
+
+def analyze(samples):
+    moving = [row for i, row in enumerate(samples)
+              if row['active'] or (i > 0 and samples[i-1]['active'])]
+    if not moving:
+        raise RuntimeError('No active-scroll callbacks captured')
+    gaps = [row['callbackGapMS'] for row in moving if row['callbackGapMS'] is not None]
+    expected = statistics.median(row['expectedIntervalMS'] for row in moving if row['expectedIntervalMS'] > 0)
+    start, end = moving[0]['time'], moving[-1]['time'] + 1
+    episodes, beginning = [], None
+    for row in samples:
+        if not start <= row['time'] <= end:
+            continue
+        if not row['measured'] and beginning is None:
+            beginning = row['time']
+        if row['measured'] and beginning is not None:
+            episodes.append((row['time'] - beginning) * 1000)
+            beginning = None
+    if beginning is not None:
+        episodes.append((min(end, samples[-1]['time']) - beginning) * 1000)
+    return {'activeAdjacentCallbacks': len(moving), 'callbackGapMS': stats(gaps),
+            'expectedCallbackIntervalMS': expected, 'lateCallbackCount': sum(g > expected * 1.5 for g in gaps),
+            'callbackGapsOver33MS': sum(g > 33.333 for g in gaps),
+            'callbackGapsOver50MS': sum(g > 50 for g in gaps),
+            'callbackGapsOver100MS': sum(g > 100 for g in gaps),
+            'unmeasuredViewportEpisodesMS': stats(episodes),
+            'activeCallbacksWithUnmeasuredViewport': sum(not row['measured'] for row in moving),
+            'scrollTopRange': [min(row['top'] for row in moving), max(row['top'] for row in moving)],
+            'viewportWidths': sorted(set(row['width'] for row in moving))}
+
+def run_case(name, device, root, options):
+    case = root / name
+    case.mkdir()
+    run_id = f'{name}-{uuid.uuid4().hex[:12]}'
+    text = corpus(name)
+    local = case / f'ScrollCheck-{run_id}.md'
+    local.write_text(text)
+    env = dict(os.environ, SIMCTL_CHILD_KASUMI_SCROLL_DIAGNOSTICS=run_id)
+    launch = command(['make', 'launch-sim', 'CONFIGURATION=Release'], cwd=ROOT, env=env)
+    (case / 'launch.log').write_text(launch)
+    pid = re.search(r'com\.samuelhe\.Kasumi: (\d+)', launch).group(1)
+    container = Path(command(['xcrun', 'simctl', 'get_app_container', device, BUNDLE, 'data']).strip())
+    incoming = container / 'Documents' / local.name
+    assert not incoming.exists()
+    incoming.write_bytes(local.read_bytes())
+    command(['sim-use', 'app-state', '--device', device, '--reset'])
+    command(['xcrun', 'simctl', 'openurl', device, incoming.as_uri()])
+    ui = ''
+    for _ in range(40):
+        ui = command(['sim-use', 'ui', '--device', device])
+        if local.stem in ui and '#reader-surface' in ui:
+            break
+        time.sleep(.25)
+    else:
+        raise RuntimeError('Test reader did not become visible')
+    if '#find.searchField' in ui:
+        raise RuntimeError('Find must be closed for the baseline')
+    (case / 'initial-ui.txt').write_text(ui)
+    command(['sim-use', 'screenshot', '--device', device, '--output', str(case / 'initial.png')])
+    notify = f'com.samuelhe.Kasumi.scroll-check.{run_id}'
+    watcher = subprocess.Popen(['notifyutil', '-1', notify], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    recorder = None
+    gestures = []
+    dimensions = re.search(r'App:.*? (\d+)x(\d+)', ui)
+    if dimensions is None or 'display Resizable' in ui:
+        raise RuntimeError('Expected an ordinary fixed-size simulator display')
+    width, height = map(int, dimensions.groups())
+    bottom = f'{width//2},{int(height*.8)}'
+    top = f'{width//2},{int(height*.25)}'
+    try:
+        with (case / 'record.log').open('w') as log:
+            recorder = subprocess.Popen(['xcrun', 'xctrace', 'record', '--template', 'Time Profiler',
+                '--instrument', 'Hangs', '--instrument', 'os_signpost', '--device', device, '--attach', pid,
+                '--time-limit', '90s', '--recording-options', str(options), '--output', str(case / 'scroll.trace'),
+                '--notify-tracing-started', notify, '--no-prompt'], stdout=log, stderr=subprocess.STDOUT)
+            watcher.wait(timeout=40)
+            print(f'{name}: recording fixed-width scrolling, Find closed', flush=True)
+            for phase, source, destination in [('first-descent', bottom, top), ('return', top, bottom)]:
+                for index in range(8):
+                    begin = time.monotonic()
+                    action = command(['sim-use', 'swipe', '--device', device, '--from', source, '--to', destination, '--duration', '0.25'])
+                    ui = command(['sim-use', 'ui', '--device', device])
+                    if '#reader-surface' not in ui or '#find.searchField' in ui:
+                        raise RuntimeError('Reader/Find state changed during scrolling')
+                    if recorder.poll() is not None:
+                        raise RuntimeError('Trace ended before all gestures completed')
+                    gestures.append({'phase': phase, 'index': index, 'elapsed': time.monotonic()-begin, 'action': action, 'ui': ui})
+                command(['sim-use', 'screenshot', '--device', device, '--output', str(case / (phase + '.png'))])
+                print(f'{name}: {phase} complete', flush=True)
+            if recorder.poll() is None:
+                recorder.send_signal(signal.SIGINT)
+            recorder.wait(timeout=60)
+            if recorder.returncode != 0:
+                raise RuntimeError(f'Trace recording failed; see {case / "record.log"}')
+    finally:
+        if watcher.poll() is None:
+            watcher.terminate()
+        if recorder is not None and recorder.poll() is None:
+            recorder.send_signal(signal.SIGINT)
+    (case / 'gestures.json').write_text(json.dumps(gestures, indent=2))
+    command(['sim-use', 'tap', '#BackButton', '--device', device])
+    (case / 'final-ui.txt').write_text(command(['sim-use', 'ui', '--device', device]))
+    matches = []
+    for _ in range(40):
+        matches = list((container / 'Documents' / '.kasumi-scroll-diagnostics').glob(run_id + '-*.json'))
+        if matches:
+            break
+        time.sleep(.1)
+    if len(matches) != 1:
+        raise RuntimeError(f'Expected one diagnostic file, got {len(matches)}; close reader normally to flush it')
+    samples = json.loads(matches[0].read_text())
+    (case / 'callbacks.json').write_text(json.dumps(samples))
+    report = {'case': name, 'sourceUTF16Units': len(text.encode('utf-16-le'))//2, 'device': device,
+              'rendererCommit': command(['git', 'rev-parse', 'HEAD'], cwd=ROOT).strip(),
+              'gestures': len(gestures), 'findActive': False, 'metrics': analyze(samples),
+              'limits': ['Main-thread callback gaps are not GPU presentation or dropped-frame counts.',
+                         'Viewport coverage is conservative layout metadata, not a pixel-blankness detector.',
+                         'Simulator and UI automation do not establish physical-device 120 Hz performance.']}
+    (case / 'summary.json').write_text(json.dumps(report, indent=2))
+    print(json.dumps(report['metrics'], indent=2), flush=True)
+    return report
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--device', required=True, help='Already booted iOS Simulator UDID')
+    parser.add_argument('--cases', default='english,chinese,mixed,single')
+    parser.add_argument('--output', type=Path)
+    args = parser.parse_args()
+    cases = args.cases.split(',')
+    if not set(cases) <= {'english', 'chinese', 'mixed', 'single'}:
+        parser.error('Unknown case')
+    root = (args.output or ROOT / 'build' / 'scroll-checks' / datetime.datetime.now().strftime('%Y%m%d-%H%M%S')).resolve()
+    root.mkdir(parents=True, exist_ok=False)
+    command(['sim-use', '--version'])
+    booted = json.loads(command(['xcrun', 'simctl', 'list', 'devices', 'booted', '-j']))
+    identifiers = [d['udid'] for devices in booted['devices'].values() for d in devices if d['state'] == 'Booted']
+    if identifiers != [args.device]:
+        raise RuntimeError('The requested simulator must be the only booted simulator for make launch-sim')
+    command(['sim-use', 'ui', '--device', args.device])
+    raw = command(['xcrun', 'xctrace', 'record', '--template', 'Time Profiler', '--instrument', 'Hangs', '--instrument', 'os_signpost', '--show-recording-options'])
+    options = json.loads(raw)
+    options['Time Profiler']['highFrequencySampling'] = True
+    options['Hangs']['hangsThreshold'] = 33
+    options['os_signpost']['dynamicTracingEnabledSubsystems'] = ['com.samuelhe.Kasumi']
+    path = root / 'recording-options.json'
+    path.write_text(json.dumps(options))
+    print(f'Results: {root}', flush=True)
+    reports = [run_case(case, args.device, root, path) for case in cases]
+    (root / 'summary.json').write_text(json.dumps(reports, indent=2))
+
+if __name__ == '__main__':
+    main()

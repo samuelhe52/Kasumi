@@ -69,6 +69,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
     private var animateAppearanceReplacement = true
     private var lastJump: UUID?
     private var adjusting = false
+    private var scrollDiagnostics: ReaderScrollDiagnostics?
     private lazy var findInteraction = UIFindInteraction(sessionDelegate: self)
     private lazy var findSession = ReaderFindSession { [weak self] matches, current, scroll in
         self?.displayFindResults(matches, current: current, scroll: scroll)
@@ -113,6 +114,14 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         openingIndicator.startAnimating()
         accessibilityLabel = "Document reading surface"
         accessibilityIdentifier = "reader-surface"
+        scrollDiagnostics = ReaderScrollDiagnostics.make { [weak self] in
+            guard let self, self.window != nil, self.isActive, !self.finished else { return nil }
+            let visible = CGRect(x: 0, y: self.topY, width: self.bounds.width, height: self.bounds.height)
+            return ReaderScrollDiagnostics.Viewport(
+                top: self.topY, width: self.bounds.width, height: self.bounds.height,
+                active: self.isDragging || self.isDecelerating || self.isTracking,
+                measured: self.rendered.map { !$0.needsLayout(in: visible) } ?? false)
+        }
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     deinit { layoutTask?.cancel() }
@@ -424,6 +433,8 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         viewport?.moved(anchor: reflowAnchor.value ?? rendered.readingAnchor(atY: y), heading: heading)
     }
     func finish() {
+        scrollDiagnostics?.finish()
+        scrollDiagnostics = nil
         findPresentationTask?.cancel()
         finished = true
         reflow.stop()

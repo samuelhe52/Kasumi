@@ -10,7 +10,8 @@ let package = Package(
     platforms: [.iOS(.v17), .macOS(.v13)],
     products: [
         .library(name: "KasumiMarkdown", targets: ["KasumiMarkdown"]),
-        .executable(name: "KasumiRender", targets: ["KasumiRender"])
+        .executable(name: "KasumiRender", targets: ["KasumiRender"]),
+        .executable(name: "KasumiReflowLab", targets: ["KasumiReflowLab"])
     ],
     dependencies: [.package(url: "https://github.com/swiftlang/swift-markdown.git", exact: "0.9.0")],
     targets: [
@@ -34,6 +35,9 @@ let package = Package(
             resources: [.copy("Bundled")]
         ),
         .executableTarget(name: "KasumiRender", dependencies: ["KasumiMarkdown"]),
+        .executableTarget(
+            name: "KasumiReflowLab", dependencies: ["KasumiMarkdown"], path: "tools/ReflowLab",
+            exclude: ["README.md"]),
         .testTarget(name: "KasumiMarkdownTests", dependencies: ["KasumiMarkdown"], resources: [.copy("fixtures")])
     ]
 )
