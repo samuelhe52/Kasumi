@@ -267,3 +267,69 @@ fileprivate struct PaginationSnapshot: Decodable {
         #expect(try FileManager.default.contentsOfDirectory(atPath: folder.path) == ["keep"])
     }
 }
+
+@Test func pdfLinkAnnotationsFollowWrappedTextAndResolveDestinations() throws {
+    let externalLabel = String(repeating: "Click here ", count: 46).trimmingCharacters(in: .whitespaces)
+    let document = MarkdownDocument(
+        markdown: """
+            [\(externalLabel)](guide.html)
+
+            [Local heading](#caf%C3%A9) and [missing heading](#missing).
+
+            A footnote link.[^sample]
+
+            # Café
+
+            Destination
+
+            [العربية](https://example.com/rtl) adjacent
+
+            [^sample]: Footnote body
+            """, baseURL: URL(string: "https://example.com/docs/"))
+    var options = PDFExportOptions()
+    options.paperSize = CGSize(width: 260, height: 147)
+    options.margins = .init(top: 14, left: 28, bottom: 17, right: 23)
+    options.headerTemplate = "Header"
+    options.pageNumbers = false
+    let pdf = try #require(PDFDocument(data: DocumentExporter.pdfData(
+        document.parsed, style: RenderStyle().typography, options: options)))
+    let pages = (0..<pdf.pageCount).compactMap { pdf.page(at: $0) }
+    var wrappedPages = 0
+    var localLinks = 0
+    var foundRTL = false
+    for page in pages {
+        let links = page.annotations.filter { $0.type == "Link" }
+        let wrapped = links.filter { $0.url?.absoluteString == "https://example.com/docs/guide.html" }
+        if !wrapped.isEmpty {
+            wrappedPages += 1
+            for annotation in wrapped {
+                let sample = try #require(page.selection(for: annotation.bounds))
+                #expect(sample.string?.contains("Click") == true || sample.string?.contains("here") == true)
+            }
+        }
+        let internalLinks = links.filter { $0.url == nil }
+        localLinks += internalLinks.count
+        for annotation in internalLinks {
+            let selection = try #require(page.selection(for: annotation.bounds)?.string)
+            let target = try #require(annotation.destination ?? (annotation.action as? PDFActionGoTo)?.destination)
+            let destinationPage = try #require(target.page)
+            let targetText = selection.contains("Local heading") ? "Café" : "Footnote body"
+            #expect(destinationPage.string?.contains(targetText) == true)
+            #expect(target.point.y > options.margins.bottom)
+        }
+        for annotation in links {
+            #expect(annotation.bounds.minX >= options.margins.left - 0.01)
+            #expect(annotation.bounds.maxX <= options.paperSize.width - options.margins.right + 0.01)
+            #expect(annotation.bounds.minY >= options.margins.bottom - 0.01)
+            #expect(annotation.bounds.maxY <= options.paperSize.height - options.margins.top - 24 + 0.01)
+        }
+        if let rtl = links.first(where: { $0.url?.path == "/rtl" }) {
+            foundRTL = true
+            let selection = try #require(page.selection(for: rtl.bounds)?.string)
+            #expect(!selection.isEmpty && !selection.contains("adjacent"), "PDFKit selection: \(selection)")
+        }
+    }
+    #expect(wrappedPages > 1)
+    #expect(localLinks == 2)
+    #expect(foundRTL)
+}

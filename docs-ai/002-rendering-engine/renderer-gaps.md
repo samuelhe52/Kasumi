@@ -37,7 +37,9 @@ that fixes it; add one when a limitation is found and not fixed.
   of a scrollable `RenderedDocument` capture its initial table viewport. Reader scrolling is
   presentation state, separate from the immutable snapshot. See
   [adaptive tables](005-table-layout.md) for behavior and validation limits.
-- Export: pagination details, PDF links, footnote edge cases, HTML/SVG images.
+- Export: pagination details, footnote edge cases, HTML/SVG images.
+  PDFs preserve resolvable links and internal destinations.
+  See [PDF links](026-pdf-links.md).
   Long PNG/JPG require a complete bitmap, bounded by a configurable 128 MiB raw
   pixel default and 32,768 pixels per axis. This does not cap total process memory.
   Layout and ImageIO finalization are synchronous cancellation boundaries. See

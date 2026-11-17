@@ -555,7 +555,7 @@ enum DocumentTypesetter {
     /// Draw in a top-left, downward-positive graphics coordinate space.
     static func draw(
         _ layout: DocumentLayout, in context: CGContext, sourceRange: Range<CGFloat>? = nil,
-        excludingScrollableTables: Bool = false, tableIndex: Int? = nil
+        excludingScrollableTables: Bool = false, tableIndex: Int? = nil, pdfLinks: PDFLinkAnnotations? = nil
     ) {
         func include(_ index: Int?) -> Bool {
             if let tableIndex { return index == tableIndex }
@@ -619,6 +619,17 @@ enum DocumentTypesetter {
                     height: line.ascent + line.descent
                 ).insetBy(dx: -max(4, line.ascent), dy: -4)
                 guard ink.intersects(clip) else { continue }
+                if let pdfLinks {
+                    let attributed = item.paragraph.attributed
+                    attributed.enumerateAttribute(.link, in: line.range) { value, range, _ in
+                        guard let value else { return }
+                        for rect in line.linkRects(for: range, in: attributed) {
+                            pdfLinks.write(
+                                value, rect: rect.offsetBy(dx: item.origin.x + line.origin.x, dy: item.origin.y + line.origin.y),
+                                clip: clip, in: context)
+                        }
+                    }
+                }
                 context.saveGState()
                 context.translateBy(x: item.origin.x + line.origin.x, y: item.origin.y + line.origin.y)
                 context.scaleBy(x: 1, y: -1)

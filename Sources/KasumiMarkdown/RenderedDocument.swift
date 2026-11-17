@@ -399,7 +399,7 @@ public final class RenderedDocument: @unchecked Sendable {
 
     /// Accepts a slug or a URL fragment, including footnote anchors not in outline.
     public func rect(forAnchor anchor: String) -> CGRect? {
-        let key = (anchor.hasPrefix("#") ? String(anchor.dropFirst()) : anchor).removingPercentEncoding ?? anchor
+        let key = DocumentLink.anchorKey(anchor)
         guard let y = layout.anchorPositions[key] else { return nil }
         if let line = lines.first(where: { abs($0.rect.minY - y) < 0.01 }) { return line.rect }
         return CGRect(x: 0, y: y, width: size.width, height: 1)
@@ -408,7 +408,7 @@ public final class RenderedDocument: @unchecked Sendable {
     /// Semantic target for an estimated heading/footnote position. Refine around
     /// this anchor before applying the final navigation inset.
     public func readingAnchor(forAnchor anchor: String) -> ReadingAnchor? {
-        let key = (anchor.hasPrefix("#") ? String(anchor.dropFirst()) : anchor).removingPercentEncoding ?? anchor
+        let key = DocumentLink.anchorKey(anchor)
         guard let y = layout.anchorPositions[key],
             let index = layout.paragraphs.firstIndex(where: { abs($0.origin.y - y) < 0.01 })
         else { return nil }
@@ -428,9 +428,7 @@ public final class RenderedDocument: @unchecked Sendable {
             guard index >= 0, index < item.paragraph.attributed.length,
                 let value = item.paragraph.attributed.attribute(.link, at: index, effectiveRange: nil)
             else { return nil }
-            if let url = value as? URL { return url }
-            guard let string = value as? String else { return nil }
-            return URL(string: string, relativeTo: string.hasPrefix("#") ? nil : baseURL)?.absoluteURL
+            return DocumentLink.url(value, relativeTo: baseURL)
         }
     }
 
