@@ -9,6 +9,7 @@ DERIVED_DATA ?= build/DerivedData
 APP_NAME ?= Kasumi
 BUNDLE_ID ?= com.samuelhe.Kasumi
 CONFIGURATION ?= Debug
+SWIFT_CONFIGURATION ?= debug
 SIM_APP_PATH = $(DERIVED_DATA)/Build/Products/$(CONFIGURATION)-iphonesimulator/$(APP_NAME).app
 DEVICE_APP_PATH = $(DERIVED_DATA)/Build/Products/$(CONFIGURATION)-iphoneos/$(APP_NAME).app
 # run-device picks a connected device unless DEVICE=<UDID> is given: USB before
@@ -24,6 +25,10 @@ ONBOARDING_ARGS = $(if $(filter reset,$(ONBOARDING)),-- -onboarding.fonts-offere
 DEVICE_PROBE = xcrun xcdevice list | /usr/bin/python3 -c 'import json, sys; interface = {"usb": 0, "network": 1}; devices = [device for device in json.load(sys.stdin) if device.get("platform") == "com.apple.platform.iphoneos" and device.get("available") and not device.get("simulator")]; devices.sort(key=lambda device: (interface.get(device.get("interface"), 2), not device.get("modelCode", "").startswith("iPhone"), device.get("identifier", ""))); print(devices[0]["identifier"] if devices else "")'
 # Narrow `make test` to matching tests, e.g. `make test FILTER=ParagraphTests`.
 FILTER ?=
+REFLOW_IDLE_WARMUP ?= 1
+BENCHMARK_OUTPUT ?= build/benchmarks/$(shell date -u +%Y%m%dT%H%M%SZ)
+BENCHMARK_BUILD = .build/bench
+BENCHMARK_BIN = $(shell swift build -c release --scratch-path $(BENCHMARK_BUILD) --show-bin-path)/KasumiReaderBench
 
 NATIVE_STAMP := .build/native/.stamp
 NATIVE_INPUTS := scripts/build-native rust-toolchain.toml \
@@ -31,7 +36,7 @@ NATIVE_INPUTS := scripts/build-native rust-toolchain.toml \
 		-not -path '*/target/*' 2>/dev/null)
 
 .DEFAULT_GOAL := help
-.PHONY: help native native-local native-release build test test-ios app run-sim run-device launch-sim test-syntax-native syntax-notices render app-check app-check-sim check clean benchmark-typography
+.PHONY: help native native-local native-release build test test-ios app run-sim run-device launch-sim test-syntax-native syntax-notices render app-check app-check-sim check clean benchmark-typography reflow-lab run-reflow-lab check-reflow-lab check-reader-scrolling check-reflow-scrolling check-fast-reflow-scrolling benchmark-build benchmark-corpus benchmark-self-check benchmark-reader benchmark-reader-full benchmark-reflow-lab
 
 help: ## List available targets
 	@awk 'BEGIN { FS = ":.*## " } /^[a-z-]+:.*## / { printf "  %-8s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
@@ -51,7 +56,7 @@ $(NATIVE_STAMP): $(NATIVE_INPUTS)
 	@touch $@
 
 build: native ## Build the Swift package
-	swift build
+	swift build -c $(SWIFT_CONFIGURATION)
 
 test-syntax-native: ## Test the Syntect bridge on the host (no simulator)
 	CARGO_TARGET_DIR=$(CURDIR)/.build/native/target cargo test --locked --manifest-path packages/NativeSyntax/Cargo.toml
@@ -65,7 +70,7 @@ render: build ## Render a Markdown fixture without launching the app
 	swift run --skip-build KasumiRender "$(INPUT)" "$(OUTPUT)" $(RENDER_ARGS)
 
 test: native ## Run swift test (optionally FILTER=<name>)
-	swift test $(if $(FILTER),--filter '$(FILTER)')
+	swift test -c $(SWIFT_CONFIGURATION) $(if $(FILTER),--filter '$(FILTER)')
 
 benchmark-typography: native ## Measure bounded language and punctuation cost (optimized, no simulator)
 	KASUMI_TYPOGRAPHY_BENCHMARKS=1 swift test -c release --filter TypographyPerformanceTests
@@ -86,6 +91,7 @@ app-check-sim: native ## Compile the iOS app for a generic simulator without lau
 
 app: native ## Build the iOS app for the simulator
 	xcodebuild -project apps/iOS/Kasumi.xcodeproj -scheme Kasumi \
+		-configuration $(CONFIGURATION) \
 		-destination 'platform=iOS Simulator,name=$(SIMULATOR)' \
 		-derivedDataPath $(DERIVED_DATA) build
 
@@ -119,6 +125,46 @@ launch-sim: ## Install and launch the last built app on the booted simulator, wi
 	[ -z "$$newer" ] || echo "Warning: sources are newer than the built app, e.g. $$newer"; \
 	xcrun simctl install "$$udid" "$$app_path" && \
 	xcrun simctl launch --terminate-running-process "$$udid" $(BUNDLE_ID)
+
+reflow-lab: native ## Build a standalone macOS live-reflow test window (Release)
+	swift build -c release --product KasumiReflowLab
+	./scripts/package-reflow-lab
+
+run-reflow-lab: reflow-lab ## Open the macOS test window
+	open build/KasumiReflowLab.app
+
+check-reflow-lab: reflow-lab ## Run offscreen macOS harness smoke checks
+	build/KasumiReflowLab.app/Contents/MacOS/KasumiReflowLab --smoke-check build/reflow-lab-smoke.json
+
+check-reflow-scrolling: reflow-lab ## Check 50k/200k mixed scrolling coverage in the native Mac harness
+	build/KasumiReflowLab.app/Contents/MacOS/KasumiReflowLab --scroll-check build/reflow-lab-scrolling.json
+
+check-fast-reflow-scrolling: reflow-lab ## Stress native scrolling after three seconds idle
+	KASUMI_REFLOW_IDLE_WARMUP=$(REFLOW_IDLE_WARMUP) build/KasumiReflowLab.app/Contents/MacOS/KasumiReflowLab --fast-scroll-check build/reflow-lab-fast-scrolling.json
+
+benchmark-build: native ## Build the isolated standard Release benchmark executable
+	swift build -c release --product KasumiReaderBench --scratch-path $(BENCHMARK_BUILD)
+
+benchmark-corpus: benchmark-build ## Export and verify the fixed benchmark Markdown samples
+	python3 benchmarks/reader/run.py --binary $(BENCHMARK_BIN) --output "$(BENCHMARK_OUTPUT)" --corpus-only
+
+benchmark-self-check: ## Check benchmark statistics, manifest and failure handling
+	python3 -m unittest discover -s benchmarks/reader -p 'test_*.py'
+
+benchmark-reader: benchmark-build benchmark-self-check ## Run the quick reader engine benchmark (no simulator)
+	python3 benchmarks/reader/run.py --binary $(BENCHMARK_BIN) --output "$(BENCHMARK_OUTPUT)" --profile quick
+
+benchmark-reader-full: benchmark-build benchmark-self-check reflow-lab ## Run the full engine, memory and native coverage suite
+	python3 benchmarks/reader/run.py --binary $(BENCHMARK_BIN) --output "$(BENCHMARK_OUTPUT)" --profile full --native build/KasumiReflowLab.app/Contents/MacOS/KasumiReflowLab
+
+benchmark-reflow-lab: benchmark-reader ## Legacy alias for benchmark-reader
+
+.PHONY: benchmark-build benchmark-corpus benchmark-self-check benchmark-reader benchmark-reader-full benchmark-reflow-lab
+
+check-reader-scrolling: app ## Profile iOS scrolling on the only booted simulator (DEVICE=<UDID>, CONFIGURATION=Release)
+	@test "$(CONFIGURATION)" = Release || { echo "Use CONFIGURATION=Release for scrolling measurements."; exit 1; }
+	@test -n "$(DEVICE)" || { echo "Set DEVICE to an already booted simulator UDID."; exit 1; }
+	./scripts/check-reader-scrolling --device "$(DEVICE)"
 
 check: ## Check the local toolchain (read-only)
 	./scripts/check-environment

@@ -1,0 +1,96 @@
+{
+  "cases" : [
+    {
+      "completePreparationEligible" : true,
+      "id" : "english-20000",
+      "nominalBodyCharacters" : 20000,
+      "sample" : "English",
+      "sha256" : "67c0656f16a6520f939591f591048de99034d11944fd7687b7e56e19198adace",
+      "utf8Bytes" : 20660,
+      "utf16Units" : 20659
+    },
+    {
+      "completePreparationEligible" : true,
+      "id" : "english-50000",
+      "nominalBodyCharacters" : 50000,
+      "sample" : "English",
+      "sha256" : "a6341aea441782fce55f573b8a13680ed57b8a79da727ee7c5d818d037d362a6",
+      "utf8Bytes" : 51620,
+      "utf16Units" : 51619
+    },
+    {
+      "completePreparationEligible" : true,
+      "id" : "english-200000",
+      "nominalBodyCharacters" : 200000,
+      "sample" : "English",
+      "sha256" : "6c665bfb77302f89dc2751e7ffa8bd4e6e9bfb050f228d531c47889c6706fc3d",
+      "utf8Bytes" : 206721,
+      "utf16Units" : 206720
+    },
+    {
+      "completePreparationEligible" : true,
+      "id" : "chinese-20000",
+      "nominalBodyCharacters" : 20000,
+      "sample" : "Chinese",
+      "sha256" : "68ce28bb1b60e710f6fd225f2b7e5a471ce4ebe84e1a897c5a26f8bd66c9fd44",
+      "utf8Bytes" : 60660,
+      "utf16Units" : 20659
+    },
+    {
+      "completePreparationEligible" : true,
+      "id" : "chinese-50000",
+      "nominalBodyCharacters" : 50000,
+      "sample" : "Chinese",
+      "sha256" : "b5f4f661f95cd9053a89fc0b4ad53131ad900982c2d1385f85198e2695501431",
+      "utf8Bytes" : 151620,
+      "utf16Units" : 51619
+    },
+    {
+      "completePreparationEligible" : true,
+      "id" : "chinese-200000",
+      "nominalBodyCharacters" : 200000,
+      "sample" : "Chinese",
+      "sha256" : "38eede52ac3a8089c68539004e188191d2ddea8597c829b5657b47d4eb93d510",
+      "utf8Bytes" : 606721,
+      "utf16Units" : 206720
+    },
+    {
+      "completePreparationEligible" : true,
+      "id" : "mixed-20000",
+      "nominalBodyCharacters" : 20000,
+      "sample" : "Mixed",
+      "sha256" : "a4f88dca603311dc424685c981a59ad9d592e95b51444fc7fb745e337f13f959",
+      "utf8Bytes" : 61962,
+      "utf16Units" : 21937
+    },
+    {
+      "completePreparationEligible" : true,
+      "id" : "mixed-50000",
+      "nominalBodyCharacters" : 50000,
+      "sample" : "Mixed",
+      "sha256" : "69f5c6af9547f57c0c082d1fa7ef297f595139b3c8ca2087fd34e260542ec31b",
+      "utf8Bytes" : 154878,
+      "utf16Units" : 54817
+    },
+    {
+      "completePreparationEligible" : true,
+      "id" : "mixed-200000",
+      "nominalBodyCharacters" : 200000,
+      "sample" : "Mixed",
+      "sha256" : "d7704271e23e2693f7dfb606bc09441b0cd26d70ccdae92e09791b5177468331",
+      "utf8Bytes" : 619759,
+      "utf16Units" : 219518
+    },
+    {
+      "completePreparationEligible" : false,
+      "id" : "single-50000",
+      "nominalBodyCharacters" : 50000,
+      "sample" : "Single paragraph",
+      "sha256" : "16d01ba6ab3f0e9bcade3a36dec4a208149d785253eb0f7328d3bb769f41925d",
+      "utf8Bytes" : 150000,
+      "utf16Units" : 50000
+    }
+  ],
+  "generator" : "LabSample-v1-en_US",
+  "schema" : 1
+}

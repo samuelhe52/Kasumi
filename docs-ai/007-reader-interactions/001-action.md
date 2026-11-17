@@ -27,7 +27,9 @@ Reader milestone 2 is implemented:
 - `apps/iOS/Kasumi/ReadingSurface.swift` installs `UIFindInteraction`, lets the
   page paint behind the native floating controls, and uses `UIKeyboardLayoutGuide`
   for unobscured scrolling. Search highlights remain separate from selection;
-  replacing a page clears selection and recomputes results for that snapshot.
+  positions and highlight geometry refresh for each snapshot. Width-only reflows
+  now reuse semantic match offsets when exact text and options agree; see
+  [retained matches](003-retained-find-matches.md).
 - `apps/iOS/Kasumi/ReaderScreen.swift` adds Find to Reader Actions, confirms an
   external destination before invoking the system opener, and reports opening
   failures. Heading/footnote links retain their in-document animated jumps;

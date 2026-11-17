@@ -37,6 +37,60 @@ or is reordered; record the work itself in a numbered entry.
 
 ## Non-blocking Reader 1 follow-ups
 
+Live window-resize reflow was implemented on 2026-11-17 with one background
+layout/viewport-paint pipeline and coalesced pending widths. See
+[004.006](004-ios-reader/006-live-reflow.md) for validation and performance limits.
+[Anchor lifecycle corrections](004-ios-reader/007-reflow-anchor-lifecycle.md)
+refresh paragraph keys after content revisions and track explicit clamped scrolling.
+Mac reproduction confirms that whole-document reflow still stalls on longer
+English and especially Chinese text. [Retained preparation and incremental
+break totals](002-rendering-engine/013-reflow-preparation.md) now reduce repeated
+work in the reader. [Semantic/item preparation and decoration filtering](002-rendering-engine/014-reflow-metadata.md)
+remove more repeated width-independent work. [Lazy fragments](002-rendering-engine/015-lazy-fragments.md)
+now defer offscreen drawing/caret objects in session-prepared paragraphs; underline
+construction materializes the lines that need decoration geometry.
+[Viewport-first layout](002-rendering-engine/016-viewport-layout.md) now measures
+text paragraphs around the reading anchor with overscan, retaining indexed
+offscreen height estimates. Scrolling requests refined immutable snapshots.
+[Incremental reflow](002-rendering-engine/022-incremental-reflow.md) now defers
+eligible offscreen text, tables and formulas using semantic placeholders. Nearby
+tables refine as a unit; resource-dependent images and diagram fallbacks remain
+exact. Immutable paragraph geometry and table widths are reused, while Core Text
+objects remain snapshot-local. Publication checks current viewport coverage when
+the anchor moves, and one screen of overscan buffers scrolling. Cold preparation
+also avoids redundant parsing and document-wide grapheme indexing. [Idle preparation](002-rendering-engine/023-fast-scroll-coverage.md) now completes
+bounded text/table/math documents after 200 ms of inactivity. Both reader hosts
+cancel on activity and retain progress; complete snapshots are reused at the
+same width. This covers jumps beyond overscan once preparation finishes, with
+additional retained geometry and memory. [Compact preparation](002-rendering-engine/024-compact-idle-preparation.md)
+projects fragment wrappers from shared immutable geometry, releases reusable break
+items after measurement, and skips unused text assembly in idle batches. A shared
+session glyph-cache allowance and one fallback fragment per line also bound paint
+retention as more of the document is visited. The shared-cache-only prototype
+regressed return painting; line-local immutable paint retention and compact
+records now recover it in the measured workloads. First-traversal p99 remains
+0.6–2.2 ms higher, and the native Mac process peaks near 229 MB despite a roughly
+140 MB engine-only peak. Further work targets those costs and device validation. Measurements use the [reader benchmark suite](../benchmarks/reader/README.md). Shape input remains available for
+width changes, but break items may need rebuilding. Documents outside the resource envelope,
+and immediate jumps before readiness, still use viewport refinement. A very large
+visible table, resource-heavy block or individual paragraph can still dominate.
+See the earlier [mixed coverage](002-rendering-engine/018-mixed-viewport-coverage.md)
+record for the preceding exact-attachment policy.
+[Glyph paint reuse](002-rendering-engine/017-glyph-paint-reuse.md) now shares
+immutable source-range paint values across widths, reducing repeated extraction
+while keeping Core Text objects snapshot-local. [Paint-only cache hits](002-rendering-engine/020-paint-without-caret-materialization.md)
+also skip fragment CTLine construction and reuse bounded natural caret geometry
+for interaction; cold, long-fragment and unsupported paint retain the existing path. [Selection lookup](002-rendering-engine/019-selection-range-indexing.md)
+now seeks into overlapping source intervals when Find requests highlight geometry.
+[Reader Find matching](007-reader-interactions/003-retained-find-matches.md) now
+retains semantic offsets and word boundaries across unchanged text, recreating
+positions for each snapshot. [Viewport highlights](007-reader-interactions/004-viewport-find-highlights.md)
+now use a conservative visible text envelope and numeric match index to skip
+distant results, with overscan for scrolling. Remaining work targets native
+prepainting, indexed block placement, resource-heavy lazy coverage, UI installation
+and snapshot-release tails;
+a giant individual match can still request broad selection geometry.
+
 Retained after milestone closure; not prerequisites for starting Reader 2:
 
 - Saved-import open questions in [004.002](004-ios-reader/002-saved-imports.md#open-questions).

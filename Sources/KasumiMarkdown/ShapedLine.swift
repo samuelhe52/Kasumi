@@ -5,24 +5,66 @@ import Foundation
 /// A source-backed text fragment. Box geometry and glyph origin are distinct:
 /// compressed opening punctuation can draw to the left of its selection box.
 struct ShapedFragment {
-    let range: NSRange
-    let line: CTLine
-    let x: CGFloat
-    let width: CGFloat
-    let drawOffset: CGFloat
-    /// Space Core Text put before the line's first glyph; drawing and hit testing remove it.
-    let glyphInset: CGFloat
-    let capsuleLeft: CGFloat
-    let capsuleRight: CGFloat
-    let boundaries: [Int]
+    private enum PaintSource {
+        case eager(FragmentMaterialization)
+        case deferred(LineFragmentStore, Int)
+    }
+    let geometry: FragmentGeometry
+    private let paintSource: PaintSource
+
+    init(_ geometry: FragmentGeometry, paint: FragmentMaterialization) {
+        self.geometry = geometry
+        paintSource = .eager(paint)
+    }
+
+    init(_ geometry: FragmentGeometry, store: LineFragmentStore, index: Int) {
+        self.geometry = geometry
+        paintSource = .deferred(store, index)
+    }
+
+    var range: NSRange { geometry.range }
+    var x: CGFloat { geometry.x }
+    var width: CGFloat { geometry.width }
+    var drawOffset: CGFloat { geometry.drawOffset }
+    var capsuleLeft: CGFloat { geometry.capsuleLeft }
+    var capsuleRight: CGFloat { geometry.capsuleRight }
+
+    var materialized: FragmentMaterialization {
+        switch paintSource {
+        case .eager(let value): return value
+        case .deferred(let store, let index): return store.value(at: index)
+        }
+    }
+    /// Immutable paint can outlive cache eviction during this draw. Querying it
+    /// never creates the CTLine and grapheme records used by interaction.
+    var cachedGlyphPaint: FragmentGlyphPaint? {
+        switch paintSource {
+        case .eager(let value): return value.glyphPaint
+        case .deferred(let store, let index): return store.cachedGlyphPaint(at: index)
+        }
+    }
+    var isMaterialized: Bool {
+        switch paintSource {
+        case .eager: return true
+        case .deferred(let store, let index): return store.isMaterialized(at: index)
+        }
+    }
+    var line: CTLine { materialized.line }
+    var glyphInset: CGFloat { materialized.glyphInset }
+    var boundaries: [Int] { cachedGlyphPaint?.carets?.boundaries ?? materialized.boundaries }
 
     func offset(for index: Int) -> CGFloat {
         guard range.length > 0 else { return x }
         if index <= range.location { return x }
         if index >= NSMaxRange(range) { return x + width }
-        let natural = CGFloat(CTLineGetTypographicBounds(line, nil, nil, nil)) - glyphInset
+        if let carets = cachedGlyphPaint?.carets, let offset = carets.interiorOffset(for: index) {
+            guard carets.naturalWidth > 0 else { return x }
+            return x + min(width, max(0, offset / carets.naturalWidth * width))
+        }
+        let paint = materialized
+        let natural = CGFloat(CTLineGetTypographicBounds(paint.line, nil, nil, nil)) - paint.glyphInset
         guard natural > 0 else { return x }
-        let offset = CTLineGetOffsetForStringIndex(line, index, nil) - glyphInset
+        let offset = CTLineGetOffsetForStringIndex(paint.line, index, nil) - paint.glyphInset
         return x + min(width, max(0, offset / natural * width))
     }
 
@@ -42,18 +84,86 @@ enum SourceBoundaryAffinity {
     case precedingFragment
 }
 
+/// Deferred lines share immutable geometry, while each snapshot owns its store.
+/// Projecting a wrapper on access avoids retaining one large wrapper per glyph.
+struct ShapedFragments: RandomAccessCollection {
+    private enum Storage {
+        case eager([ShapedFragment])
+        case deferred([FragmentGeometry], LineFragmentStore)
+    }
+    private let storage: Storage
+
+    init(_ fragments: [ShapedFragment]) { storage = .eager(fragments) }
+    init(geometry: [FragmentGeometry], factory: ParagraphFragmentFactory) {
+        storage = .deferred(geometry, LineFragmentStore(factory: factory, geometry: geometry))
+    }
+
+    var startIndex: Int { 0 }
+    var endIndex: Int {
+        switch storage {
+        case .eager(let fragments): return fragments.count
+        case .deferred(let geometry, _): return geometry.count
+        }
+    }
+    func index(after index: Int) -> Int { index + 1 }
+    func index(before index: Int) -> Int { index - 1 }
+    subscript(index: Int) -> ShapedFragment {
+        switch storage {
+        case .eager(let fragments): return fragments[index]
+        case .deferred(let geometry, let store): return ShapedFragment(geometry[index], store: store, index: index)
+        }
+    }
+
+    var geometry: [FragmentGeometry] {
+        switch storage {
+        case .eager(let fragments): return fragments.map(\.geometry)
+        case .deferred(let geometry, _): return geometry
+        }
+    }
+}
+
 struct ShapedLine {
     let range: NSRange
     /// Logical source line. Fragment geometry below governs native paragraph
     /// drawing and hit testing; this line also supports the verbatim path.
-    let line: CTLine
+    private let logical: LogicalLine
+    var line: CTLine { logical.value }
     let origin: CGPoint
     let ascent: CGFloat
     let descent: CGFloat
     let width: CGFloat
-    var fragments: [ShapedFragment] = []
+    let fragments: ShapedFragments
     var hyphen: ShapedHyphen? = nil
     var adjustmentRatio: Float = 0
+
+    init(
+        range: NSRange, line: CTLine, origin: CGPoint, ascent: CGFloat, descent: CGFloat, width: CGFloat,
+        fragments: ShapedFragments = .init([]), hyphen: ShapedHyphen? = nil, adjustmentRatio: Float = 0
+    ) {
+        self.range = range
+        logical = LogicalLine(line: line)
+        self.origin = origin
+        self.ascent = ascent
+        self.descent = descent
+        self.width = width
+        self.fragments = fragments
+        self.hyphen = hyphen
+        self.adjustmentRatio = adjustmentRatio
+    }
+
+    init(
+        range: NSRange, factory: ParagraphFragmentFactory, origin: CGPoint, ascent: CGFloat, descent: CGFloat,
+        width: CGFloat, fragments: ShapedFragments, adjustmentRatio: Float
+    ) {
+        self.range = range
+        logical = LogicalLine(factory: factory, range: range)
+        self.origin = origin
+        self.ascent = ascent
+        self.descent = descent
+        self.width = width
+        self.fragments = fragments
+        self.adjustmentRatio = adjustmentRatio
+    }
 
     func offset(forStringIndex index: Int, affinity: SourceBoundaryAffinity = .followingFragment) -> CGFloat {
         guard !fragments.isEmpty else { return CTLineGetOffsetForStringIndex(line, index, nil) }
@@ -98,5 +208,22 @@ struct ShapedLine {
 
     private func distance(_ x: CGFloat, from fragment: ShapedFragment) -> CGFloat {
         max(fragment.x - x, max(0, x - fragment.x - fragment.width))
+    }
+}
+
+/// Owned by one snapshot; accessed under that snapshot's layout lock.
+private final class LogicalLine {
+    private var built: CTLine?
+    private var factory: ParagraphFragmentFactory?
+    private let range: NSRange
+
+    init(line: CTLine) { built = line; range = NSRange(location: 0, length: 0) }
+    init(factory: ParagraphFragmentFactory, range: NSRange) { self.factory = factory; self.range = range }
+    var value: CTLine {
+        if let built { return built }
+        let line = factory!.textLine(range)
+        built = line
+        factory = nil
+        return line
     }
 }

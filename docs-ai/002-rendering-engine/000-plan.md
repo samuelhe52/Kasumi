@@ -101,3 +101,19 @@ Library tests pass on macOS and the iOS simulator, including comparisons against
 - Updated 2026-11-17: Add bounded, cached automatic hyphenation language selection
   and opt-in display punctuation policies; see
   [002.012](012-language-and-punctuation.md).
+
+- Updated 2026-11-17: Retain reflow preparation and remove repeated break scans — see [013-reflow-preparation.md](013-reflow-preparation.md).
+- Updated 2026-11-17: Reuse semantic and item preparation and skip absent decorations — see [014-reflow-metadata.md](014-reflow-metadata.md).
+- Updated 2026-11-17: Defer snapshot-local offscreen fragment materialization — see [015-lazy-fragments.md](015-lazy-fragments.md).
+- Updated 2026-11-17: Measure viewport paragraphs with indexed offscreen height estimates — see [016-viewport-layout.md](016-viewport-layout.md).
+- Updated 2026-11-17: Reuse immutable source-range glyph paint values across reflows — see [017-glyph-paint-reuse.md](017-glyph-paint-reuse.md).
+- Updated 2026-11-17: Keep surrounding text viewport-based in mixed documents and defer unadorned lines in linked paragraphs — see [018-mixed-viewport-coverage.md](018-mixed-viewport-coverage.md).
+- Updated 2026-11-17: Seek directly into semantic spans and source intervals for selection geometry — see [019-selection-range-indexing.md](019-selection-range-indexing.md).
+- Updated 2026-11-17: Paint warm glyph records without constructing fragment caret objects — see [020-paint-without-caret-materialization.md](020-paint-without-caret-materialization.md).
+- Updated 2026-11-17: Note the external first-screen diagnostic command and its purpose — see [021-telari-open-report.md](021-telari-open-report.md).
+
+- Updated 2026-11-17: Reduce cold preparation and reuse immutable geometry during viewport refinement — see [022-incremental-reflow.md](022-incremental-reflow.md).
+
+- Updated 2026-11-17: Prepare bounded documents during idle time to cover rapid scrolling — see [023-fast-scroll-coverage.md](023-fast-scroll-coverage.md).
+
+- Updated 2026-11-17: Compact prepared geometry, release reusable break items, and bound paint retention — see [024-compact-idle-preparation.md](024-compact-idle-preparation.md).

@@ -117,3 +117,33 @@ fileprivate func expectedReadingY(_ item: PlacedText, anchor: ReadingAnchor) thr
     anchor.verticalFraction = .nan
     #expect(replacement.y(for: anchor) == nil)
 }
+
+@Test(arguments: [30, 300])
+func liveReflowRetainsOriginalAnchorAndTextSizeAcrossManyWidths(repetitions: Int) throws {
+    let source = "Opening.\n\n" + String(
+        repeating: "Live resizing keeps 中文与 English at the same reading size. ", count: repetitions) + "\n\nEnd."
+    let document = MarkdownDocument(markdown: source)
+    let style = RenderStyle(fontSize: 16)
+    let initial = RenderedDocument(document, width: 440, style: style)
+    let anchor = initial.readingAnchor(atY: initial.size.height / 2)
+    let originalY = try #require(initial.y(for: anchor))
+    let originalHeight = initial.caretRect(for: initial.documentRange.lowerBound).height
+    var milliseconds: [Double] = []
+    for width in [800, 500, 320, 700, 360, 600, 440] {
+        try autoreleasepool {
+            let start = ContinuousClock.now
+            let next = RenderedDocument(document, width: CGFloat(width), style: style)
+            let elapsed = start.duration(to: .now).components
+            milliseconds.append(Double(elapsed.seconds) * 1_000 + Double(elapsed.attoseconds) / 1e15)
+            #expect(next.text(in: next.documentRange) == initial.text(in: initial.documentRange))
+            #expect(next.caretRect(for: next.documentRange.lowerBound).height == originalHeight)
+            let y = try #require(next.y(for: anchor))
+            #expect(y.isFinite && y >= 0 && y < next.size.height)
+            if width == 440 { #expect(abs(y - originalY) < 0.00001) }
+        }
+    }
+    if ProcessInfo.processInfo.environment["KASUMI_REFLOW_TIMING"] == "1" {
+        let sorted = milliseconds.sorted()
+        print("Reflow \(source.utf8.count) UTF-8 bytes, 7 warm snapshots: median \(sorted[3]) ms, max \(sorted[6]) ms")
+    }
+}

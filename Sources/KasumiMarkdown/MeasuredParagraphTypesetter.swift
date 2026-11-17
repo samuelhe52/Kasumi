@@ -11,16 +11,19 @@ enum MeasuredParagraphTypesetter {
     static func layout(
         _ attributed: NSAttributedString, width: CGFloat, fontSize: CGFloat, lineSpacing: CGFloat,
         alignment: ParagraphAlignment, indent: CGFloat, profileValues: ProfileValues?, outerWidth: CGFloat?,
-        baseEm: CGFloat?
+        baseEm: CGFloat?, preparedInput: ShapedParagraphInput? = nil, preparedItems: ParagraphEngine.Prepared? = nil,
+        deferFragments: Bool = false, glyphPaintCache: FragmentGlyphPaintCache? = nil
     ) -> ParagraphLayout {
-        let input = ParagraphShaper.shape(attributed, fallbackSize: fontSize)
-        let options = profileValues.map(ParagraphProfileOptions.init(values:)) ?? .init()
+        let input = preparedInput ?? ParagraphShaper.shape(attributed, fallbackSize: fontSize)
+        let prepared =
+            preparedItems
+            ?? ParagraphEngine.prepare(
+                clusters: input.clusters, runs: input.metrics, indent: Float(indent),
+                options: profileValues.map(ParagraphProfileOptions.init(values:)) ?? .init())
         let result = ParagraphEngine.layout(
-            clusters: input.clusters, runs: input.metrics, width: Float(width),
-            outerWidth: Float(outerWidth ?? width), baseEm: Float(baseEm ?? fontSize),
-            alignment: alignment == .trailing ? .leading : alignment, indent: Float(indent), options: options)
-        let typesetter = CTTypesetterCreateWithAttributedString(attributed)
-        let source = attributed.string as NSString
+            prepared, width: Float(width), outerWidth: Float(outerWidth ?? width), baseEm: Float(baseEm ?? fontSize),
+            alignment: alignment == .trailing ? .leading : alignment)
+        let factory = ParagraphFragmentFactory(attributed, glyphPaintCache: glyphPaintCache)
         func sourceRange(_ clusters: Range<Int>) -> NSRange {
             guard let first = input.ranges[safe: clusters.lowerBound], !clusters.isEmpty,
                 let last = input.ranges[safe: clusters.upperBound - 1]
@@ -30,48 +33,22 @@ enum MeasuredParagraphTypesetter {
             }
             return NSRange(location: first.location, length: NSMaxRange(last) - first.location)
         }
-        // A line cut from the paragraph typesetter sees its neighbors, and Core Text
-        // adds its own CJK-Latin space (1/8 em after `。`, for example) before the
-        // first glyph. The engine already spaced the fragment, so that inset is removed.
-        func leadingGlyphInset(_ line: CTLine) -> CGFloat {
-            guard let run = (CTLineGetGlyphRuns(line) as! [CTRun]).first, CTRunGetGlyphCount(run) > 0 else { return 0 }
-            var position = CGPoint.zero
-            CTRunGetPositions(run, CFRange(location: 0, length: 1), &position)
-            return max(0, position.x)
-        }
-        func textLine(_ range: NSRange) -> CTLine {
-            range.length == 0
-                ? CTLineCreateWithAttributedString(NSAttributedString(string: ""))
-                : CTTypesetterCreateLine(typesetter, CFRange(location: range.location, length: range.length))
-        }
         var lines: [ShapedLine] = []
         var y: CGFloat = 0
         for selected in result.lines {
             let range = sourceRange(selected.clusterRange)
-            var fragments: [ShapedFragment] = []
+            var specs: [FragmentGeometry] = []
             for fragment in selected.fragments {
                 var x = fragment.x
                 func append(_ clusters: Range<Int>, width: Float) {
                     let range = sourceRange(clusters)
-                    // A shaping span may contain a ligature. Keep its interior
-                    // grapheme carets even though line breaking treats it atomically.
-                    var boundaries: [Int] = []
-                    var boundary = range.location
-                    while boundary < NSMaxRange(range) {
-                        boundaries.append(boundary)
-                        boundary = NSMaxRange(source.rangeOfComposedCharacterSequence(at: boundary))
-                    }
-                    if range.length > 0 { boundaries.append(NSMaxRange(range)) }
-                    let line = textLine(range)
-                    fragments.append(
-                        ShapedFragment(
-                            range: range, line: line, x: CGFloat(x), width: CGFloat(width),
-                            drawOffset: CGFloat(fragment.drawDx), glyphInset: leadingGlyphInset(line),
+                    specs.append(
+                        FragmentGeometry(
+                            range: range, x: CGFloat(x), width: CGFloat(width), drawOffset: CGFloat(fragment.drawDx),
                             capsuleLeft: clusters.lowerBound == fragment.clusterRange.lowerBound
                                 ? CGFloat(fragment.capsuleLeft) : 0,
                             capsuleRight: clusters.upperBound == fragment.clusterRange.upperBound
-                                ? CGFloat(fragment.capsuleRight) : 0,
-                            boundaries: boundaries))
+                                ? CGFloat(fragment.capsuleRight) : 0))
                     x += width
                 }
                 guard fragment.clusterRange.count > 1 else {
@@ -98,7 +75,12 @@ enum MeasuredParagraphTypesetter {
                     append(start..<fragment.clusterRange.upperBound, width: fragment.width - (x - fragment.x))
                 }
             }
-            let logical = textLine(range)
+            // Appending split Han fragments leaves spare capacity. Keep an
+            // exactly sized buffer before sharing it with long-lived geometry.
+            let fragments = deferFragments && !specs.isEmpty
+                ? ShapedFragments(geometry: specs.map { $0 }, factory: factory)
+                : ShapedFragments(specs.map { ShapedFragment($0, paint: factory.materialize($0.range)) })
+            let logical = factory.textLine(range)
             var ascent: CGFloat = 0
             var descent: CGFloat = 0
             CTLineGetTypographicBounds(logical, &ascent, &descent, nil)

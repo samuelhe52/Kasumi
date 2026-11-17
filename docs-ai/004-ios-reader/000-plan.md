@@ -85,3 +85,8 @@ paste consent prompt on a device (`make run-device`).
 - Updated 2026-11-16: closed reader milestone 1 by maintainer decision and moved
   directly to milestone 2. Remaining recorded issues are non-blocking follow-ups,
   not claimed fixes — see [milestone closure](001-action.md#milestone-closure-2026-11-16).
+- Updated 2026-11-17: bounded background reflow during window resizing, stable
+  semantic anchors, and non-scrolling Find remaps — see [006-live-reflow.md](006-live-reflow.md).
+- Updated 2026-11-17: Rebase anchors on installed content revisions and track keyboard-driven Find scrolling — see [007-reflow-anchor-lifecycle.md](007-reflow-anchor-lifecycle.md).
+- Updated 2026-11-17: Refine viewport snapshots on scrolling and semantic navigation, preserving same-content selection — see [002.016](../002-rendering-engine/016-viewport-layout.md).
+- Updated 2026-11-17: Preserve horizontal table scroll ownership and offsets across mixed-content refinement — see [002.018](../002-rendering-engine/018-mixed-viewport-coverage.md).

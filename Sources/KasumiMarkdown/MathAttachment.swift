@@ -67,8 +67,8 @@ final class MathAttachment: NSObject {
 /// Owns the correspondence between Core Text's drawable storage and text that
 /// users can search, copy, and read through accessibility. A formula occupies
 /// one layout object but expands to its original TeX in the semantic stream.
-struct DocumentTextMap {
-    private struct Segment {
+struct DocumentTextMap: Equatable {
+    private struct Segment: Equatable {
         let rendered: NSRange
         let semantic: NSRange
         let replacement: Bool
@@ -79,7 +79,10 @@ struct DocumentTextMap {
     private let semanticLength: Int
 
     init(_ attributed: NSAttributedString) {
-        var text = ""
+        // Foundation substrings can remain foreign Swift strings. Appending
+        // their UTF-8 views one scalar at a time dominated mixed refinement.
+        // Assemble in UTF-16, then transcode once to native contiguous UTF-8.
+        let text = NSMutableString(capacity: attributed.length)
         var segments: [Segment] = []
         var semanticLength = 0
         let source = attributed.string as NSString
@@ -89,7 +92,7 @@ struct DocumentTextMap {
                 Segment(
                     rendered: range, semantic: NSRange(location: semanticLength, length: length),
                     replacement: replacement))
-            text += part
+            text.append(part)
             semanticLength += length
         }
         attributed.enumerateAttribute(.kasumiSemanticText, in: NSRange(location: 0, length: attributed.length)) {
@@ -117,7 +120,9 @@ struct DocumentTextMap {
                 append(replacement ?? original.map { $0 as String } ?? source.substring(with: range), range: range, replacement: replacement != nil)
             }
         }
-        self.string = text
+        var native = text as String
+        native.makeContiguousUTF8()
+        self.string = native
         self.segments = segments
         renderedLength = attributed.length
         self.semanticLength = semanticLength
@@ -155,9 +160,11 @@ struct DocumentTextMap {
     }
 
     func renderedRange(for semanticRange: NSRange) -> NSRange? {
+        guard semanticRange.length > 0 else { return nil }
         var start: Int?
         var end = 0
-        for segment in segments {
+        let first = firstSegment(endingAfter: semanticRange.location)
+        for segment in segments[first...].prefix(while: { $0.semantic.location < NSMaxRange(semanticRange) }) {
             let overlap = NSIntersectionRange(semanticRange, segment.semantic)
             guard overlap.length > 0 else { continue }
             let range =
@@ -172,14 +179,54 @@ struct DocumentTextMap {
         return start.map { NSRange(location: $0, length: end - $0) }
     }
 
+    /// Expand touched replacements in both directions, including a wrapped
+    /// unavailable-image label whose rendered line ends inside the replacement.
+    func semanticRange(forRenderedRange range: NSRange) -> NSRange? {
+        guard range.length > 0 else { return nil }
+        var lower = 0
+        var upper = segments.count
+        while lower < upper {
+            let middle = lower + (upper - lower) / 2
+            if NSMaxRange(segments[middle].rendered) <= range.location { lower = middle + 1 } else { upper = middle }
+        }
+        var start: Int?
+        var end = 0
+        for segment in segments[lower...].prefix(while: { $0.rendered.location < NSMaxRange(range) }) {
+            let overlap = NSIntersectionRange(range, segment.rendered)
+            guard overlap.length > 0 else { continue }
+            let semantic =
+                segment.replacement
+                ? segment.semantic
+                : NSRange(
+                    location: segment.semantic.location + overlap.location - segment.rendered.location,
+                    length: overlap.length)
+            guard semantic.length > 0 else { continue }
+            start = min(start ?? semantic.location, semantic.location)
+            end = max(end, NSMaxRange(semantic))
+        }
+        return start.map { NSRange(location: $0, length: end - $0) }
+    }
+
     /// Carets at attachment interiors snap to the object's leading edge.
     func renderedOffset(forSemanticOffset offset: Int) -> Int {
         let offset = min(semanticLength, max(0, offset))
         guard offset < semanticLength else { return renderedLength }
-        for segment in segments where NSLocationInRange(offset, segment.semantic) {
-            return segment.rendered.location + (segment.replacement ? 0 : offset - segment.semantic.location)
+        let index = firstSegment(endingAfter: offset)
+        guard index < segments.count else { return renderedLength }
+        let segment = segments[index]
+        return segment.rendered.location + (segment.replacement ? 0 : offset - segment.semantic.location)
+    }
+
+    /// Semantic intervals are ordered and disjoint, with possible empty spans
+    /// for synthetic padding. Skip those at the queried boundary as well.
+    private func firstSegment(endingAfter offset: Int) -> Int {
+        var lower = 0
+        var upper = segments.count
+        while lower < upper {
+            let middle = lower + (upper - lower) / 2
+            if NSMaxRange(segments[middle].semantic) <= offset { lower = middle + 1 } else { upper = middle }
         }
-        return renderedLength
+        return lower
     }
 
     func matches(_ query: String) -> [NSRange] {

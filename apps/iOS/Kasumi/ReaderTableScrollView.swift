@@ -8,11 +8,16 @@ struct ReaderTablePreview: Sendable {
 
 /// Each table owns horizontal motion; vertical drags continue in the reader.
 final class ReaderTableScrollView: UIScrollView, UIScrollViewDelegate {
+    let tableID: Int
     var onScroll: (() -> Void)?
     var onBeginDragging: (() -> Void)?
     private let edgeMask = ReaderTableEdgeMask()
+    private let canvas = UIView()
+    private var seedLayer: CALayer?
+    private var tileLayer: ReaderTableTileLayer?
 
     init(rendered: RenderedDocument, table: RenderedTable, scale: CGFloat, preview: ReaderTablePreview?) {
+        tableID = table.id
         super.init(frame: table.frame)
         delegate = self
         contentInsetAdjustmentBehavior = .never
@@ -22,31 +27,50 @@ final class ReaderTableScrollView: UIScrollView, UIScrollViewDelegate {
         delaysContentTouches = false
         topEdgeEffect.style = .soft
         layer.mask = edgeMask
+        canvas.isUserInteractionEnabled = false
+        addSubview(canvas)
+        refine(rendered: rendered, table: table, scale: scale, preview: preview)
+        accessibilityIdentifier = "reader-table-\(table.id)"
+    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    /// Keep the scroll/gesture owner and its horizontal position while replacing
+    /// snapshot-local painting data and estimated document-space placement.
+    func refine(rendered: RenderedDocument, table: RenderedTable, scale: CGFloat, preview: ReaderTablePreview?) {
+        let previousOffset = contentOffset
+        let horizontalExtentChanged = contentSize.width != table.contentWidth || bounds.width != table.frame.width
+        frame = table.frame
         let components =
             rendered.backgroundColor.converted(
                 to: CGColorSpace(name: CGColorSpace.sRGB)!, intent: .defaultIntent, options: nil)?.components ?? [
                 1, 1, 1, 1
             ]
         indicatorStyle = components.prefix(3).reduce(0, +) < 1.5 ? .white : .black
-        contentSize = CGSize(width: table.contentWidth, height: table.frame.height)
-        let content = UIView(frame: CGRect(origin: .zero, size: contentSize))
-        content.isUserInteractionEnabled = false
+        let size = CGSize(width: table.contentWidth, height: table.frame.height)
+        if contentSize != size { contentSize = size }
+        canvas.frame = CGRect(origin: .zero, size: contentSize)
+        seedLayer?.removeFromSuperlayer()
+        tileLayer?.removeFromSuperlayer()
+        seedLayer = nil
         if let preview {
             let seed = CALayer()
             seed.frame = preview.rect
             seed.contents = preview.image
             seed.contentsScale = scale
-            content.layer.addSublayer(seed)
+            canvas.layer.addSublayer(seed)
+            seedLayer = seed
         }
         let tiles = ReaderTableTileLayer(rendered: rendered, index: table.id)
-        tiles.frame = content.bounds
+        tiles.frame = canvas.bounds
         tiles.contentsScale = scale
         tiles.tileSize = CGSize(width: 512, height: 512)
-        content.layer.addSublayer(tiles)
-        addSubview(content)
-        accessibilityIdentifier = "reader-table-\(table.id)"
+        canvas.layer.addSublayer(tiles)
+        tileLayer = tiles
+        let clamped = CGPoint(x: min(max(0, previousOffset.x), max(0, contentSize.width - bounds.width)), y: 0)
+        // Preserve an in-flight edge bounce when horizontal geometry is stable.
+        if horizontalExtentChanged, contentOffset != clamped { setContentOffset(clamped, animated: false) }
+        updateEdgeMask()
     }
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
     override func layoutSubviews() {
         super.layoutSubviews()

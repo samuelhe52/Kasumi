@@ -12,10 +12,14 @@ import Testing
     import UIKit
 #endif
 
-fileprivate func drawingParagraph(_ attributed: NSAttributedString, width: CGFloat = 650) -> ParagraphLayout {
+fileprivate func drawingParagraph(
+    _ attributed: NSAttributedString, width: CGFloat = 650, preparation: ParagraphPreparation? = nil,
+    deferFragments: Bool = false
+) -> ParagraphLayout {
     ParagraphTypesetter.layout(
         attributed, width: width, fontSize: 22, alignment: .justified,
-        profileValues: ProfileValues([.autoRaggedNarrow: .flag(false)]))
+        profileValues: ProfileValues([.autoRaggedNarrow: .flag(false)]), preparation: preparation,
+        deferFragments: deferFragments)
 }
 
 /// The former renderer is the independent paint reference: retain the existing
@@ -136,6 +140,150 @@ fileprivate func mixedFontDrawingText() -> NSMutableAttributedString {
 }
 
 @Suite struct ParagraphDrawingTests {
+    @Test func linePaintSurvivesSharedCacheEviction() throws {
+        let storage = FragmentGlyphPaintCache.Storage()
+        let cache = FragmentGlyphPaintCache(storage: storage)
+        let text = NSMutableAttributedString(
+            string: "abc", attributes: [.font: PlatformFont.systemFont(ofSize: 14), .foregroundColor: PlatformColor.black])
+        text.addAttribute(.foregroundColor, value: PlatformColor.black.withAlphaComponent(0.5),
+                          range: NSRange(location: 2, length: 1))
+        let factory = ParagraphFragmentFactory(text, glyphPaintCache: cache)
+        let geometry = (0..<3).map {
+            FragmentGeometry(range: NSRange(location: $0, length: 1), x: CGFloat($0 * 10), width: 10,
+                             drawOffset: 0, capsuleLeft: 0, capsuleRight: 0)
+        }
+        let store = LineFragmentStore(factory: factory, geometry: geometry)
+        _ = store.value(at: 0)
+        let first = try #require(store.cachedGlyphPaint(at: 0))
+        let second = try #require(store.cachedGlyphPaint(at: 1))
+        let third = try #require(store.cachedGlyphPaint(at: 2))
+        if case .single(let a) = first.storage, case .single(let b) = second.storage,
+            case .single(let c) = third.storage {
+            #expect(a.color === b.color)
+            #expect(a.color != c.color && c.color.alpha == 0.5)
+        } else { Issue.record("Single-glyph paints were not compacted") }
+        storage.removeAll()
+        #expect(cache.cachedValue(for: geometry[0].range) == nil)
+        #expect(store.cachedGlyphPaint(at: 0) === first)
+        #expect(store.cachedGlyphPaint(at: 1) === second)
+        #expect(first.carets?.boundaries == [0, 1])
+        #expect(second.carets?.boundaries == [1, 2])
+    }
+
+    @Test func sharedGlyphStorageKeepsParagraphNamespacesIndependent() {
+        let storage = FragmentGlyphPaintCache.Storage()
+        let first = FragmentGlyphPaintCache(storage: storage)
+        let second = FragmentGlyphPaintCache(storage: storage)
+        let range = NSRange(location: 0, length: 1)
+        let paint = FragmentGlyphPaint(runs: [], leadingInset: 1, carets: nil)
+        #expect(first.value(for: range) { paint } === paint)
+        #expect(second.cachedValue(for: range) == nil)
+        #expect(second.value(for: range) { nil } == nil)
+        #expect(first.cachedValue(for: range) === paint)
+        #expect(second.value(for: range) { paint } == nil)
+    }
+
+    @Test func reusedGlyphValuesKeepPixelsAndLayoutObjectsIndependent() throws {
+        let text = NSMutableAttributedString(
+            attributedString: Typography().attributed(
+                [
+                    InlineRun("office affinity 汉，字𠀀汉\u{0301} "), InlineRun("raised", traits: [.strong]),
+                    InlineRun(" tail 🙂 ", traits: [.emphasis])
+                ], size: 22))
+        let range = (text.string as NSString).range(of: "office")
+        text.addAttributes([.foregroundColor: PlatformColor.red, .baselineOffset: 4.25], range: range)
+        let prepared = ParagraphPreparation(text, fontSize: 22, verbatim: false)
+        for width: CGFloat in [650, 300, 500, 650] {
+            let cached = drawingParagraph(text, width: width, preparation: prepared)
+            let uncached = drawingParagraph(text, width: width)
+            let actual = try paragraphBitmap(cached, batched: true)
+            let expected = try paragraphBitmap(uncached, batched: true)
+            #expect(differingParagraphPixels(actual, expected) == 0)
+        }
+        let factoryA = ParagraphFragmentFactory(prepared.attributed, glyphPaintCache: prepared.glyphPaintCache)
+        let factoryB = ParagraphFragmentFactory(prepared.attributed, glyphPaintCache: prepared.glyphPaintCache)
+        let a = factoryA.materialize(range)
+        let b = factoryB.materialize(range)
+        let shared = try #require(a.glyphPaint)
+        #expect(shared === b.glyphPaint)
+        #expect(a.line as AnyObject !== b.line as AnyObject)
+        #expect(a.glyphInset == b.glyphInset && a.boundaries == b.boundaries)
+        let unsupported = NSMutableAttributedString(attributedString: text)
+        unsupported.addAttribute(.strokeWidth, value: -3, range: range)
+        let unsupportedFactory = ParagraphFragmentFactory(unsupported, glyphPaintCache: FragmentGlyphPaintCache())
+        #expect(unsupportedFactory.materialize(range).glyphPaint == nil)
+    }
+
+    @Test func cachedPaintAndCaretValuesKeepLayoutObjectsLazyAndSnapshotLocal() throws {
+        let text = mixedFontDrawingText()
+        // Links use the decoration route; this test isolates paint-only hits.
+        text.removeAttribute(.link, range: NSRange(location: 0, length: text.length))
+        let prepared = ParagraphPreparation(text, fontSize: 22, verbatim: false)
+        let cold = drawingParagraph(text, width: 300, preparation: prepared, deferFragments: true)
+        #expect(cold.lines.flatMap(\.fragments).allSatisfy { !$0.isMaterialized })
+        let expected = try paragraphBitmap(drawingParagraph(text, width: 300), batched: true)
+        #expect(try paragraphBitmap(cold, batched: true) == expected)
+        #expect(cold.lines.flatMap(\.fragments).contains { $0.isMaterialized })
+
+        let warm = drawingParagraph(text, width: 300, preparation: prepared, deferFragments: true)
+        let independent = drawingParagraph(text, width: 300, preparation: prepared, deferFragments: true)
+        #expect(try paragraphBitmap(warm, batched: true) == expected)
+        #expect(warm.lines.flatMap(\.fragments).allSatisfy { !$0.isMaterialized })
+        let reference = drawingParagraph(text, width: 300)
+        for (actual, eager) in zip(warm.lines, reference.lines) {
+            for fraction: CGFloat in [0, 0.25, 0.6, 1] {
+                let point = CGPoint(x: actual.width * fraction, y: 0)
+                let index = actual.stringIndex(forPosition: point)
+                #expect(index == eager.stringIndex(forPosition: point))
+                #expect(actual.offset(forStringIndex: index) == eager.offset(forStringIndex: index))
+            }
+        }
+        let a = try #require(warm.lines.first?.fragments.first)
+        let b = try #require(independent.lines.first?.fragments.first)
+        #expect(warm.lines.flatMap(\.fragments).allSatisfy { !$0.isMaterialized })
+        #expect(!b.isMaterialized)
+        #expect(a.line as AnyObject !== b.line as AnyObject)
+        #expect(a.isMaterialized && b.isMaterialized)
+        #expect(a.boundaries == b.boundaries && a.glyphInset == b.glyphInset)
+        // Raw UTF-16 positions inside combining/emoji graphemes are not cached
+        // caret boundaries. They must retain the exact CTLine fallback too.
+        for (actual, eager) in zip(warm.lines, reference.lines) {
+            for index in actual.range.location...NSMaxRange(actual.range) {
+                #expect(actual.offset(forStringIndex: index) == eager.offset(forStringIndex: index))
+            }
+        }
+        #expect(try paragraphBitmap(warm, batched: true) == expected)
+    }
+
+    @Test func longFragmentPaintKeepsBoundedCaretPreparationAndMaterializationFallback() throws {
+        for count in [63, 64] {
+            let text = NSAttributedString(
+                string: String(repeating: "i", count: count),
+                attributes: [.font: PlatformFont.systemFont(ofSize: 12), .foregroundColor: PlatformColor.black])
+            let range = NSRange(location: 0, length: text.length)
+            let cache = FragmentGlyphPaintCache()
+            let first = ParagraphFragmentFactory(text, glyphPaintCache: cache).materialize(range)
+            let paint = try #require(first.glyphPaint)
+            #expect((paint.carets != nil) == (count == 63))
+            let factory = ParagraphFragmentFactory(text, glyphPaintCache: cache)
+            let geometry = FragmentGeometry(
+                range: range, x: 0, width: 500, drawOffset: 0, capsuleLeft: 0, capsuleRight: 0)
+            let store = LineFragmentStore(factory: factory, geometry: [geometry])
+            let fragment = ShapedFragment(geometry, store: store, index: 0)
+            let line = ShapedLine(
+                range: range, line: factory.textLine(range), origin: .zero, ascent: 12, descent: 3, width: 500,
+                fragments: .init([fragment]))
+            let context = try #require(
+                CGContext(
+                    data: nil, width: 600, height: 30, bitsPerComponent: 8, bytesPerRow: 0,
+                    space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+            #expect(!store.isMaterialized)
+            ParagraphGlyphDrawing.draw(line, attributed: text, in: context)
+            #expect(store.isMaterialized == (count == 64))
+            #expect(fragment.boundaries == first.boundaries)
+        }
+    }
+
     @Test(requiresReferenceFaces("STSongti-SC-Regular", "SimSong-Regular"))
     func mixedFontsUseReferenceSongtiAndSimSongFaces() {
         let text = mixedFontDrawingText()
@@ -217,6 +365,11 @@ fileprivate func mixedFontDrawingText() -> NSMutableAttributedString {
             let current = try paragraphBitmap(paragraph, batched: true)
             #expect(differingParagraphPixels(previous, current) == 0, "Decoration \(index)")
             if index != 1 { #expect(differingParagraphPixels(plain, previous) > 10) }
+            let prepared = ParagraphPreparation(text, fontSize: 22, verbatim: false)
+            let cold = drawingParagraph(text, preparation: prepared, deferFragments: true)
+            #expect(try paragraphBitmap(cold, batched: true) == previous)
+            let warm = drawingParagraph(text, preparation: prepared, deferFragments: true)
+            #expect(try paragraphBitmap(warm, batched: true) == previous)
         }
     }
 

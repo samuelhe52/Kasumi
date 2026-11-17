@@ -33,3 +33,20 @@ import Testing
     #expect(parsed.blocks[1].kind == .math)
     #expect(parsed.blocks[1].text.contains("\\frac{1}{2}\\,dx"))
 }
+
+@Test func mathLineIndexPreservesSourceRangesAcrossManyExpressionsAndCode() throws {
+    let source = (0..<60).map { index in
+        "Paragraph \(index) $x_\(index)$\n\n```text\n$not_math$\n```\n\n$$\ny_\(index)\n$$"
+    }.joined(separator: "\n\n")
+    let extensions = MarkdownExtensions(source: source)
+    #expect(extensions.math.count == 120)
+    for index in 0..<60 {
+        let inline = try #require(extensions.math.values.first { $0.text == "x_\(index)" })
+        let display = try #require(extensions.math.values.first { $0.text.trimmingCharacters(in: .whitespacesAndNewlines) == "y_\(index)" })
+        #expect(inline.sourceLines == (index * 10 + 1)...(index * 10 + 1))
+        #expect(display.sourceLines == (index * 10 + 7)...(index * 10 + 9))
+    }
+    let parsed = DocumentParser.parse("Text $x$.\n\nA note [^a].\n\n[^a]: $y$\n    continued $z$\n")
+    #expect(parsed.blocks.contains { $0.footnoteLabel == "a" && $0.runs.contains { $0.traits.contains(.math) } })
+    #expect(parsed.blocks.flatMap(\.runs).contains { $0.footnoteDisplay == "1" })
+}

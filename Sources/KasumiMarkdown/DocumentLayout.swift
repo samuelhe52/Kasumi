@@ -14,8 +14,16 @@ struct PlacedText {
     var tableIndex: Int? = nil
     var bounds: CGRect {
         CGRect(
-            x: origin.x, y: origin.y, width: paragraph.lines.map { $0.origin.x + $0.width }.max() ?? 0,
+            x: origin.x, y: origin.y,
+            width: paragraph.estimate?.width ?? (paragraph.lines.map { $0.origin.x + $0.width }.max() ?? 0),
             height: paragraph.height)
+    }
+    /// Unknown lines can paint outside their estimated body box, notably quote
+    /// bars centered on cap height. Allow one line height on each edge, at least
+    /// two points for the fixed-width quote stroke at tiny text sizes. This does
+    /// not change placement or the scroll extent.
+    var estimatedPaintBounds: CGRect {
+        bounds.insetBy(dx: 0, dy: -(paragraph.estimate.map { max(2, $0.lineHeight) } ?? 0))
     }
 }
 struct PaintedRect {
@@ -60,15 +68,18 @@ struct DocumentLayout {
     var paginationGroups: [Range<CGFloat>]
     var tables: [RenderedTable] = []
     var codeBlocks: [CodeBlockLayout] = []
+    var semanticContent: DocumentSemanticContent? = nil
 }
 
 enum DocumentTypesetter {
     static func layout(
         _ document: ParsedDocument, width: CGFloat, style unresolvedStyle: Typography, insets: DocumentInsets = .reader,
-        scrollableTables: Bool = false
+        scrollableTables: Bool = false, preparation: ReflowPreparation? = nil, viewport: ViewportConstruction? = nil,
+        buildSemanticContent: Bool = true, buildTextStorage: Bool = true
     )
         -> DocumentLayout
     {
+        precondition(buildTextStorage || !buildSemanticContent)
         var style = unresolvedStyle
         if style.profileValues.resolved(.hyphenationLanguage).string == "auto" {
             style.profileValues[.hyphenationLanguage] = .string(document.languageAnalysis.hyphenationLanguage)
@@ -120,6 +131,7 @@ enum DocumentTypesetter {
         }
         var y = insets.top
         let storage = NSMutableAttributedString(string: "")
+        var storageLength = 0
         var paragraphs: [PlacedText] = []
         var backgrounds: [PaintedRect] = []
         var rules: [PaintedRule] = []
@@ -134,25 +146,89 @@ enum DocumentTypesetter {
         paragraphValues[.hangingPunctuation] = .flag(style.hangingPunctuation)
         paragraphValues[.autoRaggedNarrow] = .flag(style.narrowMeasureRagged)
         paragraphValues[.autoRaggedMeasureEm] = .number(style.narrowMeasureEm)
+        let defaultFont = style.font()
+        var preparationBlock = -1
+        var preparationSlot = 0
+        var forceExactParagraphs = false
+        var deferBlock = false
         func attributed(
             _ runs: [InlineRun], size: Double? = nil, heading: Bool = false, code: Bool = false,
-            headingLevel: Int? = nil, imageMaxWidth: CGFloat? = nil
+            headingLevel: Int? = nil, imageMaxWidth: CGFloat? = nil, allowPlaceholder: Bool = true,
+            syntax: [CodeSyntax.Token] = []
         ) -> NSAttributedString {
-            style.attributed(
-                runs, size: size, heading: heading, code: code, headingLevel: headingLevel, baseURL: document.baseURL,
-                imageMaxWidth: imageMaxWidth ?? measure)
+            let slot = preparationSlot
+            preparationSlot += 1
+            if allowPlaceholder, deferBlock, let preparation {
+                return preparation.placeholder(block: preparationBlock, slot: slot, runs: runs)
+            }
+            func build() -> NSAttributedString {
+                // Color inside the cached build: ReflowPreparation reuses shaping by
+                // the identity of the string it retains, so coloring afterwards
+                // would miss that cache on every reflow.
+                CodeSyntax.applying(
+                    syntax,
+                    to: style.attributed(
+                        runs, size: size, heading: heading, code: code, headingLevel: headingLevel,
+                        baseURL: document.baseURL, imageMaxWidth: imageMaxWidth ?? measure),
+                    theme: theme)
+            }
+            func prepared() -> NSAttributedString {
+                preparation?.attributed(
+                    block: preparationBlock, slot: slot, runs: runs, size: size, heading: heading, code: code,
+                    level: headingLevel, build: build) ?? build()
+            }
+            if let viewport { return viewport.attributed(block: preparationBlock, slot: slot, build: prepared) }
+            return prepared()
+        }
+        func attachment(_ build: () -> NSAttributedString?) -> NSAttributedString? {
+            if let viewport { return viewport.attachment(block: preparationBlock, build: build) }
+            return build()
+        }
+        func diagram(_ block: DocumentBlock) -> NSAttributedString? {
+            attachment {
+                guard
+                    let scene = try? MermaidTypesetter.layout(
+                        block.text, size: 14, fontFamily: style.latinFamily, dark: style.dark,
+                        textStyle: .native(style),
+                        theme: style.documentTheme)
+                else { return nil }
+                return MermaidAttachment(
+                    source: block.text, scene: scene, fontSize: 14, fontFamily: style.latinFamily, dark: style.dark,
+                    maximumWidth: measure, renderScale: style.size / 16
+                ).attributed()
+            }
         }
         func place(
             _ attributed: NSAttributedString, x: CGFloat, y: CGFloat, width: CGFloat, size: CGFloat,
             alignment: ParagraphAlignment, indent: CGFloat = 0, verbatim: Bool = false
         ) -> CGFloat {
-            let offset = storage.length
-            storage.append(attributed)
-            storage.append(NSAttributedString(string: "\n"))
-            let paragraph = ParagraphTypesetter.layout(
-                attributed, width: max(1, width), fontSize: size, lineSpacing: style.lineSpacing, alignment: alignment,
-                indent: indent, verbatim: verbatim, profileValues: paragraphValues, outerWidth: measure,
-                baseEm: style.size)
+            let offset = storageLength
+            storageLength += attributed.length + 1
+            if buildTextStorage {
+                storage.append(attributed)
+                storage.append(NSAttributedString(string: "\n"))
+            }
+            let prepared = preparation?.paragraph(attributed, fontSize: size, verbatim: verbatim)
+            let index = paragraphs.count
+            let paragraph: ParagraphLayout
+            if let existing = viewport?.exact[index] {
+                paragraph = existing
+            } else if let viewport, !forceExactParagraphs, !viewport.selected.contains(index),
+                let preparation, let prepared
+            {
+                paragraph = ParagraphLayout(
+                    attributed: prepared.attributed, lines: [],
+                    height: preparation.height(
+                        at: index, width: max(1, width), prepared: prepared, lineHeight: size * style.lineSpacing),
+                    semanticContent: prepared.semanticContent, estimate: (max(1, width), size * style.lineSpacing))
+            } else {
+                paragraph = ParagraphTypesetter.layout(
+                    attributed, width: max(1, width), fontSize: size, lineSpacing: style.lineSpacing,
+                    alignment: alignment, indent: indent, verbatim: verbatim, profileValues: paragraphValues,
+                    outerWidth: measure, baseEm: style.size, preparation: prepared, deferFragments: prepared != nil)
+                viewport?.exact[index] = paragraph
+                preparation?.measuredHeight(paragraph.height, at: index, width: max(1, width))
+            }
             paragraphs.append(PlacedText(paragraph: paragraph, origin: CGPoint(x: x, y: y), textOffset: offset))
             for line in paragraph.lines {
                 attributed.enumerateAttribute(.kasumiImage, in: line.range) { value, range, _ in
@@ -173,6 +249,23 @@ enum DocumentTypesetter {
         }
         var firstBodyParagraph = true
         for (blockIndex, block) in document.blocks.enumerated() {
+            preparationBlock = blockIndex
+            preparationSlot = 0
+            let count: Int
+            if block.kind == .table, let first = block.rows.first {
+                count = block.rows.reduce(0) { $0 + min(first.count, $1.count) }
+            } else {
+                count = 1 + (block.prefix.isEmpty ? 0 : 1) + (block.footnoteLabel == nil ? 0 : 1)
+            }
+            let selected = viewport.map { viewport in
+                (paragraphs.count..<(paragraphs.count + count)).contains { viewport.selected.contains($0) }
+            } ?? true
+            // Resource-dependent images and diagram fallbacks retain their exact
+            // storage path. Other offscreen blocks need only semantic text.
+            deferBlock = viewport != nil && !selected && block.kind != .image && block.kind != .diagram
+                && !block.runs.contains(where: { $0.traits.contains(.image) })
+                && !block.rows.joined().joined().contains(where: { $0.traits.contains(.image) })
+            forceExactParagraphs = !deferBlock && [.table, .image, .math, .diagram].contains(block.kind)
             if block.kind == .heading {
                 let size = style.size * style.headingScale(block.level)
                 let fontSize = style.headingSize(block.level)
@@ -192,24 +285,21 @@ enum DocumentTypesetter {
                     attributed(block.runs), x: left, y: y, width: measure, size: style.size, alignment: .centered)
                 y += style.size * 0.65
             } else if block.kind == .math {
-                let math = MathAttachment(
-                    source: block.text, size: style.size, display: true, options: style.mathOptions)
+                let math = deferBlock
+                    ? preparation!.placeholder(block: blockIndex, slot: 0, runs: block.runs)
+                    : attachment {
+                    MathAttachment(source: block.text, size: style.size, display: true, options: style.mathOptions)
+                        .attributed(
+                            color: style.textColor, fallbackFont: style.font(size: style.size * 0.88, code: true))
+                }!
                 y += style.size * 0.5
                 y += place(
-                    math.attributed(
-                        color: style.textColor, fallbackFont: style.font(size: style.size * 0.88, code: true)), x: left,
+                    math, x: left,
                     y: y, width: measure, size: style.size, alignment: .centered)
                 y += style.size * 0.65
-            } else if block.kind == .diagram && style.mermaidEnabled,
-                let scene = try? MermaidTypesetter.layout(
-                    block.text, size: 14, fontFamily: style.latinFamily, dark: style.dark, textStyle: .native(style),
-                    theme: style.documentTheme)
-            {
-                let diagram = MermaidAttachment(
-                    source: block.text, scene: scene, fontSize: 14, fontFamily: style.latinFamily, dark: style.dark,
-                    maximumWidth: measure, renderScale: style.size / 16)
+            } else if block.kind == .diagram && style.mermaidEnabled, let diagram = diagram(block) {
                 y += style.size * 0.5
-                y += place(diagram.attributed(), x: left, y: y, width: measure, size: style.size, alignment: .centered)
+                y += place(diagram, x: left, y: y, width: measure, size: style.size, alignment: .centered)
                 y += style.size * 0.65
             } else if block.kind == .rule {
                 y += 12
@@ -225,9 +315,22 @@ enum DocumentTypesetter {
                 let cells = block.rows.enumerated().map { row, cells in
                     cells.map { attributed($0, heading: row == 0) }
                 }
-                let widths = TableColumns.widths(
-                    cells: cells, count: columns, measure: measure, em: style.size,
-                    padding: horizontalPadding, scrollable: scrollableTables)
+                let widths = deferBlock
+                    ? (preparation?.cachedTableWidths(
+                        block: blockIndex, rows: block.rows, width: measure, em: style.size,
+                        padding: horizontalPadding, scrollable: scrollableTables)
+                        ?? Array(repeating: measure / CGFloat(columns), count: columns))
+                    : viewport?.tableWidths[blockIndex]
+                    ?? {
+                        func build() -> [CGFloat] {
+                            TableColumns.widths(cells: cells, count: columns, measure: measure, em: style.size,
+                                               padding: horizontalPadding, scrollable: scrollableTables)
+                        }
+                        return preparation?.tableWidths(
+                            block: blockIndex, rows: block.rows, width: measure, em: style.size,
+                            padding: horizontalPadding, scrollable: scrollableTables, build: build) ?? build()
+                    }()
+                if !deferBlock { viewport?.tableWidths[blockIndex] = widths }
                 let tableWidth = widths.reduce(0, +)
                 let tableLeft = left + max(0, (measure - tableWidth) / 2)
                 let paragraphStart = paragraphs.count
@@ -289,10 +392,11 @@ enum DocumentTypesetter {
                 for index in paragraphStart..<paragraphs.count { paragraphs[index].tableIndex = tableIndex }
                 for index in backgroundStart..<backgrounds.count { backgrounds[index].tableIndex = tableIndex }
                 for index in ruleStart..<rules.count { rules[index].tableIndex = tableIndex }
-                tables.append(RenderedTable(
-                    id: tableIndex,
-                    frame: CGRect(x: tableLeft, y: top - 1, width: min(measure, tableWidth), height: y - top + 2),
-                    contentWidth: tableWidth))
+                tables.append(
+                    RenderedTable(
+                        id: tableIndex,
+                        frame: CGRect(x: tableLeft, y: top - 1, width: min(measure, tableWidth), height: y - top + 2),
+                        contentWidth: tableWidth))
                 y += style.size
             } else {
                 let isCode = block.kind == .code || block.kind == .diagram
@@ -321,17 +425,17 @@ enum DocumentTypesetter {
                 if !block.prefix.isEmpty {
                     let slot = listSlots[blockIndex] ?? style.size * 0.78
                     let x = left + inset - markerGap - slot
-                    let marker = NSMutableAttributedString(attributedString: attributed([InlineRun(block.prefix)]))
+                    let marker = NSMutableAttributedString(attributedString: attributed([InlineRun(block.prefix)], allowPlaceholder: false))
                     if block.prefix == "•" {
                         marker.addAttribute(
                             .foregroundColor, value: PlatformColor.clear,
                             range: NSRange(location: 0, length: marker.length))
-                        let baseline = max(style.font().ascender, style.size)
+                        let baseline = max(defaultFont.ascender, style.size)
                         backgrounds.append(
                             PaintedRect(
                                 rect: CGRect(
                                     x: x + (slot - bulletDiameter) / 2,
-                                    y: y + baseline - style.font().xHeight / 2 - bulletDiameter / 2,
+                                    y: y + baseline - defaultFont.xHeight / 2 - bulletDiameter / 2,
                                     width: bulletDiameter, height: bulletDiameter), color: style.textColor,
                                 radius: bulletDiameter / 2))
                     }
@@ -356,9 +460,9 @@ enum DocumentTypesetter {
                             caption, x: left + inset, y: y, width: contentWidth, size: style.size * 0.75,
                             alignment: .leading) + 4
                 }
-                let base = attributed(
-                    block.runs, size: style.size * (isCode ? 0.88 : 1), code: isCode, imageMaxWidth: contentWidth)
-                let attr = CodeSyntax.applying(block.syntaxTokens, to: base, theme: theme)
+                let attr = attributed(
+                    block.runs, size: style.size * (isCode ? 0.88 : 1), code: isCode, imageMaxWidth: contentWidth,
+                    syntax: block.syntaxTokens)
                 let alignment: ParagraphAlignment = isCode ? .leading : style.alignment
                 let bodyParagraph =
                     block.kind == .paragraph && block.level == 0 && block.prefix.isEmpty && block.footnoteLabel == nil
@@ -366,7 +470,7 @@ enum DocumentTypesetter {
                 let firstRun =
                     attr.length > 0
                     ? attr.attribute(.kasumiParagraphRun, at: 0, effectiveRange: nil) as? ParagraphRunStyle : nil
-                let firstRunEm = firstRun.map { CTFontGetSize($0.baseFont) } ?? style.font().pointSize
+                let firstRunEm = firstRun.map { CTFontGetSize($0.baseFont) } ?? defaultFont.pointSize
                 let indent =
                     bodyParagraph && (style.indentFirstParagraph || !firstBodyParagraph)
                     ? firstRunEm * style.firstLineIndent : 0
@@ -378,7 +482,7 @@ enum DocumentTypesetter {
                 {
                     // Lines put all their leading below the baseline, so center the bar
                     // on the body font's cap height instead, one line height per line.
-                    let capMiddle = style.font().capHeight / 2
+                    let capMiddle = defaultFont.capHeight / 2
                     let halfLine = style.size * style.lineSpacing / 2
                     let barTop = placed.origin.y + first.origin.y - capMiddle - halfLine
                     let barBottom = placed.origin.y + last.origin.y - capMiddle + halfLine
@@ -431,11 +535,15 @@ enum DocumentTypesetter {
                         ? (nextIsBody ? style.paraSpaceBetween : style.paraSpaceAfter) : style.paraSpaceAfter)
             }
         }
+        let semantic = buildSemanticContent ? preparation?.semanticContent(paragraphs: paragraphs, storage: storage) : nil
+        let textMap = buildSemanticContent
+            ? (semantic?.textMap ?? DocumentTextMap(storage)) : DocumentTextMap(NSAttributedString(string: ""))
         return DocumentLayout(
-            width: width, height: y + insets.bottom, text: storage, textMap: DocumentTextMap(storage),
+            width: width, height: y + insets.bottom, text: storage,
+            textMap: textMap,
             paragraphs: paragraphs, backgrounds: backgrounds, rules: rules, headingPositions: headings,
             anchorPositions: anchors, imageBounds: imageBounds, paginationGroups: paginationGroups, tables: tables,
-            codeBlocks: codeBlocks)
+            codeBlocks: codeBlocks, semanticContent: semantic)
     }
 
     static func anchorSlug(_ text: String) -> String {
