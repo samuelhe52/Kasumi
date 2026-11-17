@@ -94,8 +94,9 @@ improvement claim. These samples do not establish native frame rate.
 
 ## Remaining limits
 
-Find still searches the complete semantic text and optionally segments words on
-each installed snapshot. The reader still constructs paths for every match,
+Reader matching and word-boundary reuse are now handled by
+[007.003](../007-reader-interactions/003-retained-find-matches.md); direct public
+searches still scan semantic text. The reader still constructs paths for every match,
 including offscreen estimated matches. Huge selections must visit every
 overlapping line/paragraph and can materialize their fragments. UI installation,
 final snapshot-release tails, cold preparation and offscreen table/attachment

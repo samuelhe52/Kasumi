@@ -47,7 +47,7 @@ renderer shaping changes already present in the working tree.
 | --- | --- |
 | UIKit interaction over the existing rendered page | Retains Kasumi layout and native handles/menu. A hidden UITextView would have different line geometry. |
 | Separate find highlights from selection | Navigating matches must not steal text-field focus or show selection handles. |
-| Clear selection, recompute search on reflow | Layout-owned positions cannot safely be carried between snapshots. |
+| Retain semantic match offsets, recreate positions on reflow | Layout-owned positions cannot safely be carried between snapshots; unchanged semantic text can reuse matching. See [003](003-retained-find-matches.md). |
 | System find navigator | Replaces the initial custom top bar after maintainer feedback; UIKit supplies keyboard attachment, controls, and standard shortcuts. See [002](002-system-find-navigator.md). |
 
 ## Validation and acceptance criteria
@@ -65,3 +65,4 @@ renderer shaping changes already present in the working tree.
 
 - Completed 2026-11-16; see the [action record](001-action.md) for implementation and validation limits.
 - Updated 2026-11-16: replace the custom top bar with the keyboard-attached system find navigator — see [002](002-system-find-navigator.md).
+- Updated 2026-11-17: Retain exact semantic search offsets and word boundaries across reflows, recreating snapshot-owned positions — see [003](003-retained-find-matches.md).

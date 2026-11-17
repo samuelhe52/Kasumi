@@ -59,8 +59,10 @@ Very large tables/attachments and single paragraphs remain whole-layout costs.
 immutable source-range paint values across widths, reducing repeated extraction
 while keeping Core Text objects snapshot-local. [Selection lookup](002-rendering-engine/012-selection-range-indexing.md)
 now seeks into overlapping source intervals when Find requests highlight geometry.
-Remaining work targets repeated Find search/path construction, cold painting,
-broader lazy coverage, UI installation and snapshot-release tails.
+[Reader Find matching](007-reader-interactions/003-retained-find-matches.md) now
+retains semantic offsets and word boundaries across unchanged text, recreating
+positions for each snapshot. Remaining work targets highlight-path construction,
+native prepainting, broader lazy coverage, UI installation and snapshot-release tails.
 
 Retained after milestone closure; not prerequisites for starting Reader 2:
 
