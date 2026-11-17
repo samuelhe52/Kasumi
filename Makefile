@@ -64,6 +64,11 @@ test-syntax-native: ## Test the Syntect bridge on the host (no simulator)
 syntax-notices: ## Extract the pinned grammar bundle's license notices
 	CARGO_TARGET_DIR=$(CURDIR)/.build/native/target cargo run --locked --quiet --manifest-path packages/NativeSyntax/Cargo.toml --example grammar-notices > packages/NativeSyntax/Notices/GRAMMAR-LICENSES.md
 
+licenses: ## Regenerate the bundled third-party notices from notices/manifest.json
+	./scripts/collect-notices
+
+.PHONY: licenses
+
 # INPUT and OUTPUT are required. RENDER_ARGS accepts the CLI's optional flags.
 render: build ## Render a Markdown fixture without launching the app
 	@test -n "$(INPUT)" -a -n "$(OUTPUT)" || { echo "Use make render INPUT=<file> OUTPUT=<file.png|jpg|pdf> [RENDER_ARGS=...]" >&2; exit 1; }

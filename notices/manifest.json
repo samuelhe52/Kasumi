@@ -1,0 +1,155 @@
+{
+  "_comment": "Inventory of third-party components distributed with Kasumi and KasumiMarkdown. `make licenses` (scripts/collect-notices) checks it against Package.resolved and the native Cargo.lock files, then writes Sources/KasumiMarkdown/Bundled/Notices. Document sources inside Sources/KasumiMarkdown/Bundled are referenced in place rather than copied.",
+  "components": [
+    {
+      "id": "kasumi",
+      "name": "Kasumi",
+      "license": "MIT",
+      "role": "The app and KasumiMarkdown library.",
+      "documents": [
+        {"title": "License", "source": "LICENSE"}
+      ]
+    },
+    {
+      "id": "swift-markdown",
+      "name": "Swift Markdown",
+      "version": "0.9.0",
+      "license": "Apache-2.0",
+      "source": "https://github.com/swiftlang/swift-markdown",
+      "role": "Markdown parsing, linked into KasumiMarkdown.",
+      "swift": {"identity": "swift-markdown", "revision": "25cb61d3482054b09ae76ca4f281b1bfe7fe5a43"},
+      "documents": [
+        {"title": "License", "source": "notices/swift/swift-markdown/LICENSE.txt"},
+        {"title": "Notice", "source": "notices/swift/swift-markdown/NOTICE.txt"}
+      ]
+    },
+    {
+      "id": "swift-cmark",
+      "name": "swift-cmark",
+      "version": "0.9.0",
+      "license": "BSD-2-Clause, with notices for bundled Houdini, GitHub, utf8proc and MIT-licensed parts",
+      "source": "https://github.com/swiftlang/swift-cmark",
+      "role": "cmark-gfm parser that swift-markdown links.",
+      "swift": {"identity": "swift-cmark", "revision": "08ddb528923cc1a6527e02b7a1aee9e516ca749a"},
+      "documents": [
+        {"title": "License and notices", "source": "notices/swift/swift-cmark/COPYING"}
+      ]
+    },
+    {
+      "id": "toml-decoder",
+      "name": "TOMLDecoder",
+      "version": "0.4.5",
+      "license": "MIT",
+      "source": "https://github.com/dduan/TOMLDecoder",
+      "role": "TOML parsing for typography profile files.",
+      "swift": {"identity": "tomldecoder", "revision": "a2bbd2796fe3064e107de18cb56031052c4fa899"},
+      "documents": [
+        {"title": "License", "source": "notices/swift/TOMLDecoder/LICENSE.md"}
+      ]
+    },
+    {
+      "id": "native-dagre",
+      "name": "Dagre layout (native)",
+      "version": "dagre 0.1.1",
+      "license": "Apache-2.0 (dagre), MIT (dagre.js), MIT OR Apache-2.0 dependencies, Unicode-3.0 data",
+      "source": "https://crates.io/crates/dagre/0.1.1",
+      "role": "Diagram layout for Mermaid flowcharts.",
+      "cargo_lock": "packages/NativeDagre/Cargo.lock",
+      "documents": [
+        {"title": "Notice", "source": "packages/NativeDagre/Notices/NOTICE.txt"},
+        {"title": "Third-party licenses", "source": "packages/NativeDagre/Notices/THIRD-PARTY-LICENSES.txt"}
+      ]
+    },
+    {
+      "id": "native-linebreak",
+      "name": "Unicode line breaking (native)",
+      "version": "unicode-linebreak 0.1.5",
+      "license": "Apache-2.0, with Unicode data notices",
+      "source": "https://crates.io/crates/unicode-linebreak/0.1.5",
+      "role": "UAX #14 line-break opportunities for paragraph layout.",
+      "cargo_lock": "packages/NativeLineBreak/Cargo.lock",
+      "documents": [
+        {"title": "Notice", "source": "packages/NativeLineBreak/Notices/NOTICE.txt"},
+        {"title": "Third-party licenses", "source": "packages/NativeLineBreak/Notices/THIRD-PARTY-LICENSES.txt"}
+      ]
+    },
+    {
+      "id": "native-hyphenation",
+      "name": "Hyphenation (native)",
+      "version": "hyphenation 0.8.4",
+      "license": "Crates: MIT OR Apache-2.0, Unicode-3.0 data. Patterns per dictionary: MIT, BSD-3-Clause, LPPL 1.3c, permissive notices, and GPL-2.0-or-later (cs)",
+      "source": "https://github.com/tapeinosyne/hyphenation",
+      "role": "Language-specific hyphenation patterns for justified text.",
+      "cargo_lock": "packages/NativeHyphenation/Cargo.lock",
+      "dependencies": "packages/NativeHyphenation/Notices/dependencies.json",
+      "documents": [
+        {"title": "Notice", "source": "packages/NativeHyphenation/Notices/NOTICE.txt"},
+        {"title": "Code licenses", "source": "packages/NativeHyphenation/Notices/CODE-LICENSES.txt"},
+        {"title": "Pattern licenses", "generated": "hyphenation-pattern-headers"},
+        {"title": "GNU General Public License 2.0 (cs patterns)", "source": "packages/NativeHyphenation/Notices/SourcePatterns/licenses/GPL-2.0.txt"},
+        {"title": "LaTeX Project Public License 1.3c (nl, ru, sv patterns)", "source": "Sources/KasumiMarkdown/Bundled/LPPL-1.3c.txt"}
+      ]
+    },
+    {
+      "id": "native-syntax",
+      "name": "Syntax highlighting (native)",
+      "version": "syntect 5.3.0, two-face 0.5.2+bat-0.26.1",
+      "license": "MIT, Apache-2.0, Zlib, Unlicense, Unicode-3.0 data, and per-grammar licenses",
+      "source": "https://github.com/trishume/syntect",
+      "role": "Code-block syntax highlighting.",
+      "cargo_lock": "packages/NativeSyntax/Cargo.lock",
+      "dependencies": "packages/NativeSyntax/Notices/dependencies.json",
+      "documents": [
+        {"title": "Notice", "source": "packages/NativeSyntax/Notices/NOTICE.txt"},
+        {"title": "Code licenses", "source": "packages/NativeSyntax/Notices/CODE-LICENSES.txt"},
+        {"title": "Grammar licenses", "source": "packages/NativeSyntax/Notices/GRAMMAR-LICENSES.md"}
+      ]
+    },
+    {
+      "id": "tex-gyre-pagella",
+      "name": "TeX Gyre Pagella",
+      "version": "2.501",
+      "license": "GUST Font License (LPPL 1.3c or later)",
+      "source": "https://ctan.org/pkg/tex-gyre-pagella",
+      "role": "Text typeface, four OpenType faces.",
+      "documents": [
+        {"title": "Notice and packaging record", "source": "Sources/KasumiMarkdown/Bundled/TeXGyrePagella-NOTICE.txt"},
+        {"title": "GUST Font License", "source": "Sources/KasumiMarkdown/Bundled/TeXGyrePagella-GUST-FONT-LICENSE.txt"},
+        {"title": "GUST Font License (general)", "source": "Sources/KasumiMarkdown/Bundled/GUST-FONT-LICENSE.txt"},
+        {"title": "LaTeX Project Public License 1.3c", "source": "Sources/KasumiMarkdown/Bundled/LPPL-1.3c.txt"},
+        {"title": "Upstream readme", "source": "Sources/KasumiMarkdown/Bundled/README-TeX-Gyre-Pagella.txt"},
+        {"title": "Upstream manifest", "source": "Sources/KasumiMarkdown/Bundled/MANIFEST-TeX-Gyre-Pagella.txt"}
+      ]
+    },
+    {
+      "id": "tex-gyre-pagella-math",
+      "name": "TeX Gyre Pagella Math",
+      "version": "1.632",
+      "license": "GUST Font License (LPPL 1.3c or later), with Bitstream Vera and Arev notices for DejaVu-derived alphabets",
+      "source": "https://ctan.org/pkg/tex-gyre-math-pagella",
+      "role": "Math typeface for display and inline formulas.",
+      "documents": [
+        {"title": "Notice and packaging record", "source": "Sources/KasumiMarkdown/Bundled/TeXGyrePagellaMath-NOTICE.txt"},
+        {"title": "GUST Font License", "source": "Sources/KasumiMarkdown/Bundled/TeXGyrePagellaMath-GUST-FONT-LICENSE.txt"},
+        {"title": "DejaVu and Arev notices", "source": "Sources/KasumiMarkdown/Bundled/TeXGyreMath-DejaVu-LICENSE.txt"},
+        {"title": "LaTeX Project Public License 1.3c", "source": "Sources/KasumiMarkdown/Bundled/LPPL-1.3c.txt"},
+        {"title": "Upstream readme", "source": "Sources/KasumiMarkdown/Bundled/README-TeX-Gyre-Pagella-Math.txt"},
+        {"title": "Upstream manifest", "source": "Sources/KasumiMarkdown/Bundled/MANIFEST-TeX-Gyre-Pagella-Math.txt"}
+      ]
+    },
+    {
+      "id": "new-computer-modern-math",
+      "name": "New Computer Modern Math",
+      "version": "7.1.1 (font name-table version 4.0)",
+      "license": "GUST Font License (LPPL 1.3c or later)",
+      "source": "https://ctan.org/pkg/newcomputermodern",
+      "role": "Math typeface for formulas.",
+      "documents": [
+        {"title": "Notice and packaging record", "source": "Sources/KasumiMarkdown/Bundled/NewComputerModern-NOTICE.txt"},
+        {"title": "GUST Font License", "source": "Sources/KasumiMarkdown/Bundled/GUST-FONT-LICENSE.txt"},
+        {"title": "LaTeX Project Public License 1.3c", "source": "Sources/KasumiMarkdown/Bundled/LPPL-1.3c.txt"},
+        {"title": "Upstream readme", "source": "Sources/KasumiMarkdown/Bundled/README-NewComputerModern-7.1.1.txt"}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,244 @@
+{
+  "components": [
+    {
+      "id": "kasumi",
+      "name": "Kasumi",
+      "license": "MIT",
+      "role": "The app and KasumiMarkdown library.",
+      "documents": [
+        {
+          "title": "License",
+          "path": "Notices/kasumi/LICENSE"
+        }
+      ]
+    },
+    {
+      "id": "swift-markdown",
+      "name": "Swift Markdown",
+      "license": "Apache-2.0",
+      "role": "Markdown parsing, linked into KasumiMarkdown.",
+      "version": "0.9.0",
+      "source": "https://github.com/swiftlang/swift-markdown",
+      "documents": [
+        {
+          "title": "License",
+          "path": "Notices/swift-markdown/LICENSE.txt"
+        },
+        {
+          "title": "Notice",
+          "path": "Notices/swift-markdown/NOTICE.txt"
+        }
+      ]
+    },
+    {
+      "id": "swift-cmark",
+      "name": "swift-cmark",
+      "license": "BSD-2-Clause, with notices for bundled Houdini, GitHub, utf8proc and MIT-licensed parts",
+      "role": "cmark-gfm parser that swift-markdown links.",
+      "version": "0.9.0",
+      "source": "https://github.com/swiftlang/swift-cmark",
+      "documents": [
+        {
+          "title": "License and notices",
+          "path": "Notices/swift-cmark/COPYING"
+        }
+      ]
+    },
+    {
+      "id": "toml-decoder",
+      "name": "TOMLDecoder",
+      "license": "MIT",
+      "role": "TOML parsing for typography profile files.",
+      "version": "0.4.5",
+      "source": "https://github.com/dduan/TOMLDecoder",
+      "documents": [
+        {
+          "title": "License",
+          "path": "Notices/toml-decoder/LICENSE.md"
+        }
+      ]
+    },
+    {
+      "id": "native-dagre",
+      "name": "Dagre layout (native)",
+      "license": "Apache-2.0 (dagre), MIT (dagre.js), MIT OR Apache-2.0 dependencies, Unicode-3.0 data",
+      "role": "Diagram layout for Mermaid flowcharts.",
+      "version": "dagre 0.1.1",
+      "source": "https://crates.io/crates/dagre/0.1.1",
+      "documents": [
+        {
+          "title": "Notice",
+          "path": "Notices/native-dagre/NOTICE.txt"
+        },
+        {
+          "title": "Third-party licenses",
+          "path": "Notices/native-dagre/THIRD-PARTY-LICENSES.txt"
+        }
+      ]
+    },
+    {
+      "id": "native-linebreak",
+      "name": "Unicode line breaking (native)",
+      "license": "Apache-2.0, with Unicode data notices",
+      "role": "UAX #14 line-break opportunities for paragraph layout.",
+      "version": "unicode-linebreak 0.1.5",
+      "source": "https://crates.io/crates/unicode-linebreak/0.1.5",
+      "documents": [
+        {
+          "title": "Notice",
+          "path": "Notices/native-linebreak/NOTICE.txt"
+        },
+        {
+          "title": "Third-party licenses",
+          "path": "Notices/native-linebreak/THIRD-PARTY-LICENSES.txt"
+        }
+      ]
+    },
+    {
+      "id": "native-hyphenation",
+      "name": "Hyphenation (native)",
+      "license": "Crates: MIT OR Apache-2.0, Unicode-3.0 data. Patterns per dictionary: MIT, BSD-3-Clause, LPPL 1.3c, permissive notices, and GPL-2.0-or-later (cs)",
+      "role": "Language-specific hyphenation patterns for justified text.",
+      "version": "hyphenation 0.8.4",
+      "source": "https://github.com/tapeinosyne/hyphenation",
+      "documents": [
+        {
+          "title": "Notice",
+          "path": "Notices/native-hyphenation/NOTICE.txt"
+        },
+        {
+          "title": "Code licenses",
+          "path": "Notices/native-hyphenation/CODE-LICENSES.txt"
+        },
+        {
+          "title": "Pattern licenses",
+          "path": "Notices/native-hyphenation/pattern-licenses.txt"
+        },
+        {
+          "title": "GNU General Public License 2.0 (cs patterns)",
+          "path": "Notices/native-hyphenation/GPL-2.0.txt"
+        },
+        {
+          "title": "LaTeX Project Public License 1.3c (nl, ru, sv patterns)",
+          "path": "LPPL-1.3c.txt"
+        }
+      ]
+    },
+    {
+      "id": "native-syntax",
+      "name": "Syntax highlighting (native)",
+      "license": "MIT, Apache-2.0, Zlib, Unlicense, Unicode-3.0 data, and per-grammar licenses",
+      "role": "Code-block syntax highlighting.",
+      "version": "syntect 5.3.0, two-face 0.5.2+bat-0.26.1",
+      "source": "https://github.com/trishume/syntect",
+      "documents": [
+        {
+          "title": "Notice",
+          "path": "Notices/native-syntax/NOTICE.txt"
+        },
+        {
+          "title": "Code licenses",
+          "path": "Notices/native-syntax/CODE-LICENSES.txt"
+        },
+        {
+          "title": "Grammar licenses",
+          "path": "Notices/native-syntax/GRAMMAR-LICENSES.md"
+        }
+      ]
+    },
+    {
+      "id": "tex-gyre-pagella",
+      "name": "TeX Gyre Pagella",
+      "license": "GUST Font License (LPPL 1.3c or later)",
+      "role": "Text typeface, four OpenType faces.",
+      "version": "2.501",
+      "source": "https://ctan.org/pkg/tex-gyre-pagella",
+      "documents": [
+        {
+          "title": "Notice and packaging record",
+          "path": "TeXGyrePagella-NOTICE.txt"
+        },
+        {
+          "title": "GUST Font License",
+          "path": "TeXGyrePagella-GUST-FONT-LICENSE.txt"
+        },
+        {
+          "title": "GUST Font License (general)",
+          "path": "GUST-FONT-LICENSE.txt"
+        },
+        {
+          "title": "LaTeX Project Public License 1.3c",
+          "path": "LPPL-1.3c.txt"
+        },
+        {
+          "title": "Upstream readme",
+          "path": "README-TeX-Gyre-Pagella.txt"
+        },
+        {
+          "title": "Upstream manifest",
+          "path": "MANIFEST-TeX-Gyre-Pagella.txt"
+        }
+      ]
+    },
+    {
+      "id": "tex-gyre-pagella-math",
+      "name": "TeX Gyre Pagella Math",
+      "license": "GUST Font License (LPPL 1.3c or later), with Bitstream Vera and Arev notices for DejaVu-derived alphabets",
+      "role": "Math typeface for display and inline formulas.",
+      "version": "1.632",
+      "source": "https://ctan.org/pkg/tex-gyre-math-pagella",
+      "documents": [
+        {
+          "title": "Notice and packaging record",
+          "path": "TeXGyrePagellaMath-NOTICE.txt"
+        },
+        {
+          "title": "GUST Font License",
+          "path": "TeXGyrePagellaMath-GUST-FONT-LICENSE.txt"
+        },
+        {
+          "title": "DejaVu and Arev notices",
+          "path": "TeXGyreMath-DejaVu-LICENSE.txt"
+        },
+        {
+          "title": "LaTeX Project Public License 1.3c",
+          "path": "LPPL-1.3c.txt"
+        },
+        {
+          "title": "Upstream readme",
+          "path": "README-TeX-Gyre-Pagella-Math.txt"
+        },
+        {
+          "title": "Upstream manifest",
+          "path": "MANIFEST-TeX-Gyre-Pagella-Math.txt"
+        }
+      ]
+    },
+    {
+      "id": "new-computer-modern-math",
+      "name": "New Computer Modern Math",
+      "license": "GUST Font License (LPPL 1.3c or later)",
+      "role": "Math typeface for formulas.",
+      "version": "7.1.1 (font name-table version 4.0)",
+      "source": "https://ctan.org/pkg/newcomputermodern",
+      "documents": [
+        {
+          "title": "Notice and packaging record",
+          "path": "NewComputerModern-NOTICE.txt"
+        },
+        {
+          "title": "GUST Font License",
+          "path": "GUST-FONT-LICENSE.txt"
+        },
+        {
+          "title": "LaTeX Project Public License 1.3c",
+          "path": "LPPL-1.3c.txt"
+        },
+        {
+          "title": "Upstream readme",
+          "path": "README-NewComputerModern-7.1.1.txt"
+        }
+      ]
+    }
+  ]
+}

@@ -120,4 +120,4 @@ No iOS Swift/app build or device/simulator runtime verification was performed.
 Native iOS slices compiled, but runtime measurements and arbitrary-language
 highlighting quality are not established. The fancy-regex grammar bundle excludes
 some Oniguruma-only variants; unsupported languages remain plain. App-wide license
-notice bundling remains the separate roadmap follow-up.
+notice bundling is tracked on the roadmap.

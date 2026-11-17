@@ -1,0 +1,22 @@
+Native Unicode line-break application dependency
+
+This application links unicode-linebreak 0.1.5 by Axel Forsman, licensed under
+Apache-2.0. It has no transitive dependencies.
+Published package: https://crates.io/crates/unicode-linebreak/0.1.5
+Repository: https://github.com/axelf4/unicode-linebreak
+Package SHA-256: 3b09c83c3c29d37506a3e260c08c03743a6bb66a9cd432c6934ab501a190571f
+
+The registry dependency is unmodified. Cargo.lock pins its version and checksum.
+Our caller-owned C ABI is authored application code.
+
+The crate declares Unicode version 15.0.0 and implements UAX #14 with its own
+documented tailoring: characters with the SA line-breaking class are resolved
+to AL regardless of General_Category. Break offsets are original UTF-8 byte
+offsets; this bridge preserves both allowed and mandatory opportunities.
+Source documentation: https://docs.rs/unicode-linebreak/0.1.5/unicode_linebreak/
+Unicode data: https://www.unicode.org/Public/15.0.0/ucd/LineBreak.txt
+
+Full Apache-2.0 and Unicode data license texts appear in THIRD-PARTY-LICENSES.txt.
+The 1991-2022 Unicode notice is preserved from the official Unicode ICU 72.1
+release license, contemporary with Unicode 15.0:
+https://github.com/unicode-org/icu/blob/release-72-1/icu4c/LICENSE

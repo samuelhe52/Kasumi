@@ -13,4 +13,4 @@ All exact package versions and registry checksums are recorded in Cargo.lock
 and dependencies.json. Complete registry license files, including build-time
 packages, are preserved in CODE-LICENSES.txt. The registry sources are unmodified;
 Kasumi's bridge adds language aliases, palette categories, UTF-16 mapping, and
-input-size guards. Notice bundling into the app remains a separate roadmap item.
+input-size guards.

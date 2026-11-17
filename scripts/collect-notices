@@ -1,0 +1,189 @@
+#!/usr/bin/env python3
+"""Regenerate the third-party notices that ship inside Kasumi and KasumiMarkdown.
+
+`notices/manifest.json` inventories every distributed component. This script
+checks that inventory against the native Cargo.lock files and the SwiftPM
+Package.resolved pins, then rewrites Sources/KasumiMarkdown/Bundled/Notices/:
+an index.json plus the copied notice files. Notice files already under
+Sources/KasumiMarkdown/Bundled are referenced in place.
+
+Run `make licenses` after a dependency, font or notice file changes.
+"""
+
+import json
+import shutil
+import sys
+import tomllib
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+MANIFEST = ROOT / "notices" / "manifest.json"
+BUNDLED = ROOT / "Sources" / "KasumiMarkdown" / "Bundled"
+OUTPUT = BUNDLED / "Notices"
+PACKAGE_RESOLVED = ROOT / "Package.resolved"
+HYPHENATION = ROOT / "packages" / "NativeHyphenation"
+SOURCE_PATTERNS = HYPHENATION / "Notices" / "SourcePatterns"
+PATTERN_EXTRAS = [SOURCE_PATTERNS / "hyphenex-2016" / "ushyphex.tex"]
+GENERATED_FILES = {"hyphenation-pattern-headers": "pattern-licenses.txt"}
+
+
+class CheckError(Exception):
+    pass
+
+
+def repo_file(relative: str) -> Path:
+    path = ROOT / relative
+    if not path.is_file():
+        raise CheckError(f"missing notice source: {relative}")
+    return path
+
+
+def check_cargo_lock(component: dict, texts: str) -> None:
+    """Every registry crate in the lockfile must be recorded and named in the notice text."""
+    lock = tomllib.loads(repo_file(component["cargo_lock"]).read_text(encoding="utf-8"))
+    crates = {
+        (pkg["name"], pkg["version"], pkg.get("checksum", ""))
+        for pkg in lock.get("package", [])
+        if str(pkg.get("source", "")).startswith("registry+")
+    }
+    if "dependencies" in component:
+        recorded = json.loads(repo_file(component["dependencies"]).read_text(encoding="utf-8"))
+        recorded_set = {(e["name"], e["version"], e.get("checksum", "")) for e in recorded}
+        if recorded_set != crates:
+            raise CheckError(
+                f"{component['id']}: {component['dependencies']} does not match {component['cargo_lock']} "
+                f"(only in lockfile: {sorted(crates - recorded_set)[:3]}; "
+                f"only recorded: {sorted(recorded_set - crates)[:3]})"
+            )
+    # Notices name a crate as "name version" or as a "name-version/" licence directory.
+    unnamed = sorted(
+        f"{name} {version}" for name, version, _ in crates
+        if f"{name} {version}" not in texts and f"{name}-{version}" not in texts
+    )
+    if unnamed:
+        raise CheckError(f"{component['id']}: no notice text names {', '.join(unnamed)}")
+
+
+def check_swift_pins(components: list[dict]) -> None:
+    """The manifest and Package.resolved must list the same SwiftPM packages at the same revisions."""
+    pins = {pin["identity"]: pin for pin in json.loads(PACKAGE_RESOLVED.read_text(encoding="utf-8"))["pins"]}
+    listed = {c["swift"]["identity"]: c for c in components if "swift" in c}
+    for identity, pin in pins.items():
+        if identity not in listed:
+            raise CheckError(f"Package.resolved pins {identity}, which notices/manifest.json does not list")
+        component = listed[identity]
+        if pin["state"].get("revision") != component["swift"]["revision"]:
+            raise CheckError(f"{identity}: manifest revision differs from Package.resolved")
+        if pin["state"].get("version") != component.get("version"):
+            raise CheckError(f"{identity}: manifest version differs from Package.resolved")
+    for identity in listed:
+        if identity not in pins:
+            raise CheckError(f"notices/manifest.json lists {identity}, which Package.resolved no longer pins")
+
+
+def leading_comment_block(path: Path) -> str:
+    """The copyright and licence header of a TeX source: leading % lines, trailing blanks dropped."""
+    lines: list[str] = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if line.startswith("%") or (not line.strip() and lines):
+            lines.append(line.rstrip())
+        else:
+            break
+    while lines and not lines[-1].strip():
+        lines.pop()
+    if not lines:
+        raise CheckError(f"{path.relative_to(ROOT)} has no leading licence comment")
+    return "\n".join(lines) + "\n"
+
+
+def hyphenation_pattern_headers() -> str:
+    tags = sorted(p.name.split(".standard")[0] for p in (HYPHENATION / "dictionaries").glob("*.standard.bincode"))
+    sections = []
+    for tag in tags:
+        master = SOURCE_PATTERNS / "masters" / f"hyph-{tag}.tex"
+        if not master.is_file():
+            raise CheckError(f"embedded dictionary {tag} has no master source at {master.relative_to(ROOT)}")
+        sections.append((f"hyph-{tag}.tex (embedded as {tag})", leading_comment_block(master)))
+    for extra in PATTERN_EXTRAS:
+        sections.append((f"{extra.relative_to(SOURCE_PATTERNS)} (TUG exceptions for en-us)",
+                         leading_comment_block(extra)))
+    rule = "=" * 72
+    body = [
+        "Hyphenation pattern notices",
+        "",
+        "Kasumi embeds the hyphenation dictionaries listed below. Each dictionary is compiled",
+        "from a TeX pattern source whose copyright and licence terms are its leading comment",
+        "block. Each section here reproduces that block verbatim. The complete pattern sources",
+        "are in the Kasumi repository under packages/NativeHyphenation/Notices/SourcePatterns/.",
+    ]
+    for title, block in sections:
+        body += ["", rule, title, rule, block.rstrip("\n")]
+    return "\n".join(body) + "\n"
+
+
+def build(output: Path) -> None:
+    """Write index.json and the copied notice files for every component under `output`."""
+    components = json.loads(MANIFEST.read_text(encoding="utf-8"))["components"]
+    check_swift_pins(components)
+    generated = {"hyphenation-pattern-headers": hyphenation_pattern_headers()}
+
+    index = []
+    for component in components:
+        component_id = component["id"]
+        texts = []
+        for doc in component["documents"]:
+            if "generated" in doc:
+                texts.append(generated[doc["generated"]])
+            else:
+                texts.append(repo_file(doc["source"]).read_text(encoding="utf-8"))
+        if "cargo_lock" in component:
+            check_cargo_lock(component, "\n".join(texts))
+
+        entry = {"id": component_id, "name": component["name"], "license": component["license"],
+                 "role": component["role"]}
+        for key in ("version", "source"):
+            if key in component:
+                entry[key] = component[key]
+        entry["documents"] = []
+        titles = set()
+        for doc in component["documents"]:
+            if doc["title"] in titles:
+                raise CheckError(f"{component_id}: duplicate document title {doc['title']!r}")
+            titles.add(doc["title"])
+            if "generated" in doc:
+                name = GENERATED_FILES[doc["generated"]]
+                target = output / component_id / name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text(generated[doc["generated"]], encoding="utf-8")
+                bundle_path = f"Notices/{component_id}/{name}"
+            else:
+                source = repo_file(doc["source"])
+                if source.is_relative_to(BUNDLED):
+                    bundle_path = source.relative_to(BUNDLED).as_posix()
+                else:
+                    target = output / component_id / source.name
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copyfile(source, target)
+                    bundle_path = f"Notices/{component_id}/{source.name}"
+            entry["documents"].append({"title": doc["title"], "path": bundle_path})
+        index.append(entry)
+
+    (output / "index.json").write_text(
+        json.dumps({"components": index}, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+def main() -> int:
+    try:
+        if OUTPUT.exists():
+            shutil.rmtree(OUTPUT)
+        OUTPUT.mkdir()
+        build(OUTPUT)
+        print(f"Wrote {OUTPUT.relative_to(ROOT)}")
+        return 0
+    except CheckError as error:
+        print(f"collect-notices: {error}", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

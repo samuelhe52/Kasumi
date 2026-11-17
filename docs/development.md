@@ -145,6 +145,13 @@ Run the narrowest filter: `make test FILTER=<name>` for package tests and
   reader size or preset changes at a scrolled position. Cards must not move during
   selection. See [005.002](../docs-ai/005-cjk-font-availability/002-font-management-transitions.md).
 
+## Third-party notices
+
+Run `make licenses` after a native or Swift dependency version, a bundled font, or
+a notice file changes. It reads `notices/manifest.json`, checks the native
+`Cargo.lock` files and `Package.resolved`, and rewrites
+`Sources/KasumiMarkdown/Bundled/Notices/`. Commit the result with the change.
+
 ## Simulator and device notes
 
 - **Clipboard prompt.** The iOS 27.2 simulator can't show the Paste from Other
