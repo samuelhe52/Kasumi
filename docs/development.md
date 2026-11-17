@@ -38,9 +38,11 @@ the local toolchain without changing anything.
 - `swift run KasumiRender <input> <output.png|jpg|jpeg|pdf> [width]` renders a
   document without launching the app. See its options for preset, theme, profile,
   and dark. `--hyphenation-language TAG` overrides the selected profile: `auto`
-  (US English on ASCII words), `en-us`, `en-gb`, `de-1996`, `fr`, `es`, `it`,
+  (front-matter `lang`, bounded prose stopword vote, then US English), `en-us`, `en-gb`, `de-1996`, `fr`, `es`, `it`,
   `pt`, `nl`, `sv`, `da`, `nb`, `fi`, `pl`, `cs`, or `ru`. Profiles expose the same
-  `hyphenation_language` choice; neither path performs language detection.
+  `hyphenation_language` choice. Automatic selection is cached at parse time,
+  examining at most 32,768 scalars or 4,096 words; explicit choices bypass it
+  during layout. Front matter is recognized within the first 64 KiB/128 lines.
 - Profiles use standard TOML via pinned `TOMLDecoder` 0.4.5; SwiftPM resolves it
   during `make build`/`make test`. No native TOML bridge or external binary is
   required. `--profile fixtures/NativeProfile.toml` exercises the authored profile.

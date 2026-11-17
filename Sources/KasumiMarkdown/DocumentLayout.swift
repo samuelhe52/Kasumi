@@ -64,11 +64,15 @@ struct DocumentLayout {
 
 enum DocumentTypesetter {
     static func layout(
-        _ document: ParsedDocument, width: CGFloat, style: Typography, insets: DocumentInsets = .reader,
+        _ document: ParsedDocument, width: CGFloat, style unresolvedStyle: Typography, insets: DocumentInsets = .reader,
         scrollableTables: Bool = false
     )
         -> DocumentLayout
     {
+        var style = unresolvedStyle
+        if style.profileValues.resolved(.hyphenationLanguage).string == "auto" {
+            style.profileValues[.hyphenationLanguage] = .string(document.languageAnalysis.hyphenationLanguage)
+        }
         let available = max(20, width - insets.left - insets.right)
         let measure = style.limitWidth ? min(available, style.widthLimit) : available
         let left = insets.left + (available - measure) / 2

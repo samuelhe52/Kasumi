@@ -97,3 +97,7 @@ Library tests pass on macOS and the iOS simulator, including comparisons against
 
 - Updated 2026-11-17: Replace legacy profile parsing/writing with strict TOML,
   without a compatibility path; see [002.011](011-standard-toml-profiles.md).
+
+- Updated 2026-11-17: Add bounded, cached automatic hyphenation language selection
+  and opt-in display punctuation policies; see
+  [002.012](012-language-and-punctuation.md).

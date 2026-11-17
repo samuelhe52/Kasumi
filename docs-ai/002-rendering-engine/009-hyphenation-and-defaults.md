@@ -33,3 +33,7 @@ still uses its font constants. No reader UI or frozen reference files changed.
 passed all 8 tests on macOS. This includes public preset-to-layout propagation,
 semantic-text invariance, CLI success/rejection, existing fifteen-dictionary
 observations and schema/range checks. No simulator or device was launched.
+
+Automatic selection was extended on 2026-11-17 to cached front-matter/stopword
+selection with US English fallback; see [002.012](012-language-and-punctuation.md).
+The earlier ASCII-only `auto` description above records the initial slice.

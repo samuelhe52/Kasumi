@@ -39,6 +39,12 @@ struct ParsedDocument: Sendable {
     var blocks: [DocumentBlock]
     /// Directory against which relative resources in this document resolve.
     var baseURL: URL? = nil
+    let languageAnalysis: DocumentLanguageAnalysis
+    init(blocks: [DocumentBlock], baseURL: URL? = nil, declaredLanguage: String? = nil) {
+        self.blocks = blocks
+        self.baseURL = baseURL
+        languageAnalysis = DocumentLanguageAnalysis.analyze(blocks, declaredLanguage: declaredLanguage)
+    }
     var headings: [DocumentBlock] { blocks.filter { $0.kind == .heading } }
 }
 
@@ -50,7 +56,8 @@ enum DocumentParser {
         if plainText && !plainTextOptions.parseAsMarkdown {
             return PlainTextParser.parse(source, options: plainTextOptions, baseURL: baseURL)
         }
-        let extensions = MarkdownExtensions(source: source)
+        let frontMatter = DocumentFrontMatter.extract(source)
+        let extensions = MarkdownExtensions(source: frontMatter.markdown)
         let ast = Markdown.Document(parsing: extensions.markdown)
         var blocks: [DocumentBlock] = []
         func append(
@@ -133,7 +140,7 @@ enum DocumentParser {
         }
         walk(ast)
         extensions.resolveFootnotes(in: &blocks)
-        return ParsedDocument(blocks: blocks, baseURL: baseURL)
+        return ParsedDocument(blocks: blocks, baseURL: baseURL, declaredLanguage: frontMatter.language)
     }
 
     private static func inline(

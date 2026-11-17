@@ -6,9 +6,9 @@ that fixes it; add one when a limitation is found and not fixed.
 - Text: right-to-left paragraphs fall back to Core Text (no bidi painting in
   the paragraph engine); `unicode-linebreak` differs from 59 of 7,654 Unicode 15
   test vectors; characters missing from every installed font have no defined
-  fallback; automatic hyphenation applies US English to ASCII words only; selecting another dictionary requires
-  an explicit `hyphenation_language` profile value or CLI option. No document
-  language detection is implemented.
+  fallback. Automatic hyphenation uses a bounded stopword heuristic; weak,
+  unsupported and ambiguous/mixed-language samples fall back to US English.
+  Choose an explicit language for reliable dictionary selection.
 - Fonts: the CJK faces the presets use aren't installed on iOS until a client
   downloads them; without them, Songti falls back to Noto Serif SC/TC when
   registered, then PingFang. The open substitutes have no tuned face table, so

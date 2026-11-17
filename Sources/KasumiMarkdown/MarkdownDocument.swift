@@ -4,6 +4,10 @@ import Foundation
 public struct MarkdownDocument: Sendable {
     let parsed: ParsedDocument
 
+    /// Cached document default for `hyphenation_language = "auto"`.
+    /// An explicit profile/CLI dictionary overrides this selection at layout time.
+    public var automaticHyphenationLanguage: String { parsed.languageAnalysis.hyphenationLanguage }
+
     public init(markdown: String, baseURL: URL? = nil) {
         parsed = DocumentParser.parse(markdown, baseURL: baseURL)
     }

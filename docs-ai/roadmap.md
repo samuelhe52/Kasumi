@@ -61,6 +61,10 @@ Retained after milestone closure; not prerequisites for starting Reader 2:
 - Explicit profile/CLI hyphenation language selection — implemented 2026-11-17;
   [002.009](002-rendering-engine/009-hyphenation-and-defaults.md). Mixed-case words
   retain Liang pattern matching; math subscripts remain font-driven.
+- Cached automatic hyphenation-language selection — implemented 2026-11-17;
+  front-matter `lang`, bounded prose stopword vote, then US English. Punctuation
+  policy implementation is in progress;
+  [002.012](002-rendering-engine/012-language-and-punctuation.md).
 - Standard TOML profile files — implemented 2026-11-17, library/CLI only;
   [002.011](002-rendering-engine/011-standard-toml-profiles.md). No legacy profile
   compatibility or new reader settings.

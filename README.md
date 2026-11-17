@@ -87,6 +87,12 @@ files use `[meta]` for their name and `[anchor]` for a saved factory snapshot;
 unrelated tables never contribute typography overrides. The reader currently
 offers built-in presets only.
 
+Automatic hyphenation uses a supported front-matter `lang:` tag, then a bounded
+stopword vote over prose, then US English. The result is cached when parsing and
+exposed as `MarkdownDocument.automaticHyphenationLanguage`; an explicit preset
+language takes precedence. English regional spelling is not guessed: use
+`en-GB` in front matter or `en-gb` in the profile for British patterns.
+
 Load a custom light/dark theme with `try DocumentThemePair(contentsOf: url)` or
 `try DocumentThemePair(json: data)`, then pass its `.light` or `.dark` theme to
 `RenderStyle`. [CustomTheme.json](fixtures/CustomTheme.json) shows the version-1
