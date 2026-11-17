@@ -90,6 +90,29 @@ fileprivate struct PaginationSnapshot: Decodable {
     }
 }
 
+@Test func pdfFontSizeOverrideChangesOutputAndRejectsInvalidSizes() throws {
+    let output = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".pdf")
+    defer { try? FileManager.default.removeItem(at: output) }
+    let document = MarkdownDocument(markdown: "Size comparison text")
+    var options = PDFExportOptions()
+    options.pageNumbers = false
+    func textHeight(_ size: CGFloat) throws -> CGFloat {
+        options.fontSize = size
+        try DocumentExport.writePDF(document, style: RenderStyle(), options: options, to: output)
+        let pdf = try #require(PDFDocument(url: output))
+        let page = try #require(pdf.page(at: 0))
+        let selection = try #require(pdf.findString("Size comparison text", withOptions: []).first)
+        return selection.bounds(for: page).height
+    }
+    let small = try textHeight(10)
+    let large = try textHeight(20)
+    #expect(large > small * 1.5)
+    options.fontSize = .nan
+    #expect(throws: DocumentExportError.self) {
+        try DocumentExport.writePDF(document, style: RenderStyle(), options: options, to: output)
+    }
+}
+
 @Test func imageViewportExportKeepsRequestedGeometryAndScale() throws {
     let output = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".png")
     defer { try? FileManager.default.removeItem(at: output) }

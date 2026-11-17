@@ -27,6 +27,8 @@ public enum DocumentExportError: LocalizedError {
 public struct PDFExportOptions: Sendable {
     public var paperSize = CGSize(width: 595.276, height: 841.89)
     public var margins = DocumentInsets(top: 72, left: 72, bottom: 72, right: 72)
+    /// Nil uses the typography preset's print size.
+    public var fontSize: CGFloat? = nil
     public var pageNumbers = true
     public var footerTemplate = "{page}"
     public var headerTemplate = ""
@@ -267,14 +269,16 @@ enum DocumentExporter {
         let headerHeight: CGFloat = options.headerTemplate.isEmpty ? 0 : 24
         let contentWidth = size.width - m.left - m.right
         let contentHeight = size.height - m.top - m.bottom - footerHeight - headerHeight
-        guard values.allSatisfy({ $0.isFinite && $0 >= 0 }), contentWidth >= 20, contentHeight >= 20 else {
+        guard values.allSatisfy({ $0.isFinite && $0 >= 0 }),
+            options.fontSize.map({ $0.isFinite && $0 > 0 }) ?? true,
+            contentWidth >= 20, contentHeight >= 20 else {
             throw DocumentExportError.invalidGeometry
         }
         var pageStyle = style
         pageStyle.limitWidth = false
         // Native active-style PDF uses the profile's printed body size rather
         // than the reading size/zoom, retaining families and relative scales.
-        pageStyle.size = style.printBodySize
+        pageStyle.size = options.fontSize ?? style.printBodySize
         progress?(.layingOut)
         let layout = DocumentTypesetter.layout(document, width: contentWidth, style: pageStyle, insets: .zero)
         try Task.checkCancellation()

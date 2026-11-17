@@ -6,6 +6,7 @@ public struct TypographyPreset: Identifiable, Equatable, Sendable {
     public let id: String
     public let name: String
     public var defaultFontSize: CGFloat { values.resolved(.baseSize).number! }
+    public var printFontSize: CGFloat { values.resolved(.printBodySize).number! }
     let values: ProfileValues
 
     public static let builtin: [TypographyPreset] = BuiltinProfiles.all.map {
