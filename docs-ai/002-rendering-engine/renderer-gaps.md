@@ -116,3 +116,5 @@ that fixes it; add one when a limitation is found and not fixed.
   above. The app coalesces source edits and skips layout while the preview is
   hidden. Source and preview scroll independently. See [009](../009-source-editor/000-plan.md) and
   [editor continuity](../009-source-editor/002-editor-experience.md).
+
+Performance measurements use the [reader benchmark suite](../../benchmarks/reader/README.md). They do not cover physical-device frame delivery or UIKit memory.

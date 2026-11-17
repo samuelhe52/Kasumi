@@ -66,19 +66,19 @@ shared-engine test window, not a reproduction of the production drawing backend.
 ## Mac measurements without a simulator
 
 ```sh
-make benchmark-reflow-lab
+make benchmark-reader
 make check-reflow-scrolling
 make check-fast-reflow-scrolling
 # Same-binary control without idle preparation:
 make check-fast-reflow-scrolling REFLOW_IDLE_WARMUP=0
 ```
 
-The benchmark records parsing, first viewport construction, warm width changes,
-fixed-width refinement, moving-anchor refinement and SDR viewport painting for
-50k/200k Chinese and mixed samples. The scrolling check drives the actual Mac
-controller through 100 downward and 100 return steps while background work runs,
-recording viewport coverage and installations. Results are written to
-`build/reflow-lab-benchmark.json` and `build/reflow-lab-scrolling.json`.
+`make benchmark-reader` replaces the old in-app benchmark; see
+[the benchmark protocol](../../benchmarks/reader/README.md).
+
+The scrolling check drives the actual Mac controller through 100 downward and
+100 return steps while background work runs, recording viewport coverage,
+installations and process peak memory in `build/reflow-lab-scrolling.json`.
 
 Neither check measures physical display frames or reproduces UIKit tile behavior.
 The scrolling protocol requests 80-point steps every 16 ms; actual scheduling

@@ -70,7 +70,7 @@ retention as more of the document is visited. The shared-cache-only prototype
 regressed return painting; line-local immutable paint retention and compact
 records now recover it in the measured workloads. First-traversal p99 remains
 0.6–2.2 ms higher, and the native Mac process peaks near 229 MB despite a roughly
-140 MB engine-only peak. Further work targets those costs and device validation. Shape input remains available for
+140 MB engine-only peak. Further work targets those costs and device validation. Measurements use the [reader benchmark suite](../benchmarks/reader/README.md). Shape input remains available for
 width changes, but break items may need rebuilding. Documents outside the resource envelope,
 and immediate jumps before readiness, still use viewport refinement. A very large
 visible table, resource-heavy block or individual paragraph can still dominate.
