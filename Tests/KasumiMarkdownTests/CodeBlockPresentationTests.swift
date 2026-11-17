@@ -7,6 +7,14 @@ import Testing
 @testable import KasumiMarkdown
 
 @Suite struct CodeBlockPresentationTests {
+    @Test func exportCaptionScalesWithBodySize() throws {
+        let small = try #require(ReaderCodeBlockStyle.exporting(fontSize: 10).caption)
+        let large = try #require(ReaderCodeBlockStyle.exporting(fontSize: 20).caption)
+        #expect(small.fontSize == 8)
+        #expect(large.fontSize == small.fontSize * 2)
+        #expect(large.height == small.height * 2)
+    }
+
     @Test func copyPayloadAndCaptionsStayOutsideSemanticText() throws {
         let code = "\tlet café = \"👩‍💻\";\n\n"
         let source =

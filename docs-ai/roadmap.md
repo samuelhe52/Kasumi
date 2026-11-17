@@ -24,7 +24,7 @@ or is reordered; record the work itself in a numbered entry.
    See the [validation limits](007-reader-interactions/001-action.md#open-questions).
 3. Export: PDF, long PNG, long JPG, print, share sheet —
    [008](008-reader-export/000-plan.md), closed 2026-11-17 by maintainer
-   decision; file-backed export, image size/quality controls and cancellation. See
+   decision; file-backed export, paper/margin/font and image size/quality controls and cancellation. See
    [validation limits](008-reader-export/001-action.md#open-questions).
 4. Source editor with live preview; side by side on iPad —
    [009](009-source-editor/000-plan.md), implemented 2026-11-17. Writable document sessions,

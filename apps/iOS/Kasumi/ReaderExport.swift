@@ -15,9 +15,55 @@ fileprivate enum ReaderExportFormat: String, CaseIterable, Identifiable, Sendabl
     }
     var footer: LocalizedStringResource {
         switch self {
-        case .pdf: "Uses the current theme and fonts at the preset’s print size."
+        case .pdf: "Uses the current theme and fonts."
         case .png, .jpg:
             "Exports the full document in the current reading style. For very long documents, lower the width or resolution, or choose PDF."
+        }
+    }
+}
+
+fileprivate enum PaperPreset: String, CaseIterable, Identifiable, Sendable {
+    case a3, a4, a5, letter, legal, tabloid
+    var id: Self { self }
+    var label: String {
+        switch self {
+        case .a3: "A3"
+        case .a4: "A4"
+        case .a5: "A5"
+        case .letter: "US Letter"
+        case .legal: "US Legal"
+        case .tabloid: "US Tabloid"
+        }
+    }
+    var size: CGSize {
+        switch self {
+        case .a3: CGSize(width: 841.89, height: 1190.551)
+        case .a4: CGSize(width: 595.276, height: 841.89)
+        case .a5: CGSize(width: 419.528, height: 595.276)
+        case .letter: CGSize(width: 612, height: 792)
+        case .legal: CGSize(width: 612, height: 1008)
+        case .tabloid: CGSize(width: 792, height: 1224)
+        }
+    }
+}
+
+fileprivate enum MarginPreset: String, CaseIterable, Identifiable, Sendable {
+    case narrow, moderate, normal, wide
+    var id: Self { self }
+    var label: LocalizedStringResource {
+        switch self {
+        case .narrow: "Narrow (0.25 in)"
+        case .moderate: "Moderate (0.5 in)"
+        case .normal: "Normal (1 in)"
+        case .wide: "Wide (1.5 in)"
+        }
+    }
+    var points: CGFloat {
+        switch self {
+        case .narrow: 18
+        case .moderate: 36
+        case .normal: 72
+        case .wide: 108
         }
     }
 }
@@ -42,7 +88,8 @@ fileprivate final class ReaderExportJob {
 
     func start(
         document: MarkdownDocument, title: String, style: RenderStyle, format: ReaderExportFormat,
-        width: Double, scale: Double, quality: Double, letter: Bool, pageNumbers: Bool, printOutput: Bool
+        width: Double, scale: Double, quality: Double, paper: PaperPreset, margins: MarginPreset,
+        fontSize: Double, pageNumbers: Bool, printOutput: Bool
     ) {
         guard !busy, sharedFile == nil, printFile == nil else { return }
         clearFile()
@@ -58,7 +105,8 @@ fileprivate final class ReaderExportJob {
         let filename = (stem.isEmpty ? "Untitled" : stem).replacingOccurrences(of: "/", with: "-")
         let url = folder.appendingPathComponent(filename).appendingPathExtension(format.rawValue)
         var preparedStyle = style
-        preparedStyle.codeBlockStyle = ReaderCodeBlockStyle.exporting
+        preparedStyle.fontSize = fontSize
+        preparedStyle.codeBlockStyle = ReaderCodeBlockStyle.exporting(fontSize: fontSize)
         let exportStyle = preparedStyle
         let task = Task.detached(priority: .userInitiated) {
             try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
@@ -71,7 +119,9 @@ fileprivate final class ReaderExportJob {
                         var options = PDFExportOptions()
                         options.title = title
                         options.pageNumbers = pageNumbers
-                        if letter { options.paperSize = CGSize(width: 612, height: 792) }
+                        options.paperSize = paper.size
+                        options.margins = .init(top: margins.points, left: margins.points, bottom: margins.points, right: margins.points)
+                        options.fontSize = fontSize
                         try DocumentExport.writePDF(
                             document, style: exportStyle, options: options, to: url)
                     } else {
@@ -149,9 +199,20 @@ struct ReaderExportSheet: View {
     @State private var width = 600.0
     @State private var scale = 2.0
     @State private var quality = 0.9
-    @State private var letter = false
+    @State private var paper = PaperPreset.a4
+    @State private var margins = MarginPreset.normal
+    @State private var pdfFontSize: Double
+    @State private var imageFontSize: Double
     @State private var pageNumbers = true
     @State private var job = ReaderExportJob()
+
+    init(document: MarkdownDocument, title: String, style: RenderStyle) {
+        self.document = document
+        self.title = title
+        self.style = style
+        _pdfFontSize = State(initialValue: Double(style.preset.printFontSize))
+        _imageFontSize = State(initialValue: Double(style.fontSize ?? style.preset.defaultFontSize))
+    }
 
     var body: some View {
         NavigationStack {
@@ -164,9 +225,15 @@ struct ReaderExportSheet: View {
                     }
                     .accessibilityIdentifier("export-format")
                     if format == .pdf {
-                        Picker("Paper Size", selection: $letter) {
-                            Text("A4").tag(false)
-                            Text("US Letter").tag(true)
+                        Picker("Paper Size", selection: $paper) {
+                            ForEach(PaperPreset.allCases) { preset in
+                                Text(verbatim: preset.label).tag(preset)
+                            }
+                        }
+                        Picker("Margins", selection: $margins) {
+                            ForEach(MarginPreset.allCases) { preset in
+                                Text(preset.label).tag(preset)
+                            }
                         }
                         Toggle("Page Numbers", isOn: $pageNumbers)
                     } else {
@@ -186,6 +253,12 @@ struct ReaderExportSheet: View {
                             Slider(value: $quality, in: 0.6...1, step: 0.05) { Text("JPG Quality") }
                         }
                     }
+                    Stepper(value: format == .pdf ? $pdfFontSize : $imageFontSize, in: 6...36, step: 1) {
+                        Text("Font Size: \(format == .pdf ? pdfFontSize : imageFontSize, specifier: "%.0f") pt")
+                            .contentTransition(.numericText())
+                            .animation(.default, value: format == .pdf ? pdfFontSize : imageFontSize)
+                    }
+                    .accessibilityIdentifier("export-font-size")
                 } footer: {
                     // One Text keeps the footer's identity so a format change cross-fades it.
                     Text(format.footer).contentTransition(.opacity)
@@ -247,7 +320,8 @@ struct ReaderExportSheet: View {
     private func start(printOutput: Bool) {
         job.start(
             document: document, title: title, style: style, format: format,
-            width: width, scale: scale, quality: quality, letter: letter,
+            width: width, scale: scale, quality: quality, paper: paper, margins: margins,
+            fontSize: format == .pdf ? pdfFontSize : imageFontSize,
             pageNumbers: pageNumbers, printOutput: printOutput)
     }
 }
