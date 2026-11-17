@@ -36,6 +36,7 @@ struct ReadingSurface: UIViewRepresentable {
 
 final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteractionDelegate {
     private let headingTopInset: CGFloat = 15
+    private let findTopInset: CGFloat = 120
 
     // Pages swap inside a permanent container so the scroll view's own subviews
     // never change; replacing them directly drops the soft top edge effect until
@@ -158,7 +159,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         contentInset.bottom = inset
         verticalScrollIndicatorInsets.bottom = inset
         if let currentFindRect {
-            setTop(max(0, currentFindRect.minY * pageScale - 24))
+            setTop(max(0, currentFindRect.minY * pageScale - findTopInset))
         }
     }
 
@@ -412,7 +413,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
                 ?? rendered.selectionRects(for: matches[index]).first
         }
         guard scroll, let rect = currentFindRect else { return }
-        setTop(max(0, rect.minY * pageScale - 24), animated: !UIAccessibility.isReduceMotionEnabled)
+        setTop(max(0, rect.minY * pageScale - findTopInset), animated: !UIAccessibility.isReduceMotionEnabled)
     }
 
     private func follow(_ url: URL) {
