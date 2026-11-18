@@ -20,8 +20,10 @@ Choose English, Chinese, mixed formatting/attachments, or a single long
 paragraph; choose the nominal body length (headings/labels and mixed attachments add text); then drag a window edge. The width is
 unrestricted so resizing causes reflow. Scroll to check anchor continuity, or
 use **Open…** to read your own UTF-8 Markdown/text file without modifying it.
-**Reload** resets preparation for a cold run. Find and horizontal table scrolling
-are not implemented in this Mac harness; table columns fit the window.
+**Reload** resets preparation for a cold run. Local images reserve space during
+layout and decode at the display scale as they enter the visible viewport.
+The timing label covers layout, prepaint, and installation. Image decoding
+runs separately. Table columns fit the window.
 
 `make check-reflow-lab` runs an offscreen launch/render/scroll-refinement smoke
 check and writes JSON under `build/`. It does not benchmark live resizing or

@@ -25,6 +25,11 @@ import os
     private var revision = UUID()
     private var task: Task<Void, Never>?
     private var loading: Task<Void, Never>?
+    private var imageTask: Task<Void, Never>?
+    private var imageDecode: (region: ReaderImageRegion, worker: Task<Bool, Never>)?
+    private weak var imageSnapshot: RenderedDocument?
+    private var visibleImages: [ReaderImageRegion] = []
+    private var pendingImages: ArraySlice<ReaderImageRegion> = []
     private var warmup: Task<Void, Never>?
     private var warmupID = UUID()
     private var warmupMilliseconds: Double?
@@ -105,6 +110,10 @@ import os
     func load(markdown: String?, url: URL? = nil) {
         _ = view
         loading?.cancel()
+        imageDecode?.worker.cancel()
+        imageSnapshot = nil
+        visibleImages = []
+        pendingImages = []
         cancelWarmup()
         warmupMilliseconds = nil
         details.stringValue = "Shared reflow engine · Native Mac harness · Find off"
@@ -130,7 +139,9 @@ import os
                     return MarkdownDocument(markdown: source, baseURL: url?.deletingLastPathComponent())
                 }.value
                 guard let self, !Task.isCancelled, self.revision == expected else { return }
-                self.session = DocumentReflowSession(document, style: RenderStyle(fontSize: 18, widthLimit: nil))
+                self.session = DocumentReflowSession(
+                    document, style: RenderStyle(fontSize: 18, widthLimit: nil),
+                    readerDisplayScale: self.view.window?.backingScaleFactor ?? 2)
                 self.request()
             } catch {
                 guard let self, self.revision == expected else { return }
@@ -151,6 +162,7 @@ import os
         guard session != nil else { return }
         let viewport = scroll.contentView.bounds
         guard viewport.width.isFinite, viewport.height.isFinite, viewport.width > 0, viewport.height > 0 else { return }
+        updateImages(in: viewport)
         if rendered?.size.width != viewport.width {
             cancelWarmup()
             warmupMilliseconds = nil
@@ -200,6 +212,7 @@ import os
                     self.canvas.needsDisplay = true
                     self.installations += 1
                     self.adjusting = false
+                    self.updateImages(in: self.scroll.contentView.bounds)
                     self.signposter.endInterval("Install", install)
                     let elapsed = begin.duration(to: .now).components
                     let ms = Double(elapsed.seconds) * 1000 + Double(elapsed.attoseconds) / 1e15
@@ -210,6 +223,41 @@ import os
             // A document may have changed while the old synchronous render drained.
             if self?.session != nil, self?.state.needsLayout == true { self?.request() }
             else { self?.scheduleWarmup() }
+        }
+    }
+
+    private func updateImages(in viewport: CGRect) {
+        guard let rendered, rendered.hasReaderImages else { return }
+        let regions = rendered.readerImageRegions(in: viewport)
+        let sameSnapshot = imageSnapshot === rendered
+        guard !sameSnapshot || visibleImages != regions else { return }
+        let previous = sameSnapshot ? visibleImages : []
+        imageSnapshot = rendered
+        visibleImages = regions
+        if let imageDecode, !regions.contains(where: { $0.sharesRaster(with: imageDecode.region) }) {
+            imageDecode.worker.cancel()
+        }
+        pendingImages = regions.filter { region in
+            if !rendered.hasReaderImageResult(for: region) { return true }
+            if !previous.contains(region) { canvas.invalidateImage(in: region.rect) }
+            return false
+        }[...]
+        guard imageTask == nil, !pendingImages.isEmpty else { return }
+        imageTask = Task { [weak self] in
+            while let snapshot = self?.imageSnapshot, let region = self?.pendingImages.popFirst() {
+                let worker = Task.detached(priority: .userInitiated) {
+                    await snapshot.prepareReaderImage(region)
+                }
+                self?.imageDecode = (region, worker)
+                let changed = await worker.value
+                self?.imageDecode = nil
+                if changed, let self {
+                    for visible in self.visibleImages where visible.sharesRaster(with: region) {
+                        self.canvas.invalidateImage(in: visible.rect)
+                    }
+                }
+            }
+            self?.imageTask = nil
         }
     }
 

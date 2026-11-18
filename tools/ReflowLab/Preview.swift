@@ -8,6 +8,11 @@ import KasumiMarkdown
     override var isFlipped: Bool { true }
     override var isOpaque: Bool { true }
 
+    func invalidateImage(in rect: CGRect) {
+        if preview?.rect.intersects(rect) == true { preview = nil }
+        setNeedsDisplay(rect.insetBy(dx: -1, dy: -1))
+    }
+
     override func draw(_ dirtyRect: NSRect) {
         guard let context = NSGraphicsContext.current?.cgContext else { return }
         context.setFillColor(rendered?.backgroundColor ?? NSColor.white.cgColor)
