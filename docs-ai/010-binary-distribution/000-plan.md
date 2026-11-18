@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implemented; production release pending |
+| Status | Implemented; closed 2026-11-19 with production release 0.1.0 |
 | Anchor date | 2026-11-17 |
 | Origin | Maintainer requested CI-built binaries for tagged releases and local builds for arbitrary checkouts, with a separate test release. |
 | Related | [Roadmap](../roadmap.md) |

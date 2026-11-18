@@ -5,12 +5,22 @@
 | Date | Change | Ref |
 | --- | --- | --- |
 | 2026-11-17 | Prepared native release workflow, local manifest selection, toolchain pin and documentation. | Working tree |
+| 2026-11-18 | Production run 44328037947 failed at "Publish exact prepared archives": `${flags[@]}` with an empty array is unbound under `set -u` in the runner's bash 3.2. The `0.1.0` tag had already been pushed; no release was created. | Run 44328037947 |
+| 2026-11-18 | Fixed the expansion to `${flags[@]+"${flags[@]}"}`, deleted the stray tag and reran. Run 44329950517 published `0.1.0`. Release notes were then replaced with the release summary. | Commit 29ced2e, run 44329950517 |
+| 2026-11-18 | README states the library's platform minimums. | Commit ea371e3 |
+| 2026-11-19 | Direct SwiftPM check: `swift package add-dependency … --from 0.1.0` resolved and downloaded all four binaries. A macOS consumer built only after declaring its platforms; the iOS 17 simulator build of KasumiMarkdown succeeded. | Scratch package |
 
 ## Outcome and current state (as of 2026-11-17)
 
 The manual workflow in `.github/workflows/native-release.yml` builds the native XCFrameworks, prepares release URLs and checksums, creates a release-only commit and version tag without advancing the source branch, publishes the archives, and checks a clean URL consumer. Test mode requires a separate repository and a `-ci.` prerelease version. `scripts/prepare-native-release` creates the archives and manifest entries; `scripts/native-mode` changes the manifest for local builds of a release tag. Development commits default to local binaries. Rust 1.98.1 is pinned in `rust-toolchain.toml`.
 
 The workflow passed a complete test in a separate public repository. That repository and both test prereleases were deleted at the maintainer's request after success. This checkout has no configured production remote, and no production release was created.
+
+## Production release (2026-11-18)
+
+- Release `0.1.0` is published from `main` with four XCFramework ZIPs, `notices.tar.gz` and `provenance.json`: https://github.com/samuelhe52/Kasumi/releases/tag/0.1.0
+- The workflow's URL consumer check passed in the production run.
+- A macOS SwiftPM consumer needs `platforms: [.macOS(.v13), .iOS(.v17)]` in its manifest. Without it, SwiftPM's default macOS minimum is 12 and the product fails to build. With the line, the consumer built and rendered a PNG.
 
 ## Deviations from plan
 
@@ -34,5 +44,6 @@ The local switch edits `Package.swift`, because a marker file did not invalidate
 
 ## Open questions
 
-- Production repository branch rules, token permissions and release publication are unverified; this checkout has no configured production remote.
-- Failure recovery after a tag or release was created has not been exercised. Intel macOS and simulator slices are not provided.
+- Production publication works with the default workflow token on `main` (run 44329950517). Branch rules beyond that were not separately checked.
+- Failure recovery was exercised once. A failed run can leave its tag, which blocks a rerun. Recovery is manual: delete the remote tag with `git push origin --delete <version>`, fix the cause and rerun. The workflow does not clean up after itself.
+- Intel macOS and simulator slices are not provided. The library requires arm64.

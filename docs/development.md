@@ -36,12 +36,13 @@ the local toolchain without changing anything.
 - Run the `Native binary release` GitHub workflow manually on the intended branch.
   CI builds ZIPs, creates a release-only commit and version tag, then publishes
   the same ZIPs. The tag commit does not advance the development branch. A failed
-  publication may leave a tag or release that needs explicit recovery.
+  run can leave its tag, which blocks a rerun. Recover by deleting the remote tag
+  (`git push origin --delete <version>`), fixing the cause and rerunning.
 - Test mode requires a separate public repository, a prerelease version containing
   `-ci.`, and its `KASUMI_PRODUCTION_REPOSITORY` repository variable set to the
   production owner/name. Never use production for test mode. The repository needs
   Actions write access to create tags and releases. A separate-repository test
-  passed; no production release has yet been published.
+  passed. Release `0.1.0` was published from `main` on 2026-11-18.
 - `make run-sim` and `make test-ios` don't boot a simulator.
 - New files under `apps/iOS/Kasumi/`, `ImportExtension/`, and `Shared/` are
   picked up without project edits (folder-synchronized groups). `Shared/` compiles
