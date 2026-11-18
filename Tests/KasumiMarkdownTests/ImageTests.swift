@@ -15,6 +15,17 @@ import UniformTypeIdentifiers
 
 fileprivate let imageFixtureDirectory = testRepositoryURL.appendingPathComponent("fixtures")
 
+fileprivate func imagePixel(_ bitmap: CGImage, _ x: Int, _ y: Int) throws -> [UInt8] {
+    let crop = try #require(bitmap.cropping(to: CGRect(x: x, y: y, width: 1, height: 1)))
+    var bytes = [UInt8](repeating: 0, count: 4)
+    let context = try #require(
+        CGContext(
+            data: &bytes, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4,
+            space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+    context.draw(crop, in: CGRect(x: 0, y: 0, width: 1, height: 1))
+    return bytes
+}
+
 @Test func imageParserPreservesSourcesLinksAndNativeBlockKinds() throws {
     let source = try String(contentsOf: imageFixtureDirectory.appendingPathComponent("Images.md"), encoding: .utf8)
     let document = DocumentParser.parse(source, baseURL: imageFixtureDirectory)
@@ -121,14 +132,7 @@ fileprivate let imageFixtureDirectory = testRepositoryURL.appendingPathComponent
     let source = try #require(CGImageSourceCreateWithURL(output as CFURL, nil))
     let bitmap = try #require(CGImageSourceCreateImageAtIndex(source, 0, nil))
     func pixel(_ x: Int, _ y: Int) throws -> [UInt8] {
-        let crop = try #require(bitmap.cropping(to: CGRect(x: x, y: y, width: 1, height: 1)))
-        var bytes = [UInt8](repeating: 0, count: 4)
-        let context = try #require(
-            CGContext(
-                data: &bytes, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4,
-                space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
-        context.draw(crop, in: CGRect(x: 0, y: 0, width: 1, height: 1))
-        return bytes
+        try imagePixel(bitmap, x, y)
     }
     let top = try pixel(200, 48)
     let bottom = try pixel(200, 168)
@@ -158,6 +162,27 @@ fileprivate let imageFixtureDirectory = testRepositoryURL.appendingPathComponent
     let neighbor = try bidiPixel(under: "עולם")
     #expect(placeholder[0] > 240 && placeholder[1] < 15 && placeholder[2] > 240)
     #expect(neighbor[0] > 240 && neighbor[1] > 240 && neighbor[2] > 240)
+}
+
+@Test func wrappedImagePlaceholderPaintsBehindDiscretionaryHyphen() throws {
+    let document = DocumentParser.parse("![Sample photograph](images/no.png)", baseURL: imageFixtureDirectory)
+    let theme = DocumentTheme(
+        id: "test", name: "Test", appearance: .light,
+        document: ["image_placeholder_background": DocumentColor(red: 1, green: 0, blue: 1)])
+    let style = RenderStyle(theme: theme).typography
+    let layout = DocumentTypesetter.layout(document, width: 205, style: style)
+    let placed = try #require(layout.paragraphs.first)
+    let line = try #require(placed.paragraph.lines.first { $0.hyphen != nil })
+    let hyphen = try #require(line.hyphen)
+
+    let png = try DocumentExporter.imageData(layout, style: style, scale: 1)
+    let source = try #require(CGImageSourceCreateWithData(png as CFData, nil))
+    let bitmap = try #require(CGImageSourceCreateImageAtIndex(source, 0, nil))
+    // Sample below the baseline to read the fill without touching the hyphen glyph.
+    let x = Int(placed.origin.x + line.origin.x + hyphen.x + hyphen.width / 2)
+    let y = Int(placed.origin.y + line.origin.y) + 2
+    let fill = try imagePixel(bitmap, x, y)
+    #expect(fill[0] > 240 && fill[1] < 15 && fill[2] > 240)
 }
 
 fileprivate final class ImageFixtureProtocol: URLProtocol, @unchecked Sendable {

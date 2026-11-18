@@ -671,7 +671,11 @@ enum DocumentTypesetter {
                                 width: span.upperBound - span.lowerBound, height: ascent + descent + 2))
                         }
                     } else {
-                        context.fill(decorationRect(range, ascent: ascent, descent: descent))
+                        var rect = decorationRect(range, ascent: ascent, descent: descent)
+                        if NSMaxRange(range) == NSMaxRange(line.range), let hyphen = line.hyphen {
+                            rect.size.width = max(rect.maxX, hyphen.x + hyphen.width) - rect.minX
+                        }
+                        context.fill(rect)
                     }
                 }
                 attributes.enumerateAttribute(.kasumiCodeCapsule, in: line.range) { value, range, _ in
