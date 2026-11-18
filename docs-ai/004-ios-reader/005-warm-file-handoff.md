@@ -27,6 +27,12 @@ shows it.
   window scene a `HandoffSceneDelegate`. SwiftUI forwards
   `scene(_:openURLContexts:)` and `sceneDidBecomeActive` to it, and still
   handles cold opens of files itself.
+- Cold share-sheet copies (added 2026-11-18): the delegate also reads
+  `scene(_:willConnectTo:options:)` and queues the connection's file copies
+  (`openInPlace == false`) like a warm share. SwiftUI still opens the
+  `Documents/Inbox/` copy first; once the scene is active, the copy is saved
+  into `Imported` and `show` replaces that reader. Incoming copies are removed
+  only after `show` returns, so SwiftUI's reader isn't left on a deleted file.
 - The delegate also drains the "Import into Kasumi" inbox on every activation
   and opens the newest file. This replaces `LaunchStore.importSharedFiles()`
   and the launch scene's `scenePhase` hook.
@@ -79,6 +85,8 @@ The sender and the probe apps aren't part of the repository.
   Passed three times across builds.
 - Share 1 s after launch: opened, twice with the final code.
 - Cold share: SwiftUI opened the file itself, in place from `Documents/Inbox/`.
+  After the launch-time check (2026-11-18), the maintainer reported that a cold
+  share moves into `Imported` and opens there.
 - "Import into Kasumi" action while a reader was open: the imported file
   replaced the reader. Before this change that path would have waited for a
   browser that isn't present while a reader shows; that old behavior was
@@ -99,8 +107,6 @@ warm share-sheet copy on a physical device.
 
 ## Open questions
 
-- Cold share-sheet copies are still opened by SwiftUI from `Documents/Inbox/`,
-  so they don't move into `Imported` and get no Delete.
 - How long `isBeingPresented` stays true on a cold launch wasn't measured; the
   wait gives up after 15 s and logs.
 - Whether the pick works for a file opened in place from outside Kasumi's

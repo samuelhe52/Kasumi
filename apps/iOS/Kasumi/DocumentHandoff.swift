@@ -19,6 +19,13 @@ final class KasumiAppDelegate: NSObject, UIApplicationDelegate {
 final class HandoffSceneDelegate: NSObject, UIWindowSceneDelegate {
     private var pending: [UIOpenURLContext] = []
 
+    /// A cold share hands its file to the connecting scene. SwiftUI opens that
+    /// copy from Documents/Inbox itself; queuing it here moves it into
+    /// Imported like a warm share, and the reader is replaced once active.
+    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options: UIScene.ConnectionOptions) {
+        pending += options.urlContexts.filter { $0.url.isFileURL && !$0.options.openInPlace }
+    }
+
     func scene(_ scene: UIScene, openURLContexts contexts: Set<UIOpenURLContext>) {
         pending += contexts.filter(\.url.isFileURL)
         if scene.activationState == .foregroundActive { flush(scene) }
@@ -38,13 +45,19 @@ final class HandoffSceneDelegate: NSObject, UIWindowSceneDelegate {
         Task { @MainActor in
             // One reader per window: everything is kept, the last file opens.
             var opened: URL?
+            var received: [URL] = []
             for context in contexts {
-                if let url = DocumentBrowser.receive(context) { opened = url }
+                guard let url = DocumentBrowser.receive(context) else { continue }
+                opened = url
+                if url != context.url { received.append(context.url) }
             }
             ImportInbox.drain { data, name in
                 opened = try ImportFolder.imported.save(data, as: ImportFolder.markdownName(name))
             }
             if let opened { await DocumentBrowser.show(opened, in: scene) }
+            // After a cold share, SwiftUI's reader holds the incoming copy until
+            // `show` closes it.
+            for url in received { try? FileManager.default.removeItem(at: url) }
         }
     }
 }
@@ -57,14 +70,13 @@ final class HandoffSceneDelegate: NSObject, UIWindowSceneDelegate {
 @MainActor enum DocumentBrowser {
     /// Share-sheet copies move into Documents/Imported, like files from the
     /// "Import into Kasumi" action. Files opened in place stay where they are.
+    /// The caller removes the incoming copy once its reader has closed.
     static func receive(_ context: UIOpenURLContext) -> URL? {
         let url = context.url
         guard !context.options.openInPlace else { return url }
         do {
-            let saved = try ImportFolder.imported.save(
+            return try ImportFolder.imported.save(
                 Data(contentsOf: url), as: ImportFolder.markdownName(url.lastPathComponent))
-            try? FileManager.default.removeItem(at: url)
-            return saved
         } catch {
             NSLog("Handoff failed %@: %@", url.lastPathComponent, error.localizedDescription)
             return nil

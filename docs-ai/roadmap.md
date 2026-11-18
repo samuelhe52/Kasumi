@@ -94,7 +94,6 @@ Retained after milestone closure; not prerequisites for starting Reader 2:
 
 - Saved-import open questions in [004.002](004-ios-reader/002-saved-imports.md#open-questions).
 - Intermittent blank iPad open in [004.003](004-ios-reader/003-ipad-inspector.md#open-questions).
-- Cold share-sheet copies remaining in `Inbox` in [004.005](004-ios-reader/005-warm-file-handoff.md#open-questions).
 
 ## Library
 
