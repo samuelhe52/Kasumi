@@ -4,7 +4,12 @@ import PackageDescription
 // A checkout opts into its own Rust builds with `make native-local`.
 // Release automation replaces this block with immutable URLs and checksums.
 // BEGIN RELEASE NATIVE BINARIES
-let releasedNative: [String: (url: String, checksum: String)] = [:]
+let releasedNative: [String: (url: String, checksum: String)] = [
+    "KasumiDagreNative": (url: "https://github.com/samuelhe52/Kasumi/releases/download/0.1.0/kasumi_dagre.xcframework.zip", checksum: "d42e383990697ac0c9fbb5f2bb45db3a2ef29eb9c0a60062751a2ffc23b1476e"),
+    "KasumiLineBreakNative": (url: "https://github.com/samuelhe52/Kasumi/releases/download/0.1.0/kasumi_linebreak.xcframework.zip", checksum: "58f1f39851eba4f65520b3da933d9b6bb128bf8ef46c44fea1a5183778c9455d"),
+    "KasumiHyphenationNative": (url: "https://github.com/samuelhe52/Kasumi/releases/download/0.1.0/kasumi_hyphenation.xcframework.zip", checksum: "1bd29473e5f815ac9640a23f30fa7baf7cb3b410039f7f07b47d54e8bccfbe73"),
+    "KasumiSyntaxNative": (url: "https://github.com/samuelhe52/Kasumi/releases/download/0.1.0/kasumi_syntax.xcframework.zip", checksum: "030404e6802fb4c583c740a7fa0786c48a7070a937ee8d6c29a511d5e01404c2"),
+]
 // END RELEASE NATIVE BINARIES
 let native = ".build/native"
 // Local mode changes this checkout-only switch for a tagged release.
