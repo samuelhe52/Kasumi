@@ -30,7 +30,8 @@ struct ReadingSurface: UIViewRepresentable {
         view.setActive(isActive)
         guard isActive else { return }
         view.update(
-            document: document, revision: revision, style: style, fontRevision: fontRevision,
+            document: document, revision: revision, animated: context.transaction.animation != nil,
+            style: style, fontRevision: fontRevision,
             imageRevision: imageRevision, displayScale: displayScale, outline: outline,
             fileURL: fileURL, viewport: viewport, openLink: openLink)
         view.requestFind(findRequest)
@@ -146,7 +147,8 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
     }
 
     func update(
-        document: MarkdownDocument, revision: UUID, style: RenderStyle, fontRevision: Int, imageRevision: Int,
+        document: MarkdownDocument, revision: UUID, animated: Bool,
+        style: RenderStyle, fontRevision: Int, imageRevision: Int,
         displayScale: CGFloat,
         outline: [OutlineItem], fileURL: URL?, viewport: ReaderViewport, openLink: @escaping (URL) -> Void
     ) {
@@ -163,7 +165,8 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         if contentChanged { stopImageLoading() }
         let needsSession = contentChanged || appearanceChanged || self.displayScale != displayScale
         let changed = needsSession || self.imageRevision != imageRevision
-        if changed { animateAppearanceReplacement = appearanceChanged }
+        // An animated transaction (such as a re-parse) crossfades a content change.
+        if changed { animateAppearanceReplacement = appearanceChanged || (contentChanged && animated) }
         self.fontRevision = fontRevision
         self.imageRevision = imageRevision
         self.displayScale = displayScale

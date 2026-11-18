@@ -79,8 +79,10 @@ private struct SpacingPreview: View {
 private struct SpacingControls: View {
     let preset: TypographyPreset
     @Binding var edits: TypographySpacing?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
+        let isAtDefaults = edits == nil
         Form {
             Section("Spacing") {
                 SpacingSlider(
@@ -107,9 +109,15 @@ private struct SpacingControls: View {
                     value: setting(\.headingSpaceAfter), range: TypographySpacing.headingSpaceAfterRange)
             }
             Section {
-                Button("Restore \(preset.name) Defaults") { edits = nil }
-                    .disabled(edits == nil)
-                    .accessibilityIdentifier("preset-restore-defaults")
+                Button {
+                    edits = nil
+                } label: {
+                    Text("Restore \(preset.name) Defaults")
+                        .foregroundStyle(isAtDefaults ? Color(uiColor: .tertiaryLabel) : .accentColor)
+                        .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: isAtDefaults)
+                }
+                .disabled(isAtDefaults)
+                .accessibilityIdentifier("preset-restore-defaults")
             }
         }
         .scrollEdgeEffectStyle(.soft, for: .top)

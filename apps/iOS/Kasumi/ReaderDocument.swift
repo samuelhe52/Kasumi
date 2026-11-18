@@ -16,12 +16,15 @@ struct ReaderSnapshot: Sendable {
     let text: String
     let parsed: MarkdownDocument
 
-    init(source: DocumentSource, text: String, fileExtension: String, baseURL: URL?, revision: UUID = UUID()) {
+    init(
+        source: DocumentSource, text: String, fileExtension: String, baseURL: URL?,
+        parsePlainTextAsMarkdown: Bool = false, revision: UUID = UUID()
+    ) {
         self.revision = revision
         self.source = source
         self.text = text
         let ext = fileExtension.lowercased()
-        parsed = ext == "txt" || ext == "text"
+        parsed = (ext == "txt" || ext == "text") && !parsePlainTextAsMarkdown
             ? MarkdownDocument(plainText: text, baseURL: baseURL)
             : MarkdownDocument(markdown: text, baseURL: baseURL)
     }
@@ -35,14 +38,21 @@ final class ReaderDocument: Document, Identifiable {
     private(set) var snapshot: ReaderSnapshot?
     private(set) var text = ""
     private(set) var previewIsCurrent = false
+    private(set) var parsePlainTextAsMarkdown = false
     @ObservationIgnored private var source = DocumentSource(text: "")
     @ObservationIgnored private var sourceRevision = UUID()
     @ObservationIgnored private var previewTask: Task<Void, Never>?
+    /// The revision whose preview publishes with animation, so the reader crossfades it.
+    @ObservationIgnored private var animatedRevision: UUID?
     @ObservationIgnored private var lastTyping: ContinuousClock.Instant?
 
     var fileURL: URL? { configuration.fileURL }
     var title: String { fileURL?.lastPathComponent ?? "Untitled" }
     var canEdit: Bool { snapshot != nil && !source.isLossy }
+    var isPlainText: Bool {
+        let ext = fileURL?.pathExtension.lowercased()
+        return ext == "txt" || ext == "text"
+    }
 
     init(configuration: URLDocumentConfiguration) {
         self.configuration = configuration
@@ -87,8 +97,24 @@ final class ReaderDocument: Document, Identifiable {
         sourceRevision = snapshot.revision
         source = snapshot.source
         text = snapshot.text
-        self.snapshot = snapshot
-        previewIsCurrent = true
+        // The reader parses plain text as text; keep the current preview until
+        // the Markdown parse replaces it, instead of flashing the text rendering.
+        if parsePlainTextAsMarkdown && isPlainText && self.snapshot != nil {
+            previewIsCurrent = false
+            schedulePreview()
+        } else {
+            self.snapshot = snapshot
+            previewIsCurrent = true
+        }
+    }
+
+    func setParsePlainTextAsMarkdown(_ value: Bool) {
+        guard isPlainText, value != parsePlainTextAsMarkdown else { return }
+        parsePlainTextAsMarkdown = value
+        previewIsCurrent = false
+        sourceRevision = UUID()
+        animatedRevision = sourceRevision
+        schedulePreview()
     }
 
     /// Typing coalesces into one undo step until a pause, or until the editor
@@ -126,14 +152,20 @@ final class ReaderDocument: Document, Identifiable {
                 let text = self.text
                 let ext = self.fileURL?.pathExtension ?? "md"
                 let baseURL = self.fileURL?.deletingLastPathComponent()
+                let parsePlainTextAsMarkdown = self.parsePlainTextAsMarkdown
                 let worker = Task.detached(priority: .userInitiated) {
-                    ReaderSnapshot(source: source, text: text, fileExtension: ext, baseURL: baseURL, revision: revision)
+                    ReaderSnapshot(
+                        source: source, text: text, fileExtension: ext, baseURL: baseURL,
+                        parsePlainTextAsMarkdown: parsePlainTextAsMarkdown, revision: revision)
                 }
                 let next = await worker.value
                 guard !Task.isCancelled else { break }
                 if self.sourceRevision == revision {
-                    self.snapshot = next
-                    self.previewIsCurrent = true
+                    withAnimation(self.animatedRevision == revision ? .default : nil) {
+                        self.snapshot = next
+                        self.previewIsCurrent = true
+                    }
+                    self.animatedRevision = nil
                 }
             }
             self?.previewTask = nil

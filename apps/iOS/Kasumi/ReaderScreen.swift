@@ -201,6 +201,18 @@ struct ReaderScreen: View {
                     .accessibilityIdentifier("reader-delete")
                 }
             }
+            if document.isPlainText {
+                Section {
+                    Button(
+                        document.parsePlainTextAsMarkdown ? "Parse as Text" : "Parse as Markdown",
+                        systemImage: "chevron.left.forwardslash.chevron.right"
+                    ) {
+                        document.setParsePlainTextAsMarkdown(!document.parsePlainTextAsMarkdown)
+                    }
+                    .disabled(document.snapshot == nil)
+                    .accessibilityIdentifier("reader-parse-as-markdown")
+                }
+            }
         }
         .labelStyle(.iconOnly)
         .accessibilityIdentifier("reader-actions")
