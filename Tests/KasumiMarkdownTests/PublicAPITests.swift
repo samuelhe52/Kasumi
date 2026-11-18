@@ -285,6 +285,57 @@ fileprivate func facadeBitmap(size: CGSize, draw: (CGContext) -> Void) throws ->
         #endif
     }
 
+    @Test func editedPresetSpacingReachesReaderAndExport() throws {
+        let book = try #require(TypographyPreset.builtin.first { $0.id == "book" })
+        #expect(book.spacing.paragraphStyle == .indented)
+        #expect(book.applyingSpacing(book.spacing) == book)
+        var spacing = book.spacing
+        spacing.lineSpacing = 2.4
+        spacing.paragraphStyle = .spaced
+        spacing.headingSpaceBefore = 4
+        spacing.headingSpaceAfter = 3
+        let edited = book.applyingSpacing(spacing)
+        #expect(edited.id == book.id && edited.name == book.name)
+        #expect(edited.printFontSize == book.printFontSize)
+        #expect(edited.spacing == spacing)
+        #expect(book.spacing.paragraphStyle == .indented)
+
+        let originalStyle = RenderStyle(preset: book, fontSize: 18, insets: .zero)
+        let style = RenderStyle(preset: edited, fontSize: 18, insets: .zero)
+        let typography = style.typography
+        #expect(typography.size == 18)
+        #expect(typography.lineSpacing == 2.4)
+        #expect(typography.firstLineIndent == 0 && typography.paraSpaceBetween > 0)
+        #expect(typography.headingSpaceBefore == 4 && typography.headingSpaceAfter == 3)
+        let document = MarkdownDocument(markdown: "First paragraph.\n\nSecond paragraph.\n\n## A heading\n\nAfter the heading.")
+        let original = RenderedDocument(document, width: 240, style: originalStyle)
+        let rendered = RenderedDocument(document, width: 240, style: style)
+        #expect(rendered.size.height > original.size.height)
+
+        var pdf = PDFExportOptions()
+        pdf.paperSize = CGSize(width: 240, height: 145)
+        pdf.margins = .zero
+        pdf.pageNumbers = false
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let originalPDF = folder.appendingPathComponent("original.pdf")
+        let editedPDF = folder.appendingPathComponent("edited.pdf")
+        try DocumentExport.writePDF(document, style: originalStyle, options: pdf, to: originalPDF)
+        try DocumentExport.writePDF(document, style: style, options: pdf, to: editedPDF)
+        let originalPages = try #require(PDFDocument(url: originalPDF)).pageCount
+        let editedPages = try #require(PDFDocument(url: editedPDF)).pageCount
+        #expect(editedPages > originalPages)
+
+        var options = ImageExportOptions()
+        options.scale = 1
+        let imageURL = folder.appendingPathComponent("edited.png")
+        try DocumentExport.writeImage(document, style: style, width: 240, options: options, to: imageURL)
+        let imageSource = try #require(CGImageSourceCreateWithURL(imageURL as CFURL, nil))
+        let image = try #require(CGImageSourceCreateImageAtIndex(imageSource, 0, nil))
+        #expect(image.height == Int(ceil(rendered.size.height)))
+    }
+
     @Test func missingFamilyUsesOrderedFallbackWithoutDownloads() throws {
         let preset = try TypographyPreset(
             id: "missing", name: "Missing family", toml: "[profile]\nhan_family = \"KasumiDeliberatelyMissingFamily\"\n"

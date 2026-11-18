@@ -111,6 +111,10 @@ Run the narrowest filter: `make test FILTER=<name>` for package tests and
 - **Export:** `make test FILTER='Export|Pagination|PublicAPITests'`. Run it after
   any export change. Memory guard and measurements:
   [008](../docs-ai/008-reader-export/001-action.md).
+- **Preset spacing:** `make test FILTER=editedPresetSpacingReachesReaderAndExport`
+  checks the shared layout and file-backed export paths. In the app, edit Book
+  and switch to Serif to check that the edit marker and reset follow the preset
+  while text size carries across. See [004.008](../docs-ai/004-ios-reader/008-preset-spacing.md).
 - **Tables:** `make test FILTER='TableLayoutTests|Export|Pagination|PublicAPITests'`,
   plus `make test FILTER=ReaderTableEdgeTests` for the edge masks. Visual check:
   `fixtures/Tables.md`. See [002.005](../docs-ai/002-rendering-engine/005-table-layout.md).

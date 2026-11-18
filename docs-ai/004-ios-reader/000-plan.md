@@ -90,3 +90,5 @@ paste consent prompt on a device (`make run-device`).
 - Updated 2026-11-17: Rebase anchors on installed content revisions and track keyboard-driven Find scrolling — see [007-reflow-anchor-lifecycle.md](007-reflow-anchor-lifecycle.md).
 - Updated 2026-11-17: Refine viewport snapshots on scrolling and semantic navigation, preserving same-content selection — see [002.016](../002-rendering-engine/016-viewport-layout.md).
 - Updated 2026-11-17: Preserve horizontal table scroll ownership and offsets across mixed-content refinement — see [002.018](../002-rendering-engine/018-mixed-viewport-coverage.md).
+- Updated 2026-11-18: save spacing per typography preset and keep reader text
+  size global. See [008-preset-spacing.md](008-preset-spacing.md).

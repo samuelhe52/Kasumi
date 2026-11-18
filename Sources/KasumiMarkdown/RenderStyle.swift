@@ -7,6 +7,7 @@ public struct TypographyPreset: Identifiable, Equatable, Sendable {
     public let name: String
     public var defaultFontSize: CGFloat { values.resolved(.baseSize).number! }
     public var printFontSize: CGFloat { values.resolved(.printBodySize).number! }
+    public var spacing: TypographySpacing { TypographySpacing(values: values) }
     let values: ProfileValues
 
     public static let builtin: [TypographyPreset] = BuiltinProfiles.all.map {
@@ -20,6 +21,28 @@ public struct TypographyPreset: Identifiable, Equatable, Sendable {
         self.id = id
         self.name = name
         values = try ProfileValues.parse(toml)
+    }
+
+    /// Derive a preset with edited spacing, preserving its identity and other typography.
+    public func applyingSpacing(_ spacing: TypographySpacing) -> TypographyPreset {
+        let requested: [ProfileField: ProfileValue] = [
+            .lineSpacing: .number(spacing.lineSpacing),
+            .paraSeparation: .string(spacing.paragraphStyle.rawValue),
+            .headingSpaceBefore: .number(spacing.headingSpaceBefore),
+            .headingSpaceAfter: .number(spacing.headingSpaceAfter),
+        ]
+        var edited = values
+        for (field, input) in requested {
+            if let normalized = field.specification.normalized(input), normalized != values.resolved(field) {
+                edited[field] = normalized
+            }
+        }
+        if edited[.paraSeparation] != values[.paraSeparation] {
+            // Use the new mode's derived indent and gap.
+            edited[.firstLineIndent] = nil
+            edited[.paraSpaceBetween] = nil
+        }
+        return TypographyPreset(id: id, name: name, values: edited)
     }
 
     private init(id: String, name: String, values: ProfileValues) {

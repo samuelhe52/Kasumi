@@ -11,7 +11,8 @@ struct ReaderScreen: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @AppStorage("reader.preset") private var presetID = "serif"
     @AppStorage("reader.theme-pair") private var pairID = "mono"
-    @AppStorage("reader.font-size") private var fontSize: Double = 0
+    @AppStorage("reader.font-size") private var fontSize = ReaderAppearance.defaultFontSize
+    @AppStorage("reader.preset-spacing") private var presetSpacing = ReaderPresetSpacing()
     @State private var viewport = ReaderViewport()
     @State private var imageRevision = 0
     @State private var findRequest = 0
@@ -38,8 +39,13 @@ struct ReaderScreen: View {
     private var fontStore: FontStore { .shared }
     private var style: RenderStyle {
         _ = fontStore.revision
+        let appearance = self.appearance
         return appearance.style(
-            dark: colorScheme == .dark, regular: regular, preferredOpen: fontStore.preferredOpen)
+            dark: colorScheme == .dark, regular: regular, preferredOpen: fontStore.preferredOpen,
+            spacing: presetSpacing[appearance.preset])
+    }
+    private var appearanceSettings: some View {
+        AppearanceSettings(presetID: $presetID, pairID: $pairID, fontSize: $fontSize, presetSpacing: $presetSpacing)
     }
     private var paper: Color {
         if let rendered = viewport.rendered { return Color(cgColor: rendered.backgroundColor) }
@@ -122,7 +128,7 @@ struct ReaderScreen: View {
             .sheet(
                 isPresented: Binding(get: { showAppearance && !regular }, set: { showAppearance = $0 })
             ) {
-                AppearanceSettings(presetID: $presetID, pairID: $pairID, fontSize: $fontSize)
+                appearanceSettings
             }
             .confirmationDialog("Open External Link?", isPresented: $showLinkConfirmation, titleVisibility: .visible) {
                 Button("Open Link") {
@@ -139,7 +145,6 @@ struct ReaderScreen: View {
                 Text("No application could open this link.")
             }
             .fontOnboarding()
-            .onChange(of: presetID) { _, _ in fontSize = 0 }
             .onChange(of: showPreview) { _, preview in
                 editorState.previewDidChange(isVisible: preview)
             }
@@ -203,8 +208,7 @@ struct ReaderScreen: View {
         .popover(
             isPresented: Binding(get: { showAppearance && regular }, set: { showAppearance = $0 })
         ) {
-            AppearanceSettings(presetID: $presetID, pairID: $pairID, fontSize: $fontSize)
-                .frame(width: 360)
+            appearanceSettings.frame(width: 360)
         }
         .confirmationDialog(
             "Delete \(document.title)?", isPresented: $showDeleteConfirmation, titleVisibility: .visible

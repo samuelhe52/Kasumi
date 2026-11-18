@@ -1,15 +1,16 @@
 import KasumiMarkdown
 import SwiftUI
 
-/// A compact panel: one row of type controls above a grid of theme cards.
-/// Its content doesn't grow, so the sheet's only detent is the content height.
+/// Quick reader controls and an entry point for editing the selected preset.
 struct AppearanceSettings: View {
     @Binding var presetID: String
     @Binding var pairID: String
     @Binding var fontSize: Double
+    @Binding var presetSpacing: ReaderPresetSpacing
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
     @State private var showFonts = false
+    @State private var customizingPreset: TypographyPreset?
     private var appearance: ReaderAppearance {
         ReaderAppearance(presetID: presetID, pairID: pairID, fontSize: fontSize)
     }
@@ -35,9 +36,16 @@ struct AppearanceSettings: View {
                 }
             }
             .sheet(isPresented: $showFonts) { FontStoreView() }
+            .sheet(item: $customizingPreset) { preset in
+                PresetSpacingSettings(
+                    preset: preset, appearance: appearance,
+                    edits: Binding(
+                        get: { presetSpacing[preset] },
+                        set: { presetSpacing[preset] = $0 }))
+            }
         }
-        .frame(idealHeight: 330)
-        .presentationDetents([.height(330)])
+        .frame(idealHeight: 398)
+        .presentationDetents([.height(398)])
     }
 
     private var content: some View {
@@ -49,6 +57,18 @@ struct AppearanceSettings: View {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 140), spacing: 12)], spacing: 12) {
                 ForEach(DocumentThemePair.builtin) { card($0) }
             }
+            Button {
+                customizingPreset = appearance.preset
+            } label: {
+                Text("Customize")
+                    .font(.subheadline.weight(.medium))
+                    .frame(maxWidth: .infinity, minHeight: 48)
+                    .background(.fill.tertiary, in: Capsule())
+                    .contentShape(Capsule())
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("appearance-customize")
+            .accessibilityHint("Edit the spacing for \(appearance.preset.name)")
         }
         .padding(.horizontal, 20)
         .padding(.bottom, 8)
@@ -83,13 +103,28 @@ struct AppearanceSettings: View {
     }
 
     private var presetMenu: some View {
-        Menu {
+        let preset = appearance.preset
+        let isEdited = presetSpacing[preset] != nil
+        return Menu {
             Picker("Typography", selection: $presetID) {
-                ForEach(TypographyPreset.builtin) { Text($0.name).tag($0.id) }
+                ForEach(TypographyPreset.builtin) { option in
+                    let edited = presetSpacing[option] != nil
+                    Text(verbatim: edited ? "\(option.name)*" : option.name)
+                        .accessibilityLabel(edited ? Text("\(option.name), customized") : Text(option.name))
+                        .tag(option.id)
+                }
             }
         } label: {
             HStack(spacing: 6) {
-                Text(appearance.preset.name).lineLimit(1)
+                HStack(alignment: .firstTextBaseline, spacing: 0) {
+                    Text(preset.name).lineLimit(1)
+                    if isEdited {
+                        Text(verbatim: "*")
+                            .foregroundStyle(.secondary)
+                            .fixedSize()
+                            .accessibilityHidden(true)
+                    }
+                }
                 Image(systemName: "chevron.up.chevron.down").font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
             }
@@ -100,7 +135,9 @@ struct AppearanceSettings: View {
         }
         .tint(.primary)
         .menuActionDismissBehavior(.disabled)
-        .accessibilityLabel("Typography, \(appearance.preset.name)")
+        .accessibilityLabel("Typography, \(preset.name)")
+        .accessibilityValue(isEdited ? Text("Customized") : Text(""))
+        .accessibilityIdentifier("appearance-preset")
     }
 
     private func card(_ pair: DocumentThemePair) -> some View {

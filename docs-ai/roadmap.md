@@ -36,6 +36,9 @@ or is reordered; record the work itself in a numbered entry.
 
 ## Non-blocking Reader 1 follow-ups
 
+[Preset spacing](004-ios-reader/008-preset-spacing.md) adds live editing in
+Appearance and carries the active preset's spacing through export and print.
+
 Live window-resize reflow was implemented on 2026-11-17 with one background
 layout/viewport-paint pipeline and coalesced pending widths. See
 [004.006](004-ios-reader/006-live-reflow.md) for validation and performance limits.
