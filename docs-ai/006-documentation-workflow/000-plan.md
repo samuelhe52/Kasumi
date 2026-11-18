@@ -27,7 +27,7 @@ their reasons lived only in commit messages.
 | Old content | New home |
 | --- | --- |
 | `docs/goal.md` | [001-library-and-reader/goal.md](../001-library-and-reader/goal.md) (moved unchanged) |
-| `docs/development.md` | Stays in `docs/` (moved to `docs-ai/` at first, then back; see amendment) |
+| `docs/development.md` | Stayed in `docs/` (moved to `docs-ai/` at first, then back), then retired into `AGENTS.md`, the README, and entries; see amendments |
 | Status: current state and validation | Action records of [001](../001-library-and-reader/001-action.md), [003](../003-public-rendering-api/001-action.md), [004](../004-ios-reader/001-action.md) |
 | Status: known reader issues | [004 open questions](../004-ios-reader/001-action.md#open-questions) |
 | Status: "Not yet" items | [Roadmap](../roadmap.md), [renderer gaps](../002-rendering-engine/renderer-gaps.md), [001 open questions](../001-library-and-reader/001-action.md#open-questions) |
@@ -58,3 +58,4 @@ changes, so no build, test, or simulator run.
 ## Amendments
 
 - Updated 2026-11-15: `development.md` moved back to `docs/` and trimmed — see [002-development-guide.md](002-development-guide.md)
+- Updated 2026-11-19: retired `docs/development.md`; corrected the mapping row above and the action record's current state — see [003-retire-development-guide.md](003-retire-development-guide.md)

@@ -166,5 +166,5 @@ Commits, files, tests. Add "## Current state" when useful.
   and inference.
 - Sources live in `Sources/KasumiMarkdown/` (library), `Sources/KasumiRender/`
   (CLI), `packages/Native*/` (Rust bridges), and `apps/iOS/Kasumi/` (app). Use
-  `AGENTS.md` and `docs/development.md` for Makefile commands, test filters,
-  and simulator rules.
+  `AGENTS.md` and `make help` for Makefile commands, test filters, and
+  simulator rules.

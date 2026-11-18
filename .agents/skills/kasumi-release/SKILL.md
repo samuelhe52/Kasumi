@@ -82,7 +82,7 @@ Before an unauthorized gate, state the single next action and its remote effects
    - the relevant `docs-ai/` action record: timeline rows naming the run IDs and commits, failures and fixes, open questions
    - `docs-ai/roadmap.md`
    - the `docs-ai/README.md` index row
-   - `docs/development.md` release notes, if the workflow or recovery changed
+   - this skill's rules and recovery steps, if the workflow or recovery changed
 
    Close a roadmap milestone only when the maintainer asks.
 4. **Report** the version, release URL, run IDs, commits pushed, validation completed, and anything still open, such as a README install line that still needs the new version. Then hand off to the maintainer for app distribution.

@@ -8,7 +8,7 @@ KasumiMarkdown supports arm64 macOS 13, iOS 17 and iOS Simulator. It needs Swift
 
 A Swift package on macOS must declare the platform in its manifest, for example `platforms: [.macOS(.v13), .iOS(.v17)]`. Without it, SwiftPM's default macOS minimum is 12 and the build fails.
 
-You can use local native builds. Clone the repository, run `make native-local`, and add the checkout as a local Swift package. Building needs Rust with the `aarch64-apple-ios` and `aarch64-apple-ios-sim` targets; see [development.md](development.md#setup).
+You can use local native builds. Clone the repository, run `make native-local`, and add the checkout as a local Swift package. Building needs Rust with the `aarch64-apple-ios` and `aarch64-apple-ios-sim` targets; see the [README](../README.md#building).
 
 A tagged checkout can also use local binaries with `make native-local`. This changes its `Package.swift` locally. Run `make native-release` to select its published binaries again.
 

@@ -12,7 +12,7 @@
 ## Outcome and current state (as of 2026-11-15)
 
 `docs-ai/` holds the index, workflow, roadmap, and entries 001–006.
-`docs/development.md` is the only file left in `docs/` ([002](002-development-guide.md)). Both agents find the skill: Codex through
+`docs/development.md` was the only file left in `docs/` ([002](002-development-guide.md)) until it was retired on 2026-11-19 ([003](003-retire-development-guide.md)). Both agents find the skill: Codex through
 `.agents/skills/`, Claude Code through `.claude/skills/`.
 
 ## Deviations from plan

@@ -42,7 +42,7 @@ with the earlier decision to keep the reader primary.
 - `apps/iOS/Kasumi/SourceEditor.swift`
 - `apps/iOS/Kasumi/ReadingSurface.swift`
 - `apps/iOS/Kasumi/ReaderPaneTransition.swift`
-- [Contributor verification](../../docs/development.md#verification)
+- Verification recipes: [003](003-native-editor-chrome.md), [004](004-markdown-keyboard-bar.md)
 
 ## Validation
 

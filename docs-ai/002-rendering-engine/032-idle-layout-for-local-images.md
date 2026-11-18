@@ -44,7 +44,10 @@ cache on viewport demand. Reopening the document starts a new session for
 replaced local assets.
 
 Reflow Lab enables local image preparation. On iOS the validation launch
-environment enables it explicitly. The reader's optional scroll diagnostics
+environment enables it explicitly: on the booted simulator, run
+`SIMCTL_CHILD_KASUMI_READER_IMAGE_IDLE_PREPARATION=1 make run-sim`, and use the
+same prefix with `make launch-sim` to repeat the launch without rebuilding.
+The reader's optional scroll diagnostics
 record whether the current snapshot has complete geometry.
 
 ## Validation

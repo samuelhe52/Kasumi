@@ -35,9 +35,10 @@ entry that owns the area (`002-…` and later files) over opening a new topic.
    superseded one. Multi-slice plans record each slice as an amendment and finish
    the aggregate action record when the final slice completes.
 6. Keep the living files current in the same commit as the change: the
-   [roadmap](roadmap.md) for what comes next, [renderer gaps](002-rendering-engine/renderer-gaps.md)
-   for known library limitations, and [development](../docs/development.md) for setup,
-   commands, and runbooks.
+   [roadmap](roadmap.md) for what comes next and [renderer gaps](002-rendering-engine/renderer-gaps.md)
+   for known library limitations. Put a feature's verification recipe and its
+   feature-specific simulator or device quirks in its own entry; cross-feature
+   setup and tooling gotchas go in `AGENTS.md`.
 
 There is no running status document. What shipped is in action records and
 amendments; what comes next is in the roadmap; known limitations are in the gap
@@ -68,10 +69,10 @@ lists. Do not reintroduce a catch-all status file.
 ## Documentation ownership
 
 `docs-ai/` holds the product goal, design history, contracts, and the roadmap.
-`docs/development.md` holds contributor setup, build quirks, and simulator and
-device notes; keep it to what an agent can't quickly find in the Makefile or
-source. `AGENTS.md` holds agent
-rules. Package READMEs and license notices stay with their packages under
+`AGENTS.md` holds agent rules and the setup, layout, and simulator or device
+gotchas that span features; keep it to what an agent can't quickly find in
+`make help`, the Makefile, or source. The root README holds the public build
+requirements. There is no separate development guide ([006.003](006-documentation-workflow/003-retire-development-guide.md)). Package READMEs and license notices stay with their packages under
 `packages/`. Authored test documents stay in `fixtures/`; `apps/iOS/Kasumi/Welcome.md`
 is app content, not documentation. The root README is public; it is not a home
 for design history.

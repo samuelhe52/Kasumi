@@ -1,5 +1,7 @@
 # 006.002 — Development guide back in docs/
 
+Superseded on 2026-11-19: the guide was retired; see [006.003](003-retire-development-guide.md).
+
 ## Context
 
 The migration moved `docs/development.md` into `docs-ai/`. Most of it is

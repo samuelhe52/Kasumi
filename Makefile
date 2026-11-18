@@ -1,4 +1,4 @@
-# Developer entry points. See docs/development.md.
+# Developer entry points. See `make help` and AGENTS.md.
 #
 # `build`, `test` and `app` depend on `native`, so a fresh checkout needs no
 # manual ./scripts/build-native step. The stamp below makes that step run only

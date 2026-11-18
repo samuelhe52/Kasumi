@@ -5,7 +5,7 @@
 | Status | Implemented (reader milestone 1; closed 2026-11-16) |
 | Anchor date | 2026-11-14 |
 | Origin | First reader milestone from the [goal](../001-library-and-reader/goal.md). Reconstructed on 2026-11-15 from Git history and the status document during the docs-ai migration; it did not precede the work. |
-| Related | [003](../003-public-rendering-api/000-plan.md), [roadmap](../roadmap.md), [development notes](../../docs/development.md#simulator-and-device-notes) |
+| Related | [003](../003-public-rendering-api/000-plan.md), [roadmap](../roadmap.md) |
 
 ## Background
 
@@ -50,7 +50,7 @@ source editor, settings and font store.
 | --- | --- |
 | Native `DocumentGroupLaunchScene` / `DocumentGroup`, no custom browser or file-session path | Use the system document browser, recents, and windows rather than reimplementing them (`6821de1` and the status document). |
 | Background layout and `CATiledLayer` | Built on the immutable `RenderedDocument` ([003](../003-public-rendering-api/000-plan.md)); `66713de`. |
-| Paste Markdown reads the clipboard directly on tap | `c38af32` first replaced the direct read with a text sheet, because pasting into a sheet through the edit menu needs no pasteboard permission and the simulator read returned nothing. `7778595` reverted to the direct read so iOS shows its own consent prompt under Paste from Other Apps > Ask; verified on a physical iPhone. The simulator can't show that prompt ([development notes](../../docs/development.md#simulator-and-device-notes)). |
+| Paste Markdown reads the clipboard directly on tap | `c38af32` first replaced the direct read with a text sheet, because pasting into a sheet through the edit menu needs no pasteboard permission and the simulator read returned nothing. `7778595` reverted to the direct read so iOS shows its own consent prompt under Paste from Other Apps > Ask; verified on a physical iPhone. The simulator can't show that prompt. |
 | Short fade on first reveal and animated section jumps, both off under Reduce Motion | `6821de1`, `fbb13cb`. |
 
 ## Evidence and recovered rationale
