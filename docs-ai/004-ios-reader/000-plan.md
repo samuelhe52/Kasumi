@@ -92,3 +92,5 @@ paste consent prompt on a device (`make run-device`).
 - Updated 2026-11-17: Preserve horizontal table scroll ownership and offsets across mixed-content refinement — see [002.018](../002-rendering-engine/018-mixed-viewport-coverage.md).
 - Updated 2026-11-18: save spacing per typography preset and keep reader text
   size global. See [008-preset-spacing.md](008-preset-spacing.md).
+- Updated 2026-11-18. Preserve native deceleration when installing a refined
+  reader snapshot. See [009-scroll-momentum.md](009-scroll-momentum.md).

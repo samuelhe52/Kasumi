@@ -431,7 +431,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         indicatorStyle = style?.theme.appearance == .dark ? .white : .black
         headings = outline.compactMap { item in next.rect(for: item).map { (item.id, $0.minY) } }
         updateScrollExtent()
-        setTop(anchor.flatMap { next.y(for: $0) } ?? 0)
+        setTop(anchor.flatMap { next.y(for: $0) } ?? 0, preservingMomentum: true)
         reflowAnchor.didInstall(next, revision: revision, atY: topY)
         viewport?.rendered = next
         adjusting = false
@@ -469,7 +469,9 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         window?.backgroundColor = backgroundColor
     }
 
-    private func setTop(_ y: CGFloat, animated: Bool = false, trackingAnchor: Bool = false) {
+    private func setTop(
+        _ y: CGFloat, animated: Bool = false, trackingAnchor: Bool = false, preservingMomentum: Bool = false
+    ) {
         let minimum = -adjustedContentInset.top
         let maximum = max(minimum, contentSize.height - bounds.height + adjustedContentInset.bottom)
         let offset = min(maximum, max(minimum, y - adjustedContentInset.top))
@@ -477,7 +479,14 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
             pendingReveal = nil
             reflowAnchor.moved(in: rendered, atY: max(0, offset + adjustedContentInset.top))
         }
-        setContentOffset(CGPoint(x: 0, y: offset), animated: animated)
+        let target = CGPoint(x: 0, y: offset)
+        if preservingMomentum {
+            // The property setter adjusts the running deceleration. The animated
+            // overload cancels it even with animated: false and the same offset.
+            contentOffset = target
+        } else {
+            setContentOffset(target, animated: animated)
+        }
         updateHighlightViewport()
         updateImageViewport()
         if trackingAnchor && !animated {

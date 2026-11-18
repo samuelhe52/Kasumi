@@ -77,6 +77,8 @@ and immediate jumps before readiness, still use viewport refinement. A very larg
 visible table, resource-heavy block or individual paragraph can still dominate.
 See the earlier [mixed coverage](002-rendering-engine/018-mixed-viewport-coverage.md)
 record for the preceding exact-attachment policy.
+[Reader reflow on iOS](004-ios-reader/009-scroll-momentum.md) now preserves
+native deceleration when a refined snapshot restores the reading anchor.
 [Glyph paint reuse](002-rendering-engine/017-glyph-paint-reuse.md) now shares
 immutable source-range paint values across widths, reducing repeated extraction
 while keeping Core Text objects snapshot-local. [Paint-only cache hits](002-rendering-engine/020-paint-without-caret-materialization.md)
