@@ -128,7 +128,9 @@ Retained after milestone closure; not prerequisites for starting Reader 2:
   [002.011](002-rendering-engine/011-standard-toml-profiles.md). No legacy profile
   compatibility or new reader settings.
 - Custom JSON theme-pair files — closed 2026-11-18, library/CLI only;
-  [003.002](003-public-rendering-api/002-theme-files.md). Reader import UI is deferred.
+  [003.002](003-public-rendering-api/002-theme-files.md) and
+  [003.003](003-public-rendering-api/003-theme-palette-fields.md).
+  Reader import UI is deferred.
 - PDF link annotations and diagram interactions shipped on 2026-11-18.
   See [002.026](002-rendering-engine/026-pdf-links.md) and
   [002.027](002-rendering-engine/027-diagram-interactions.md).

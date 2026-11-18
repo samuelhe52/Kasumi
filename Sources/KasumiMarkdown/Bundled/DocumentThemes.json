@@ -523,7 +523,6 @@
           ]
         }
       },
-      "chrome": {},
       "syntax": {
         "keyword": {
           "space": "sRGB",
@@ -1094,7 +1093,6 @@
           ]
         }
       },
-      "chrome": {},
       "syntax": {
         "keyword": {
           "space": "sRGB",
@@ -1195,7 +1193,6 @@
         "diagram_accent_neutral_deep": "#C7C7C7",
         "diagram_accent_ink": "#262626"
       },
-      "chrome": {},
       "syntax": {
         "keyword": "#8CA0EA",
         "string": "#DA8F72",
@@ -1256,7 +1253,6 @@
         "diagram_accent_neutral_deep": "#313131",
         "diagram_accent_ink": "#FAFAF8"
       },
-      "chrome": {},
       "syntax": {
         "keyword": "#494597",
         "string": "#914330",
@@ -1316,7 +1312,6 @@
         "diagram_accent_neutral_deep": "#B2B2B2",
         "diagram_accent_ink": "#282C34"
       },
-      "chrome": {},
       "syntax": {
         "keyword": "#C678DD",
         "string": "#98C379",
@@ -1376,7 +1371,6 @@
         "diagram_accent_neutral_deep": "#3A3A3A",
         "diagram_accent_ink": "#FAFAFA"
       },
-      "chrome": {},
       "syntax": {
         "keyword": "#A626A4",
         "string": "#50A14F",
@@ -1436,7 +1430,6 @@
         "diagram_accent_neutral_deep": "#909090",
         "diagram_accent_ink": "#002B36"
       },
-      "chrome": {},
       "syntax": {
         "keyword": "#859900",
         "string": "#2AA198",
@@ -1496,7 +1489,6 @@
         "diagram_accent_neutral_deep": "#777777",
         "diagram_accent_ink": "#FDF6E3"
       },
-      "chrome": {},
       "syntax": {
         "keyword": "#859900",
         "string": "#2AA198",

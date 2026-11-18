@@ -8,7 +8,8 @@ pairs; no import/settings UI is added.
 
 Use a versioned JSON object with `schema_version: 1`, nonempty `id` and `name`,
 and required `light`/`dark` objects. Each palette has optional `document`,
-`chrome` and `syntax` color maps. Reuse the bundled color grammar (hex strings,
+`chrome` and `syntax` color maps. The palette fields were revised in
+[003.003](003-theme-palette-fields.md). Reuse the bundled color grammar (hex strings,
 explicit sRGB/genericRGB RGBA and semantic system colors) and range validation.
 Unknown color keys remain extensible; missing document colors inherit Classic
 for that appearance, as with programmatic themes. Files are limited to 4 MiB.

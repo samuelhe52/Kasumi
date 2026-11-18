@@ -664,7 +664,15 @@ enum DocumentTypesetter {
                         descent = max(descent, -font.descender - baseline)
                     }
                     context.setFillColor(color.cgColor)
-                    context.fill(decorationRect(range, ascent: ascent, descent: descent))
+                    if line.fragments.isEmpty {
+                        for span in CoreTextRangeGeometry.extents(in: line.line, for: range) {
+                            context.fill(CGRect(
+                                x: span.lowerBound, y: -descent - 1,
+                                width: span.upperBound - span.lowerBound, height: ascent + descent + 2))
+                        }
+                    } else {
+                        context.fill(decorationRect(range, ascent: ascent, descent: descent))
+                    }
                 }
                 attributes.enumerateAttribute(.kasumiCodeCapsule, in: line.range) { value, range, _ in
                     guard let capsule = value as? InlineCodeCapsule else { return }

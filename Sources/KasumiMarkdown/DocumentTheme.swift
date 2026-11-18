@@ -72,24 +72,21 @@ public struct DocumentTheme: Identifiable, Equatable, Sendable {
     public let appearance: Appearance
     var dark: Bool { appearance == .dark }
     public let document: [String: DocumentColor]
-    public let chrome: [String: DocumentColor]
     public let syntax: [String: DocumentColor]
 
     public init(
         id: String, name: String, appearance: Appearance,
-        document: [String: DocumentColor], chrome: [String: DocumentColor] = [:],
-        syntax: [String: DocumentColor] = [:]
+        document: [String: DocumentColor], syntax: [String: DocumentColor] = [:]
     ) {
         self.id = id
         self.name = name
         self.appearance = appearance
         self.document = document
-        self.chrome = chrome
         self.syntax = syntax
     }
 
     func color(_ key: String) -> PlatformColor? {
-        (document[key] ?? chrome[key] ?? syntax[key])?.nsColor
+        (document[key] ?? syntax[key])?.nsColor
     }
 }
 
@@ -111,7 +108,6 @@ enum DocumentThemeCatalog {
         return DocumentTheme(
             id: selected.id, name: selected.name, appearance: selected.appearance,
             document: base.document.merging(selected.document) { _, selected in selected },
-            chrome: base.chrome.merging(selected.chrome) { _, selected in selected },
             syntax: base.syntax.merging(selected.syntax) { _, selected in selected })
     }
 
@@ -151,7 +147,6 @@ fileprivate struct ThemeDefinition: Decodable, Sendable {
     let name: String
     let appearance: DocumentTheme.Appearance
     let document: [String: ThemeColorDefinition]
-    let chrome: [String: ThemeColorDefinition]
     let syntax: [String: ThemeColorDefinition]
 
     func materialize() -> DocumentTheme {
@@ -160,7 +155,7 @@ fileprivate struct ThemeDefinition: Decodable, Sendable {
         }
         return DocumentTheme(
             id: id, name: name, appearance: appearance,
-            document: colors(document), chrome: colors(chrome), syntax: colors(syntax))
+            document: colors(document), syntax: colors(syntax))
     }
 }
 

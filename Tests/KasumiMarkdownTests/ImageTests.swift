@@ -91,13 +91,28 @@ fileprivate let imageFixtureDirectory = testRepositoryURL.appendingPathComponent
 
 @Test func imagePaintOrientationAndMissingAltSemantics() throws {
     let document = DocumentParser.parse(
-        "![Sample](images/wide%20sample.png)\n\n![Missing](images/no.png)", baseURL: imageFixtureDirectory)
-    let style = Typography()
+        """
+        ![Sample](images/wide%20sample.png)
+
+        ![Missing](images/no.png)
+
+        Before ![Inline](images/no.png) after.
+
+        Before ![שלום](images/no.png) עולם after
+        """,
+        baseURL: imageFixtureDirectory)
+    let theme = DocumentTheme(
+        id: "test", name: "Test", appearance: .light,
+        document: [
+            "paper": DocumentColor(red: 1, green: 1, blue: 1),
+            "image_placeholder_background": DocumentColor(red: 1, green: 0, blue: 1)
+        ])
+    let style = RenderStyle(theme: theme).typography
     let layout = DocumentTypesetter.layout(document, width: 400, style: style)
     let imageRect = try #require(layout.imageBounds.first)
     #expect(imageRect == CGRect(x: 40, y: 28, width: 320, height: 160))
     #expect(layout.text.string.contains("Image unavailable: Missing"))
-    #expect(layout.textMap.string == "Sample\nMissing\n")
+    #expect(layout.textMap.string == "Sample\nMissing\nBefore Inline after.\nBefore שלום עולם after\n")
     let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
     try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
     defer { try? FileManager.default.removeItem(at: folder) }
@@ -121,6 +136,28 @@ fileprivate let imageFixtureDirectory = testRepositoryURL.appendingPathComponent
     #expect(top[0] > 180 && top[1] < 80)
     #expect(bottom[0] < 80 && bottom[1] > 120)
     #expect(corner[0] > 240 && corner[1] > 240 && corner[2] > 240)
+    for fallback in ["Image unavailable: Missing", "Image unavailable: Inline"] {
+        let placed = try #require(layout.paragraphs.first { $0.paragraph.attributed.string.contains(fallback) })
+        let range = (placed.paragraph.attributed.string as NSString).range(of: fallback)
+        let space = range.location + "Image".utf16.count
+        let line = try #require(placed.paragraph.lines.first { NSLocationInRange(space, $0.range) })
+        let x = (line.offset(forStringIndex: space) + line.offset(forStringIndex: space + 1)) / 2
+        let painted = try pixel(Int(placed.origin.x + line.origin.x + x), Int(placed.origin.y + line.origin.y))
+        #expect(painted[0] > 240 && painted[1] < 15 && painted[2] > 240)
+    }
+    let placed = try #require(layout.paragraphs.first { $0.paragraph.attributed.string.contains("עולם") })
+    let line = try #require(placed.paragraph.lines.first)
+    #expect(line.fragments.isEmpty)
+    func bidiPixel(under word: String) throws -> [UInt8] {
+        let range = (placed.paragraph.attributed.string as NSString).range(of: word)
+        let span = try #require(CoreTextRangeGeometry.extents(in: line.line, for: range).first)
+        let x = (span.lowerBound + span.upperBound) / 2
+        return try pixel(Int(placed.origin.x + line.origin.x + x), Int(placed.origin.y + line.origin.y) + 2)
+    }
+    let placeholder = try bidiPixel(under: "שלום")
+    let neighbor = try bidiPixel(under: "עולם")
+    #expect(placeholder[0] > 240 && placeholder[1] < 15 && placeholder[2] > 240)
+    #expect(neighbor[0] > 240 && neighbor[1] > 240 && neighbor[2] > 240)
 }
 
 fileprivate final class ImageFixtureProtocol: URLProtocol, @unchecked Sendable {

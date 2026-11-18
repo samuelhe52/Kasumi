@@ -55,7 +55,9 @@ Profile files use `[meta]` for their name and `[anchor]` for a saved factory sna
 
 Load a custom light/dark theme with `try DocumentThemePair(contentsOf: url)` or `try DocumentThemePair(json: data)`, then pass its `.light` or `.dark` theme to `RenderStyle`.
 
-[CustomTheme.json](../fixtures/CustomTheme.json) shows the version-1 format: `schema_version`, `id`, `name`, and `light`/`dark` palettes containing optional `document`, `chrome`, and `syntax` color maps. Colors use `#RRGGBB` or `#RRGGBBAA`; the bundled RGBA/system-color forms are also accepted. Omitted document colors inherit Classic for the chosen appearance. Files are limited to 4 MiB; loading does not change the built-in catalog.
+[CustomTheme.json](../fixtures/CustomTheme.json) shows the version-1 format with `schema_version`, `id`, `name`, and `light`/`dark` palettes. Each palette accepts optional `document` and `syntax` color maps. Colors use `#RRGGBB`, `#RRGGBBAA`, or the bundled RGBA and system-color forms. Omitted document colors inherit Classic for the chosen appearance. Files are limited to 4 MiB, and loading leaves the built-in catalog intact.
+
+`document.image_placeholder_background` colors the area behind the fallback text for unavailable block and inline images. The fallback text uses `document.secondary_text`.
 
 ## Language and punctuation
 

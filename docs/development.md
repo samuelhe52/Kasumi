@@ -73,7 +73,9 @@ the local toolchain without changing anything.
 - Custom theme files: `--theme-file fixtures/CustomTheme.json` (add `--dark` for
   its dark palette). It is mutually exclusive with `--theme`. Verify parser,
   sparse inheritance, syntax colors and CLI raster output with
-  `make test FILTER=themeFile`; no reader import UI or global registration.
+  `make test FILTER=themeFile`. Verify missing-image background paint and alt
+  text semantics with `make test FILTER=imagePaintOrientationAndMissingAltSemantics`.
+  Custom files are available through the library and CLI.
 - Launch scene: a `nil` title falls back to the app name, so the scene passes a
   one-space title and `LaunchLogotype` draws the wordmark. `titleViewFrame` spans
   everything above the browser sheet, not just the title.

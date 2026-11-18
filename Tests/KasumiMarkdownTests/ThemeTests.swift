@@ -26,10 +26,11 @@ import Testing
     #expect(rows.count == 8)
     #expect(Set(DocumentThemeCatalog.themes.map(\.id)).count == 8)
     for row in rows {
+        #expect(Set(row.keys) == Set(["id", "name", "appearance", "document", "syntax"]))
         let id = try #require(row["id"] as? String)
         guard let colorHash = expected[id] else { continue }
         var facts: [String] = []
-        for section in ["document", "chrome", "syntax"] {
+        for section in ["document", "syntax"] {
             let values = try #require(row[section] as? [String: String])
             facts += values.keys.sorted().map { "\(section).\($0)=\(values[$0]!)" }
         }
@@ -39,10 +40,9 @@ import Testing
         let theme = DocumentThemeCatalog.theme(id: id, dark: false)
         #expect(theme.document.count == (id.hasPrefix("mono-") ? 46 : 45))
         #expect(theme.syntax.count == 5)
-        #expect(theme.chrome.isEmpty)
         #expect(theme.dark == id.hasSuffix("-dark"))
         // Decoded model colors must preserve the original sRGB byte values.
-        for section in ["document", "chrome", "syntax"] {
+        for section in ["document", "syntax"] {
             let values = try #require(row[section] as? [String: String])
             for (key, hex) in values {
                 let expectedColor = try #require(DocumentColor(hex: hex))
@@ -61,7 +61,6 @@ import Testing
         let classic = DocumentThemeCatalog.theme(id: "default-" + (dark ? "dark" : "light"), dark: !dark)
         #expect(classic.document.count == 62)
         #expect(classic.syntax.count == 5)
-        #expect(classic.chrome.isEmpty)
         #if canImport(AppKit)
             let appearance = try #require(NSAppearance(named: dark ? .darkAqua : .aqua))
             let semantic: [String: PlatformColor] = [
@@ -131,7 +130,6 @@ import Testing
             #expect(effective.id == id)
             #expect(effective.dark == dark)
             #expect(effective.document.count == 62)
-            #expect(effective.chrome == raw.chrome)
             #expect(effective.syntax == raw.syntax)
             for (key, color) in raw.document { #expect(effective.document[key] == color) }
             for index in 1...8 {

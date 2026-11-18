@@ -235,6 +235,7 @@ struct Typography: Codable, Equatable, Sendable {
                         .font: font(size: pointSize), .foregroundColor: secondaryColor,
                         .kasumiSemanticText: run.text
                     ]
+                    attributes[.backgroundColor] = theme.color("image_placeholder_background")
                     if let destination = run.destination { attributes[.link] = destination }
                     append(
                         NSAttributedString(

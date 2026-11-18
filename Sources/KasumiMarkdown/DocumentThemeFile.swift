@@ -44,15 +44,13 @@ private struct ThemePairFile: Decodable {
     let dark: Palette
 
     struct Palette: Decodable {
-        var document: [String: ThemeColorDefinition] = [:]
-        var chrome: [String: ThemeColorDefinition] = [:]
-        var syntax: [String: ThemeColorDefinition] = [:]
+        let document: [String: ThemeColorDefinition]
+        let syntax: [String: ThemeColorDefinition]
 
-        private enum CodingKeys: String, CodingKey { case document, chrome, syntax }
+        private enum CodingKeys: String, CodingKey { case document, syntax }
         init(from decoder: any Decoder) throws {
             let values = try decoder.container(keyedBy: CodingKeys.self)
             document = try values.decodeIfPresent([String: ThemeColorDefinition].self, forKey: .document) ?? [:]
-            chrome = try values.decodeIfPresent([String: ThemeColorDefinition].self, forKey: .chrome) ?? [:]
             syntax = try values.decodeIfPresent([String: ThemeColorDefinition].self, forKey: .syntax) ?? [:]
         }
 
@@ -60,7 +58,6 @@ private struct ThemePairFile: Decodable {
             DocumentTheme(
                 id: id, name: name, appearance: appearance,
                 document: document.mapValues { $0.resolve(appearance: appearance) },
-                chrome: chrome.mapValues { $0.resolve(appearance: appearance) },
                 syntax: syntax.mapValues { $0.resolve(appearance: appearance) })
         }
     }
@@ -72,7 +69,6 @@ extension DocumentTheme {
         let base = DocumentThemeCatalog.theme(id: "default-" + appearance.rawValue, dark: dark)
         return DocumentTheme(
             id: id, name: name, appearance: appearance,
-            document: base.document.merging(document) { _, selected in selected },
-            chrome: chrome, syntax: syntax)
+            document: base.document.merging(document) { _, selected in selected }, syntax: syntax)
     }
 }

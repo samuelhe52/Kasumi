@@ -96,3 +96,5 @@ simulator through `make test-ios FILTER=PublicAPITests`.
 - Updated 2026-11-17: Added document-scoped reflow sessions — see [002.013](../002-rendering-engine/013-reflow-preparation.md).
 - Updated 2026-11-17: Added opt-in viewport snapshots and coverage/semantic navigation queries — see [002.016](../002-rendering-engine/016-viewport-layout.md).
 - Updated 2026-11-17: Added a metadata-only conservative vertical text-range query for viewport clients — see [007.004](../007-reader-interactions/004-viewport-find-highlights.md).
+- Updated 2026-11-18. Use the theme background color for unavailable images and
+  remove `chrome` from the theme API and file format. See [003.003](003-theme-palette-fields.md).
