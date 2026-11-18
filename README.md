@@ -17,37 +17,20 @@
 
 Kasumi sets every page with its own typesetting engine: no web view, no `UITextView`. Paragraphs are justified with real hyphenation, punctuation hangs in the margin, and Latin and CJK text sit together with tuned spacing. Math and Mermaid diagrams are typeset natively alongside tables and footnotes, and the text stays selectable and searchable. It is built on **KasumiMarkdown**, a Swift package for parsing, layout and drawing.
 
-## Features
+## Screenshots
 
-### Typography
-
-- Justified paragraphs with real hyphenation
-- Hanging punctuation and ligatures
-- Tuned spacing and punctuation for CJK text
-- Seven typography presets and adjustable text size
-
-### Themes
-
-- Four light and dark pairs: Default, Mono, One and Solarized
-- Follows the device appearance
-
-### Content
-
-- Tables, footnotes and images
-- Math set in TeX Gyre Pagella Math or New Computer Modern
-- Mermaid diagrams laid out natively: flowchart, sequence, state, class, ER, pie and mindmap
-
-### Reading
-
-- Opens `.md` and `.txt` files in place from Files and iCloud, or through the share sheet
-- Outline, text selection, and Find in Page
-- Remembers your reading position
-- Works on iPhone and iPad
-
-### Library
-
-- The same engine is available headless as KasumiMarkdown
-- PDF and PNG export, hit-testing and search
+<table>
+  <tr>
+    <td align="center"><strong>Reading</strong><br /><img src="docs/images/01-reading.jpeg" alt="Justified serif text and Japanese prose in the reader" width="240" /></td>
+    <td align="center"><strong>Math &amp; Tables</strong><br /><img src="docs/images/02-math.jpeg" alt="Typeset equations and a Markdown table" width="240" /></td>
+    <td align="center"><strong>Mermaid</strong><br /><img src="docs/images/03-mermaid.jpeg" alt="A Mermaid flowchart with labeled branches in the reader" width="240" /></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>Appearance</strong><br /><img src="docs/images/04-appearance.jpeg" alt="Appearance controls for text size, typography presets, and themes" width="240" /></td>
+    <td align="center"><strong>Basic HTML</strong><br /><img src="docs/images/05-html.jpeg" alt="Rendered HTML with centered text, a details section, and highlighted text" width="240" /></td>
+    <td align="center"><strong>Source Editing</strong><br /><img src="docs/images/06-source.jpeg" alt="The Markdown source editor showing TeX and table syntax beside the Preview control" width="240" /></td>
+  </tr>
+</table>
 
 ## Building
 
