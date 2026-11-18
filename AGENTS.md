@@ -11,6 +11,7 @@
 - [`docs/development.md`](docs/development.md) covers setup, build quirks, and simulator and device notes.
 - [`docs-ai/README.md`](docs-ai/README.md) indexes the product goal, roadmap, and decision records.
 - Use the `write-ai-doc` skill for substantial features and decision-shaping fixes, as defined in [`docs-ai/workflow.md`](docs-ai/workflow.md). Keep the roadmap, renderer gaps, and `docs/development.md` current in the same commit as the change. There is no status document; don't add one.
+- Use the `kasumi-release` skill for release preparation and publication.
 
 ## UI
 

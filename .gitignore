@@ -4,6 +4,7 @@
 !/.agents/skills/
 /.agents/skills/*
 !/.agents/skills/write-ai-doc/
+!/.agents/skills/kasumi-release/
 /.codex/
 
 # Application build products and per-user IDE state.
