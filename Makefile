@@ -182,5 +182,7 @@ check-reader-scrolling: app ## Profile iOS scrolling on the only booted simulato
 check: ## Check the local toolchain (read-only)
 	./scripts/check-environment
 
-clean: ## Remove SwiftPM, native and app build products
-	rm -rf .build $(DERIVED_DATA)
+clean: ## Remove SwiftPM, native and app/test build products
+	rm -rf .build $(DERIVED_DATA) build/iOSTests build/DerivedData-lib \
+		build/HandoffDerivedData build/PresetSpacingDerivedData \
+		build/TablesDerivedData build/ReleaseCheck
