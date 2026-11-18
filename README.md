@@ -32,6 +32,8 @@ Kasumi sets every page with its own typesetting engine: no web view, no `UITextV
   </tr>
 </table>
 
+Try [Night Sky Field Notes](docs/Night%20Sky%20Field%20Notes.md) in Kasumi, or see the [PDF exported from the app](docs/Night%20Sky%20Field%20Notes.pdf).
+
 ## Building
 
 Needs Xcode 27, Swift 6.2+, and Rust (edition 2024) with the `aarch64-apple-ios` and `aarch64-apple-ios-sim` targets.
