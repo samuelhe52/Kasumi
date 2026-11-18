@@ -49,7 +49,7 @@ make run-device  # build and run on a connected iPhone or iPad
 
 ## Using the library
 
-KasumiMarkdown requires Swift 6.2, macOS 13 or iOS 17.
+KasumiMarkdown requires Swift 6.2 or later and supports macOS 13+ and iOS 15+.
 
 Add KasumiMarkdown to your `Package.swift` dependencies:
 

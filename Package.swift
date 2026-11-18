@@ -18,7 +18,7 @@ func nativeTarget(_ name: String, _ library: String) -> Target {
 
 let package = Package(
     name: "KasumiMarkdown",
-    platforms: [.iOS(.v17), .macOS(.v13)],
+    platforms: [.iOS(.v15), .macOS(.v13)],
     products: [
         .library(name: "KasumiMarkdown", targets: ["KasumiMarkdown"]),
         .executable(name: "KasumiRender", targets: ["KasumiRender"]),

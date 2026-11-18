@@ -35,4 +35,4 @@ Build a clean local consumer. Verify release preparation and artifact hashes loc
 
 ## Amendments
 
-None yet.
+- Updated 2026-11-19. The library deployment target drops to iOS 15. See [002-ios-15-library.md](002-ios-15-library.md).

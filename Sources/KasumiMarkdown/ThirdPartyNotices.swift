@@ -40,7 +40,7 @@ public enum ThirdPartyNotices {
             let index = Bundle.module.url(forResource: "index", withExtension: "json", subdirectory: "Bundled/Notices")
         else { return nil }
         let bundled = index.deletingLastPathComponent().deletingLastPathComponent()
-        return try? String(contentsOf: bundled.appending(path: document.path), encoding: .utf8)
+        return try? String(contentsOf: bundled.appendingPathComponent(document.path), encoding: .utf8)
     }
 
     private struct Index: Decodable {

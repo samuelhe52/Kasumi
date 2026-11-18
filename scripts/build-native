@@ -6,7 +6,6 @@
 set -eu
 project_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 output_dir="$project_dir/.build/native"
-export CARGO_TARGET_DIR="$output_dir/target"
 targets="aarch64-apple-darwin aarch64-apple-ios aarch64-apple-ios-sim"
 
 installed=$(rustup target list --installed)
@@ -18,15 +17,20 @@ for target in $targets; do
 done
 
 export MACOSX_DEPLOYMENT_TARGET=13.0
-export IPHONEOS_DEPLOYMENT_TARGET=17.0
+export IPHONEOS_DEPLOYMENT_TARGET=15.0
 
 build() {
   package=$1 library=$2
   set --
   for target in $targets; do
-    cargo build --locked --release --target "$target" \
+    # Cargo reuses cached objects when the deployment target environment changes.
+    case "$target" in
+      *-ios*) target_dir="$output_dir/target/ios-$IPHONEOS_DEPLOYMENT_TARGET" ;;
+      *) target_dir="$output_dir/target" ;;
+    esac
+    cargo build --locked --release --target "$target" --target-dir "$target_dir" \
       --manifest-path "$project_dir/packages/$package/Cargo.toml"
-    set -- "$@" -library "$CARGO_TARGET_DIR/$target/release/lib$library.a"
+    set -- "$@" -library "$target_dir/$target/release/lib$library.a"
   done
   rm -rf "$output_dir/$library.xcframework"
   xcodebuild -create-xcframework "$@" -output "$output_dir/$library.xcframework" >/dev/null
