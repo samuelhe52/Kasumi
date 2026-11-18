@@ -83,8 +83,11 @@ that fixes it; add one when a limitation is found and not fixed.
   snapshot at the current width. Both reader hosts wait 200 ms after activity,
   cancel between batches and resume retained progress. The envelope is at most
   1,000 parsed blocks, 250,000 UTF-16 units, 4,000 units per block/cell and 64
-  cells per table, excluding image/diagram resources. It trades memory and idle
-  CPU work for complete coverage after readiness. Cold jumps, width changes,
+  cells per table in text-only documents. The Mac harness and opt-in iOS
+  launches also prepare documents with up to 256 image occurrences from known
+  local or embedded sources, 128 cells per table, and 512 cells across tables.
+  Remote images and diagrams keep viewport refinement. Idle preparation trades memory
+  and CPU work for complete coverage after readiness. Cold jumps, width changes,
   interrupted warmup and documents outside the envelope can still outrun
   viewport refinement; this does not establish UIKit tile presentation behavior.
   Resize requests are coalesced by the reader. `DocumentReflowSession` retains

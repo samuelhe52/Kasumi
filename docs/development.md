@@ -229,6 +229,12 @@ and SDR bitmap painting; its results do not establish UIKit behavior or FPS.
 See `tools/ReflowLab/README.md` for the native harness and
 `benchmarks/reader/README.md` for the benchmark protocol.
 
+Reflow Lab includes bounded local and embedded image documents in idle
+geometry preparation. To validate the same path on the already booted iOS
+simulator, run `SIMCTL_CHILD_KASUMI_READER_IMAGE_IDLE_PREPARATION=1 make run-sim`.
+After the first build, use the same environment prefix with `make launch-sim`
+to repeat the launch.
+
 For memory comparisons, use fresh Release processes with identical document,
 width and viewport-paint lifetimes; record `/usr/bin/time -l` peak footprint and
 inspect a held `heap -s --sumObjectFields <pid>` separately. Also paint a full

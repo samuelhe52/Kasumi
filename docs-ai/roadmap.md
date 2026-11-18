@@ -141,6 +141,9 @@ Retained after milestone closure; not prerequisites for starting Reader 2:
   decodes fitted raster and SVG pixels as images enter the viewport. See
   [002.030](002-rendering-engine/030-reader-svg-raster-size.md) and
   [002.031](002-rendering-engine/031-viewport-image-decoding.md).
+- The Mac harness prepares complete idle geometry for bounded local image
+  documents. iOS validation uses a launch switch pending physical-device
+  measurements. See [002.032](002-rendering-engine/032-idle-layout-for-local-images.md).
 - Known limitations: [renderer gaps](002-rendering-engine/renderer-gaps.md).
   Ligature-span and Han combining-mark width repairs shipped on 2026-11-16;
   see [002.002](002-rendering-engine/002-shaped-cluster-integrity.md).

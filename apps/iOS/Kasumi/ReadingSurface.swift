@@ -133,7 +133,8 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
             return ReaderScrollDiagnostics.Viewport(
                 top: self.topY, width: self.bounds.width, height: self.bounds.height,
                 active: self.isDragging || self.isDecelerating || self.isTracking,
-                measured: self.rendered.map { !$0.needsLayout(in: visible) } ?? false)
+                measured: self.rendered.map { !$0.needsLayout(in: visible) } ?? false,
+                fullyMeasured: self.rendered?.hasEstimatedGeometry == false)
         }
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
@@ -175,7 +176,9 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
             generation = UUID()
             if needsSession {
                 reflowSession = DocumentReflowSession(
-                    document, style: style, scrollableTables: true, readerDisplayScale: displayScale)
+                    document, style: style, scrollableTables: true, readerDisplayScale: displayScale,
+                    preparesLocalImageLayout:
+                        ProcessInfo.processInfo.environment["KASUMI_READER_IMAGE_IDLE_PREPARATION"] == "1")
             }
             rebuildIfNeeded()
         }

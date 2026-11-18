@@ -25,8 +25,9 @@ layout and decode at the display scale as they enter the visible viewport.
 The timing label covers layout, prepaint, and installation. Image decoding
 runs separately. Table columns fit the window.
 
-`make check-reflow-lab` runs an offscreen launch/render/scroll-refinement smoke
-check and writes JSON under `build/`. It does not benchmark live resizing or
+`make check-reflow-lab` checks offscreen launch, rendering, scroll refinement,
+and the visible-image refresh after idle installation. It writes JSON under
+`build/`. It does not benchmark live resizing or
 prove 120 Hz presentation. Native iOS scrolling is checked separately.
 
 
@@ -96,8 +97,10 @@ Sampling records measured geometry, not presented frames; the diagnostic PNG
 can lengthen the first measured gap. Actual scheduling varies.
 
 After 200 ms idle, the harness and UIKit reader prepare bounded text/table/math
-documents in cancellable batches. The harness says **Entire document measured**
-when the complete snapshot is installed. Width/content/style changes invalidate
+documents in cancellable batches. The harness also prepares bounded documents
+with known local or embedded image dimensions. Visible images still decode
+separately. The harness says **Entire document measured** when the complete
+snapshot is installed. Width/content/style changes invalidate
 that snapshot. This retains more geometry in memory; very large or resource-heavy
 documents keep the viewport path. The fast check explicitly records readiness
 rather than assuming three seconds always suffice. Its results do not guarantee

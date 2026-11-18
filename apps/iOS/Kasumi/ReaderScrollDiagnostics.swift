@@ -10,6 +10,7 @@ import UIKit
         let height: CGFloat
         let active: Bool
         let measured: Bool
+        let fullyMeasured: Bool
     }
     private struct Sample: Codable {
         let time: Double
@@ -17,6 +18,7 @@ import UIKit
         let expectedIntervalMS: Double
         let active: Bool
         let measured: Bool
+        let fullyMeasured: Bool
         let top: Double
         let width: Double
         let height: Double
@@ -55,7 +57,8 @@ import UIKit
         samples.append(Sample(
             time: now - start, callbackGapMS: previousTime.map { (now - $0) * 1000 },
             expectedIntervalMS: max(0, link.targetTimestamp - link.timestamp) * 1000,
-            active: value.active, measured: value.measured, top: Double(value.top),
+            active: value.active, measured: value.measured, fullyMeasured: value.fullyMeasured,
+            top: Double(value.top),
             width: Double(value.width), height: Double(value.height)))
     }
 

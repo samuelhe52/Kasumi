@@ -125,3 +125,4 @@ Library tests pass on macOS and the iOS simulator, including comparisons against
 - Updated 2026-11-18. Render basic HTML, inline scripts, and SVG images. See [029-html-and-svg.md](029-html-and-svg.md).
 - Updated 2026-11-18. Rasterize reader SVGs at their fitted display size. See [030-reader-svg-raster-size.md](030-reader-svg-raster-size.md).
 - Updated 2026-11-18. Decode reader images on viewport demand. See [031-viewport-image-decoding.md](031-viewport-image-decoding.md).
+- Updated 2026-11-18. Prepare bounded local image geometry during idle time in opt-in reader sessions. See [032-idle-layout-for-local-images.md](032-idle-layout-for-local-images.md).

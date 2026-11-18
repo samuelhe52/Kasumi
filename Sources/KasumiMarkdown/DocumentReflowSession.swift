@@ -9,6 +9,7 @@ public actor DocumentReflowSession {
     private let style: RenderStyle
     private let scrollableTables: Bool
     private let readerImages: ReaderImageCache?
+    private let preparesLocalImageLayout: Bool
     private let preparation = ReflowPreparation()
     private var layoutWidth: CGFloat?
     private(set) var warmCursor = 0
@@ -17,19 +18,37 @@ public actor DocumentReflowSession {
     private lazy var supportsCompleteWarmup: Bool = {
         guard document.parsed.blocks.count <= 1_000 else { return false }
         var units = 0
+        var imageOccurrences = 0
+        var totalTableCells = 0
+        var largestTable = 0
+        var knownSources = Set<String>()
         for block in document.parsed.blocks {
-            guard block.kind != .image && block.kind != .diagram,
+            guard block.kind != .diagram,
                 block.text.utf16.count <= 4_000 else { return false }
             let cells = block.rows.flatMap { $0 }
-            guard cells.count <= 64,
+            guard cells.count <= (preparesLocalImageLayout ? 128 : 64),
                 cells.allSatisfy({ $0.reduce(0) { $0 + $1.text.utf16.count } <= 4_000 }) else { return false }
+            totalTableCells += cells.count
+            largestTable = max(largestTable, cells.count)
             for run in block.runs + cells.flatMap({ $0 }) {
-                guard !run.traits.contains(.image) else { return false }
+                if run.traits.contains(.image) {
+                    imageOccurrences += 1
+                    guard preparesLocalImageLayout, imageOccurrences <= 256, let source = run.imageSource
+                    else { return false }
+                    if knownSources.insert(source).inserted {
+                        guard let image = DocumentImageStore.shared.readerSource(
+                            for: source, baseURL: document.parsed.baseURL),
+                            image.url.isFileURL || image.url.scheme?.lowercased() == "data"
+                        else { return false }
+                    }
+                }
                 units += run.text.utf16.count
                 if units > 250_000 { return false }
             }
         }
-        return true
+        // Permit wider tables in this opt-in path while bounding total cell
+        // work. Preserve the text-only envelope.
+        return imageOccurrences > 0 ? totalTableCells <= 512 : largestTable <= 64
     }()
 
     private func useWidth(_ width: CGFloat) {
@@ -50,12 +69,24 @@ public actor DocumentReflowSession {
         _ document: MarkdownDocument, style: RenderStyle, scrollableTables: Bool = false,
         readerDisplayScale: CGFloat?
     ) {
+        self.init(
+            document, style: style, scrollableTables: scrollableTables,
+            readerDisplayScale: readerDisplayScale, preparesLocalImageLayout: false)
+    }
+
+    /// Opt in to complete idle geometry for bounded local and embedded images.
+    /// A valid reader display scale is required to keep pixels deferred.
+    public init(
+        _ document: MarkdownDocument, style: RenderStyle, scrollableTables: Bool = false,
+        readerDisplayScale: CGFloat?, preparesLocalImageLayout: Bool
+    ) {
         self.document = document
         self.style = style
         self.scrollableTables = scrollableTables
         readerImages = readerDisplayScale.flatMap {
             $0.isFinite && $0 > 0 ? ReaderImageCache(displayScale: $0) : nil
         }
+        self.preparesLocalImageLayout = preparesLocalImageLayout && readerImages != nil
     }
 
     /// Makes remote dimensions and encoded sources available for reader layout.
@@ -91,8 +122,8 @@ public actor DocumentReflowSession {
         }
     }
 
-    /// Optional idle work for bounded text/table/math documents. Check cancellation
-    /// between batches and yield the actor so visible requests can take priority.
+    /// Optional idle work for bounded documents. Check cancellation between
+    /// batches and yield the actor so visible requests can take priority.
     /// Returns nil for workloads outside the resource envelope. Width changes
     /// invalidate progress; cancellation retains completed preparation at that width.
     public func prepareForScrolling(width: CGFloat) async throws -> RenderedDocument? {
@@ -100,6 +131,8 @@ public actor DocumentReflowSession {
         guard width.isFinite, width > 0, supportsCompleteWarmup else { return nil }
         useWidth(width)
         let epoch = warmEpoch
+        var typography = style.typography
+        typography.readerImages = readerImages
         while warmSnapshot == nil {
             try Task.checkCancellation()
             guard warmEpoch == epoch else { throw CancellationError() }
@@ -107,7 +140,7 @@ public actor DocumentReflowSession {
                 let construction = ViewportConstruction()
                 construction.selected = Set(warmCursor..<(warmCursor + 8))
                 let count = DocumentTypesetter.layout(
-                    document.parsed, width: width, style: style.typography, insets: style.insets,
+                    document.parsed, width: width, style: typography, insets: style.insets,
                     scrollableTables: scrollableTables, preparation: preparation, viewport: construction,
                     buildSemanticContent: false, buildTextStorage: false).paragraphs.count
                 preparation.discardBreakItems(requiringGeometry: true)

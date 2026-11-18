@@ -141,7 +141,8 @@ import os
                 guard let self, !Task.isCancelled, self.revision == expected else { return }
                 self.session = DocumentReflowSession(
                     document, style: RenderStyle(fontSize: 18, widthLimit: nil),
-                    readerDisplayScale: self.view.window?.backingScaleFactor ?? 2)
+                    readerDisplayScale: self.view.window?.backingScaleFactor ?? 2,
+                    preparesLocalImageLayout: true)
                 self.request()
             } catch {
                 guard let self, self.revision == expected else { return }
@@ -303,6 +304,7 @@ import os
                 self.canvas.needsDisplay = true
                 self.installations += 1
                 self.adjusting = false
+                self.updateImages(in: self.scroll.contentView.bounds)
                 let elapsed = start.duration(to: .now).components
                 self.warmupMilliseconds = Double(elapsed.seconds) * 1000 + Double(elapsed.attoseconds) / 1e15
                 self.details.stringValue = "Shared reflow engine · Entire document measured · Find off"
@@ -411,17 +413,36 @@ import os
         let viewport = scroll.contentView.bounds.intersection(CGRect(origin: .zero, size: current.size))
         let covered = !current.needsLayout(in: viewport)
         let bitmap = LabPreview.paint(current, rect: viewport, scale: 1)
-        let result: [String: Any] = [
+        var result: [String: Any] = [
             "initialWidth": initialWidth, "scrollTop": viewport.minY, "installations": installations,
             "viewportMeasured": covered, "bitmapCreated": bitmap != nil
         ]
         try FileManager.default.createDirectory(at: output.deletingLastPathComponent(), withIntermediateDirectories: true)
-        try JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted, .sortedKeys]).write(to: output)
         if let capture = view.bitmapImageRepForCachingDisplay(in: view.bounds) {
             view.cacheDisplay(in: view.bounds, to: capture)
             try capture.representation(using: .png, properties: [:])?.write(to: output.deletingPathExtension().appendingPathExtension("png"))
         }
         guard covered, bitmap != nil, viewport.minY > 0, installations >= 2 else { throw CocoaError(.coderReadCorrupt) }
+
+        if ProcessInfo.processInfo.environment["KASUMI_REFLOW_IDLE_WARMUP"] != "0" {
+            let svg = #"<svg xmlns="http://www.w3.org/2000/svg" width="80" height="40"><rect width="80" height="40" fill="red"/></svg>"#
+            let image = Data(svg.utf8).base64EncodedString()
+            load(markdown: "![Sample](data:image/svg+xml;base64,\(image))\n\n"
+                + LabSample.chinese.markdown(characters: 10000))
+            for _ in 0..<1000 {
+                if warmupMilliseconds != nil { break }
+                try await Task.sleep(for: .milliseconds(10))
+            }
+            guard warmupMilliseconds != nil, let rendered, !rendered.hasEstimatedGeometry,
+                imageSnapshot === rendered, !visibleImages.isEmpty
+            else {
+                throw CocoaError(.coderReadCorrupt, userInfo: [
+                    NSDebugDescriptionErrorKey: "Idle layout did not refresh the visible-image queue"
+                ])
+            }
+            result["idleImageQueueRefreshed"] = true
+        }
+        try JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted, .sortedKeys]).write(to: output)
     }
 }
 

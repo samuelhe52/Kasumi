@@ -368,6 +368,65 @@ import Testing
             let excluded = DocumentReflowSession(MarkdownDocument(markdown: source), style: style)
             #expect(try await excluded.prepareForScrolling(width: 400) == nil)
         }
+        for source in ["![remote](https://example.invalid/image.png)", "![missing](missing.png)",
+                       "```mermaid\ngraph TD; A-->B\n```"] {
+            let excluded = DocumentReflowSession(
+                MarkdownDocument(markdown: source, baseURL: testRepositoryURL), style: style,
+                readerDisplayScale: 2, preparesLocalImageLayout: true)
+            #expect(try await excluded.prepareForScrolling(width: 400) == nil)
+        }
+    }
+
+    @Test func idlePreparationKeepsLocalAndEmbeddedImagePixelsDeferred() async throws {
+        let base = testRepositoryURL.appendingPathComponent("fixtures")
+        let data = try Data(contentsOf: base.appendingPathComponent("images/tiny.png")).base64EncodedString()
+        let prose = (0..<30).map { "Paragraph \($0) with enough text to wrap on a narrow screen." }
+            .joined(separator: "\n\n")
+        let wideTable = "| A | B | C | D | E | F | G | H |\n"
+            + "| --- | --- | --- | --- | --- | --- | --- | --- |\n"
+            + String(repeating: "| 0 | 1 | 0 | 1 | 0 | 1 | 0 | 1 |\n", count: 11)
+        let document = MarkdownDocument(
+            markdown: """
+                ![Local SVG](HTMLAndSVG/logo.svg)
+
+                \(prose)
+
+                \(wideTable)
+
+                | Local PNG | Embedded PNG |
+                | --- | --- |
+                | ![Local](images/wide%20sample.png) | ![Embedded](data:image/png;base64,\(data)) |
+                """, baseURL: base)
+        let eager = DocumentReflowSession(
+            document, style: style, readerDisplayScale: nil, preparesLocalImageLayout: true)
+        #expect(try await eager.prepareForScrolling(width: 400) == nil)
+        let defaultReader = DocumentReflowSession(document, style: style, readerDisplayScale: 2)
+        #expect(try await defaultReader.prepareForScrolling(width: 400) == nil)
+
+        let reader = DocumentReflowSession(
+            document, style: style, readerDisplayScale: 2, preparesLocalImageLayout: true)
+        let first = await reader.render(width: 400, viewportHeight: 200)
+        #expect(first.hasEstimatedGeometry)
+        let warm = try #require(try await reader.prepareForScrolling(width: 400))
+        let reference = await defaultReader.render(width: 400)
+        let regions = warm.readerImageRegions(in: CGRect(origin: .zero, size: warm.size))
+        #expect(!warm.hasEstimatedGeometry && warm.size == reference.size)
+        #expect(warm.text(in: warm.documentRange) == reference.text(in: reference.documentRange))
+        #expect(regions.count == 3)
+        #expect(regions == reference.readerImageRegions(in: CGRect(origin: .zero, size: reference.size)))
+        #expect(regions.allSatisfy { !warm.hasReaderImageResult(for: $0) })
+        let revisited = await reader.render(
+            width: 400, viewportHeight: 200, anchor: warm.readingAnchor(atY: warm.size.height * 0.8))
+        #expect(revisited === warm)
+        let visible = try #require(regions.first)
+        #expect(await warm.prepareReaderImage(visible))
+        #expect(revisited.hasReaderImageResult(for: visible))
+        #expect(!warm.hasReaderImageResult(for: try #require(regions.last)))
+
+        let resized = await reader.render(width: 550, viewportHeight: 200)
+        #expect(resized.size.width == 550 && resized.hasEstimatedGeometry)
+        let readyAtNewWidth = try #require(try await reader.prepareForScrolling(width: 550))
+        #expect(readyAtNewWidth !== warm && readyAtNewWidth.size.width == 550)
     }
 
     @Test func linkedParagraphDefersItsUnadornedLines() async throws {
