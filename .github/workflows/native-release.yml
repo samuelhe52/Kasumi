@@ -83,7 +83,7 @@ jobs:
           set -euo pipefail
           flags=()
           [[ "$MODE" != test ]] || flags+=(--prerelease)
-          gh release create "$VERSION" "$RUNNER_TEMP/native-release/"*.xcframework.zip "$RUNNER_TEMP/native-release/notices.tar.gz" "$RUNNER_TEMP/native-release/provenance.json" --repo "$REPOSITORY" --verify-tag --title "$VERSION" --generate-notes "${flags[@]}"
+          gh release create "$VERSION" "$RUNNER_TEMP/native-release/"*.xcframework.zip "$RUNNER_TEMP/native-release/notices.tar.gz" "$RUNNER_TEMP/native-release/provenance.json" --repo "$REPOSITORY" --verify-tag --title "$VERSION" --generate-notes ${flags[@]+"${flags[@]}"}
       - name: Validate released iOS package builds
         run: |
           make native-release
