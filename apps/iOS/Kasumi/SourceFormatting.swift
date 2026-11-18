@@ -19,7 +19,8 @@ enum SourceFormatting {
         let line = source.lineRange(for: NSRange(location: selection.location, length: 0))
         var hashes = 0
         while hashes < 6, hashes < line.length,
-            source.character(at: line.location + hashes) == 0x23 { hashes += 1 }
+            source.character(at: line.location + hashes) == 0x23
+        { hashes += 1 }
         let next = line.location + hashes
         let endsMarker = next >= NSMaxRange(line) || [0x20, 0x0A, 0x0D].contains(source.character(at: next))
         let current = hashes > 0 && endsMarker ? hashes : 0
@@ -38,9 +39,11 @@ enum SourceFormatting {
     static func code(in text: String, selection: NSRange) -> SourceEdit {
         let source = text as NSString
         let selected = source.substring(with: selection)
-        let before = selection.location - 1, after = NSMaxRange(selection)
+        let before = selection.location - 1
+        let after = NSMaxRange(selection)
         if selection.length > 0, before >= 0, after < source.length,
-            source.character(at: before) == 0x60, source.character(at: after) == 0x60 {
+            source.character(at: before) == 0x60, source.character(at: after) == 0x60
+        {
             return SourceEdit(
                 range: NSRange(location: before, length: selection.length + 2), text: selected,
                 selection: NSRange(location: before, length: selection.length))
@@ -48,7 +51,8 @@ enum SourceFormatting {
         if selected.contains("\n") {
             let fenced = "```\n" + selected + "\n```"
             return SourceEdit(
-                range: selection, text: fenced, selection: NSRange(location: selection.location + 4, length: selection.length))
+                range: selection, text: fenced,
+                selection: NSRange(location: selection.location + 4, length: selection.length))
         }
         return SourceEdit(
             range: selection, text: "`" + selected + "`",
@@ -67,7 +71,8 @@ enum SourceFormatting {
         let trailingNewline = block.hasSuffix("\n")
         var parts = (trailingNewline ? String(block.dropLast()) : block)
             .split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        let quoted = parts.allSatisfy { $0.isEmpty || $0.hasPrefix(">") }
+        let quoted =
+            parts.allSatisfy { $0.isEmpty || $0.hasPrefix(">") }
             && parts.contains { !$0.isEmpty }
         var shifts: [Int] = []
         parts = parts.map { line in

@@ -1,6 +1,6 @@
-import Foundation
 import CoreGraphics
 import CryptoKit
+import Foundation
 import KasumiMarkdown
 
 struct BenchmarkCase {
@@ -15,10 +15,12 @@ struct BenchmarkCase {
     }
     var manifest: [String: Any] {
         let data = Data(source.utf8)
-        return ["id": id, "sample": sample.rawValue, "nominalBodyCharacters": count,
-                "utf16Units": source.utf16.count, "utf8Bytes": data.count,
-                "sha256": SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined(),
-                "completePreparationEligible": sample != .single]
+        return [
+            "id": id, "sample": sample.rawValue, "nominalBodyCharacters": count,
+            "utf16Units": source.utf16.count, "utf8Bytes": data.count,
+            "sha256": SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined(),
+            "completePreparationEligible": sample != .single
+        ]
     }
 }
 
@@ -37,7 +39,8 @@ func hostState() -> [String: Any] {
 func writeJSON(_ value: Any, to path: String) throws {
     let url = URL(fileURLWithPath: path)
     try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
-    try JSONSerialization.data(withJSONObject: value, options: [.prettyPrinted, .sortedKeys]).write(to: url, options: .atomic)
+    try JSONSerialization.data(withJSONObject: value, options: [.prettyPrinted, .sortedKeys]).write(
+        to: url, options: .atomic)
 }
 
 struct Worker {
@@ -49,7 +52,9 @@ struct Worker {
     var iterations: Int { full ? 50 : 5 }
     var style: RenderStyle { RenderStyle(fontSize: 18, widthLimit: nil) }
 
-    func rect(_ snapshot: RenderedDocument, top: CGFloat = 0, width: CGFloat = width, height: CGFloat = height) -> CGRect {
+    func rect(_ snapshot: RenderedDocument, top: CGFloat = 0, width: CGFloat = width, height: CGFloat = height)
+        -> CGRect
+    {
         CGRect(x: 0, y: min(max(0, snapshot.size.height - height), max(0, top)), width: width, height: height)
             .intersection(CGRect(origin: .zero, size: snapshot.size))
     }
@@ -67,7 +72,8 @@ struct Worker {
         }
     }
 
-    func prepared(_ session: DocumentReflowSession, width: CGFloat = width) async throws -> (RenderedDocument?, Double) {
+    func prepared(_ session: DocumentReflowSession, width: CGFloat = width) async throws -> (RenderedDocument?, Double)
+    {
         let start = ContinuousClock.now
         let snapshot = try await session.prepareForScrolling(width: width)
         let elapsed = milliseconds(start)
@@ -94,13 +100,18 @@ struct Worker {
         let paintMs = try paint(initial, rect: rect(initial))
         let totalMs = milliseconds(total)
         let fileTotalMs = fileStart.map { milliseconds($0) }
-        var timings = ["parseMs": parseMs, "sessionSetupMs": setupMs, "firstSnapshotMs": firstMs,
-                       "firstPaintMs": paintMs, "sourceToFirstBitmapMs": totalMs]
+        var timings = [
+            "parseMs": parseMs, "sessionSetupMs": setupMs, "firstSnapshotMs": firstMs,
+            "firstPaintMs": paintMs, "sourceToFirstBitmapMs": totalMs
+        ]
         if let fileTotalMs { timings["fileToFirstBitmapMs"] = fileTotalMs }
         let memory = try BenchmarkMemory.read()
         withExtendedLifetime((document, session, initial)) {}
-        return ["timings": timings, "memory": memory,
-                "semanticUTF16Units": initial.offset(from: initial.documentRange.lowerBound, to: initial.documentRange.upperBound)!]
+        return [
+            "timings": timings, "memory": memory,
+            "semanticUTF16Units": initial.offset(
+                from: initial.documentRange.lowerBound, to: initial.documentRange.upperBound)!
+        ]
     }
 
     @inline(never) func warmOpen() async throws {
@@ -123,7 +134,8 @@ struct Worker {
         for cycle in 0..<(full ? 26 : 4) {
             for width in Self.widths {
                 let start = ContinuousClock.now
-                var next: RenderedDocument? = await session.render(width: width, viewportHeight: Self.height, anchor: anchor)
+                var next: RenderedDocument? = await session.render(
+                    width: width, viewportHeight: Self.height, anchor: anchor)
                 let construct = milliseconds(start)
                 let visible = rect(next!, top: next!.y(for: anchor) ?? 0, width: width)
                 let painting = try paint(next!, rect: visible)
@@ -133,8 +145,10 @@ struct Worker {
                 previous = next
                 releaseSnapshot(&next)
                 if cycle > 0 {
-                    samples.append(["cycle": cycle, "width": width, "layoutMs": construct,
-                                    "paintMs": painting, "oldSnapshotReleaseMs": dispose])
+                    samples.append([
+                        "cycle": cycle, "width": width, "layoutMs": construct,
+                        "paintMs": painting, "oldSnapshotReleaseMs": dispose
+                    ])
                 }
             }
         }
@@ -155,11 +169,15 @@ struct Worker {
             start = ContinuousClock.now
             let same = await movingSession.render(width: Self.width, viewportHeight: Self.height, anchor: target)
             let fixed = milliseconds(start)
-            refinements.append(["index": index, "anchorFraction": fraction, "movingAnchorMs": moving, "sameWidthMs": fixed])
+            refinements.append([
+                "index": index, "anchorFraction": fraction, "movingAnchorMs": moving, "sameWidthMs": fixed
+            ])
             withExtendedLifetime(same) {}
         }
-        return ["widthSamples": samples, "refinementSamples": refinements,
-                "warmupCycles": 1, "anchorSemanticOffset": length / 2]
+        return [
+            "widthSamples": samples, "refinementSamples": refinements,
+            "warmupCycles": 1, "anchorSemanticOffset": length / 2
+        ]
     }
 
     func afterPrepare() async throws -> [String: Any] {
@@ -185,17 +203,21 @@ struct Worker {
         let limit = max(0, snapshot.size.height - Self.height)
         var tops = Array(stride(from: CGFloat(0), through: limit, by: Self.height))
         if tops.last != limit { tops.append(limit) }
-        var first: [Double] = [], returning: [Double] = []
+        var first: [Double] = []
+        var returning: [Double] = []
         for top in tops { first.append(try paint(snapshot, rect: rect(snapshot, top: top))) }
         for top in tops.reversed() { returning.append(try paint(snapshot, rect: rect(snapshot, top: top))) }
         withExtendedLifetime((initial, snapshot, session)) {}
-        return ["session": sessionNumber, "tops": tops, "firstMs": first, "returnMs": returning,
-                "prepareMs": prepareMs, "documentHeight": snapshot.size.height, "eligible": prepared != nil]
+        return [
+            "session": sessionNumber, "tops": tops, "firstMs": first, "returnMs": returning,
+            "prepareMs": prepareMs, "documentHeight": snapshot.size.height, "eligible": prepared != nil
+        ]
     }
 
     func painting() async throws -> [String: Any] {
         let document = MarkdownDocument(markdown: source)
-        var sessions: [[String: Any]] = [], count = 0
+        var sessions: [[String: Any]] = []
+        var count = 0
         let target = full && item.sample != .single ? 1000 : 1
         repeat {
             let pair = try await traversal(document: document, sessionNumber: sessions.count + 1)
@@ -229,10 +251,13 @@ struct Worker {
             start = ContinuousClock.now
             let origin = snapshot.documentRange.lowerBound
             let matches = numeric.map { range in
-                KasumiMarkdown.TextRange(snapshot.position(from: origin, offset: range.location)!,
-                                         snapshot.position(from: origin, offset: NSMaxRange(range))!)
+                KasumiMarkdown.TextRange(
+                    snapshot.position(from: origin, offset: range.location)!,
+                    snapshot.position(from: origin, offset: NSMaxRange(range))!)
             }
-            guard let indexer = ReaderHighlightIndex(matches, in: snapshot) else { throw BenchError.invalid("Find index") }
+            guard let indexer = ReaderHighlightIndex(matches, in: snapshot) else {
+                throw BenchError.invalid("Find index")
+            }
             let remapMs = milliseconds(start)
             let top = max(0, snapshot.size.height - Self.height) * CGFloat((index * 37) % 101) / 100
             start = ContinuousClock.now
@@ -240,16 +265,20 @@ struct Worker {
             var rectangles = 0
             for i in candidates { rectangles += snapshot.selectionRects(for: matches[i]).count }
             let geometryMs = milliseconds(start)
-            rows.append(["index": index, "searchMissMs": searchMs, "searchHitMs": hitMs, "remapIndexMs": remapMs,
-                         "viewportGeometryMs": geometryMs, "matches": matches.count,
-                         "candidates": candidates.count, "rectangles": rectangles])
+            rows.append([
+                "index": index, "searchMissMs": searchMs, "searchHitMs": hitMs, "remapIndexMs": remapMs,
+                "viewportGeometryMs": geometryMs, "matches": matches.count,
+                "candidates": candidates.count, "rectangles": rectangles
+            ])
         }
         let start = ContinuousClock.now
         let giant = snapshot.selectionRects(for: snapshot.documentRange)
         let giantMs = milliseconds(start)
         withExtendedLifetime((initial, snapshot, session, giant)) {}
-        return ["query": query, "samples": rows, "wholeDocumentSelectionMs": giantMs,
-                "wholeDocumentRectangles": giant.count]
+        return [
+            "query": query, "samples": rows, "wholeDocumentSelectionMs": giantMs,
+            "wholeDocumentRectangles": giant.count
+        ]
     }
 
     func memory() async throws -> [String: Any] {
@@ -264,23 +293,32 @@ struct Worker {
         try sample("afterFirstViewport")
         let (ready, prepareMs) = try await prepared(session, width: 900)
         guard let snapshot = ready else { throw BenchError.invalid("memory case requires complete prep") }
-        _ = try paint(snapshot, rect: rect(snapshot, top: snapshot.size.height * 0.55, width: 900, height: 714), scale: 1)
+        _ = try paint(
+            snapshot, rect: rect(snapshot, top: snapshot.size.height * 0.55, width: 900, height: 714), scale: 1)
         for stage in ["preparedAndOneViewport", "afterFullTraversal"] {
             if stage == "afterFullTraversal" {
                 // Match the earlier retained-memory probe: one reusable 1x context, no retained images.
                 try autoreleasepool {
-                    guard let context = CGContext(data: nil, width: 900, height: 714, bitsPerComponent: 8, bytesPerRow: 0,
-                                                  space: CGColorSpace(name: CGColorSpace.sRGB)!,
-                                                  bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else {
+                    guard
+                        let context = CGContext(
+                            data: nil, width: 900, height: 714, bitsPerComponent: 8, bytesPerRow: 0,
+                            space: CGColorSpace(name: CGColorSpace.sRGB)!,
+                            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+                    else {
                         throw BenchError.invalid("memory bitmap")
                     }
-                    context.translateBy(x: 0, y: 714); context.scaleBy(x: 1, y: -1)
+                    context.translateBy(x: 0, y: 714)
+                    context.scaleBy(x: 1, y: -1)
                     for top in stride(from: CGFloat(0), to: snapshot.size.height, by: CGFloat(714)) {
                         let area = CGRect(x: 0, y: top, width: 900, height: 714)
-                        guard !snapshot.needsLayout(in: area) else { throw BenchError.invalid("memory traversal uncovered") }
+                        guard !snapshot.needsLayout(in: area) else {
+                            throw BenchError.invalid("memory traversal uncovered")
+                        }
                         autoreleasepool {
-                            context.saveGState(); context.translateBy(x: 0, y: -top)
-                            snapshot.draw(in: context, rect: area); context.restoreGState()
+                            context.saveGState()
+                            context.translateBy(x: 0, y: -top)
+                            snapshot.draw(in: context, rect: area)
+                            context.restoreGState()
                         }
                     }
                 }

@@ -1,6 +1,6 @@
 import Foundation
-import Testing
 import TOMLDecoder
+import Testing
 
 @testable import KasumiMarkdown
 
@@ -103,16 +103,21 @@ import TOMLDecoder
     #expect(try nested.bool(atIndex: 2) == false)
     #expect(try nested.table(atIndex: 3).string(forKey: "x") == "a,b")
     for key in ["published", "date", "time", "local"] {
-        #expect(try Dictionary(output.table(forKey: "meta"))[key].map { String(describing: $0) }
-            == Dictionary(original.table(forKey: "meta"))[key].map { String(describing: $0) })
+        #expect(
+            try Dictionary(output.table(forKey: "meta"))[key].map { String(describing: $0) }
+                == Dictionary(original.table(forKey: "meta"))[key].map { String(describing: $0) })
     }
     #expect(document.values()[.baseSize] == .number(20))
     #expect(document.values(anchor: true)[.baseSize] == nil)
     #expect(document.name == "New\n\"\\\t\r\u{0001}")
     let unchanged = document.source
-    #expect(throws: ProfileFileDocument.FileError.self) { try document.setName(String(repeating: "x", count: 4 * 1024 * 1024)) }
+    #expect(throws: ProfileFileDocument.FileError.self) {
+        try document.setName(String(repeating: "x", count: 4 * 1024 * 1024))
+    }
     #expect(document.source == unchanged)
-    #expect(throws: ProfileFileDocument.FileError.self) { _ = try ProfileFileDocument(String(repeating: "#", count: 4 * 1024 * 1024 + 1)) }
+    #expect(throws: ProfileFileDocument.FileError.self) {
+        _ = try ProfileFileDocument(String(repeating: "#", count: 4 * 1024 * 1024 + 1))
+    }
 }
 
 @Test func profileTOMLTemplateAndEveryFieldRoundTrip() throws {

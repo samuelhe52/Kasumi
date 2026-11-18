@@ -144,13 +144,16 @@ fileprivate func mixedFontDrawingText() -> NSMutableAttributedString {
         let storage = FragmentGlyphPaintCache.Storage()
         let cache = FragmentGlyphPaintCache(storage: storage)
         let text = NSMutableAttributedString(
-            string: "abc", attributes: [.font: PlatformFont.systemFont(ofSize: 14), .foregroundColor: PlatformColor.black])
-        text.addAttribute(.foregroundColor, value: PlatformColor.black.withAlphaComponent(0.5),
-                          range: NSRange(location: 2, length: 1))
+            string: "abc",
+            attributes: [.font: PlatformFont.systemFont(ofSize: 14), .foregroundColor: PlatformColor.black])
+        text.addAttribute(
+            .foregroundColor, value: PlatformColor.black.withAlphaComponent(0.5),
+            range: NSRange(location: 2, length: 1))
         let factory = ParagraphFragmentFactory(text, glyphPaintCache: cache)
         let geometry = (0..<3).map {
-            FragmentGeometry(range: NSRange(location: $0, length: 1), x: CGFloat($0 * 10), width: 10,
-                             drawOffset: 0, capsuleLeft: 0, capsuleRight: 0)
+            FragmentGeometry(
+                range: NSRange(location: $0, length: 1), x: CGFloat($0 * 10), width: 10,
+                drawOffset: 0, capsuleLeft: 0, capsuleRight: 0)
         }
         let store = LineFragmentStore(factory: factory, geometry: geometry)
         _ = store.value(at: 0)
@@ -158,10 +161,13 @@ fileprivate func mixedFontDrawingText() -> NSMutableAttributedString {
         let second = try #require(store.cachedGlyphPaint(at: 1))
         let third = try #require(store.cachedGlyphPaint(at: 2))
         if case .single(let a) = first.storage, case .single(let b) = second.storage,
-            case .single(let c) = third.storage {
+            case .single(let c) = third.storage
+        {
             #expect(a.color === b.color)
             #expect(a.color != c.color && c.color.alpha == 0.5)
-        } else { Issue.record("Single-glyph paints were not compacted") }
+        } else {
+            Issue.record("Single-glyph paints were not compacted")
+        }
         storage.removeAll()
         #expect(cache.cachedValue(for: geometry[0].range) == nil)
         #expect(store.cachedGlyphPaint(at: 0) === first)

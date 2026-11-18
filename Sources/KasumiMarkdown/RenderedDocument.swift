@@ -199,9 +199,10 @@ public final class RenderedDocument: @unchecked Sendable {
                 let visible = rect.intersection(table.frame)
                 let offset = tableOffsets[index] ?? 0
                 guard !visible.isEmpty, image.rect.intersects(visible.offsetBy(dx: offset, dy: 0)) else { continue }
-                regions.append(ReaderImageRegion(
-                    rect: image.rect.offsetBy(dx: -table.frame.minX, dy: -table.frame.minY),
-                    tableID: index, request: image.request))
+                regions.append(
+                    ReaderImageRegion(
+                        rect: image.rect.offsetBy(dx: -table.frame.minX, dy: -table.frame.minY),
+                        tableID: index, request: image.request))
             } else if image.rect.intersects(rect) {
                 regions.append(ReaderImageRegion(rect: image.rect, tableID: nil, request: image.request))
             }
@@ -391,9 +392,10 @@ public final class RenderedDocument: @unchecked Sendable {
                 let start = line.shaped.offset(forStringIndex: overlap.location - item.textOffset)
                 let end = line.shaped.offset(
                     forStringIndex: NSMaxRange(overlap) - item.textOffset, affinity: .precedingFragment)
-                measured.append(CGRect(
-                    x: line.origin.x + min(start, end), y: line.rect.minY,
-                    width: abs(end - start), height: line.rect.height))
+                measured.append(
+                    CGRect(
+                        x: line.origin.x + min(start, end), y: line.rect.minY,
+                        width: abs(end - start), height: line.rect.height))
             }
             lower = 0
             upper = layout.paragraphs.count

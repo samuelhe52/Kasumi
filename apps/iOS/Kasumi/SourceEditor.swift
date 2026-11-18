@@ -126,7 +126,8 @@ struct SourceEditor: UIViewRepresentable {
 
     /// The span of `new`, in UTF-16 units, that differs from `old`.
     static func changedRange(from old: String, to new: String) -> NSRange {
-        let a = Array(old.utf16), b = Array(new.utf16)
+        let a = Array(old.utf16)
+        let b = Array(new.utf16)
         var prefix = 0
         while prefix < min(a.count, b.count), a[prefix] == b[prefix] { prefix += 1 }
         var suffix = 0
@@ -234,7 +235,8 @@ final class SourceEditorView: UIView {
     /// that accessory, like under the bottom bar, but stop at the keyboard's own
     /// glass, and inset the content so the caret stays above the capsule.
     override func layoutSubviews() {
-        let accessory = keyboardLayoutGuide.layoutFrame.height > 0
+        let accessory =
+            keyboardLayoutGuide.layoutFrame.height > 0
             ? textView.inputAccessoryView?.bounds.height ?? 0 : 0
         if keyboardEdge.constant != accessory { keyboardEdge.constant = accessory }
         super.layoutSubviews()
@@ -304,7 +306,8 @@ final class SourceTextView: UITextView {
             $0.format { SourceFormatting.link(in: $0, selection: $1) }
         }
         // Three commands on each side with equal gaps center Hide Keyboard.
-        let leadingGap = UIView(), trailingGap = UIView()
+        let leadingGap = UIView()
+        let trailingGap = UIView()
         let row = UIStackView(arrangedSubviews: [
             undoButton, redoButton, heading, leadingGap, dismiss, trailingGap, code, quote, link
         ])
@@ -371,7 +374,8 @@ final class SourceTextView: UITextView {
         viewportSize = bounds.size
         if let offset = pendingOffset, bounds.width > 0, bounds.height > 0 {
             pendingOffset = nil
-            let maximum = max(-adjustedContentInset.top, contentSize.height - bounds.height + adjustedContentInset.bottom)
+            let maximum = max(
+                -adjustedContentInset.top, contentSize.height - bounds.height + adjustedContentInset.bottom)
             setContentOffset(
                 CGPoint(x: 0, y: min(maximum, max(-adjustedContentInset.top, offset.y))), animated: false)
         } else if resized && isFirstResponder {

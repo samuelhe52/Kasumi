@@ -47,15 +47,16 @@ struct PresetSpacingSettings: View {
 private struct SpacingPreview: View {
     let style: RenderStyle
 
-    private static let sample = MarkdownDocument(markdown: """
-        A path through the pines led down to the shore.
+    private static let sample = MarkdownDocument(
+        markdown: """
+            A path through the pines led down to the shore.
 
-        松林尽头，海面泛着微光。
+            松林尽头，海面泛着微光。
 
-        ## At the water’s edge
+            ## At the water’s edge
 
-        The tide was turning.
-        """)
+            The tide was turning.
+            """)
 
     var body: some View {
         GeometryReader { geometry in

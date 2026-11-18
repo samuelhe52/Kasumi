@@ -55,17 +55,24 @@ struct PunctuationPlan {
                     || (0xFF65...0xFFDC).contains(value) || (0x1100...0x11FF).contains(value)
                     || (0x3130...0x318F).contains(value) || (0xA960...0xA97F).contains(value)
                     || (0xAC00...0xD7FF).contains(value) || (0x1B000...0x1B16F).contains(value)
-                { return nil }
+                {
+                    return nil
+                }
                 let kind: UInt8
                 if (0x3400...0x4DBF).contains(value) || (0x4E00...0x9FFF).contains(value)
                     || (0xF900...0xFAFF).contains(value) || (0x20000...0x323AF).contains(value)
                 {
                     kind = 1
                     hasHan = true
-                } else if scalar.properties.numericType != nil { kind = 3 }
-                else if scalar.properties.isAlphabetic { kind = 2 }
-                else if scalar.properties.isWhitespace || isPunctuation(scalar) { kind = 0 }
-                else { kind = 4 }
+                } else if scalar.properties.numericType != nil {
+                    kind = 3
+                } else if scalar.properties.isAlphabetic {
+                    kind = 2
+                } else if scalar.properties.isWhitespace || isPunctuation(scalar) {
+                    kind = 0
+                } else {
+                    kind = 4
+                }
                 if replacements[value] != nil { candidates.append(entries.count) }
                 entries.append(Entry(scalar: value, run: runIndex, offset: offset, kind: kind))
                 offset += value > 0xFFFF ? 2 : 1
@@ -91,8 +98,12 @@ struct PunctuationPlan {
             let left = preceding[index]
             let right = following[index]
             if [44, 46, 58].contains(entries[index].scalar), left >= 0, right >= 0,
-                entries[left].kind == 3, entries[right].kind == 3 { continue }
-            eligible[index] = (left >= 0 && index - left <= 16 && entries[left].kind == 1)
+                entries[left].kind == 3, entries[right].kind == 3
+            {
+                continue
+            }
+            eligible[index] =
+                (left >= 0 && index - left <= 16 && entries[left].kind == 1)
                 || (right >= 0 && right - index <= 16 && entries[right].kind == 1)
         }
         // Matched parentheses transform together. Unbalanced/protected pairs stay
@@ -123,7 +134,8 @@ struct PunctuationPlan {
     private static func isPunctuation(_ scalar: Unicode.Scalar) -> Bool {
         switch scalar.properties.generalCategory {
         case .openPunctuation, .closePunctuation, .initialPunctuation, .finalPunctuation,
-             .otherPunctuation, .dashPunctuation: true
+            .otherPunctuation, .dashPunctuation:
+            true
         default: false
         }
     }
@@ -151,7 +163,8 @@ struct PunctuationPlan {
         let selected = Set(offsets)
         func add(_ amount: CGFloat, at range: NSRange) {
             let old = text.attribute(.kern, at: range.location, effectiveRange: nil) as? CGFloat ?? 0
-            let padding = text.attribute(.kasumiPunctuationPadding, at: range.location, effectiveRange: nil) as? CGFloat ?? 0
+            let padding =
+                text.attribute(.kasumiPunctuationPadding, at: range.location, effectiveRange: nil) as? CGFloat ?? 0
             text.addAttributes([.kern: old + amount, .kasumiPunctuationPadding: padding + amount], range: range)
         }
         for offset in offsets {
@@ -160,7 +173,8 @@ struct PunctuationPlan {
             if offset > 0, !selected.contains(offset - 1) {
                 let range = source.rangeOfComposedCharacterSequence(at: offset - 1)
                 let before = source.substring(with: range)
-                let prior = text.attribute(.kasumiParagraphRun, at: range.location, effectiveRange: nil) as? ParagraphRunStyle
+                let prior =
+                    text.attribute(.kasumiParagraphRun, at: range.location, effectiveRange: nil) as? ParagraphRunStyle
                 if !before.unicodeScalars.allSatisfy(\.properties.isWhitespace), (prior?.flags ?? 0) & 0x7C == 0 {
                     add(padding, at: range)
                 }

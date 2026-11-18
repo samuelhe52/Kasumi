@@ -24,7 +24,8 @@ struct ReaderSnapshot: Sendable {
         self.source = source
         self.text = text
         let ext = fileExtension.lowercased()
-        parsed = (ext == "txt" || ext == "text") && !parsePlainTextAsMarkdown
+        parsed =
+            (ext == "txt" || ext == "text") && !parsePlainTextAsMarkdown
             ? MarkdownDocument(plainText: text, baseURL: baseURL)
             : MarkdownDocument(markdown: text, baseURL: baseURL)
     }

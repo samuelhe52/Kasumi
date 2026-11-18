@@ -30,8 +30,10 @@ for imageScale in scales {
             x: x, y: y + (artHeight - bar.top - barHeight) * scale,
             width: bar.width * scale, height: barHeight * scale
         )
-        NSBezierPath(roundedRect: rect, xRadius: barHeight * scale / 2,
-                     yRadius: barHeight * scale / 2).fill()
+        NSBezierPath(
+            roundedRect: rect, xRadius: barHeight * scale / 2,
+            yRadius: barHeight * scale / 2
+        ).fill()
     }
     NSGraphicsContext.restoreGraphicsState()
     try bitmap.representation(using: .png, properties: [:])!.write(

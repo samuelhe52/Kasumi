@@ -310,7 +310,8 @@ import Testing
     }
 
     @Test func idlePreparationProducesCompleteIndependentSnapshotsAndResetsForWidth() async throws {
-        let source = (0..<35).map { "Paragraph \($0). " + String(repeating: "中文 text. ", count: 12) }
+        let source =
+            (0..<35).map { "Paragraph \($0). " + String(repeating: "中文 text. ", count: 12) }
             .joined(separator: "\n\n") + "\n\n| A | B |\n| --- | --- |\n| $x+1$ | Text |"
         let document = MarkdownDocument(markdown: source)
         let session = DocumentReflowSession(document, style: style)
@@ -320,7 +321,8 @@ import Testing
         let warm = try #require(try await session.prepareForScrolling(width: 400))
         let full = RenderedDocument(document, width: 400, style: style)
         #expect(!warm.hasEstimatedGeometry && warm.size == full.size)
-        let revisited = await session.render(width: 400, viewportHeight: 300,
+        let revisited = await session.render(
+            width: 400, viewportHeight: 300,
             anchor: warm.readingAnchor(atY: warm.size.height * 0.8))
         #expect(revisited === warm && !revisited.hasEstimatedGeometry)
         #expect(warm.text(in: warm.documentRange) == full.text(in: full.documentRange))
@@ -363,13 +365,17 @@ import Testing
         #expect(!next.needsLayout(in: CGRect(x: 0, y: 0, width: 600, height: 500)))
         let warm = try #require(try await session.prepareForScrolling(width: 600))
         #expect(!warm.hasEstimatedGeometry && warm.size.width == 600)
-        for source in [String(repeating: "x", count: 4001), "![image](missing.png)",
-                       "| A | B |\n| --- | --- |\n" + String(repeating: "| a | b |\n", count: 33)] {
+        for source in [
+            String(repeating: "x", count: 4001), "![image](missing.png)",
+            "| A | B |\n| --- | --- |\n" + String(repeating: "| a | b |\n", count: 33)
+        ] {
             let excluded = DocumentReflowSession(MarkdownDocument(markdown: source), style: style)
             #expect(try await excluded.prepareForScrolling(width: 400) == nil)
         }
-        for source in ["![remote](https://example.invalid/image.png)", "![missing](missing.png)",
-                       "```mermaid\ngraph TD; A-->B\n```"] {
+        for source in [
+            "![remote](https://example.invalid/image.png)", "![missing](missing.png)",
+            "```mermaid\ngraph TD; A-->B\n```"
+        ] {
             let excluded = DocumentReflowSession(
                 MarkdownDocument(markdown: source, baseURL: testRepositoryURL), style: style,
                 readerDisplayScale: 2, preparesLocalImageLayout: true)
@@ -382,7 +388,8 @@ import Testing
         let data = try Data(contentsOf: base.appendingPathComponent("images/tiny.png")).base64EncodedString()
         let prose = (0..<30).map { "Paragraph \($0) with enough text to wrap on a narrow screen." }
             .joined(separator: "\n\n")
-        let wideTable = "| A | B | C | D | E | F | G | H |\n"
+        let wideTable =
+            "| A | B | C | D | E | F | G | H |\n"
             + "| --- | --- | --- | --- | --- | --- | --- | --- |\n"
             + String(repeating: "| 0 | 1 | 0 | 1 | 0 | 1 | 0 | 1 |\n", count: 11)
         let document = MarkdownDocument(

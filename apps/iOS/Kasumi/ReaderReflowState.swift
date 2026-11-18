@@ -42,7 +42,8 @@ struct ReaderReflowState {
         running = nil
         if publish {
             // Coverage was checked against the latest target after prepainting.
-            installed = coversDesiredViewport && desired?.width == request.width && desired?.height == request.height
+            installed =
+                coversDesiredViewport && desired?.width == request.width && desired?.height == request.height
                 ? desired : request
         }
         return publish

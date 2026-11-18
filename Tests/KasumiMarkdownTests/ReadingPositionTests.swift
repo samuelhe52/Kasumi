@@ -120,8 +120,10 @@ fileprivate func expectedReadingY(_ item: PlacedText, anchor: ReadingAnchor) thr
 
 @Test(arguments: [30, 300])
 func liveReflowRetainsOriginalAnchorAndTextSizeAcrossManyWidths(repetitions: Int) throws {
-    let source = "Opening.\n\n" + String(
-        repeating: "Live resizing keeps 中文与 English at the same reading size. ", count: repetitions) + "\n\nEnd."
+    let source =
+        "Opening.\n\n"
+        + String(
+            repeating: "Live resizing keeps 中文与 English at the same reading size. ", count: repetitions) + "\n\nEnd."
     let document = MarkdownDocument(markdown: source)
     let style = RenderStyle(fontSize: 16)
     let initial = RenderedDocument(document, width: 440, style: style)

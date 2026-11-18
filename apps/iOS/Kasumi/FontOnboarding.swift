@@ -18,9 +18,12 @@ struct FontOnboardingModifier: ViewModifier {
                 #else
                     let preview = false
                 #endif
-                guard preview || FontPackage.apple.contains(where: {
-                    $0.recommended && FontStore.shared.state($0) != .installed
-                }) else { return }
+                guard
+                    preview
+                        || FontPackage.apple.contains(where: {
+                            $0.recommended && FontStore.shared.state($0) != .installed
+                        })
+                else { return }
                 Self.claimed = true
                 presented = true
             }
@@ -40,4 +43,3 @@ struct FontOnboardingModifier: ViewModifier {
 extension View {
     func fontOnboarding() -> some View { modifier(FontOnboardingModifier()) }
 }
-

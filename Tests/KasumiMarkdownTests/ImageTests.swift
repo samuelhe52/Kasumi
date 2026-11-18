@@ -240,7 +240,7 @@ fileprivate final class ImageFixtureProtocol: URLProtocol, @unchecked Sendable {
             if raster[offset..<(offset + 4)].allSatisfy({ $0 >= 245 }) { whitePixels += 1 }
         }
     }
-    #expect(whitePixels > 20) // Only the badge lettering is white.
+    #expect(whitePixels > 20)  // Only the badge lettering is white.
 }
 
 @Test func svgReaderRastersFollowFittedSizeAndKeepExportPixels() async throws {
@@ -248,8 +248,9 @@ fileprivate final class ImageFixtureProtocol: URLProtocol, @unchecked Sendable {
     let source = "HTMLAndSVG/logo.svg"
     let cache = ReaderImageCache(displayScale: 3, store: store)
     func request(_ maximumWidth: CGFloat, width: CGFloat? = nil, height: CGFloat? = nil) throws -> ReaderImageRequest {
-        try #require(cache.request(
-            for: source, baseURL: imageFixtureDirectory, maximumWidth: maximumWidth, width: width, height: height))
+        try #require(
+            cache.request(
+                for: source, baseURL: imageFixtureDirectory, maximumWidth: maximumWidth, width: width, height: height))
     }
     let narrow = try request(50)
     #expect(narrow.source.info.size == CGSize(width: 120, height: 96))
@@ -283,8 +284,9 @@ fileprivate final class ImageFixtureProtocol: URLProtocol, @unchecked Sendable {
     #expect(store.readerSource(for: svg, baseURL: nil) == nil)
     #expect(await store.preload(document, forReader: true))
     for (source, size) in [(svg, CGSize(width: 88, height: 20)), (png, CGSize(width: 32, height: 24))] {
-        let request = try #require(cache.request(
-            for: source, baseURL: nil, maximumWidth: 44, width: nil, height: nil))
+        let request = try #require(
+            cache.request(
+                for: source, baseURL: nil, maximumWidth: 44, width: nil, height: nil))
         #expect(request.source.info.size == size)
         #expect(!cache.hasResult(for: request.key))
         #expect(await cache.load(request))
@@ -318,9 +320,10 @@ fileprivate final class ImageFixtureProtocol: URLProtocol, @unchecked Sendable {
     #expect(wide.rect.size == CGSize(width: 120, height: 60))
     #expect(!rendered.hasReaderImageResult(for: wide))
     func paint() throws -> [UInt8] {
-        let context = try #require(CGContext(
-            data: nil, width: 200, height: 200, bitsPerComponent: 8, bytesPerRow: 0,
-            space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+        let context = try #require(
+            CGContext(
+                data: nil, width: 200, height: 200, bitsPerComponent: 8, bytesPerRow: 0,
+                space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
         context.translateBy(x: 0, y: 200)
         context.scaleBy(x: 1, y: -1)
         rendered.draw(in: context, rect: first)

@@ -39,7 +39,9 @@ import Testing
     let marker = try #require(extensions.math.keys.first)
     let traits: Set<InlineRun.Trait> = [.strong, .link]
     let destination = "https://example.com"
-    for text in ["", "ordinary prose", String(repeating: "plain text ", count: 100), "中文 Café 🙂", "\u{E123} literal", "a = b"] {
+    for text in [
+        "", "ordinary prose", String(repeating: "plain text ", count: 100), "中文 Café 🙂", "\u{E123} literal", "a = b"
+    ] {
         let runs = extensions.textRuns(text, traits: traits, destination: destination)
         #expect(runs == (text.isEmpty ? [] : [InlineRun(text, traits: traits, destination: destination)]))
     }
@@ -67,7 +69,8 @@ import Testing
     #expect(extensions.math.count == 120)
     for index in 0..<60 {
         let inline = try #require(extensions.math.values.first { $0.text == "x_\(index)" })
-        let display = try #require(extensions.math.values.first { $0.text.trimmingCharacters(in: .whitespacesAndNewlines) == "y_\(index)" })
+        let display = try #require(
+            extensions.math.values.first { $0.text.trimmingCharacters(in: .whitespacesAndNewlines) == "y_\(index)" })
         #expect(inline.sourceLines == (index * 10 + 1)...(index * 10 + 1))
         #expect(display.sourceLines == (index * 10 + 7)...(index * 10 + 9))
     }

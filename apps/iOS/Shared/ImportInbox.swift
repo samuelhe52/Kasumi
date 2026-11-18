@@ -53,7 +53,8 @@ enum ImportInbox {
             return a < b
         }
         for folder in ordered {
-            let files = (try? FileManager.default.contentsOfDirectory(at: folder, includingPropertiesForKeys: nil)) ?? []
+            let files =
+                (try? FileManager.default.contentsOfDirectory(at: folder, includingPropertiesForKeys: nil)) ?? []
             if let file = files.first, let data = try? Data(contentsOf: file) {
                 do { try body(data, file.lastPathComponent) } catch { continue }
             }

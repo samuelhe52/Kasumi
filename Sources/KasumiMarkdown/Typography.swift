@@ -210,13 +210,16 @@ struct Typography: Codable, Equatable, Sendable {
         let pointSize = size ?? self.size
         let theme = documentTheme
         let foreground = heading ? (theme.color("heading") ?? textColor) : theme.color("text")!
-        let punctuation = code ? nil : PunctuationPlan.make(runs: runs, strategy: profileValues.resolved(.punctStrategy).string ?? "faithful")
+        let punctuation =
+            code
+            ? nil
+            : PunctuationPlan.make(runs: runs, strategy: profileValues.resolved(.punctStrategy).string ?? "faithful")
         var punctuationSpacing: [Int] = []
         for (runIndex, run) in runs.enumerated() {
             let isCode = code || run.traits.contains(.code)
             let raised = run.traits.contains(.footnote) || run.traits.contains(.superscript)
             let lowered = run.traits.contains(.subscript)
-            let subscriptDrop = 0.15 // TeX sub1, in em of the base font.
+            let subscriptDrop = 0.15  // TeX sub1, in em of the base font.
             let scriptOffset = raised ? pointSize * superscriptShift : lowered ? -pointSize * subscriptDrop : 0
             let runSize =
                 (raised || lowered ? (pointSize * scriptScale).rounded(.toNearestOrAwayFromZero) : pointSize)
@@ -328,7 +331,8 @@ struct Typography: Codable, Equatable, Sendable {
                         if let punctuation { selectedPunctuation = punctuation }
                         let trim = punctuation == nil ? han.trim : -0.055
                         let face = punctuation ?? han.font
-                        let baseline = base.pointSize * ((heading ? headingHanBaseline : hanBaseline) + trim) + scriptOffset
+                        let baseline =
+                            base.pointSize * ((heading ? headingHanBaseline : hanBaseline) + trim) + scriptOffset
                         if let span = pending, span.font == face, span.baseline == baseline,
                             NSMaxRange(span.range) == offset
                         {
@@ -409,7 +413,9 @@ enum ParagraphTypesetter {
                 deferFragments: deferFragments,
                 glyphPaintCache: preparation != nil ? prepared.glyphPaintCache : nil)
             let result = finish(paragraph)
-            if deferFragments, let preparation { preparation.geometry = ParagraphLayoutGeometry(result, request: request) }
+            if deferFragments, let preparation {
+                preparation.geometry = ParagraphLayoutGeometry(result, request: request)
+            }
             return result
         }
         var legacyAlignment = alignment

@@ -24,10 +24,12 @@ public actor DocumentReflowSession {
         var knownSources = Set<String>()
         for block in document.parsed.blocks {
             guard block.kind != .diagram,
-                block.text.utf16.count <= 4_000 else { return false }
+                block.text.utf16.count <= 4_000
+            else { return false }
             let cells = block.rows.flatMap { $0 }
             guard cells.count <= (preparesLocalImageLayout ? 128 : 64),
-                cells.allSatisfy({ $0.reduce(0) { $0 + $1.text.utf16.count } <= 4_000 }) else { return false }
+                cells.allSatisfy({ $0.reduce(0) { $0 + $1.text.utf16.count } <= 4_000 })
+            else { return false }
             totalTableCells += cells.count
             largestTable = max(largestTable, cells.count)
             for run in block.runs + cells.flatMap({ $0 }) {
@@ -36,8 +38,9 @@ public actor DocumentReflowSession {
                     guard preparesLocalImageLayout, imageOccurrences <= 256, let source = run.imageSource
                     else { return false }
                     if knownSources.insert(source).inserted {
-                        guard let image = DocumentImageStore.shared.readerSource(
-                            for: source, baseURL: document.parsed.baseURL),
+                        guard
+                            let image = DocumentImageStore.shared.readerSource(
+                                for: source, baseURL: document.parsed.baseURL),
                             image.url.isFileURL || image.url.scheme?.lowercased() == "data"
                         else { return false }
                     }
@@ -142,7 +145,8 @@ public actor DocumentReflowSession {
                 let count = DocumentTypesetter.layout(
                     document.parsed, width: width, style: typography, insets: style.insets,
                     scrollableTables: scrollableTables, preparation: preparation, viewport: construction,
-                    buildSemanticContent: false, buildTextStorage: false).paragraphs.count
+                    buildSemanticContent: false, buildTextStorage: false
+                ).paragraphs.count
                 preparation.discardBreakItems(requiringGeometry: true)
                 return count
             }

@@ -4,7 +4,10 @@ import UIKit
 private final class ReaderTextPosition: UITextPosition {
     let owner: UUID
     let offset: Int
-    init(owner: UUID, offset: Int) { self.owner = owner; self.offset = offset }
+    init(owner: UUID, offset: Int) {
+        self.owner = owner
+        self.offset = offset
+    }
 }
 
 private final class ReaderTextRange: UITextRange {
@@ -13,7 +16,10 @@ private final class ReaderTextRange: UITextRange {
     let lower: Int
     let upper: Int
     init(_ value: TextRange, owner: UUID, lower: Int, upper: Int) {
-        self.value = value; self.owner = owner; self.lower = lower; self.upper = upper
+        self.value = value
+        self.owner = owner
+        self.lower = lower
+        self.upper = upper
     }
     override var start: UITextPosition { ReaderTextPosition(owner: owner, offset: lower) }
     override var end: UITextPosition { ReaderTextPosition(owner: owner, offset: upper) }
@@ -89,7 +95,10 @@ class ReaderTextInputView: UIView, UITextInput, UITextInteractionDelegate, UIGes
     var selectedTextRange: UITextRange? {
         get { selection }
         set {
-            guard let newValue else { selection = nil; return }
+            guard let newValue else {
+                selection = nil
+                return
+            }
             guard let range = checkedRange(newValue) else { return }
             selection = readerRange(range)
         }
@@ -199,10 +208,12 @@ class ReaderTextInputView: UIView, UITextInput, UITextInteractionDelegate, UIGes
         guard index >= 0, index < text.length else { return nil }
         let range = text.rangeOfComposedCharacterSequence(at: index)
         guard let a = rendered.position(from: rendered.documentRange.lowerBound, offset: range.location),
-            let b = rendered.position(from: a, offset: range.length) else { return nil }
+            let b = rendered.position(from: a, offset: range.length)
+        else { return nil }
         return readerRange(TextRange(a, b))
     }
-    func baseWritingDirection(for position: UITextPosition, in direction: UITextStorageDirection) -> NSWritingDirection {
+    func baseWritingDirection(for position: UITextPosition, in direction: UITextStorageDirection) -> NSWritingDirection
+    {
         .natural
     }
     func firstRect(for range: UITextRange) -> CGRect {
@@ -224,8 +235,9 @@ class ReaderTextInputView: UIView, UITextInput, UITextInteractionDelegate, UIGes
     }
     func closestPosition(to point: CGPoint, within range: UITextRange) -> UITextPosition? {
         guard let range = checkedRange(range) else { return nil }
-        return readerPosition(min(
-            range.upperBound, max(range.lowerBound, rendered.position(closestTo: documentPoint(point)))))
+        return readerPosition(
+            min(
+                range.upperBound, max(range.lowerBound, rendered.position(closestTo: documentPoint(point)))))
     }
     func characterRange(at point: CGPoint) -> UITextRange? {
         guard let position = closestPosition(to: point) else { return nil }
@@ -245,7 +257,8 @@ class ReaderTextInputView: UIView, UITextInput, UITextInteractionDelegate, UIGes
     }
 
     private func readerPosition(_ value: TextPosition) -> ReaderTextPosition {
-        ReaderTextPosition(owner: positionOwner, offset: rendered.offset(from: rendered.documentRange.lowerBound, to: value)!)
+        ReaderTextPosition(
+            owner: positionOwner, offset: rendered.offset(from: rendered.documentRange.lowerBound, to: value)!)
     }
     private func readerRange(_ value: TextRange) -> ReaderTextRange {
         ReaderTextRange(
@@ -275,7 +288,10 @@ class ReaderTextInputView: UIView, UITextInput, UITextInteractionDelegate, UIGes
         return dismissingSelection || rendered.link(at: documentPoint(touch.location(in: self))) != nil
     }
     @objc private func openTappedLink(_ gesture: UITapGestureRecognizer) {
-        if dismissingSelection { clearSelection(); return }
+        if dismissingSelection {
+            clearSelection()
+            return
+        }
         guard let url = rendered.link(at: documentPoint(gesture.location(in: self))) else { return }
         onLink?(url)
     }

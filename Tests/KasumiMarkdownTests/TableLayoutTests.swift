@@ -34,12 +34,14 @@ fileprivate func tableFixture() throws -> MarkdownDocument {
         let header = try #require(layout.backgrounds.first)
         #expect(abs(header.rect.minX - table.frame.minX) < 0.01)
         #expect(abs(header.rect.maxX - table.frame.maxX) < 0.01)
-        #expect(layout.rules.allSatisfy {
-            $0.start.x >= table.frame.minX - 0.01 && $0.end.x <= table.frame.maxX + 0.01
-        })
-        #expect(layout.rules.contains {
-            abs($0.start.x - table.frame.minX) < 0.01 && abs($0.end.x - table.frame.maxX) < 0.01
-        })
+        #expect(
+            layout.rules.allSatisfy {
+                $0.start.x >= table.frame.minX - 0.01 && $0.end.x <= table.frame.maxX + 0.01
+            })
+        #expect(
+            layout.rules.contains {
+                abs($0.start.x - table.frame.minX) < 0.01 && abs($0.end.x - table.frame.maxX) < 0.01
+            })
     }
 
     @Test func verboseCellsDoNotStarveShortColumnsAndHeadersUseTheirPaintedFont() throws {

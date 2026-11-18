@@ -11,13 +11,14 @@ import KasumiMarkdown
             var pixels = 0
             for _ in 0..<repeats {
                 let start = ContinuousClock.now
-                samples.append(try autoreleasepool {
-                    guard let bitmap = DocumentImageStore.decode(data)?.bitmap else {
-                        throw BenchError.invalid("SVG decoding failed")
-                    }
-                    pixels = bitmap.width * bitmap.height
-                    return milliseconds(start)
-                })
+                samples.append(
+                    try autoreleasepool {
+                        guard let bitmap = DocumentImageStore.decode(data)?.bitmap else {
+                            throw BenchError.invalid("SVG decoding failed")
+                        }
+                        pixels = bitmap.width * bitmap.height
+                        return milliseconds(start)
+                    })
             }
             try writeJSON(["decodeMs": samples, "pixels": pixels], to: args[3])
             return
@@ -47,12 +48,14 @@ import KasumiMarkdown
             for item in BenchmarkCase.all {
                 try Data(item.source.utf8).write(to: root.appendingPathComponent(item.id + ".md"))
             }
-            try writeJSON(["schema": 1, "generator": "LabSample-v1-en_US", "cases": BenchmarkCase.all.map(\.manifest)],
-                          to: root.appendingPathComponent("manifest.json").path)
+            try writeJSON(
+                ["schema": 1, "generator": "LabSample-v1-en_US", "cases": BenchmarkCase.all.map(\.manifest)],
+                to: root.appendingPathComponent("manifest.json").path)
             return
         }
         if args.count == 6, args[0] == "--worker", let item = BenchmarkCase.all.first(where: { $0.id == args[2] }) {
-            let phase = args[1], startState = hostState()
+            let phase = args[1]
+            let startState = hostState()
             let readStart = ContinuousClock.now
             let data = try Data(contentsOf: URL(fileURLWithPath: args[3]))
             guard let source = String(data: data, encoding: .utf8) else { throw BenchError.invalid("source decoding") }
@@ -70,11 +73,18 @@ import KasumiMarkdown
             default: throw BenchError.invalid("unknown worker phase")
             }
             // Validate after measurements so generator/locale setup cannot warm cold initialization.
-            guard Data(source.utf8) == Data(item.source.utf8) else { throw BenchError.invalid("worker source differs from generator") }
-            try writeJSON(["schema": 1, "phase": phase, "case": item.id, "corpus": item.manifest,
-                           "valid": true,
-                           "geometry": phase == "memory" ? ["width": 900, "height": 714, "fontSize": 18, "scale": 1] : ["width": 1179, "height": 701, "fontSize": 18, "scale": 2],
-                           "readDecodeMs": readMs, "hostStart": startState, "hostEnd": hostState(), "result": result], to: args[4])
+            guard Data(source.utf8) == Data(item.source.utf8) else {
+                throw BenchError.invalid("worker source differs from generator")
+            }
+            try writeJSON(
+                [
+                    "schema": 1, "phase": phase, "case": item.id, "corpus": item.manifest,
+                    "valid": true,
+                    "geometry": phase == "memory"
+                        ? ["width": 900, "height": 714, "fontSize": 18, "scale": 1]
+                        : ["width": 1179, "height": 701, "fontSize": 18, "scale": 2],
+                    "readDecodeMs": readMs, "hostStart": startState, "hostEnd": hostState(), "result": result
+                ], to: args[4])
             return
         }
         throw BenchError.invalid(
@@ -119,14 +129,15 @@ import KasumiMarkdown
             painted = image
             imageBitmap = milliseconds(start)
         }
-        try writeJSON([
-            "fileToFirstBitmapMs": firstBitmap, "fileToImageBitmapMs": imageBitmap,
-            "readMs": read, "parseMs": parsed - read, "layoutMs": layout - parsed,
-            "firstPaintMs": firstBitmap - layout,
-            "initialMemory": initialMemory, "finalMemory": try BenchmarkMemory.read(),
-            "visibleImageOccurrences": regions.count, "loadedRasters": loaded,
-            "documentHeight": snapshot.size.height
-        ], to: output)
+        try writeJSON(
+            [
+                "fileToFirstBitmapMs": firstBitmap, "fileToImageBitmapMs": imageBitmap,
+                "readMs": read, "parseMs": parsed - read, "layoutMs": layout - parsed,
+                "firstPaintMs": firstBitmap - layout,
+                "initialMemory": initialMemory, "finalMemory": try BenchmarkMemory.read(),
+                "visibleImageOccurrences": regions.count, "loadedRasters": loaded,
+                "documentHeight": snapshot.size.height
+            ], to: output)
         withExtendedLifetime((first, painted)) {}
     }
 

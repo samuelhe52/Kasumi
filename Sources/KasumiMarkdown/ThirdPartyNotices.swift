@@ -36,7 +36,8 @@ public enum ThirdPartyNotices {
 
     /// The text of one notice document, or nil if the bundled file cannot be read.
     public static func text(of document: Document) -> String? {
-        guard let index = Bundle.module.url(forResource: "index", withExtension: "json", subdirectory: "Bundled/Notices")
+        guard
+            let index = Bundle.module.url(forResource: "index", withExtension: "json", subdirectory: "Bundled/Notices")
         else { return nil }
         let bundled = index.deletingLastPathComponent().deletingLastPathComponent()
         return try? String(contentsOf: bundled.appending(path: document.path), encoding: .utf8)

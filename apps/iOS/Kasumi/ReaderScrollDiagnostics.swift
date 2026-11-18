@@ -34,7 +34,9 @@ import UIKit
     static func make(viewport: @escaping () -> Viewport?) -> ReaderScrollDiagnostics? {
         guard let run = ProcessInfo.processInfo.environment["KASUMI_SCROLL_DIAGNOSTICS"],
             !run.isEmpty, run.count <= 100,
-            run.unicodeScalars.allSatisfy({ CharacterSet.alphanumerics.contains($0) || "-_".unicodeScalars.contains($0) })
+            run.unicodeScalars.allSatisfy({
+                CharacterSet.alphanumerics.contains($0) || "-_".unicodeScalars.contains($0)
+            })
         else { return nil }
         return ReaderScrollDiagnostics(run: run, viewport: viewport)
     }
@@ -50,16 +52,20 @@ import UIKit
     }
 
     @objc private func tick(_ link: CADisplayLink) {
-        guard !finished, samples.count < 20000 else { finish(); return }
+        guard !finished, samples.count < 20000 else {
+            finish()
+            return
+        }
         let now = CACurrentMediaTime()
         defer { previousTime = now }
         guard let value = viewport() else { return }
-        samples.append(Sample(
-            time: now - start, callbackGapMS: previousTime.map { (now - $0) * 1000 },
-            expectedIntervalMS: max(0, link.targetTimestamp - link.timestamp) * 1000,
-            active: value.active, measured: value.measured, fullyMeasured: value.fullyMeasured,
-            top: Double(value.top),
-            width: Double(value.width), height: Double(value.height)))
+        samples.append(
+            Sample(
+                time: now - start, callbackGapMS: previousTime.map { (now - $0) * 1000 },
+                expectedIntervalMS: max(0, link.targetTimestamp - link.timestamp) * 1000,
+                active: value.active, measured: value.measured, fullyMeasured: value.fullyMeasured,
+                top: Double(value.top),
+                width: Double(value.width), height: Double(value.height)))
     }
 
     func finish() {
@@ -69,8 +75,10 @@ import UIKit
         link = nil
         guard !samples.isEmpty else { return }
         do {
-            let root = try FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-                .appendingPathComponent(".kasumi-scroll-diagnostics", isDirectory: true)
+            let root = try FileManager.default.url(
+                for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true
+            )
+            .appendingPathComponent(".kasumi-scroll-diagnostics", isDirectory: true)
             try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
             let url = root.appendingPathComponent("\(run)-\(UUID().uuidString).json")
             let encoder = JSONEncoder()

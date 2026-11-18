@@ -169,12 +169,13 @@ enum DocumentTypesetter {
                 // Color inside the cached build: ReflowPreparation reuses shaping by
                 // the identity of the string it retains, so coloring afterwards
                 // would miss that cache on every reflow.
-                MissingGlyphFallback.applying(to: CodeSyntax.applying(
-                    syntax,
-                    to: style.attributed(
-                        runs, size: size, heading: heading, code: code, headingLevel: headingLevel,
-                        baseURL: document.baseURL, imageMaxWidth: imageMaxWidth ?? measure),
-                    theme: theme))
+                MissingGlyphFallback.applying(
+                    to: CodeSyntax.applying(
+                        syntax,
+                        to: style.attributed(
+                            runs, size: size, heading: heading, code: code, headingLevel: headingLevel,
+                            baseURL: document.baseURL, imageMaxWidth: imageMaxWidth ?? measure),
+                        theme: theme))
             }
             func prepared() -> NSAttributedString {
                 preparation?.attributed(
@@ -268,12 +269,14 @@ enum DocumentTypesetter {
             } else {
                 count = 1 + (block.prefix.isEmpty ? 0 : 1) + (block.footnoteLabel == nil ? 0 : 1)
             }
-            let selected = viewport.map { viewport in
-                (paragraphs.count..<(paragraphs.count + count)).contains { viewport.selected.contains($0) }
-            } ?? true
+            let selected =
+                viewport.map { viewport in
+                    (paragraphs.count..<(paragraphs.count + count)).contains { viewport.selected.contains($0) }
+                } ?? true
             // Resource-dependent images and diagram fallbacks retain their exact
             // storage path. Other offscreen blocks need only semantic text.
-            deferBlock = viewport != nil && !selected && block.kind != .image && block.kind != .diagram
+            deferBlock =
+                viewport != nil && !selected && block.kind != .image && block.kind != .diagram
                 && !block.runs.contains(where: { $0.traits.contains(.image) })
                 && !block.rows.joined().joined().contains(where: { $0.traits.contains(.image) })
             forceExactParagraphs = !deferBlock && [.table, .image, .math, .diagram].contains(block.kind)
@@ -297,14 +300,19 @@ enum DocumentTypesetter {
                     alignment: block.alignment ?? .centered)
                 y += style.size * 0.65
             } else if block.kind == .math {
-                let math = deferBlock
+                let math =
+                    deferBlock
                     ? preparation!.placeholder(block: blockIndex, slot: 0, runs: block.runs)
                     : attachment {
-                    MissingGlyphFallback.applying(to:
-                        MathAttachment(source: block.text, size: style.size, display: true, options: style.mathOptions)
-                            .attributed(
-                                color: style.textColor, fallbackFont: style.font(size: style.size * 0.88, code: true)))
-                }!
+                        MissingGlyphFallback.applying(
+                            to:
+                                MathAttachment(
+                                    source: block.text, size: style.size, display: true, options: style.mathOptions
+                                )
+                                .attributed(
+                                    color: style.textColor,
+                                    fallbackFont: style.font(size: style.size * 0.88, code: true)))
+                    }!
                 y += style.size * 0.5
                 y += place(
                     math, x: left,
@@ -328,21 +336,23 @@ enum DocumentTypesetter {
                 let cells = block.rows.enumerated().map { row, cells in
                     cells.map { attributed($0, heading: row == 0) }
                 }
-                let widths = deferBlock
+                let widths =
+                    deferBlock
                     ? (preparation?.cachedTableWidths(
                         block: blockIndex, rows: block.rows, width: measure, em: style.size,
                         padding: horizontalPadding, scrollable: scrollableTables)
                         ?? Array(repeating: measure / CGFloat(columns), count: columns))
                     : viewport?.tableWidths[blockIndex]
-                    ?? {
-                        func build() -> [CGFloat] {
-                            TableColumns.widths(cells: cells, count: columns, measure: measure, em: style.size,
-                                               padding: horizontalPadding, scrollable: scrollableTables)
-                        }
-                        return preparation?.tableWidths(
-                            block: blockIndex, rows: block.rows, width: measure, em: style.size,
-                            padding: horizontalPadding, scrollable: scrollableTables, build: build) ?? build()
-                    }()
+                        ?? {
+                            func build() -> [CGFloat] {
+                                TableColumns.widths(
+                                    cells: cells, count: columns, measure: measure, em: style.size,
+                                    padding: horizontalPadding, scrollable: scrollableTables)
+                            }
+                            return preparation?.tableWidths(
+                                block: blockIndex, rows: block.rows, width: measure, em: style.size,
+                                padding: horizontalPadding, scrollable: scrollableTables, build: build) ?? build()
+                        }()
                 if !deferBlock { viewport?.tableWidths[blockIndex] = widths }
                 let tableWidth = widths.reduce(0, +)
                 let tableLeft = left + max(0, (measure - tableWidth) / 2)
@@ -417,7 +427,8 @@ enum DocumentTypesetter {
                 let isCode = block.kind == .code || block.kind == .diagram
                 var inset: CGFloat =
                     isCode
-                    ? codePadding.left : block.kind == .quote ? quoteStep * CGFloat(max(1, block.level)) : listInsets[blockIndex] ?? 0
+                    ? codePadding.left
+                    : block.kind == .quote ? quoteStep * CGFloat(max(1, block.level)) : listInsets[blockIndex] ?? 0
                 if let label = block.footnoteLabel, let display = block.footnoteDisplay {
                     // Styled like the in-text reference: script size, raised by the superscript shift.
                     let marker = attributed([InlineRun(display, traits: [.footnote])])
@@ -440,7 +451,8 @@ enum DocumentTypesetter {
                 if !block.prefix.isEmpty {
                     let slot = listSlots[blockIndex] ?? style.size * 0.78
                     let x = left + inset - markerGap - slot
-                    let marker = NSMutableAttributedString(attributedString: attributed([InlineRun(block.prefix)], allowPlaceholder: false))
+                    let marker = NSMutableAttributedString(
+                        attributedString: attributed([InlineRun(block.prefix)], allowPlaceholder: false))
                     if block.prefix == "•" {
                         marker.addAttribute(
                             .foregroundColor, value: PlatformColor.clear,
@@ -550,8 +562,10 @@ enum DocumentTypesetter {
                         ? (nextIsBody ? style.paraSpaceBetween : style.paraSpaceAfter) : style.paraSpaceAfter)
             }
         }
-        let semantic = buildSemanticContent ? preparation?.semanticContent(paragraphs: paragraphs, storage: storage) : nil
-        let textMap = buildSemanticContent
+        let semantic =
+            buildSemanticContent ? preparation?.semanticContent(paragraphs: paragraphs, storage: storage) : nil
+        let textMap =
+            buildSemanticContent
             ? (semantic?.textMap ?? DocumentTextMap(storage)) : DocumentTextMap(NSAttributedString(string: ""))
         return DocumentLayout(
             width: width, height: y + insets.bottom, text: storage,
@@ -646,7 +660,9 @@ enum DocumentTypesetter {
                         guard let value else { return }
                         for rect in line.linkRects(for: range, in: attributed) {
                             pdfLinks.write(
-                                value, rect: rect.offsetBy(dx: item.origin.x + line.origin.x, dy: item.origin.y + line.origin.y),
+                                value,
+                                rect: rect.offsetBy(
+                                    dx: item.origin.x + line.origin.x, dy: item.origin.y + line.origin.y),
                                 clip: clip, in: context)
                         }
                     }
@@ -675,9 +691,10 @@ enum DocumentTypesetter {
                     context.setFillColor(color.cgColor)
                     if line.fragments.isEmpty {
                         for span in CoreTextRangeGeometry.extents(in: line.line, for: range) {
-                            context.fill(CGRect(
-                                x: span.lowerBound, y: -descent - 1,
-                                width: span.upperBound - span.lowerBound, height: ascent + descent + 2))
+                            context.fill(
+                                CGRect(
+                                    x: span.lowerBound, y: -descent - 1,
+                                    width: span.upperBound - span.lowerBound, height: ascent + descent + 2))
                         }
                     } else {
                         var rect = decorationRect(range, ascent: ascent, descent: descent)

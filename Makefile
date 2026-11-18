@@ -36,12 +36,20 @@ NATIVE_INPUTS := scripts/build-native rust-toolchain.toml \
 		-not -path '*/target/*' 2>/dev/null)
 
 .DEFAULT_GOAL := help
-.PHONY: help native native-local native-release build test test-ios app run-sim run-device launch-sim test-syntax-native syntax-notices render app-check app-check-sim check clean benchmark-typography reflow-lab run-reflow-lab check-reflow-lab check-reader-scrolling check-reflow-scrolling check-fast-reflow-scrolling benchmark-build benchmark-corpus benchmark-self-check benchmark-reader benchmark-reader-full benchmark-reflow-lab
+.PHONY: help format native native-local native-release build test test-ios app run-sim run-device launch-sim test-syntax-native syntax-notices render app-check app-check-sim check clean benchmark-typography reflow-lab run-reflow-lab check-reflow-lab check-reader-scrolling check-reflow-scrolling check-fast-reflow-scrolling benchmark-build benchmark-corpus benchmark-self-check benchmark-reader benchmark-reader-full benchmark-reflow-lab
 
 help: ## List available targets
 	@awk 'BEGIN { FS = ":.*## " } /^[a-z-]+:.*## / { printf "  %-8s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 	@printf '\nVariables: SIMULATOR="%s" FILTER="%s" DERIVED_DATA=%s\n' \
 		"$(SIMULATOR)" "$(FILTER)" "$(DERIVED_DATA)"
+
+format: ## Format tracked Swift and Rust sources
+	@git ls-files '*.swift' | while IFS= read -r file; do \
+		[ -L "$$file" ] || printf '%s\0' "$$file"; \
+	done | xargs -0 swift-format format --parallel --in-place
+	@for manifest in packages/Native*/Cargo.toml; do \
+		cargo fmt --manifest-path "$$manifest" || exit 1; \
+	done
 
 native: $(NATIVE_STAMP) ## Build the Rust XCFrameworks (only when inputs changed)
 

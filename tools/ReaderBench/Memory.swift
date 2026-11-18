@@ -1,5 +1,5 @@
-import Foundation
 import Darwin
+import Foundation
 
 enum BenchmarkMemory {
     static func read() throws -> [String: UInt64] {
@@ -11,7 +11,8 @@ enum BenchmarkMemory {
                 task_info(mach_task_self_, task_flavor_t(TASK_VM_INFO), $0, &count)
             }
         }
-        let minimumBytes = MemoryLayout<task_vm_info_data_t>.offset(of: \.ledger_phys_footprint_peak)! + MemoryLayout<Int64>.size
+        let minimumBytes =
+            MemoryLayout<task_vm_info_data_t>.offset(of: \.ledger_phys_footprint_peak)! + MemoryLayout<Int64>.size
         guard result == KERN_SUCCESS, Int(count) * MemoryLayout<integer_t>.size >= minimumBytes else {
             throw NSError(domain: "BenchmarkMemory", code: Int(result))
         }

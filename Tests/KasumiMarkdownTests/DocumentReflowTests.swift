@@ -108,10 +108,12 @@ import Testing
         #expect(raw.textMap.renderedOffset(forSemanticOffset: 3) == 3)
         #expect(refined.textMap.renderedOffset(forSemanticOffset: 3) == 0)
         let composed = DocumentSemanticContent(DocumentTextMap(NSAttributedString(string: "é\n")))
-        let decomposed = DocumentSemanticContent(DocumentTextMap(NSAttributedString(string: "e\u{301}\n")), reusing: composed)
+        let decomposed = DocumentSemanticContent(
+            DocumentTextMap(NSAttributedString(string: "e\u{301}\n")), reusing: composed)
         #expect(composed.text.utf16.count == 1 && decomposed.text.utf16.count == 2)
-        #expect(ParagraphSemanticContent(NSAttributedString(string: "abc")).readingKey
-            == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad")
+        #expect(
+            ParagraphSemanticContent(NSAttributedString(string: "abc")).readingKey
+                == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad")
     }
 
     @Test func localSemanticSnappingMatchesSwiftCharacterBoundaries() {

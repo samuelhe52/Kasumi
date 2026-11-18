@@ -5,7 +5,9 @@ import TOMLDecoder
 /// Imports retain their original source until edited; edits emit canonical TOML.
 struct ProfileFileDocument: Sendable {
     enum FileError: LocalizedError {
-        case tooLarge, invalidTable(String), unsupportedValue
+        case tooLarge
+        case invalidTable(String)
+        case unsupportedValue
         var errorDescription: String? {
             switch self {
             case .tooLarge: "The preset exceeds the 4 MiB size limit."
@@ -50,12 +52,16 @@ struct ProfileFileDocument: Sendable {
                         (try? array.float(atIndex: index)) ?? (try? array.integer(atIndex: index)).map(Double.init)
                     }
                     value = numbers.count == array.count ? .numbers(numbers) : nil
-                } else { value = nil }
+                } else {
+                    value = nil
+                }
             case .strings:
                 if let array = try? table.array(forKey: key) {
                     let strings = (0..<array.count).compactMap { try? array.string(atIndex: $0) }
                     value = strings.count == array.count ? .strings(strings) : nil
-                } else { value = nil }
+                } else {
+                    value = nil
+                }
             }
             result[field] = value
         }
@@ -97,7 +103,10 @@ struct ProfileFileDocument: Sendable {
     }
 
     private static func key(_ value: String) -> String {
-        !value.isEmpty && value.utf8.allSatisfy { (65...90).contains($0) || (97...122).contains($0) || (48...57).contains($0) || $0 == 95 || $0 == 45 }
+        !value.isEmpty
+            && value.utf8.allSatisfy {
+                (65...90).contains($0) || (97...122).contains($0) || (48...57).contains($0) || $0 == 95 || $0 == 45
+            }
             ? value : quote(value)
     }
 
@@ -117,7 +126,8 @@ struct ProfileFileDocument: Sendable {
         case let value as LocalTime: return value.description
         case let value as [Any]: return try "[" + value.map(serialize).joined(separator: ", ") + "]"
         case let value as [String: Any]:
-            return try "{ " + value.keys.sorted().map { try key($0) + " = " + serialize(value[$0]!) }.joined(separator: ", ") + " }"
+            return try "{ "
+                + value.keys.sorted().map { try key($0) + " = " + serialize(value[$0]!) }.joined(separator: ", ") + " }"
         default: throw FileError.unsupportedValue
         }
     }
@@ -131,17 +141,18 @@ struct ProfileFileDocument: Sendable {
     }
 
     static func quote(_ value: String) -> String {
-        "\"" + value.unicodeScalars.map { scalar -> String in
-            switch scalar.value {
-            case 0x22: "\\\""
-            case 0x5C: "\\\\"
-            case 0x0A: "\\n"
-            case 0x0D: "\\r"
-            case 0x09: "\\t"
-            case 0...0x1F, 0x7F: String(format: "\\u%04X", scalar.value)
-            default: String(scalar)
-            }
-        }.joined() + "\""
+        "\""
+            + value.unicodeScalars.map { scalar -> String in
+                switch scalar.value {
+                case 0x22: "\\\""
+                case 0x5C: "\\\\"
+                case 0x0A: "\\n"
+                case 0x0D: "\\r"
+                case 0x09: "\\t"
+                case 0...0x1F, 0x7F: String(format: "\\u%04X", scalar.value)
+                default: String(scalar)
+                }
+            }.joined() + "\""
     }
 }
 

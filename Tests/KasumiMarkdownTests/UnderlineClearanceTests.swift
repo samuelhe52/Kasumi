@@ -23,7 +23,8 @@ fileprivate func paintedGlyph(in line: ShapedLine, at index: Int) throws -> (CTF
                 font, glyphs[slot],
                 CGPoint(
                     x: line.origin.x + fragment.x + fragment.drawOffset - fragment.glyphInset + positions[slot].x,
-                    y: line.origin.y - positions[slot].y))
+                    y: line.origin.y - positions[slot].y)
+            )
         }
     }
     throw NSError(domain: "Missing painted test glyph", code: index)

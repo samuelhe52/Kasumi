@@ -29,7 +29,7 @@ public struct TypographyPreset: Identifiable, Equatable, Sendable {
             .lineSpacing: .number(spacing.lineSpacing),
             .paraSeparation: .string(spacing.paragraphStyle.rawValue),
             .headingSpaceBefore: .number(spacing.headingSpaceBefore),
-            .headingSpaceAfter: .number(spacing.headingSpaceAfter),
+            .headingSpaceAfter: .number(spacing.headingSpaceAfter)
         ]
         var edited = values
         for (field, input) in requested {

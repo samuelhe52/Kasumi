@@ -424,8 +424,12 @@ fileprivate let nativeProfileFactories: [ProfileFactoryExpectation] = [
     var library = ProfileLibrary()
     _ = try library.importProfile("[meta]\nname = \"Recovery\"\n[profile]\nbase_size = 20\n", suggestedName: "Recovery")
     let unchanged = library
-    #expect(throws: ProfileFileDocument.FileError.self) { try library.rename(String(repeating: "x", count: 4 * 1024 * 1024)) }
+    #expect(throws: ProfileFileDocument.FileError.self) {
+        try library.rename(String(repeating: "x", count: 4 * 1024 * 1024))
+    }
     #expect(library == unchanged)
-    #expect(throws: ProfileFileDocument.FileError.self) { try library.set(.string(String(repeating: "x", count: 4 * 1024 * 1024)), for: .latinFamily) }
+    #expect(throws: ProfileFileDocument.FileError.self) {
+        try library.set(.string(String(repeating: "x", count: 4 * 1024 * 1024)), for: .latinFamily)
+    }
     #expect(library == unchanged)
 }

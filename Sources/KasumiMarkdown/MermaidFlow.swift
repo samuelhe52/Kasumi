@@ -108,8 +108,10 @@ enum MermaidFlow {
                 commands.append(.text(node.label, textRect, role: role))
             }
             if let target = graph.links[node.id] {
-                links.append(.init(path: CGPath(rect: textRect, transform: nil), target: target,
-                    labelCommands: (commands.count - 1)..<commands.count))
+                links.append(
+                    .init(
+                        path: CGPath(rect: textRect, transform: nil), target: target,
+                        labelCommands: (commands.count - 1)..<commands.count))
             }
             include(rect)
         }

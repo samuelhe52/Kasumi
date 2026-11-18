@@ -27,9 +27,10 @@ enum ParagraphHyphenation {
         for scalar in text.unicodeScalars {
             let value = scalar.value
             let ascii = asciiLetter(value)
-            let belongs = ascii || (!selection.automatic && (
-                value < 128 ? (48...57).contains(value) : scalar.properties.isAlphabetic || combining(value)
-            ))
+            let belongs =
+                ascii
+                || (!selection.automatic
+                    && (value < 128 ? (48...57).contains(value) : scalar.properties.isAlphabetic || combining(value)))
             if belongs {
                 if !rejectedWord {
                     if selection.accepts(value, ascii: ascii) {

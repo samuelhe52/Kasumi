@@ -35,8 +35,8 @@ enum ParagraphGlyphDrawing {
             else { return nil }
             let color = canonicalColor(
                 resolvedColor(source[.foregroundColor])
-                ?? resolvedColor(values[NSAttributedString.Key.foregroundColor.rawValue])
-                ?? resolvedColor(values[kCTForegroundColorAttributeName]) ?? CGColor(gray: 0, alpha: 1))
+                    ?? resolvedColor(values[NSAttributedString.Key.foregroundColor.rawValue])
+                    ?? resolvedColor(values[kCTForegroundColorAttributeName]) ?? CGColor(gray: 0, alpha: 1))
             if glyphRuns.count == 1, count == 1 {
                 var glyph: CGGlyph = 0
                 var position = CGPoint.zero

@@ -205,8 +205,11 @@ import Testing
     func file(_ palette: String, version: Int = 1, id: String = "test") -> Data {
         Data("{\"schema_version\":\(version),\"id\":\"\(id)\",\"name\":\"Test\",\"light\":\(palette),\"dark\":{}}".utf8)
     }
-    let pair = try DocumentThemePair(json: file(##"{"document":{"text":{"system":"textColor"},"paper":{"space":"sRGB","rgba":[0.1,0.2,0.3,0.4]}}}"##))
-    #expect(pair.light.document["text"] == DocumentThemeCatalog.theme(id: "default-light", dark: false).document["text"])
+    let pair = try DocumentThemePair(
+        json: file(##"{"document":{"text":{"system":"textColor"},"paper":{"space":"sRGB","rgba":[0.1,0.2,0.3,0.4]}}}"##)
+    )
+    #expect(
+        pair.light.document["text"] == DocumentThemeCatalog.theme(id: "default-light", dark: false).document["text"])
     #expect(pair.light.document["paper"] == DocumentColor(red: 0.1, green: 0.2, blue: 0.3, alpha: 0.4))
     for palette in [
         ##"{"document":{"paper":"#xyz"}}"##,
@@ -217,8 +220,12 @@ import Testing
     ] { #expect(throws: (any Error).self) { _ = try DocumentThemePair(json: file(palette)) } }
     #expect(throws: DocumentThemeFileError.self) { _ = try DocumentThemePair(json: file("{}", version: 2)) }
     #expect(throws: DocumentThemeFileError.self) { _ = try DocumentThemePair(json: file("{}", id: " ")) }
-    #expect(throws: (any Error).self) { _ = try DocumentThemePair(json: Data(##"{"schema_version":1,"id":"x","name":"X","light":{}}"##.utf8)) }
-    #expect(throws: DocumentThemeFileError.self) { _ = try DocumentThemePair(json: Data(repeating: 32, count: 4 * 1024 * 1024 + 1)) }
+    #expect(throws: (any Error).self) {
+        _ = try DocumentThemePair(json: Data(##"{"schema_version":1,"id":"x","name":"X","light":{}}"##.utf8))
+    }
+    #expect(throws: DocumentThemeFileError.self) {
+        _ = try DocumentThemePair(json: Data(repeating: 32, count: 4 * 1024 * 1024 + 1))
+    }
 }
 
 @Test func themeFileCLISelectsAppearanceAndRejectsConflictingSelections() async throws {
@@ -237,9 +244,10 @@ import Testing
         _ = try await RenderCommand.run(["KasumiRender", input.path, output.path, "240"] + arguments)
         let source = try #require(CGImageSourceCreateWithURL(output as CFURL, nil))
         let image = try #require(CGImageSourceCreateImageAtIndex(source, 0, nil))
-        let context = try #require(CGContext(
-            data: nil, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4,
-            space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+        let context = try #require(
+            CGContext(
+                data: nil, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4,
+                space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
         context.draw(image, in: CGRect(x: 0, y: 0, width: image.width, height: image.height))
         let pixel = try #require(context.data).assumingMemoryBound(to: UInt8.self)
         for index in 0..<3 { #expect(abs(Int(pixel[index]) - Int(expected[index])) <= 1) }

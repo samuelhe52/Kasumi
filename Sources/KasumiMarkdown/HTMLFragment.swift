@@ -29,7 +29,11 @@ private struct HTMLTag {
 
 /// Tokenizes Markdown's raw HTML nodes. Only attributes used by the renderer are retained.
 private struct HTMLTokenizer {
-    enum Token { case text(String), tag(HTMLTag), ignored }
+    enum Token {
+        case text(String)
+        case tag(HTMLTag)
+        case ignored
+    }
 
     private let bytes: [UInt8]
     private var cursor = 0
@@ -229,7 +233,7 @@ enum HTMLFragment {
             var tokenizer = HTMLTokenizer(raw)
             var result: [InlineRun] = []
             while let token = tokenizer.next(skippingRawTextOf: hidden.rawTag ?? blockContext?.hidden.rawTag) {
-                guard case let .tag(tag) = token else { continue }
+                guard case .tag(let tag) = token else { continue }
                 if blockContext?.isHidden == true {
                     _ = blockContext?.hidden.consume(tag)
                     continue
@@ -249,7 +253,8 @@ enum HTMLFragment {
             switch tag.name {
             case "br": return InlineRun("\n", traits: traits, destination: destination)
             case "img":
-                var run = InlineRun(tag.attributes["alt"] ?? "", traits: traits.union([.image]), destination: destination)
+                var run = InlineRun(
+                    tag.attributes["alt"] ?? "", traits: traits.union([.image]), destination: destination)
                 run.imageSource = tag.attributes["src"]
                 run.imageWidth = tag.dimension("width")
                 run.imageHeight = tag.dimension("height")
@@ -310,9 +315,10 @@ enum HTMLFragment {
             if trailingBoundary { runs.removeLast() }
             if !runs.isEmpty || summary {
                 if summary { runs.insert(InlineRun("▾ ", traits: [.strong]), at: 0) }
-                output.append(Block(
-                    kind: headingLevel > 0 ? .heading : .paragraph, runs: runs, level: headingLevel,
-                    alignment: alignment))
+                output.append(
+                    Block(
+                        kind: headingLevel > 0 ? .heading : .paragraph, runs: runs, level: headingLevel,
+                        alignment: alignment))
             }
             runs = []
             headingLevel = 0
@@ -334,20 +340,22 @@ enum HTMLFragment {
             }
             guard !bytes.isEmpty else { return }
             let traits = summary ? inline.traits.union([.strong]) : inline.traits
-            runs.append(InlineRun(String(decoding: bytes, as: UTF8.self), traits: traits, destination: inline.destination))
+            runs.append(
+                InlineRun(String(decoding: bytes, as: UTF8.self), traits: traits, destination: inline.destination))
             trailingBoundary = false
         }
 
         while let token = tokenizer.next(skippingRawTextOf: context.hidden.rawTag) {
             switch token {
             case .ignored: continue
-            case let .text(text):
+            case .text(let text):
                 if !context.isHidden { appendText(text) }
-            case let .tag(tag):
+            case .tag(let tag):
                 if context.hidden.consume(tag) { continue }
                 let level = headingLevels[tag.name] ?? 0
                 let boundary = level > 0 || ["p", "div", "center", "details", "summary", "hr"].contains(tag.name)
-                let aligned = tag.closing
+                let aligned =
+                    tag.closing
                     ? context.frames.contains { $0.name == tag.name }
                     : tag.alignment != nil && !voidTags.contains(tag.name)
                 if boundary || aligned {

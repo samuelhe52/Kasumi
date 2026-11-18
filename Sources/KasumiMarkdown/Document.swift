@@ -106,7 +106,8 @@ enum DocumentParser {
             case let paragraph as Paragraph:
                 let (runs, alignment) = blockRuns(paragraph)
                 guard !runs.isEmpty else { return }
-                let math = hasDisplayMath
+                let math =
+                    hasDisplayMath
                     ? extensions.math[paragraph.plainText.trimmingCharacters(in: .whitespacesAndNewlines)] : nil
                 if let math, math.display {
                     append(node, kind: .math, runs: [InlineRun(math.text)])
@@ -192,9 +193,10 @@ enum DocumentParser {
             if let html = child as? InlineHTML {
                 runs.append(contentsOf: context.runs(html.rawHTML))
             } else if !context.isHidden {
-                runs.append(contentsOf: inline(
-                    child, traits: context.traits, destination: context.destination, extensions: extensions,
-                    keepLineBreaks: keepLineBreaks))
+                runs.append(
+                    contentsOf: inline(
+                        child, traits: context.traits, destination: context.destination, extensions: extensions,
+                        keepLineBreaks: keepLineBreaks))
             }
         }
         return runs

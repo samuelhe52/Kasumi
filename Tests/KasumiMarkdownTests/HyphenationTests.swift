@@ -18,11 +18,15 @@ fileprivate struct HyphenationNativeWord: Decodable {
         let automatic = try TypographyPreset(id: "auto", name: "Automatic", toml: "[profile]\n")
         var differs = false
         for width in stride(from: 100, through: 220, by: 20) {
-            let baseline = RenderedDocument(document, width: CGFloat(width), style: RenderStyle(preset: automatic, insets: .zero))
-            let selected = RenderedDocument(document, width: CGFloat(width), style: RenderStyle(preset: french, insets: .zero))
+            let baseline = RenderedDocument(
+                document, width: CGFloat(width), style: RenderStyle(preset: automatic, insets: .zero))
+            let selected = RenderedDocument(
+                document, width: CGFloat(width), style: RenderStyle(preset: french, insets: .zero))
             #expect(selected.text(in: selected.documentRange) == baseline.text(in: baseline.documentRange))
-            differs = differs || selected.size.height != baseline.size.height
-                || selected.selectionRects(for: selected.documentRange) != baseline.selectionRects(for: baseline.documentRange)
+            differs =
+                differs || selected.size.height != baseline.size.height
+                || selected.selectionRects(for: selected.documentRange)
+                    != baseline.selectionRects(for: baseline.documentRange)
         }
         #expect(differs, "Selecting French must reach actual paragraph layout")
         #expect(ProfileField.hyphenationLanguage.specification.choices.count == 16)
@@ -30,7 +34,9 @@ fileprivate struct HyphenationNativeWord: Decodable {
             let values = try ProfileValues.parse("[profile]\nhyphenation_language = \"\(tag)\"")
             #expect(ParagraphProfileOptions(values: values).hyphenationLanguage == tag)
         }
-        #expect(ParagraphHyphenation.opportunities(in: "KasumiMarkdown") == ParagraphHyphenation.opportunities(in: "kasumimarkdown"))
+        #expect(
+            ParagraphHyphenation.opportunities(in: "KasumiMarkdown")
+                == ParagraphHyphenation.opportunities(in: "kasumimarkdown"))
         #expect(ParagraphHyphenation.opportunities(in: "macOS") == ParagraphHyphenation.opportunities(in: "macos"))
     }
 

@@ -54,8 +54,10 @@ private struct FontChoiceSummary: View {
             .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
             Text("霞")
-                .font(active.map { .custom($0.postScriptNames[0], fixedSize: glyphSize) }
-                    ?? .system(size: glyphSize))
+                .font(
+                    active.map { .custom($0.postScriptNames[0], fixedSize: glyphSize) }
+                        ?? .system(size: glyphSize)
+                )
                 .frame(width: glyphSize * 1.3, height: glyphSize * 1.5)
                 .accessibilityHidden(true)
         }
@@ -80,12 +82,14 @@ private struct FontChoiceScreen: View {
                     FontPackageRow(package: package, sample: sample, contentInset: 16)
                         .background(
                             Color(uiColor: .secondarySystemGroupedBackground),
-                            in: RoundedRectangle(cornerRadius: 16))
+                            in: RoundedRectangle(cornerRadius: 16)
+                        )
                         .overlay {
                             RoundedRectangle(cornerRadius: 16)
                                 .strokeBorder(
                                     selected ? Color.accentColor : Color(uiColor: .separator).opacity(0.3),
-                                    lineWidth: selected ? 1.5 : 0.5)
+                                    lineWidth: selected ? 1.5 : 0.5
+                                )
                                 .animation(
                                     reduceMotion ? nil : .easeInOut(duration: 0.22), value: selected)
                         }
@@ -159,7 +163,8 @@ struct FontPackageRow: View {
         let identifier: String
         switch state {
         case .installed:
-            label = selectable
+            label =
+                selectable
                 ? (selected ? "\(package.name), selected" : "Use \(package.name)")
                 : "\(package.name), downloaded"
             identifier = selected ? "font-in-use-" : "font-use-"
@@ -199,9 +204,11 @@ struct FontPackageRow: View {
                         .foregroundStyle(.tertiary)
                         .opacity(installed ? 0 : 1)
                     Text(sample ?? package.sample)
-                        .font(installed
-                            ? .custom(package.postScriptNames[0], fixedSize: specimenSize)
-                            : .system(size: specimenSize, design: .serif))
+                        .font(
+                            installed
+                                ? .custom(package.postScriptNames[0], fixedSize: specimenSize)
+                                : .system(size: specimenSize, design: .serif)
+                        )
                         .foregroundStyle(.primary)
                         .opacity(installed ? 1 : 0)
                 }

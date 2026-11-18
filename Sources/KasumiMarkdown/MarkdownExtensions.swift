@@ -165,7 +165,8 @@ struct MarkdownExtensions {
             }
             return result
         }
-        let found = source.utf8.withContiguousStorageIfAvailable { markers(in: $0) }
+        let found =
+            source.utf8.withContiguousStorageIfAvailable { markers(in: $0) }
             ?? Array(source.utf8).withUnsafeBufferPointer { markers(in: $0) }
         let hasFootnotes = found.footnotes
         if !found.extensions {
@@ -206,7 +207,8 @@ struct MarkdownExtensions {
             active = nil
             guard !codeLines.contains(index + 1) else { continue }
             let ns = line as NSString
-            if let match = Self.footnoteDefinition.firstMatch(in: line, range: NSRange(location: 0, length: ns.length)) {
+            if let match = Self.footnoteDefinition.firstMatch(in: line, range: NSRange(location: 0, length: ns.length))
+            {
                 let label = ns.substring(with: match.range(at: 1))
                 labels[index + 1] = label
                 if !order.contains(label) { order.append(label) }
@@ -271,9 +273,10 @@ struct MarkdownExtensions {
                     scriptExclusion += 1
                 }
                 let nextLiteral = exclusion < excluded.count ? excluded[exclusion].lowerBound : bytes.count
-                let nextDestination = scriptExclusion < scriptExcluded.count
+                let nextDestination =
+                    scriptExclusion < scriptExcluded.count
                     ? scriptExcluded[scriptExclusion].lowerBound : bytes.count
-                if (cursor == 0 || bytes[cursor - 1] != 91 || bytes[cursor] != 94),
+                if cursor == 0 || bytes[cursor - 1] != 91 || bytes[cursor] != 94,
                     let end = Self.scriptEnd(cursor, in: bytes, before: min(nextLiteral, nextDestination))
                 {
                     let trait: InlineRun.Trait = bytes[cursor] == 126 ? .subscript : .superscript
@@ -378,14 +381,16 @@ struct MarkdownExtensions {
         // Ordinary prose needs neither the marker regex nor two generic UTF-8
         // walks. Check both ASCII '=' and the private-use marker's leading byte
         // together, using direct buffer access when String can provide it.
-        let hasMarkers = text.utf8.withContiguousStorageIfAvailable { bytes in
-            for byte in bytes where byte == 0xee || byte == 61 { return true }
-            return false
-        } ?? text.utf8.contains(where: { $0 == 0xee || $0 == 61 })
+        let hasMarkers =
+            text.utf8.withContiguousStorageIfAvailable { bytes in
+                for byte in bytes where byte == 0xee || byte == 61 { return true }
+                return false
+            } ?? text.utf8.contains(where: { $0 == 0xee || $0 == 61 })
         guard hasMarkers else {
             return text.isEmpty ? [] : [InlineRun(text, traits: traits, destination: destination)]
         }
-        let regex = mathPrefix == Self.defaultMathPrefix ? Self.defaultInlinePattern : Self.inlinePattern(prefix: mathPrefix)
+        let regex =
+            mathPrefix == Self.defaultMathPrefix ? Self.defaultInlinePattern : Self.inlinePattern(prefix: mathPrefix)
         let ns = text as NSString
         var cursor = 0
         var result: [InlineRun] = []
@@ -402,8 +407,10 @@ struct MarkdownExtensions {
             } else if let script = scripts[value] {
                 result.append(InlineRun(script.text, traits: traits.union(script.traits), destination: destination))
             } else if match.range(at: 1).location != NSNotFound {
-                result.append(contentsOf: textRuns(
-                    ns.substring(with: match.range(at: 1)), traits: traits.union([.highlight]), destination: destination))
+                result.append(
+                    contentsOf: textRuns(
+                        ns.substring(with: match.range(at: 1)), traits: traits.union([.highlight]),
+                        destination: destination))
             } else {
                 result.append(InlineRun(value, traits: traits, destination: destination))
             }

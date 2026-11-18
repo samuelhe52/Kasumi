@@ -217,8 +217,14 @@ private final class LogicalLine {
     private var factory: ParagraphFragmentFactory?
     private let range: NSRange
 
-    init(line: CTLine) { built = line; range = NSRange(location: 0, length: 0) }
-    init(factory: ParagraphFragmentFactory, range: NSRange) { self.factory = factory; self.range = range }
+    init(line: CTLine) {
+        built = line
+        range = NSRange(location: 0, length: 0)
+    }
+    init(factory: ParagraphFragmentFactory, range: NSRange) {
+        self.factory = factory
+        self.range = range
+    }
     var value: CTLine {
         if let built { return built }
         let line = factory!.textLine(range)

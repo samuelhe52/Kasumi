@@ -31,7 +31,8 @@ enum DocumentPaginator {
             let bottom = max(rule.start.y, rule.end.y) + rule.width / 2
             bands.append(PaginationBand(range: top..<bottom))
         }
-        return try pages(bands: bands, height: layout.height, contentHeight: contentHeight, codeBlocks: layout.codeBlocks)
+        return try pages(
+            bands: bands, height: layout.height, contentHeight: contentHeight, codeBlocks: layout.codeBlocks)
     }
 
     static func pages(
@@ -88,8 +89,10 @@ enum DocumentPaginator {
                 }
             }
             guard cut > start else { throw DocumentExportError.invalidGeometry }
-            pages.append(DocumentPageSlice(
-                range: start..<cut, scale: min(1, contentHeight / (headerHeight + cut - start)), continuationHeader: header))
+            pages.append(
+                DocumentPageSlice(
+                    range: start..<cut, scale: min(1, contentHeight / (headerHeight + cut - start)),
+                    continuationHeader: header))
             start = cut
         }
         return pages

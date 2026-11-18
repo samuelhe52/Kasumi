@@ -36,7 +36,8 @@ struct LaunchLogotype: View {
                     wordmark
                         .offset(
                             x: Self.leadingInset,
-                            y: titleFrame.minY + Self.wordmarkBottom - Self.wordmarkHeight)
+                            y: titleFrame.minY + Self.wordmarkBottom - Self.wordmarkHeight
+                        )
                         .frame(width: proxy.size.width, height: proxy.size.height, alignment: .topLeading)
                 }
             }

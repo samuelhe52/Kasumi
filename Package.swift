@@ -8,7 +8,7 @@ let releasedNative: [String: (url: String, checksum: String)] = [:]
 // END RELEASE NATIVE BINARIES
 let native = ".build/native"
 // Local mode changes this checkout-only switch for a tagged release.
-let forceLocalNative = false // KASUMI_LOCAL_NATIVE_MODE
+let forceLocalNative = false  // KASUMI_LOCAL_NATIVE_MODE
 let useLocalNative = releasedNative.isEmpty || forceLocalNative
 func nativeTarget(_ name: String, _ library: String) -> Target {
     if useLocalNative { return .binaryTarget(name: name, path: "\(native)/\(library).xcframework") }
@@ -51,7 +51,8 @@ let package = Package(
         .target(
             name: "KasumiMarkdown",
             dependencies: [
-                "CDagre", "CLineBreak", "CHyphenation", "CSyntax", .product(name: "Markdown", package: "swift-markdown"),
+                "CDagre", "CLineBreak", "CHyphenation", "CSyntax",
+                .product(name: "Markdown", package: "swift-markdown"),
                 .product(name: "cmark-gfm", package: "swift-cmark"),
                 .product(name: "TOMLDecoder", package: "TOMLDecoder"),
                 .product(name: "SwiftDraw", package: "SwiftDraw")

@@ -291,8 +291,10 @@ fileprivate struct PaginationSnapshot: Decodable {
     options.margins = .init(top: 14, left: 28, bottom: 17, right: 23)
     options.headerTemplate = "Header"
     options.pageNumbers = false
-    let pdf = try #require(PDFDocument(data: DocumentExporter.pdfData(
-        document.parsed, style: RenderStyle().typography, options: options)))
+    let pdf = try #require(
+        PDFDocument(
+            data: DocumentExporter.pdfData(
+                document.parsed, style: RenderStyle().typography, options: options)))
     let pages = (0..<pdf.pageCount).compactMap { pdf.page(at: $0) }
     var wrappedPages = 0
     var localLinks = 0

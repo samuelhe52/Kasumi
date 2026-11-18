@@ -9,7 +9,9 @@ struct DocumentLanguageAnalysis: Equatable, Sendable {
 
     static let sampleLimit = 32_768
     static let wordLimit = 4_096
-    private static let languages = ["en-us", "de-1996", "fr", "es", "it", "pt", "nl", "sv", "da", "nb", "fi", "pl", "cs", "ru"]
+    private static let languages = [
+        "en-us", "de-1996", "fr", "es", "it", "pt", "nl", "sv", "da", "nb", "fi", "pl", "cs", "ru"
+    ]
     // Authored function-word sets, not a model or imported linguistic corpus.
     // Shared words receive less weight, and repeated words have capped influence.
     private static let stopwords = [
@@ -36,8 +38,7 @@ struct DocumentLanguageAnalysis: Equatable, Sendable {
         var low: UInt64 = 0
         var high: UInt64 = 0
         @inline(__always) mutating func append(_ byte: UInt8, at index: Int) {
-            if index < 8 { low |= UInt64(byte) << (index * 8) }
-            else { high |= UInt64(byte) << ((index - 8) * 8) }
+            if index < 8 { low |= UInt64(byte) << (index * 8) } else { high |= UInt64(byte) << ((index - 8) * 8) }
         }
     }
     private struct Vote {
@@ -68,10 +69,11 @@ struct DocumentLanguageAnalysis: Equatable, Sendable {
             if length > 0 { record(key, language: language) }
         }
         for (index, words) in stopwords.enumerated() {
-            let scanned = words.utf8.withContiguousStorageIfAvailable { bytes in
-                scan(bytes, language: index)
-                return true
-            } ?? false
+            let scanned =
+                words.utf8.withContiguousStorageIfAvailable { bytes in
+                    scan(bytes, language: index)
+                    return true
+                } ?? false
             if !scanned { scan(words.utf8, language: index) }
         }
         return result
@@ -106,8 +108,9 @@ struct DocumentLanguageAnalysis: Equatable, Sendable {
         @inline(__always) mutating func letter(_ value: UInt32) {
             tokenScalars += 1
             guard tokenScalars <= 48, tokenBytes <= 16 else { return }
-            if value < 128 { append(UInt8(value <= 90 ? value + 32 : value)) }
-            else {
+            if value < 128 {
+                append(UInt8(value <= 90 ? value + 32 : value))
+            } else {
                 for byte in String(UnicodeScalar(value)!).lowercased().utf8 { append(byte) }
             }
         }
@@ -139,20 +142,24 @@ struct DocumentLanguageAnalysis: Equatable, Sendable {
                     continue
                 }
                 var truncated = false
-                let sampledASCII = run.text.utf8.withContiguousStorageIfAvailable { bytes in
-                    let prefix = bytes.prefix(sampleLimit - scalars)
-                    guard prefix.allSatisfy({ $0 < 128 }) else { return false }
-                    var consumed = 0
-                    for value in prefix {
-                        guard words < wordLimit else { break }
-                        consumed += 1
-                        scalars += 1
-                        if (65...90).contains(value) || (97...122).contains(value) { letter(UInt32(value)) }
-                        else { flush() }
-                    }
-                    truncated = consumed < bytes.count
-                    return true
-                } ?? false
+                let sampledASCII =
+                    run.text.utf8.withContiguousStorageIfAvailable { bytes in
+                        let prefix = bytes.prefix(sampleLimit - scalars)
+                        guard prefix.allSatisfy({ $0 < 128 }) else { return false }
+                        var consumed = 0
+                        for value in prefix {
+                            guard words < wordLimit else { break }
+                            consumed += 1
+                            scalars += 1
+                            if (65...90).contains(value) || (97...122).contains(value) {
+                                letter(UInt32(value))
+                            } else {
+                                flush()
+                            }
+                        }
+                        truncated = consumed < bytes.count
+                        return true
+                    } ?? false
                 if sampledASCII {
                     if truncated { return }
                     continue
@@ -162,11 +169,14 @@ struct DocumentLanguageAnalysis: Equatable, Sendable {
                     scalars += 1
                     let value = scalar.value
                     let asciiLetter = (65...90).contains(value) || (97...122).contains(value)
-                    let extendedLetter = (0x00C0...0x024F).contains(value) || (0x1E00...0x1EFF).contains(value)
+                    let extendedLetter =
+                        (0x00C0...0x024F).contains(value) || (0x1E00...0x1EFF).contains(value)
                         || (0x0400...0x04FF).contains(value)
                     if asciiLetter || (extendedLetter && scalar.properties.isAlphabetic) {
                         letter(value)
-                    } else { flush() }
+                    } else {
+                        flush()
+                    }
                 }
             }
             flush()
@@ -232,23 +242,29 @@ struct DocumentFrontMatter {
         for index in 0...bytes.count where index == bytes.count || bytes[index] == 10 {
             guard index >= start else { continue }
             guard index < bytes.count || bytes.count == source.utf8.count else { return Self(source) }
-            let line = String(decoding: bytes[start..<index], as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
+            let line = String(decoding: bytes[start..<index], as: UTF8.self).trimmingCharacters(
+                in: .whitespacesAndNewlines)
             if lineCount == 0 {
                 guard line == "---" else { return Self(source) }
             } else if line == "---" || line == "..." {
                 let end = index < bytes.count ? index + 1 : index
                 let boundary = source.utf8.index(source.utf8.startIndex, offsetBy: end)
                 return Self(
-                    markdown: String(repeating: "\n", count: lineCount + 1) + String(decoding: source.utf8[boundary...], as: UTF8.self),
+                    markdown: String(repeating: "\n", count: lineCount + 1)
+                        + String(decoding: source.utf8[boundary...], as: UTF8.self),
                     language: language)
-            } else if let colon = line.firstIndex(of: ":"), line[..<colon].trimmingCharacters(in: .whitespaces) == "lang" {
+            } else if let colon = line.firstIndex(of: ":"),
+                line[..<colon].trimmingCharacters(in: .whitespaces) == "lang"
+            {
                 let value = line[line.index(after: colon)...].trimmingCharacters(in: .whitespaces)
                 if value.first == "\"" || value.first == "'", let quote = value.first,
                     let close = value.dropFirst().firstIndex(of: quote)
                 {
                     language = String(value[value.index(after: value.startIndex)..<close])
                 } else {
-                    language = value.split(separator: "#", maxSplits: 1).first.map { $0.trimmingCharacters(in: .whitespaces) }
+                    language = value.split(separator: "#", maxSplits: 1).first.map {
+                        $0.trimmingCharacters(in: .whitespaces)
+                    }
                 }
             }
             lineCount += 1

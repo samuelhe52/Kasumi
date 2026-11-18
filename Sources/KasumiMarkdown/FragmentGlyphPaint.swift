@@ -45,7 +45,9 @@ final class FragmentGlyphPaint {
         switch storage {
         case .single: paint = 64
         case .runs(let runs):
-            paint = runs.reduce(0) { $0 + 64 + $1.glyphs.count * (MemoryLayout<CGGlyph>.size + MemoryLayout<CGPoint>.size) }
+            paint = runs.reduce(0) {
+                $0 + 64 + $1.glyphs.count * (MemoryLayout<CGGlyph>.size + MemoryLayout<CGPoint>.size)
+            }
         }
         return paint + (carets?.cost ?? 0)
     }
@@ -114,7 +116,10 @@ final class FragmentGlyphPaintCache {
     fileprivate final class Key: NSObject {
         let namespace: UUID
         let range: NSRange
-        init(namespace: UUID, range: NSRange) { self.namespace = namespace; self.range = range }
+        init(namespace: UUID, range: NSRange) {
+            self.namespace = namespace
+            self.range = range
+        }
         override var hash: Int { namespace.hashValue ^ range.hashValue }
         override func isEqual(_ object: Any?) -> Bool {
             guard let other = object as? Key else { return false }

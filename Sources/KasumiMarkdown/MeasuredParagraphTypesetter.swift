@@ -77,7 +77,8 @@ enum MeasuredParagraphTypesetter {
             }
             // Appending split Han fragments leaves spare capacity. Keep an
             // exactly sized buffer before sharing it with long-lived geometry.
-            let fragments = deferFragments && !specs.isEmpty
+            let fragments =
+                deferFragments && !specs.isEmpty
                 ? ShapedFragments(geometry: specs.map { $0 }, factory: factory)
                 : ShapedFragments(specs.map { ShapedFragment($0, paint: factory.materialize($0.range)) })
             let logical = factory.textLine(range)

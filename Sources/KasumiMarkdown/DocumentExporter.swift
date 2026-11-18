@@ -273,7 +273,8 @@ enum DocumentExporter {
         let contentHeight = size.height - m.top - m.bottom - footerHeight - headerHeight
         guard values.allSatisfy({ $0.isFinite && $0 >= 0 }),
             options.fontSize.map({ $0.isFinite && $0 > 0 }) ?? true,
-            contentWidth >= 20, contentHeight >= 20 else {
+            contentWidth >= 20, contentHeight >= 20
+        else {
             throw DocumentExportError.invalidGeometry
         }
         var pageStyle = style
@@ -308,7 +309,8 @@ enum DocumentExporter {
                 context.fill(mediaBox)
                 context.saveGState()
                 let continuationHeight = page.continuationHeader.map { $0.upperBound - $0.lowerBound } ?? 0
-                let occupiedHeight = min(contentHeight, (continuationHeight + page.range.upperBound - page.range.lowerBound) * page.scale)
+                let occupiedHeight = min(
+                    contentHeight, (continuationHeight + page.range.upperBound - page.range.lowerBound) * page.scale)
                 context.clip(
                     to: CGRect(x: m.left, y: m.top + headerHeight, width: contentWidth, height: occupiedHeight))
                 context.translateBy(x: m.left + contentWidth * (1 - page.scale) / 2, y: m.top + headerHeight)
@@ -320,9 +322,10 @@ enum DocumentExporter {
                     DocumentTypesetter.draw(layout, in: context, sourceRange: header)
                     context.restoreGState()
                 }
-                context.clip(to: CGRect(
-                    x: 0, y: continuationHeight, width: contentWidth,
-                    height: page.range.upperBound - page.range.lowerBound))
+                context.clip(
+                    to: CGRect(
+                        x: 0, y: continuationHeight, width: contentWidth,
+                        height: page.range.upperBound - page.range.lowerBound))
                 context.translateBy(x: 0, y: continuationHeight)
                 context.translateBy(x: 0, y: -page.range.lowerBound)
                 links.writeDestinations(in: context, range: page.range)

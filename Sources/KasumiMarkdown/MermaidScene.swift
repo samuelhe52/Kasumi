@@ -73,7 +73,8 @@ struct MermaidScene {
                     text, in: rect, role: role, color: MermaidPalette(dark: dark, theme: theme).text,
                     linked: linkedLabels.contains(index), context: context)
             case .coloredText(let text, let rect, let role, let color):
-                textMetrics.draw(text, in: rect, role: role, color: color, linked: linkedLabels.contains(index), context: context)
+                textMetrics.draw(
+                    text, in: rect, role: role, color: color, linked: linkedLabels.contains(index), context: context)
             }
         }
     }

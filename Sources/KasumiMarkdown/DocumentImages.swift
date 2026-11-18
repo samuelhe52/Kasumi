@@ -282,7 +282,8 @@ package final class DocumentImageStore: @unchecked Sendable {
             width.isFinite, height.isFinite, width > 0, height > 0, width * height <= 40_000_000
         else { return nil }
         let orientation = (properties[kCGImagePropertyOrientation] as? NSNumber)?.intValue ?? 1
-        return (5...8).contains(orientation) ? CGSize(width: height, height: width) : CGSize(width: width, height: height)
+        return (5...8).contains(orientation)
+            ? CGSize(width: height, height: width) : CGSize(width: width, height: height)
     }
 
     private static func decodeRaster(_ data: Data, maxDimension: Int = 8192) -> DocumentImage? {

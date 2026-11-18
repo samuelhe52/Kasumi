@@ -34,8 +34,9 @@ final class ParagraphLayoutGeometry {
         guard paragraph.lines.allSatisfy({ $0.hyphen == nil && !$0.fragments.isEmpty }) else { return nil }
         self.request = request
         lines = paragraph.lines.map {
-            Line(range: $0.range, origin: $0.origin, ascent: $0.ascent, descent: $0.descent,
-                 width: $0.width, fragments: $0.fragments.geometry, adjustmentRatio: $0.adjustmentRatio)
+            Line(
+                range: $0.range, origin: $0.origin, ascent: $0.ascent, descent: $0.descent,
+                width: $0.width, fragments: $0.fragments.geometry, adjustmentRatio: $0.adjustmentRatio)
         }
         height = paragraph.height
         autoRagged = paragraph.autoRagged

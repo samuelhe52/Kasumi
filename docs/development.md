@@ -22,6 +22,8 @@ Needs Xcode 27, Swift 6.2+, and Rust (edition 2024) with the
 `aarch64-apple-ios` and `aarch64-apple-ios-sim` targets. The repository pins
 the Rust toolchain in `rust-toolchain.toml`. `make check` reports
 the local toolchain without changing anything.
+`make format` also requires `swift-format` and the pinned Rust toolchain's
+`rustfmt` component (`rustup component add rustfmt`).
 
 ## Builds
 

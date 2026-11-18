@@ -38,7 +38,12 @@ package enum RenderCommand {
                 width = value
                 continue
             }
-            guard ["--preset", "--profile", "--theme", "--theme-file", "--code-radius", "--hyphenation-language", "--punct-strategy"].contains(argument), index < arguments.count else {
+            guard
+                [
+                    "--preset", "--profile", "--theme", "--theme-file", "--code-radius", "--hyphenation-language",
+                    "--punct-strategy"
+                ].contains(argument), index < arguments.count
+            else {
                 throw ArgumentError.invalid("Unknown or incomplete option: \(argument)")
             }
             let value = arguments[index]
@@ -85,10 +90,12 @@ package enum RenderCommand {
             style.explicitTheme = (style.dark ? themeFile.dark : themeFile.light).inheritingClassicDocument
         }
         if let hyphenationLanguage {
-            style = style.applying(style.profileValues.merging(ProfileValues([.hyphenationLanguage: .string(hyphenationLanguage)])))
+            style = style.applying(
+                style.profileValues.merging(ProfileValues([.hyphenationLanguage: .string(hyphenationLanguage)])))
         }
         if let punctuationStrategy {
-            style = style.applying(style.profileValues.merging(ProfileValues([.punctStrategy: .string(punctuationStrategy)])))
+            style = style.applying(
+                style.profileValues.merging(ProfileValues([.punctStrategy: .string(punctuationStrategy)])))
         }
         let output = URL(fileURLWithPath: arguments[2])
         if output.pathExtension.lowercased() == "pdf" {

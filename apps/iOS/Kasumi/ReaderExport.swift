@@ -120,7 +120,8 @@ fileprivate final class ReaderExportJob {
                         options.title = title
                         options.pageNumbers = pageNumbers
                         options.paperSize = paper.size
-                        options.margins = .init(top: margins.points, left: margins.points, bottom: margins.points, right: margins.points)
+                        options.margins = .init(
+                            top: margins.points, left: margins.points, bottom: margins.points, right: margins.points)
                         options.fontSize = fontSize
                         try DocumentExport.writePDF(
                             document, style: exportStyle, options: options, to: url)

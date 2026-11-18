@@ -10,7 +10,8 @@ import Testing
     import UIKit
 #endif
 
-fileprivate func linkBitmap(_ layout: DocumentLayout, extra: [PaintedRect] = [], tiled: Bool = false) throws -> [UInt8] {
+fileprivate func linkBitmap(_ layout: DocumentLayout, extra: [PaintedRect] = [], tiled: Bool = false) throws -> [UInt8]
+{
     let width = Int(ceil(layout.width * 2))
     let height = Int(ceil(layout.height * 2))
     var pixels = [UInt8](repeating: 0, count: width * height * 4)
@@ -75,7 +76,8 @@ fileprivate func linkBitmap(_ layout: DocumentLayout, extra: [PaintedRect] = [],
             rect: expectedRect.offsetBy(dx: placed.origin.x, dy: placed.origin.y),
             color: try #require(style.documentTheme.color("link")).withAlphaComponent(0.4))
         #expect(try linkBitmap(layout).elementsEqual(linkBitmap(reference, extra: [expected])))
-        #expect(try linkBitmap(layout, tiled: true).elementsEqual(linkBitmap(reference, extra: [expected], tiled: true)))
+        #expect(
+            try linkBitmap(layout, tiled: true).elementsEqual(linkBitmap(reference, extra: [expected], tiled: true)))
     }
 
     @Test func wrappedLinksFollowEngineLineWidthsAcrossStyles() throws {

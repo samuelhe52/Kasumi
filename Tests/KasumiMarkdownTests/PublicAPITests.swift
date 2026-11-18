@@ -307,7 +307,8 @@ fileprivate func facadeBitmap(size: CGSize, draw: (CGContext) -> Void) throws ->
         #expect(typography.lineSpacing == 2.4)
         #expect(typography.firstLineIndent == 0 && typography.paraSpaceBetween > 0)
         #expect(typography.headingSpaceBefore == 4 && typography.headingSpaceAfter == 3)
-        let document = MarkdownDocument(markdown: "First paragraph.\n\nSecond paragraph.\n\n## A heading\n\nAfter the heading.")
+        let document = MarkdownDocument(
+            markdown: "First paragraph.\n\nSecond paragraph.\n\n## A heading\n\nAfter the heading.")
         let original = RenderedDocument(document, width: 240, style: originalStyle)
         let rendered = RenderedDocument(document, width: 240, style: style)
         #expect(rendered.size.height > original.size.height)

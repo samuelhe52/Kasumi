@@ -7,9 +7,10 @@ import Testing
 
 @Suite struct PunctuationPolicyTests {
     private func typography(_ strategy: String) -> Typography {
-        Typography().applying(ProfileValues([
-            .punctStrategy: .string(strategy), .hanFamily: .string("PingFang SC"), .bodyAlign: .string("left")
-        ]))
+        Typography().applying(
+            ProfileValues([
+                .punctStrategy: .string(strategy), .hanFamily: .string("PingFang SC"), .bodyAlign: .string("left")
+            ]))
     }
 
     @Test func foldingUsesLocalHanContextAndMatchedParentheses() {
@@ -32,14 +33,16 @@ import Testing
     }
 
     @Test func protectedRunsAndStyledBoundariesKeepTheirSourceAndMetadata() throws {
-        let document = DocumentParser.parse("汉**字,!文**字 `汉,字` $x,y$ [汉,字](https://example.com) ![汉,字](missing.png) 日本語`かな`汉,字")
+        let document = DocumentParser.parse(
+            "汉**字,!文**字 `汉,字` $x,y$ [汉,字](https://example.com) ![汉,字](missing.png) 日本語`かな`汉,字")
         let text = typography("fold").attributed(document.blocks[0].runs)
         #expect(text.string.hasPrefix("汉字，！文字 汉,字"))
         let semantic = DocumentTextMap(text)
         #expect(semantic.string.contains("汉字,!文字 汉,字 x,y 汉,字 汉,字"))
         #expect(semantic.string.hasSuffix("日本語かな汉,字"))
         let comma = (text.string as NSString).range(of: "，")
-        let metadata = try #require(text.attribute(.kasumiParagraphRun, at: comma.location, effectiveRange: nil) as? ParagraphRunStyle)
+        let metadata = try #require(
+            text.attribute(.kasumiParagraphRun, at: comma.location, effectiveRange: nil) as? ParagraphRunStyle)
         #expect(metadata.flags & 1 == 1)
         let linked = (text.string as NSString).range(of: "汉,字", options: .backwards)
         #expect(linked.location != NSNotFound)
@@ -68,19 +71,22 @@ import Testing
     }
 
     @Test func publicSearchSelectionCaretTablesAndPDFUseTheSamePolicy() throws {
-        let source = "# 中文,标题\n\n汉,!字 👩‍💻 `汉,字` [汉,字](https://example.com)\n\n| 中文,列 | 数值 |\n| --- | --- |\n| 汉,字 | 3.14 |\n\n```text\n汉,字\n```"
+        let source =
+            "# 中文,标题\n\n汉,!字 👩‍💻 `汉,字` [汉,字](https://example.com)\n\n| 中文,列 | 数值 |\n| --- | --- |\n| 汉,字 | 3.14 |\n\n```text\n汉,字\n```"
         let document = MarkdownDocument(markdown: source)
         let baseline = RenderedDocument(document, width: 300, style: RenderStyle())
         let original = baseline.text(in: baseline.documentRange)
         for mode in ["fold", "spacing"] {
-            let preset = try TypographyPreset(id: mode, name: mode, toml: "[profile]\npunct_strategy='\(mode)'\nhan_family='PingFang SC'")
+            let preset = try TypographyPreset(
+                id: mode, name: mode, toml: "[profile]\npunct_strategy='\(mode)'\nhan_family='PingFang SC'")
             let style = RenderStyle(preset: preset)
             for width: CGFloat in [160, 300] {
                 let rendered = RenderedDocument(document, width: width, style: style)
                 #expect(rendered.text(in: rendered.documentRange) == original)
                 #expect(rendered.ranges(matching: "汉,字").count == baseline.ranges(matching: "汉,字").count)
                 #expect(rendered.ranges(matching: "汉，字").isEmpty)
-                let foundLink = rendered.ranges(matching: "汉,字").flatMap { rendered.selectionRects(for: $0) }.contains { rect in
+                let foundLink = rendered.ranges(matching: "汉,字").flatMap { rendered.selectionRects(for: $0) }.contains {
+                    rect in
                     rendered.link(at: CGPoint(x: rect.midX, y: rect.midY)) == URL(string: "https://example.com")
                 }
                 #expect(foundLink, "Protected link labels must retain hit testing after display transformations")
@@ -107,8 +113,12 @@ import Testing
         let profile = directory.appendingPathComponent("profile.toml")
         let output = directory.appendingPathComponent("output.pdf")
         try "汉,字".write(to: input, atomically: true, encoding: .utf8)
-        try "[profile]\npunct_strategy='faithful'\nhan_family='PingFang SC'".write(to: profile, atomically: true, encoding: .utf8)
-        for flags in [["--punct-strategy", "fold", "--profile", profile.path], ["--profile", profile.path, "--punct-strategy", "fold"]] {
+        try "[profile]\npunct_strategy='faithful'\nhan_family='PingFang SC'".write(
+            to: profile, atomically: true, encoding: .utf8)
+        for flags in [
+            ["--punct-strategy", "fold", "--profile", profile.path],
+            ["--profile", profile.path, "--punct-strategy", "fold"]
+        ] {
             _ = try await RenderCommand.run(["KasumiRender", input.path, output.path] + flags)
             let pdf = try #require(PDFDocument(url: output))
             #expect((pdf.string ?? "").filter { !$0.isWhitespace }.contains("汉，字"))

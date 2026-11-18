@@ -239,8 +239,10 @@ enum MermaidEntities {
                     y += measured.height
                 }
                 if let target = graph.links[node.id] {
-                    links.append(.init(path: CGPath(rect: rect, transform: nil), target: target,
-                        labelCommands: (commands.count - 1)..<commands.count))
+                    links.append(
+                        .init(
+                            path: CGPath(rect: rect, transform: nil), target: target,
+                            labelCommands: (commands.count - 1)..<commands.count))
                 }
                 y = rect.minY + metric.header + 24
                 for text in node.fields {

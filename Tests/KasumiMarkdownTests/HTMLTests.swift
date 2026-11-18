@@ -82,9 +82,10 @@ import Testing
 
             Visible again.
             """)
-        #expect(document.blocks.map(\.text) == [
-            "Platform\nVersion\niOS\n17\nKeep © 🙂 ≂̸ this", "Inline and visible.", "Visible again."
-        ])
+        #expect(
+            document.blocks.map(\.text) == [
+                "Platform\nVersion\niOS\n17\nKeep © 🙂 ≂̸ this", "Inline and visible.", "Visible again."
+            ])
     }
 
     @Test func sizesAndLinksReachLayoutForHTMLImages() throws {
@@ -117,7 +118,9 @@ import Testing
             InlineRun("c", traits: [.subscript]),
             InlineRun("1", traits: [.footnote])
         ])
-        func offset(_ index: Int) -> Double? { text.attribute(.baselineOffset, at: index, effectiveRange: nil) as? Double }
+        func offset(_ index: Int) -> Double? {
+            text.attribute(.baselineOffset, at: index, effectiveRange: nil) as? Double
+        }
         func font(_ index: Int) throws -> PlatformFont {
             try #require(text.attribute(.font, at: index, effectiveRange: nil) as? PlatformFont)
         }

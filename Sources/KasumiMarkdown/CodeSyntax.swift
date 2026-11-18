@@ -59,7 +59,10 @@ enum CodeSyntax {
         init(length: Int) { self.length = length }
 
         mutating func copy(_ spans: UnsafePointer<KasumiSyntaxSpan>?, count: Int) {
-            guard !visited else { valid = false; return }
+            guard !visited else {
+                valid = false
+                return
+            }
             visited = true
             guard count >= 0, count <= length, count == 0 || spans != nil else { return }
             tokens.reserveCapacity(count)

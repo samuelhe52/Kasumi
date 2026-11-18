@@ -139,7 +139,10 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         }
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-    deinit { layoutTask?.cancel(); scrollWarmup?.cancel() }
+    deinit {
+        layoutTask?.cancel()
+        scrollWarmup?.cancel()
+    }
 
     override func touchesShouldCancel(in view: UIView) -> Bool {
         if view is ReaderCodeCopyButton { return true }
@@ -273,7 +276,8 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         // Do not cancel on width or style changes: synchronous typesetting cannot
         // stop midway. Drain the newest request after the current pipeline ends.
         layoutTask = Task { [weak self] in
-            while let self, self.isActive, !self.finished, let request = self.reflow.begin(), let session = self.reflowSession,
+            while let self, self.isActive, !self.finished, let request = self.reflow.begin(),
+                let session = self.reflowSession,
                 let revision = self.revision
             {
                 self.reflowAnchor.captureIfNeeded(in: self.rendered, atY: self.topY, restoring: self.restoreAnchor)
@@ -345,7 +349,8 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
 
     private func scheduleScrollWarmup() {
         guard scrollWarmup == nil, rendered?.hasEstimatedGeometry == true,
-            isActive, !finished, window != nil, let session = reflowSession, let revision else { return }
+            isActive, !finished, window != nil, let session = reflowSession, let revision
+        else { return }
         let generation = self.generation
         let width = bounds.width
         let id = UUID()
@@ -355,7 +360,8 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
             do {
                 try await Task.sleep(for: .milliseconds(200))
                 guard let self, self.isActive, !self.finished, !self.isDragging, !self.isDecelerating,
-                    self.layoutTask == nil, self.generation == generation, self.bounds.width == width else { return }
+                    self.layoutTask == nil, self.generation == generation, self.bounds.width == width
+                else { return }
                 guard let next = try await session.prepareForScrolling(width: width) else { return }
                 try Task.checkCancellation()
                 let rect = self.visibleRect(in: next, restoring: self.reflowAnchor.value)
@@ -367,10 +373,12 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
                 try Task.checkCancellation()
                 guard self.isActive, !self.finished, !self.isDragging, !self.isDecelerating,
                     self.generation == generation, self.bounds.width == width,
-                    self.layoutTask == nil, !self.reflow.needsLayout else { return }
-                self.install(next, revision: revision, restoring: self.reflowAnchor.value,
+                    self.layoutTask == nil, !self.reflow.needsLayout
+                else { return }
+                self.install(
+                    next, revision: revision, restoring: self.reflowAnchor.value,
                     preview: preview, previewRect: rect, animateReplacement: false)
-            } catch is CancellationError {} catch { /* Foreground refinement remains available. */ }
+            } catch is CancellationError {} catch { /* Foreground refinement remains available. */  }
         }
     }
 
@@ -404,9 +412,11 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
             ? content.resizableSnapshotView(from: bounds, afterScreenUpdates: false, withCapInsets: .zero) : nil
         transitionOverlay?.removeFromSuperview()
         transitionOverlay = overlay
-        let codeColor = style?.theme.document["secondary_text"].map {
-            UIColor(red: CGFloat($0.red), green: CGFloat($0.green), blue: CGFloat($0.blue), alpha: CGFloat($0.alpha))
-        } ?? .secondaryLabel
+        let codeColor =
+            style?.theme.document["secondary_text"].map {
+                UIColor(
+                    red: CGFloat($0.red), green: CGFloat($0.green), blue: CGFloat($0.blue), alpha: CGFloat($0.alpha))
+            } ?? .secondaryLabel
         let nextPage: ReaderPageView
         if sameContent, !animateReplacement, !widthChanged, let page {
             page.refine(
@@ -540,7 +550,8 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         guard !adjusting, !finished, isActive, window != nil, installedRevision == revision,
             let page, let rendered
         else { return }
-        let regions = rendered.hasReaderImages
+        let regions =
+            rendered.hasReaderImages
             ? rendered.readerImageRegions(in: page.convert(bounds, from: self), tableOffsets: page.tableOffsets) : []
         let sameSnapshot = imageSnapshot === rendered
         guard !sameSnapshot || regions != visibleImages else { return }
@@ -550,13 +561,14 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         if let imageDecode, !regions.contains(where: { $0.sharesRaster(with: imageDecode.region) }) {
             imageDecode.worker.cancel()
         }
-        pendingImages = regions.filter { region in
-            if !rendered.hasReaderImageResult(for: region) { return true }
-            // A tile may have painted a placeholder before this cached image
-            // entered the viewport, including in another cell using the raster.
-            if !previous.contains(region) { page.invalidateImage(region) }
-            return false
-        }[...]
+        pendingImages =
+            regions.filter { region in
+                if !rendered.hasReaderImageResult(for: region) { return true }
+                // A tile may have painted a placeholder before this cached image
+                // entered the viewport, including in another cell using the raster.
+                if !previous.contains(region) { page.invalidateImage(region) }
+                return false
+            }[...]
         drainImages()
     }
 
@@ -619,7 +631,10 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         guard isActive != active else { return }
         isActive = active
         // A hidden preview skips layout; catch up on a size change meanwhile.
-        if active { setNeedsLayout(); scheduleScrollWarmup() }
+        if active {
+            setNeedsLayout()
+            scheduleScrollWarmup()
+        }
         if !active {
             stopImageLoading()
             cancelScrollWarmup()
@@ -644,12 +659,14 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
 
     private func presentFindIfNeeded() {
         guard isActive, rendered != nil, window != nil, findRequest != presentedFindRequest,
-            findPresentationTask == nil else { return }
+            findPresentationTask == nil
+        else { return }
         findPresentationTask = Task { @MainActor [weak self] in
             guard let self else { return }
             self.findPresentationTask = nil
             guard !Task.isCancelled, self.isActive, self.window != nil,
-                self.findRequest != self.presentedFindRequest else { return }
+                self.findRequest != self.presentedFindRequest
+            else { return }
             self.presentedFindRequest = self.findRequest
             self.findInteraction.presentFindNavigator(showingReplace: false)
         }
@@ -671,7 +688,9 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         // Let UIKit finish resigning its search field, then restore the reader's
         // responder chain so Command-F can start another session.
         Task { @MainActor [weak self] in
-            guard let self, self.isActive, self.window != nil, !self.findInteraction.isFindNavigatorVisible else { return }
+            guard let self, self.isActive, self.window != nil, !self.findInteraction.isFindNavigatorVisible else {
+                return
+            }
             self.becomeFirstResponder()
         }
     }

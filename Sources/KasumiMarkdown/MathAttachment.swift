@@ -117,7 +117,9 @@ struct DocumentTextMap: Equatable {
                             with: String(repeating: mark, count: part.length))
                     }
                 }
-                append(replacement ?? original.map { $0 as String } ?? source.substring(with: range), range: range, replacement: replacement != nil)
+                append(
+                    replacement ?? original.map { $0 as String } ?? source.substring(with: range), range: range,
+                    replacement: replacement != nil)
             }
         }
         var native = text as String

@@ -45,7 +45,8 @@ enum SVGImageDecoder {
             guard name == "svg" else { return }
             func dimension(_ key: String) -> Float? {
                 guard let value = attributes[key]?.trimmingCharacters(in: .whitespacesAndNewlines) else { return nil }
-                let number = value.hasSuffix("px") ? String(value.dropLast(2)).trimmingCharacters(in: .whitespaces) : value
+                let number =
+                    value.hasSuffix("px") ? String(value.dropLast(2)).trimmingCharacters(in: .whitespaces) : value
                 return Float(number)
             }
             let width = dimension("width")
