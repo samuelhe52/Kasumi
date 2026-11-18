@@ -79,3 +79,33 @@ import Testing
     #expect(parsed.blocks.contains { $0.footnoteLabel == "a" && $0.runs.contains { $0.traits.contains(.math) } })
     #expect(parsed.blocks.flatMap(\.runs).contains { $0.footnoteDisplay == "1" })
 }
+
+@Test func pandocScriptsAndGFMStrikethrough() {
+    let source = #"""
+        H~2~O, x^2^, ~a b~, ~~x~~, ~/path, \~no\~, \^no\^.
+        ~a\ b~ ^a\^b^ ~a\~b~ **x^3^** ==x^4^==.
+
+        Code: `H~2~O and x^2^`.
+        <span title="~attribute~">[x^1^](https://example.com/~name~/)</span>.
+
+        <div>x^2^ and H~2~O.</div>
+
+        Unclosed ^here
+        next^.
+        """#
+    let parsed = DocumentParser.parse(source)
+    let runs = parsed.blocks.flatMap(\.runs)
+    #expect(runs.filter { $0.traits.contains(.subscript) }.map(\.text) == ["2", "a\u{00a0}b", "a~b"])
+    #expect(runs.filter { $0.traits.contains(.superscript) }.map(\.text) == ["2", "a^b", "3", "4", "1"])
+    #expect(runs.filter { $0.traits.contains(.strikethrough) }.map(\.text) == ["a b", "x"])
+    #expect(runs.contains { $0.text == "3" && $0.traits.contains(.strong) })
+    #expect(runs.contains { $0.text == "4" && $0.traits.contains(.highlight) })
+    #expect(runs.contains { $0.text == "1" && $0.destination == "https://example.com/~name~/" })
+    #expect(runs.contains { $0.text == "H~2~O and x^2^" && $0.traits == [.code] })
+    #expect(parsed.blocks[0].text.contains("~/path, ~no~, ^no^."))
+    #expect(parsed.blocks[2].text == "x^2^ and H~2~O.")
+    #expect(parsed.blocks[3].text == "Unclosed ^here next^.")
+    for literal in ["~/path", "~a b~", "~~x~~", "^^", "^a^^", "~a~~", #"\~a\~"#, #"\^a\^"#, "^a\nb^"] {
+        #expect(MarkdownExtensions(source: literal).markdown == literal)
+    }
+}

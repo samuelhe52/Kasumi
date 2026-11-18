@@ -40,7 +40,20 @@ that fixes it; add one when a limitation is found and not fixed.
   of a scrollable `RenderedDocument` capture its initial table viewport. Reader scrolling is
   presentation state, separate from the immutable snapshot. See
   [adaptive tables](005-table-layout.md) for behavior and validation limits.
-- Export: pagination details, footnote edge cases, HTML/SVG images.
+- HTML: tables fall back to lines of text. CSS and theme-specific picture
+  sources are unsupported. Details stay expanded in the reader and exports.
+- SVG: SwiftDraw can render a supported subset of an image. The loader limits
+  source data to 20 MiB and the intrinsic 3× canvas to 8,192 pixels per axis
+  and 40 million pixels total. PDF embeds the intrinsic raster. See
+  [reader SVG sizing](030-reader-svg-raster-size.md).
+- Reader images: layout inspects source dimensions throughout the document.
+  The iOS reader decodes visible images asynchronously, including cells in
+  horizontally scrollable tables, and paints placeholders while pixels load.
+  Display rasters target the fitted size with a roughly 4-million-pixel ceiling
+  per raster and a 64 MiB decoded cache per reflow session. Remote preload still
+  downloads the document's remote images to obtain dimensions. Those dimensions
+  can trigger a layout refresh. See [viewport image decoding](031-viewport-image-decoding.md).
+- Export: pagination details and footnote edge cases.
   PDFs preserve resolvable links and internal destinations.
   See [PDF links](026-pdf-links.md).
   Long PNG/JPG require a complete bitmap, bounded by a configurable 128 MiB raw
@@ -59,8 +72,8 @@ that fixes it; add one when a limitation is found and not fixed.
   immutable snapshots while preserving a semantic anchor. Text metadata still
   scales with document length, and one huge paragraph still breaks in full.
   Eligible offscreen text, table cells and formulas use lightweight semantic
-  placeholders; nearby tables refine together. Resource-dependent images and
-  diagram fallbacks stay exact. A large visible table, giant attachment paragraph
+  placeholders. Nearby tables refine together. Known image dimensions and
+  diagram fallbacks retain exact geometry. A large visible table, giant attachment paragraph
   or diagram can still dominate construction. Placement and semantic-map assembly
   still visit the whole document on viewport requests; there is no persistent
   indexed block-placement tree yet. One screen of overscan buffers scrolling, and

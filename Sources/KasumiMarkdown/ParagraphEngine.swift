@@ -17,7 +17,7 @@ struct ParagraphRunMetrics: Equatable, Sendable {
     var em: Float
     var isCode: Bool
     /// Original parser RunInfo flags: strong1, emphasis2, code4, link8,
-    /// footnote0x10, image0x20, math0x40. Not internal classifier byte flags.
+    /// footnote 0x10, image 0x20, math 0x40, superscript 0x200, subscript 0x400.
     var flags: UInt32
     init(spaceAdvance: Float, hyphenAdvance: Float, em: Float, isCode: Bool, flags: UInt32 = 0) {
         self.spaceAdvance = spaceAdvance
@@ -313,7 +313,7 @@ enum ParagraphEngine {
                         shrink: shrinking, range: space.start..<space.end, run: space.run))
             } else if let left = previous, hyphenOffsets.contains(prefix[index]),
                 !runs[left.run].isCode, !metric.isCode,
-                runs[left.run].flags & 0x10 == 0, metric.flags & 0x10 == 0
+                (runs[left.run].flags | metric.flags) & ParagraphRunStyle.scriptMask == 0
             {
                 items.append(
                     Item(

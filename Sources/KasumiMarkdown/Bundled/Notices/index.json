@@ -59,6 +59,20 @@
       ]
     },
     {
+      "id": "swiftdraw",
+      "name": "SwiftDraw",
+      "license": "Zlib",
+      "role": "Rasterizes SVG images for the reader and exports.",
+      "version": "0.30.0",
+      "source": "https://github.com/swhitty/SwiftDraw",
+      "documents": [
+        {
+          "title": "License",
+          "path": "Notices/swiftdraw/LICENSE.txt"
+        }
+      ]
+    },
+    {
       "id": "native-dagre",
       "name": "Dagre layout (native)",
       "license": "Apache-2.0 (dagre), MIT (dagre.js), MIT OR Apache-2.0 dependencies, Unicode-3.0 data",

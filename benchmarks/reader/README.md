@@ -64,6 +64,30 @@ It records every parse-plus-outline duration and a heading-count checksum.
 Use untraced worker cold/warm timings to validate user-visible parsing gains;
 trace timings include profiling overhead.
 
+### HTML and SVG diagnostics
+
+Use [the HTML and SVG fixture](../../fixtures/HTMLAndSVG/README.md) separately
+from the fixed text corpus. The full-layout corpus exercises idle preparation,
+whose eligibility excludes images. Parse the same fixture with
+`--profile-parse fixtures/HTMLAndSVG/README.md 200 output.json` after
+`make benchmark-build`. To exercise many HTML fragments per parse, repeat the
+file with blank lines between copies and pass that file to the same command.
+This timing includes outline construction and does not fetch any image.
+
+Use `--svg-decode fixtures/HTMLAndSVG/build.svg 101 output.json` and repeat with
+`fixtures/HTMLAndSVG/logo.svg`. Run each asset in its own process. The first
+sample is cold within the process. Later samples measure fresh decodes with
+decoder and font setup warmed. File reads, URL loading, image-cache hits and
+document layout are outside the timing.
+
+Use `--reader-images SOURCE.md output.json` to measure a local image-bearing
+document at 402×874 pt and 3×. This mode resolves relative paths from the
+document's directory and reports time from file read to the first bitmap and
+to the bitmap after loading its visible images. It also reports the number of
+visible image occurrences and loaded rasters, along with process memory at both
+points. It excludes HTTP preload and UIKit presentation. Use a fresh process
+per cold sample.
+
 Nothing here establishes display FPS, 120 Hz rendering, UIKit tile presentation or iPhone/iPad memory. Native coverage is geometry metadata, not pixels. Use the manual Mac lab or an authorized device run for those.
 
 ## Baseline

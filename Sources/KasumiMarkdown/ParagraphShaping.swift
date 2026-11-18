@@ -19,6 +19,7 @@ final class ParagraphRunStyle: NSObject {
     let punctuationFont: CTFont?
     let flags: UInt32
     let isCode: Bool
+    static let scriptMask: UInt32 = 0x610
     init(
         baseFont: PlatformFont, hanFont: PlatformFont? = nil, punctuationFont: PlatformFont? = nil, flags: UInt32,
         isCode: Bool
@@ -41,6 +42,8 @@ extension InlineRun {
         if traits.contains(.footnote) { flags |= 0x10 }
         if traits.contains(.image) { flags |= 0x20 }
         if traits.contains(.math) { flags |= 0x40 }
+        if traits.contains(.superscript) { flags |= 0x200 }
+        if traits.contains(.subscript) { flags |= 0x400 }
         return flags
     }
 }

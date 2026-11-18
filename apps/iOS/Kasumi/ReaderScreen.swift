@@ -13,6 +13,7 @@ struct ReaderScreen: View {
     @AppStorage("reader.theme-pair") private var pairID = "mono"
     @AppStorage("reader.font-size") private var fontSize: Double = 0
     @State private var viewport = ReaderViewport()
+    @State private var imageRevision = 0
     @State private var findRequest = 0
     @State private var pendingLink: URL?
     @State private var showLinkConfirmation = false
@@ -254,6 +255,7 @@ struct ReaderScreen: View {
                 let parsed = snapshot.parsed
                 ReadingSurface(
                     document: parsed, revision: snapshot.revision, style: style, fontRevision: fontStore.revision,
+                    imageRevision: imageRevision,
                     outline: parsed.outline, fileURL: document.fileURL, viewport: viewport, findRequest: findRequest,
                     isActive: isActive,
                     openLink: { url in
@@ -263,6 +265,12 @@ struct ReaderScreen: View {
                 )
                 // Paint behind the floating find panel as well as the toolbars.
                 .ignoresSafeArea(.all, edges: [.top, .bottom])
+                .task(id: snapshot.revision) {
+                    guard await DocumentReflowSession.preloadImages(parsed), !Task.isCancelled,
+                        document.snapshot?.revision == snapshot.revision
+                    else { return }
+                    imageRevision += 1
+                }
             } else {
                 ProgressView("Opening document…").frame(maxWidth: .infinity, maxHeight: .infinity)
             }

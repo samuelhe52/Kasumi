@@ -66,6 +66,9 @@ public final class RenderedDocument: @unchecked Sendable {
     private let semanticText: String
     private let estimatedRegions: [CGRect]
     private let estimatedPrefixBottoms: [CGFloat]
+    private let readerImages: ReaderImageCache?
+    private let placedImages: [PlacedReaderImage]
+    private let imagePrefixBottoms: [CGFloat]
 
     /// Viewport snapshots have estimated offscreen heights and geometry. Their
     /// semantic text remains complete. Default/full snapshots always return false.
@@ -121,14 +124,16 @@ public final class RenderedDocument: @unchecked Sendable {
 
     init(
         _ document: MarkdownDocument, width: CGFloat, style: RenderStyle, scrollableTables: Bool,
-        preparation: ReflowPreparation?, viewport: ViewportLayoutRequest? = nil
+        preparation: ReflowPreparation?, viewport: ViewportLayoutRequest? = nil, readerImages: ReaderImageCache? = nil
     ) {
         precondition(width.isFinite && width > 0, "Layout width must be finite and positive")
         let insets = style.insets
         precondition(
             [insets.top, insets.left, insets.bottom, insets.right].allSatisfy { $0.isFinite && $0 >= 0 },
             "Layout insets must be finite and nonnegative")
-        let typography = style.typography
+        var typography = style.typography
+        self.readerImages = readerImages
+        typography.readerImages = readerImages
         var built: DocumentLayout
         if let viewport, let preparation {
             built = DocumentTypesetter.viewportLayout(
@@ -141,6 +146,12 @@ public final class RenderedDocument: @unchecked Sendable {
         }
         built.text = NSAttributedString(attributedString: built.text)
         layout = built
+        placedImages = built.readerImages.sorted { $0.rect.minY < $1.rect.minY }
+        var imageBottom = -CGFloat.infinity
+        imagePrefixBottoms = placedImages.map {
+            imageBottom = max(imageBottom, $0.rect.maxY)
+            return imageBottom
+        }
         estimatedRegions = built.paragraphs.filter { $0.paragraph.estimate != nil }.map(\.estimatedPaintBounds)
             .sorted { $0.minY < $1.minY }
         var maximum = -CGFloat.infinity
@@ -166,6 +177,47 @@ public final class RenderedDocument: @unchecked Sendable {
         let semantic = built.semanticContent ?? DocumentSemanticContent(built.textMap)
         semanticText = semantic.text
         semanticSource = semantic.text as NSString
+    }
+
+    public var hasReaderImages: Bool { !placedImages.isEmpty }
+
+    /// Returns the image occurrences intersecting the visible document rect.
+    /// Pass offsets for independently scrolling tables in their content coordinates.
+    public func readerImageRegions(in rect: CGRect, tableOffsets: [Int: CGFloat] = [:]) -> [ReaderImageRegion] {
+        guard !rect.isEmpty, rect.minY.isFinite, rect.maxY.isFinite else { return [] }
+        var lower = 0
+        var upper = imagePrefixBottoms.count
+        while lower < upper {
+            let middle = lower + (upper - lower) / 2
+            if imagePrefixBottoms[middle] > rect.minY { upper = middle } else { lower = middle + 1 }
+        }
+        var regions: [ReaderImageRegion] = []
+        for image in placedImages[lower...] {
+            guard image.rect.minY < rect.maxY else { break }
+            if let index = image.tableIndex, layout.tables[index].isScrollable {
+                let table = layout.tables[index]
+                let visible = rect.intersection(table.frame)
+                let offset = tableOffsets[index] ?? 0
+                guard !visible.isEmpty, image.rect.intersects(visible.offsetBy(dx: offset, dy: 0)) else { continue }
+                regions.append(ReaderImageRegion(
+                    rect: image.rect.offsetBy(dx: -table.frame.minX, dy: -table.frame.minY),
+                    tableID: index, request: image.request))
+            } else if image.rect.intersects(rect) {
+                regions.append(ReaderImageRegion(rect: image.rect, tableID: nil, request: image.request))
+            }
+        }
+        return regions
+    }
+
+    /// True when this snapshot has already attempted to load the occurrence.
+    public func hasReaderImageResult(for region: ReaderImageRegion) -> Bool {
+        readerImages?.hasResult(for: region.request.key) == true
+    }
+
+    /// Load one raster away from drawing. Hosts should serialize requests and
+    /// invalidate the affected tiles when this returns true.
+    @discardableResult public func prepareReaderImage(_ region: ReaderImageRegion) async -> Bool {
+        await readerImages?.load(region.request) == true
     }
 
     /// `rect` and the CGContext must use document coordinates (top-left, y down).

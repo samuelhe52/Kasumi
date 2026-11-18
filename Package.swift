@@ -27,7 +27,9 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/swiftlang/swift-markdown.git", exact: "0.9.0"),
-        .package(url: "https://github.com/dduan/TOMLDecoder.git", exact: "0.4.5")
+        .package(url: "https://github.com/swiftlang/swift-cmark.git", exact: "0.9.0"),
+        .package(url: "https://github.com/dduan/TOMLDecoder.git", exact: "0.4.5"),
+        .package(url: "https://github.com/swhitty/SwiftDraw.git", exact: "0.30.0")
     ],
     targets: [
         nativeTarget("KasumiDagreNative", "kasumi_dagre"),
@@ -50,7 +52,9 @@ let package = Package(
             name: "KasumiMarkdown",
             dependencies: [
                 "CDagre", "CLineBreak", "CHyphenation", "CSyntax", .product(name: "Markdown", package: "swift-markdown"),
-                .product(name: "TOMLDecoder", package: "TOMLDecoder")
+                .product(name: "cmark-gfm", package: "swift-cmark"),
+                .product(name: "TOMLDecoder", package: "TOMLDecoder"),
+                .product(name: "SwiftDraw", package: "SwiftDraw")
             ],
             resources: [.copy("Bundled")]
         ),

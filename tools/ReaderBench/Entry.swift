@@ -1,9 +1,31 @@
+import CoreGraphics
 import Foundation
 import KasumiMarkdown
 
 @main struct ReaderBench {
     static func main() async throws {
         let args = Array(CommandLine.arguments.dropFirst())
+        if args.count == 4, args[0] == "--svg-decode", let repeats = Int(args[2]), repeats > 0 {
+            let data = try Data(contentsOf: URL(fileURLWithPath: args[1]))
+            var samples: [Double] = []
+            var pixels = 0
+            for _ in 0..<repeats {
+                let start = ContinuousClock.now
+                samples.append(try autoreleasepool {
+                    guard let bitmap = DocumentImageStore.decode(data)?.bitmap else {
+                        throw BenchError.invalid("SVG decoding failed")
+                    }
+                    pixels = bitmap.width * bitmap.height
+                    return milliseconds(start)
+                })
+            }
+            try writeJSON(["decodeMs": samples, "pixels": pixels], to: args[3])
+            return
+        }
+        if args.count == 3, args[0] == "--reader-images" {
+            try await measureReaderImages(source: URL(fileURLWithPath: args[1]), output: args[2])
+            return
+        }
         // Repeated parsing provides enough samples for Instruments without
         // mixing font initialization, layout, or bitmap work into the profile.
         if args.count == 4, args[0] == "--profile-parse", let repeats = Int(args[2]), repeats > 0 {
@@ -55,6 +77,57 @@ import KasumiMarkdown
                            "readDecodeMs": readMs, "hostStart": startState, "hostEnd": hostState(), "result": result], to: args[4])
             return
         }
-        throw BenchError.invalid("Usage: --corpus DIR | --worker PHASE CASE SOURCE OUTPUT quick|full | --profile-parse SOURCE REPEATS OUTPUT")
+        throw BenchError.invalid(
+            "Usage: --corpus DIR | --worker PHASE CASE SOURCE OUTPUT quick|full | "
+                + "--profile-parse SOURCE REPEATS OUTPUT | --svg-decode SOURCE REPEATS OUTPUT | "
+                + "--reader-images SOURCE OUTPUT")
     }
+
+    static func measureReaderImages(source: URL, output: String) async throws {
+        let start = ContinuousClock.now
+        let width: CGFloat = 402
+        let height: CGFloat = 874
+        let scale: CGFloat = 3
+        let data = try Data(contentsOf: source)
+        let read = milliseconds(start)
+        let document = try MarkdownDocument(
+            data: data, fileExtension: source.pathExtension, baseURL: source.deletingLastPathComponent())
+        let parsed = milliseconds(start)
+        let session = DocumentReflowSession(
+            document, style: RenderStyle(fontSize: 18, widthLimit: nil),
+            scrollableTables: true, readerDisplayScale: scale)
+        let snapshot = await session.render(width: width, viewportHeight: height)
+        let layout = milliseconds(start)
+        let rect = CGRect(x: 0, y: 0, width: width, height: min(height, snapshot.size.height))
+        guard !snapshot.needsLayout(in: rect), let first = LabPreview.paint(snapshot, rect: rect, scale: scale) else {
+            throw BenchError.invalid("missing first viewport")
+        }
+        let firstBitmap = milliseconds(start)
+        let initialMemory = try BenchmarkMemory.read()
+        let regions = snapshot.readerImageRegions(in: rect)
+        var loaded = 0
+        for region in regions where await snapshot.prepareReaderImage(region) { loaded += 1 }
+        let painted: LabPreview?
+        let imageBitmap: Double
+        if regions.isEmpty {
+            painted = nil
+            imageBitmap = firstBitmap
+        } else {
+            guard let image = LabPreview.paint(snapshot, rect: rect, scale: scale) else {
+                throw BenchError.invalid("missing image viewport")
+            }
+            painted = image
+            imageBitmap = milliseconds(start)
+        }
+        try writeJSON([
+            "fileToFirstBitmapMs": firstBitmap, "fileToImageBitmapMs": imageBitmap,
+            "readMs": read, "parseMs": parsed - read, "layoutMs": layout - parsed,
+            "firstPaintMs": firstBitmap - layout,
+            "initialMemory": initialMemory, "finalMemory": try BenchmarkMemory.read(),
+            "visibleImageOccurrences": regions.count, "loadedRasters": loaded,
+            "documentHeight": snapshot.size.height
+        ], to: output)
+        withExtendedLifetime((first, painted)) {}
+    }
+
 }

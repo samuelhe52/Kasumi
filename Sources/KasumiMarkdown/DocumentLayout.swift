@@ -65,6 +65,7 @@ struct DocumentLayout {
     var anchorPositions: [String: CGFloat]
     /// Occupied image rectangles, including inline images, for pagination/hit testing.
     var imageBounds: [CGRect]
+    var readerImages: [PlacedReaderImage]
     var paginationGroups: [Range<CGFloat>]
     var tables: [RenderedTable] = []
     var codeBlocks: [CodeBlockLayout] = []
@@ -140,6 +141,7 @@ enum DocumentTypesetter {
         var anchors: [String: CGFloat] = [:]
         var headingCounts: [String: Int] = [:]
         var imageBounds: [CGRect] = []
+        var readerImages: [PlacedReaderImage] = []
         var paginationGroups: [Range<CGFloat>] = []
         var tables: [RenderedTable] = []
         var codeBlocks: [CodeBlockLayout] = []
@@ -236,10 +238,13 @@ enum DocumentTypesetter {
                 attributed.enumerateAttribute(.kasumiImage, in: line.range) { value, range, _ in
                     guard let image = value as? ImageAttachment else { return }
                     let offset = line.offset(forStringIndex: range.location)
-                    imageBounds.append(
-                        CGRect(
-                            x: x + line.origin.x + offset, y: y + line.origin.y - image.size.height,
-                            width: image.size.width, height: image.size.height))
+                    let rect = CGRect(
+                        x: x + line.origin.x + offset, y: y + line.origin.y - image.size.height,
+                        width: image.size.width, height: image.size.height)
+                    imageBounds.append(rect)
+                    if let request = image.readerRequest {
+                        readerImages.append(PlacedReaderImage(rect: rect, request: request, tableIndex: nil))
+                    }
                 }
                 attributed.enumerateAttribute(.kasumiDiagram, in: line.range) { value, range, _ in
                     guard let diagram = value as? MermaidAttachment else { return }
@@ -284,11 +289,12 @@ enum DocumentTypesetter {
                 headingCounts[slug] = duplicate + 1
                 y += place(
                     attributed(block.runs, size: fontSize, heading: true, headingLevel: block.level), x: left, y: y,
-                    width: measure, size: size, alignment: .leading)
+                    width: measure, size: size, alignment: block.alignment ?? style.alignment)
                 y += size * style.headingSpaceAfter
             } else if block.kind == .image {
                 y += place(
-                    attributed(block.runs), x: left, y: y, width: measure, size: style.size, alignment: .centered)
+                    attributed(block.runs), x: left, y: y, width: measure, size: style.size,
+                    alignment: block.alignment ?? .centered)
                 y += style.size * 0.65
             } else if block.kind == .math {
                 let math = deferBlock
@@ -341,6 +347,7 @@ enum DocumentTypesetter {
                 let tableWidth = widths.reduce(0, +)
                 let tableLeft = left + max(0, (measure - tableWidth) / 2)
                 let paragraphStart = paragraphs.count
+                let imageStart = readerImages.count
                 let backgroundStart = backgrounds.count
                 let ruleStart = rules.count
                 let top = y
@@ -397,6 +404,7 @@ enum DocumentTypesetter {
                 }
                 let tableIndex = tables.count
                 for index in paragraphStart..<paragraphs.count { paragraphs[index].tableIndex = tableIndex }
+                for index in imageStart..<readerImages.count { readerImages[index].tableIndex = tableIndex }
                 for index in backgroundStart..<backgrounds.count { backgrounds[index].tableIndex = tableIndex }
                 for index in ruleStart..<rules.count { rules[index].tableIndex = tableIndex }
                 tables.append(
@@ -470,7 +478,7 @@ enum DocumentTypesetter {
                 let attr = attributed(
                     block.runs, size: style.size * (isCode ? 0.88 : 1), code: isCode, imageMaxWidth: contentWidth,
                     syntax: block.syntaxTokens)
-                let alignment: ParagraphAlignment = isCode ? .leading : style.alignment
+                let alignment: ParagraphAlignment = isCode ? .leading : (block.alignment ?? style.alignment)
                 let bodyParagraph =
                     block.kind == .paragraph && block.level == 0 && block.prefix.isEmpty && block.footnoteLabel == nil
                 if bodyParagraph { y += style.size * style.paraSpaceBefore }
@@ -479,7 +487,7 @@ enum DocumentTypesetter {
                     ? attr.attribute(.kasumiParagraphRun, at: 0, effectiveRange: nil) as? ParagraphRunStyle : nil
                 let firstRunEm = firstRun.map { CTFontGetSize($0.baseFont) } ?? defaultFont.pointSize
                 let indent =
-                    bodyParagraph && (style.indentFirstParagraph || !firstBodyParagraph)
+                    bodyParagraph && block.alignment == nil && (style.indentFirstParagraph || !firstBodyParagraph)
                     ? firstRunEm * style.firstLineIndent : 0
                 y += place(
                     attr, x: left + inset, y: y, width: contentWidth, size: style.size * (isCode ? 0.88 : 1),
@@ -549,7 +557,8 @@ enum DocumentTypesetter {
             width: width, height: y + insets.bottom, text: storage,
             textMap: textMap,
             paragraphs: paragraphs, backgrounds: backgrounds, rules: rules, headingPositions: headings,
-            anchorPositions: anchors, imageBounds: imageBounds, paginationGroups: paginationGroups, tables: tables,
+            anchorPositions: anchors, imageBounds: imageBounds, readerImages: readerImages,
+            paginationGroups: paginationGroups, tables: tables,
             codeBlocks: codeBlocks, semanticContent: semantic, diagrams: diagrams)
     }
 

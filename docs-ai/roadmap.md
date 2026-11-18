@@ -53,8 +53,7 @@ text paragraphs around the reading anchor with overscan, retaining indexed
 offscreen height estimates. Scrolling requests refined immutable snapshots.
 [Incremental reflow](002-rendering-engine/022-incremental-reflow.md) now defers
 eligible offscreen text, tables and formulas using semantic placeholders. Nearby
-tables refine as a unit; resource-dependent images and diagram fallbacks remain
-exact. Immutable paragraph geometry and table widths are reused, while Core Text
+tables refine as a unit. Image geometry and diagram fallbacks remain exact. Immutable paragraph geometry and table widths are reused, while Core Text
 objects remain snapshot-local. Publication checks current viewport coverage when
 the anchor moves, and one screen of overscan buffers scrolling. Cold preparation
 also avoids redundant parsing and document-wide grapheme indexing. [Idle preparation](002-rendering-engine/023-fast-scroll-coverage.md) now completes
@@ -136,6 +135,12 @@ Retained after milestone closure; not prerequisites for starting Reader 2:
   [002.027](002-rendering-engine/027-diagram-interactions.md).
 - The missing-glyph fallback uses a hollow square as of 2026-11-18.
   See [002.028](002-rendering-engine/028-missing-glyphs.md).
+- Basic README HTML, inline subscript and superscript, and SVG images share the
+  native rendering path for the reader and exports. See [002.029](002-rendering-engine/029-html-and-svg.md).
+- Reader layout reserves image geometry from source dimensions. The iOS reader
+  decodes fitted raster and SVG pixels as images enter the viewport. See
+  [002.030](002-rendering-engine/030-reader-svg-raster-size.md) and
+  [002.031](002-rendering-engine/031-viewport-image-decoding.md).
 - Known limitations: [renderer gaps](002-rendering-engine/renderer-gaps.md).
   Ligature-span and Han combining-mark width repairs shipped on 2026-11-16;
   see [002.002](002-rendering-engine/002-shaped-cluster-integrity.md).

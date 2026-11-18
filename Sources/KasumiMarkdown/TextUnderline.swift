@@ -129,7 +129,7 @@ enum TextUnderline {
                 }
                 // Han substitutions share the paragraph's stripe; scripts use their
                 // own em and baseline. Raw attributed input also retains its baseline.
-                let script = flags & 0x610 != 0
+                let script = flags & ParagraphRunStyle.scriptMask != 0
                 let em = script ? CTFontGetSize(run!.baseFont) : fontSize
                 let baseline = script || run == nil ? (values[.baselineOffset] as? NSNumber)?.doubleValue ?? 0 : 0
                 let start = line.offset(forStringIndex: range.location)

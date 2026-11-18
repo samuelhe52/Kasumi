@@ -48,6 +48,18 @@
       ]
     },
     {
+      "id": "swiftdraw",
+      "name": "SwiftDraw",
+      "version": "0.30.0",
+      "license": "Zlib",
+      "source": "https://github.com/swhitty/SwiftDraw",
+      "role": "Rasterizes SVG images for the reader and exports.",
+      "swift": {"identity": "swiftdraw", "revision": "184372f0b9ca3f2b416e51e869ca93cfaed5c8a9"},
+      "documents": [
+        {"title": "License", "source": "notices/swift/SwiftDraw/LICENSE.txt"}
+      ]
+    },
+    {
       "id": "native-dagre",
       "name": "Dagre layout (native)",
       "version": "dagre 0.1.1",

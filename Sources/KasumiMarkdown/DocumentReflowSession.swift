@@ -8,6 +8,7 @@ public actor DocumentReflowSession {
     private let document: MarkdownDocument
     private let style: RenderStyle
     private let scrollableTables: Bool
+    private let readerImages: ReaderImageCache?
     private let preparation = ReflowPreparation()
     private var layoutWidth: CGFloat?
     private(set) var warmCursor = 0
@@ -40,16 +41,34 @@ public actor DocumentReflowSession {
     }
 
     public init(_ document: MarkdownDocument, style: RenderStyle, scrollableTables: Bool = false) {
+        self.init(document, style: style, scrollableTables: scrollableTables, readerDisplayScale: nil)
+    }
+
+    /// A display scale opts into geometry-only image attachments. Interactive
+    /// clients request the viewport's pixels separately after presentation.
+    public init(
+        _ document: MarkdownDocument, style: RenderStyle, scrollableTables: Bool = false,
+        readerDisplayScale: CGFloat?
+    ) {
         self.document = document
         self.style = style
         self.scrollableTables = scrollableTables
+        readerImages = readerDisplayScale.flatMap {
+            $0.isFinite && $0 > 0 ? ReaderImageCache(displayScale: $0) : nil
+        }
+    }
+
+    /// Makes remote dimensions and encoded sources available for reader layout.
+    @discardableResult public static func preloadImages(_ document: MarkdownDocument) async -> Bool {
+        await DocumentImageStore.shared.preload(document.parsed, forReader: true)
     }
 
     public func render(width: CGFloat) -> RenderedDocument {
         useWidth(width)
         return autoreleasepool {
             RenderedDocument(
-                document, width: width, style: style, scrollableTables: scrollableTables, preparation: preparation)
+                document, width: width, style: style, scrollableTables: scrollableTables, preparation: preparation,
+                readerImages: readerImages)
         }
     }
 
@@ -67,7 +86,8 @@ public actor DocumentReflowSession {
             RenderedDocument(
                 document, width: width, style: style, scrollableTables: scrollableTables, preparation: preparation,
                 viewport: viewportHeight.isFinite && viewportHeight > 0
-                    ? ViewportLayoutRequest(height: viewportHeight, anchor: anchor) : nil)
+                    ? ViewportLayoutRequest(height: viewportHeight, anchor: anchor) : nil,
+                readerImages: readerImages)
         }
     }
 

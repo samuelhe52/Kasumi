@@ -25,6 +25,7 @@ struct Typography: Codable, Equatable, Sendable {
     var profileValues = BuiltinProfiles.all[0].effective
     var lightThemeID = "mono-light"
     var darkThemeID = "mono-dark"
+    var readerImages: ReaderImageCache?
     init() {}
     private enum CodingKeys: String, CodingKey {
         case size, lineSpacing, latinFamily, hanFamily, codeFamily, alignment, paragraphIndent, hangingPunctuation,
@@ -213,23 +214,37 @@ struct Typography: Codable, Equatable, Sendable {
         var punctuationSpacing: [Int] = []
         for (runIndex, run) in runs.enumerated() {
             let isCode = code || run.traits.contains(.code)
-            let isFootnote = run.traits.contains(.footnote)
-            // Native footnote references have source flag0x10, within the
-            // context builder's rounded script mask0x610.
+            let raised = run.traits.contains(.footnote) || run.traits.contains(.superscript)
+            let lowered = run.traits.contains(.subscript)
+            let subscriptDrop = 0.15 // TeX sub1, in em of the base font.
+            let scriptOffset = raised ? pointSize * superscriptShift : lowered ? -pointSize * subscriptDrop : 0
             let runSize =
-                (isFootnote ? (pointSize * scriptScale).rounded(.toNearestOrAwayFromZero) : pointSize)
+                (raised || lowered ? (pointSize * scriptScale).rounded(.toNearestOrAwayFromZero) : pointSize)
                 * (isCode && !code ? 0.88 : 1)
             let isStrong = (heading && headingLevel == nil) || run.traits.contains(.strong)
             let base = font(
                 size: runSize, strong: isStrong, emphasis: run.traits.contains(.emphasis) || run.traits.contains(.math),
                 code: isCode, weight: headingLevel.map(headingWeight))
             if run.traits.contains(.image), !isCode {
-                if let source = run.imageSource,
-                    let image = DocumentImageStore.shared.image(for: source, baseURL: baseURL)
-                {
-                    append(
-                        ImageAttachment(image: image, maximumWidth: imageMaxWidth, altText: run.text).attributed(
-                            link: run.destination), base: base, run: run, isCode: isCode)
+                let width = run.imageWidth.map { CGFloat($0) }
+                let height = run.imageHeight.map { CGFloat($0) }
+                let attachment: ImageAttachment? = run.imageSource.flatMap { source in
+                    if let readerImages {
+                        return readerImages.request(
+                            for: source, baseURL: baseURL, maximumWidth: imageMaxWidth, width: width, height: height
+                        ).map {
+                            ImageAttachment(
+                                request: $0, cache: readerImages, altText: run.text,
+                                placeholder: theme.color("image_placeholder_background")?.cgColor)
+                        }
+                    }
+                    return DocumentImageStore.shared.image(for: source, baseURL: baseURL).map {
+                        ImageAttachment(
+                            image: $0, maximumWidth: imageMaxWidth, altText: run.text, width: width, height: height)
+                    }
+                }
+                if let attachment {
+                    append(attachment.attributed(link: run.destination), base: base, run: run, isCode: isCode)
                 } else {
                     var attributes: [NSAttributedString.Key: Any] = [
                         .font: font(size: pointSize), .foregroundColor: secondaryColor,
@@ -264,12 +279,15 @@ struct Typography: Codable, Equatable, Sendable {
             if run.traits.contains(.strikethrough) {
                 attributes[.strikethroughStyle] = NSUnderlineStyle.single.rawValue
             }
+            if run.traits.contains(.underline) {
+                attributes[.underlineStyle] = NSUnderlineStyle.single.rawValue
+            }
             if run.traits.contains(.highlight) {
                 attributes[.backgroundColor] =
                     theme.color("mark_background") ?? DocumentColor(red: 1, green: 0.8, blue: 0, alpha: 0.45).nsColor
             }
             if let destination = run.destination { attributes[.link] = destination }
-            if isFootnote { attributes[.baselineOffset] = pointSize * superscriptShift }
+            if raised || lowered { attributes[.baselineOffset] = scriptOffset }
             let displayed = run.footnoteDisplay ?? punctuation?.displayed(run.text, run: runIndex) ?? run.text
             let piece = NSMutableAttributedString(string: displayed, attributes: attributes)
             punctuation?.markOriginals(in: piece, original: run.text, run: runIndex)
@@ -310,7 +328,7 @@ struct Typography: Codable, Equatable, Sendable {
                         if let punctuation { selectedPunctuation = punctuation }
                         let trim = punctuation == nil ? han.trim : -0.055
                         let face = punctuation ?? han.font
-                        let baseline = base.pointSize * ((heading ? headingHanBaseline : hanBaseline) + trim)
+                        let baseline = base.pointSize * ((heading ? headingHanBaseline : hanBaseline) + trim) + scriptOffset
                         if let span = pending, span.font == face, span.baseline == baseline,
                             NSMaxRange(span.range) == offset
                         {

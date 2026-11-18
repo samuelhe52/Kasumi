@@ -86,6 +86,7 @@ import Testing
             """)
         #expect(document.blocks.filter { !$0.syntaxTokens.isEmpty }.count == 1)
         #expect(document.blocks.first { !$0.syntaxTokens.isEmpty }?.language == "rust")
+        #expect(document.blocks.contains { $0.kind == .paragraph && $0.text == "literal HTML" })
         #expect(document.blocks.last?.kind == .diagram)
         #expect(document.blocks.last?.syntaxTokens.isEmpty == true)
     }

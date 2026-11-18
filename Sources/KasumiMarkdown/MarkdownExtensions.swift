@@ -1,11 +1,13 @@
+import Darwin
 import Foundation
 import Markdown
 
-/// Uses the parser's source ranges to keep TeX out of literal code and HTML.
-private struct MathExclusions: MarkupWalker {
+/// Uses source ranges to protect literal code and HTML before placeholder insertion.
+private struct ExtensionExclusions: MarkupWalker {
     let lineStarts: [Int]
     let sourceLength: Int
     var ranges: [Range<Int>] = []
+    var scriptRanges: [Range<Int>] = []
 
     mutating func defaultVisit(_ markup: any Markup) {
         if markup.childCount > 0 { descendInto(markup) }
@@ -15,11 +17,28 @@ private struct MathExclusions: MarkupWalker {
     mutating func visitInlineCode(_ inlineCode: InlineCode) { record(inlineCode.range) }
     mutating func visitHTMLBlock(_ html: HTMLBlock) { record(html.range) }
     mutating func visitInlineHTML(_ html: InlineHTML) { record(html.range) }
+    mutating func visitImage(_ image: Markdown.Image) {
+        if let range = offsets(image.range) { scriptRanges.append(range) }
+        descendInto(image)
+    }
+
+    mutating func visitLink(_ link: Markdown.Link) {
+        if let range = offsets(link.range) {
+            let lastChild = link.childCount > 0 ? link.child(at: link.childCount - 1) : nil
+            let labelEnd = lastChild.flatMap { offsets($0.range)?.upperBound } ?? range.lowerBound
+            if labelEnd < range.upperBound { scriptRanges.append(labelEnd..<range.upperBound) }
+        }
+        descendInto(link)
+    }
 
     private mutating func record(_ range: SourceRange?) {
+        if let range = offsets(range) { ranges.append(range) }
+    }
+
+    private func offsets(_ range: SourceRange?) -> Range<Int>? {
         guard let range, let lower = byteOffset(range.lowerBound), let upper = byteOffset(range.upperBound)
-        else { return }
-        ranges.append(lower..<upper)
+        else { return nil }
+        return lower..<upper
     }
 
     private func byteOffset(_ location: SourceLocation) -> Int? {
@@ -28,8 +47,7 @@ private struct MathExclusions: MarkupWalker {
     }
 }
 
-/// Owns syntax that the GFM adapter does not represent: TeX source and footnotes.
-/// Math is protected before Markdown unescapes punctuation or parses underscores.
+/// Protects math and script syntax before Markdown consumes their delimiters.
 struct MarkdownExtensions {
     struct MathSource {
         let text: String
@@ -38,6 +56,7 @@ struct MarkdownExtensions {
     }
     let markdown: String
     let math: [String: MathSource]
+    private let scripts: [String: InlineRun]
     let mathPrefix: String
     let definitionLabelsByLine: [Int: String]
     let definitionOrder: [String]
@@ -51,28 +70,108 @@ struct MarkdownExtensions {
         return try! NSRegularExpression(pattern: pattern)
     }
 
+    private static func escaped<Bytes: RandomAccessCollection>(_ index: Int, in bytes: Bytes) -> Bool
+    where Bytes.Index == Int, Bytes.Element == UInt8 {
+        var before = index
+        while before > 0, bytes[before - 1] == 92 { before -= 1 }
+        return (index - before) % 2 == 1
+    }
+
+    /// One delimiter on each side, with nonempty content on the same line.
+    /// A backslash can quote punctuation or a space. GFM handles doubled tildes.
+    private static func scriptEnd<Bytes: RandomAccessCollection>(
+        _ start: Int, in bytes: Bytes, before limit: Int
+    ) -> Int? where Bytes.Index == Int, Bytes.Element == UInt8 {
+        let delimiter = bytes[start]
+        guard start + 2 < limit,
+            !escaped(start, in: bytes),
+            start == 0 || bytes[start - 1] != delimiter || escaped(start - 1, in: bytes),
+            bytes[start + 1] != delimiter
+        else { return nil }
+        var end = start + 1
+        while end < limit {
+            switch bytes[end] {
+            case 9, 10, 13, 32: return nil
+            case 92 where end + 1 < limit:
+                let next = bytes[end + 1]
+                if next == 32 || isASCIIPunctuation(next) { end += 1 }
+            case delimiter:
+                return end + 1 == bytes.endIndex || bytes[end + 1] != delimiter ? end : nil
+            default: break
+            }
+            end += 1
+        }
+        return nil
+    }
+
+    private static func isASCIIPunctuation(_ byte: UInt8) -> Bool {
+        (33...47).contains(byte) || (58...64).contains(byte) || (91...96).contains(byte) || (123...126).contains(byte)
+    }
+
+    private static func scriptText(_ source: ArraySlice<UInt8>) -> String {
+        guard source.contains(92) else { return String(decoding: source, as: UTF8.self) }
+        var output: [UInt8] = []
+        var cursor = source.startIndex
+        while cursor < source.endIndex {
+            if source[cursor] == 92, cursor + 1 < source.endIndex {
+                let next = source[cursor + 1]
+                if next == 32 {
+                    // Pandoc's escaped space is nonbreaking.
+                    output.append(contentsOf: [0xc2, 0xa0])
+                    cursor += 2
+                    continue
+                }
+                if isASCIIPunctuation(next) { cursor += 1 }
+            }
+            output.append(source[cursor])
+            cursor += 1
+        }
+        return String(decoding: output, as: UTF8.self)
+    }
+
     init(source: String) {
         // Delimiters are ASCII bytes. Grapheme-aware substring searches over a
         // long CJK document can cost more than the parse they are meant to skip.
-        @inline(__always) func markers<Bytes: Sequence>(in bytes: Bytes) -> (extensions: Bool, footnotes: Bool, privateUse: Bool)
-        where Bytes.Element == UInt8 {
+        @inline(__always) func markers(in bytes: UnsafeBufferPointer<UInt8>)
+            -> (extensions: Bool, footnotes: Bool, privateUse: Bool)
+        {
+            guard let start = bytes.baseAddress else { return (false, false, false) }
+            let hasDollar = memchr(start, 36, bytes.count) != nil
+            let privateUse = memchr(start, 0xee, bytes.count) != nil
+            // libc's byte search skips the delimiter loop for ordinary prose.
+            // Only a caret can require footnote setup after finding math.
+            if memchr(start, 94, bytes.count) == nil,
+                hasDollar || (memchr(start, 92, bytes.count) == nil && memchr(start, 126, bytes.count) == nil)
+            {
+                return (hasDollar, false, privateUse)
+            }
             var previous: UInt8 = 0
-            var result = (extensions: false, footnotes: false, privateUse: false)
-            for byte in bytes {
-                if byte == 36 || (previous == 92 && (byte == 40 || byte == 91)) || (previous == 91 && byte == 94) {
+            var result = (extensions: hasDollar, footnotes: false, privateUse: privateUse)
+            for index in bytes.indices {
+                let byte = bytes[index]
+                switch byte {
+                case 40, 91:
+                    if previous == 92 { result.extensions = true }
+                case 94 where previous == 91:
+                    result.footnotes = true
                     result.extensions = true
+                case 94, 126:
+                    if !result.extensions, Self.scriptEnd(index, in: bytes, before: bytes.count) != nil {
+                        result.extensions = true
+                    }
+                default: break
                 }
-                if previous == 91 && byte == 94 { result.footnotes = true }
-                if byte == 0xee { result.privateUse = true }
                 previous = byte
             }
             return result
         }
-        let found = source.utf8.withContiguousStorageIfAvailable { markers(in: $0) } ?? markers(in: source.utf8)
+        let found = source.utf8.withContiguousStorageIfAvailable { markers(in: $0) }
+            ?? Array(source.utf8).withUnsafeBufferPointer { markers(in: $0) }
         let hasFootnotes = found.footnotes
         if !found.extensions {
             markdown = source
             math = [:]
+            scripts = [:]
             var prefix = Self.defaultMathPrefix
             if found.privateUse {
                 while source.contains(prefix) { prefix += "." }
@@ -121,28 +220,31 @@ struct MarkdownExtensions {
         let bytes = Array(prepared.utf8)
         var lineStarts = [0]
         for (index, byte) in bytes.enumerated() where byte == 10 { lineStarts.append(index + 1) }
-        var exclusions = MathExclusions(lineStarts: lineStarts, sourceLength: bytes.count)
+        var exclusions = ExtensionExclusions(lineStarts: lineStarts, sourceLength: bytes.count)
         exclusions.visit(labels.isEmpty ? initial : Markdown.Document(parsing: prepared))
         var excluded = exclusions.ranges
         excluded.sort { $0.lowerBound < $1.lowerBound }
+        let scriptExcluded = exclusions.scriptRanges.sorted { $0.lowerBound < $1.lowerBound }
         var prefix = Self.defaultMathPrefix
         if found.privateUse {
             while prepared.contains(prefix) { prefix += "." }
         }
         mathPrefix = prefix
         var tokens: [String: MathSource] = [:]
+        var scriptTokens: [String: InlineRun] = [:]
         var output: [UInt8] = []
         var cursor = 0
         var copied = 0
         var exclusion = 0
-        func escaped(_ index: Int) -> Bool {
-            var before = index
-            var slashes = 0
-            while before > 0 && bytes[before - 1] == 92 {
-                before -= 1
-                slashes += 1
-            }
-            return slashes % 2 == 1
+        var scriptExclusion = 0
+        func insertMarker(endingAt finish: Int, lineBreaks: Int = 0) -> String {
+            let marker = prefix + String(tokens.count + scriptTokens.count) + "\u{E001}"
+            output.append(contentsOf: bytes[copied..<cursor])
+            output.append(contentsOf: marker.utf8)
+            output.append(contentsOf: repeatElement(UInt8(10), count: lineBreaks))
+            cursor = finish
+            copied = finish
+            return marker
         }
         func whitespace(_ byte: UInt8) -> Bool { byte == 32 || byte == 9 || byte == 10 || byte == 13 }
         func lineBreak(_ byte: UInt8) -> Bool { byte == 10 || byte == 13 }
@@ -164,11 +266,28 @@ struct MarkdownExtensions {
                 cursor = excluded[exclusion].upperBound
                 continue
             }
+            if bytes[cursor] == 126 || bytes[cursor] == 94 {
+                while scriptExclusion < scriptExcluded.count && scriptExcluded[scriptExclusion].upperBound <= cursor {
+                    scriptExclusion += 1
+                }
+                let nextLiteral = exclusion < excluded.count ? excluded[exclusion].lowerBound : bytes.count
+                let nextDestination = scriptExclusion < scriptExcluded.count
+                    ? scriptExcluded[scriptExclusion].lowerBound : bytes.count
+                if (cursor == 0 || bytes[cursor - 1] != 91 || bytes[cursor] != 94),
+                    let end = Self.scriptEnd(cursor, in: bytes, before: min(nextLiteral, nextDestination))
+                {
+                    let trait: InlineRun.Trait = bytes[cursor] == 126 ? .subscript : .superscript
+                    let text = Self.scriptText(bytes[(cursor + 1)..<end])
+                    let marker = insertMarker(endingAt: end + 1)
+                    scriptTokens[marker] = InlineRun(text, traits: [trait])
+                    continue
+                }
+            }
             let display: Bool
             let contentStart: Int
             let closing: Int?
             let width: Int
-            if bytes[cursor] == 36, !escaped(cursor) {
+            if bytes[cursor] == 36, !Self.escaped(cursor, in: bytes) {
                 let delimiter = cursor + 1 < bytes.count && bytes[cursor + 1] == 36 ? 2 : 1
                 contentStart = cursor + delimiter
                 guard contentStart < bytes.count, delimiter == 2 || !whitespace(bytes[contentStart]) else {
@@ -179,7 +298,7 @@ struct MarkdownExtensions {
                 var found: Int?
                 while end < bytes.count {
                     if delimiter == 1 && lineBreak(bytes[end]) { break }
-                    if bytes[end] == 36 && !escaped(end) {
+                    if bytes[end] == 36 && !Self.escaped(end, in: bytes) {
                         guard delimiter == 2 else {
                             if end > contentStart && !whitespace(bytes[end - 1])
                                 && !(end + 1 < bytes.count && (48...57).contains(bytes[end + 1]))
@@ -199,7 +318,7 @@ struct MarkdownExtensions {
                 closing = found
                 width = delimiter
             } else if bytes[cursor] == 92, cursor + 1 < bytes.count, bytes[cursor + 1] == 40 || bytes[cursor + 1] == 91,
-                !escaped(cursor)
+                !Self.escaped(cursor, in: bytes)
             {
                 display = bytes[cursor + 1] == 91
                 guard !display || opensLine(cursor) else {
@@ -233,7 +352,6 @@ struct MarkdownExtensions {
                 continue
             }
             let finish = closing + width
-            let marker = prefix + String(tokens.count) + "\u{E001}"
             func lineNumber(at offset: Int) -> Int {
                 var lower = 0
                 var upper = lineStarts.count
@@ -245,18 +363,15 @@ struct MarkdownExtensions {
             }
             let lowerLine = lineNumber(at: cursor)
             let upperLine = lineNumber(at: finish)
+            let marker = insertMarker(endingAt: finish, lineBreaks: upperLine - lowerLine)
             tokens[marker] = MathSource(
                 text: String(decoding: bytes[contentStart..<closing], as: UTF8.self), display: display,
                 sourceLines: lowerLine...upperLine)
-            output.append(contentsOf: bytes[copied..<cursor])
-            output.append(contentsOf: marker.utf8)
-            output.append(contentsOf: repeatElement(UInt8(10), count: upperLine - lowerLine))
-            cursor = finish
-            copied = finish
         }
         output.append(contentsOf: bytes[copied...])
         markdown = String(decoding: output, as: UTF8.self)
         math = tokens
+        scripts = scriptTokens
     }
 
     func textRuns(_ text: String, traits: Set<InlineRun.Trait>, destination: String?) -> [InlineRun] {
@@ -284,11 +399,13 @@ struct MarkdownExtensions {
             let value = ns.substring(with: match.range)
             if let math = math[value] {
                 result.append(InlineRun(math.text, traits: traits.union([.math]), destination: destination))
+            } else if let script = scripts[value] {
+                result.append(InlineRun(script.text, traits: traits.union(script.traits), destination: destination))
+            } else if match.range(at: 1).location != NSNotFound {
+                result.append(contentsOf: textRuns(
+                    ns.substring(with: match.range(at: 1)), traits: traits.union([.highlight]), destination: destination))
             } else {
-                result.append(
-                    InlineRun(
-                        ns.substring(with: match.range(at: 1)), traits: traits.union([.highlight]),
-                        destination: destination))
+                result.append(InlineRun(value, traits: traits, destination: destination))
             }
             cursor = NSMaxRange(match.range)
         }

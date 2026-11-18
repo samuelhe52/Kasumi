@@ -20,6 +20,15 @@
       }
     },
     {
+      "identity" : "swiftdraw",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swhitty/SwiftDraw.git",
+      "state" : {
+        "revision" : "184372f0b9ca3f2b416e51e869ca93cfaed5c8a9",
+        "version" : "0.30.0"
+      }
+    },
+    {
       "identity" : "tomldecoder",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/dduan/TOMLDecoder.git",

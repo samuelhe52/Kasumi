@@ -72,6 +72,8 @@ final class ReaderTableScrollView: UIScrollView, UIScrollViewDelegate {
         updateEdgeMask()
     }
 
+    func invalidateImage(in rect: CGRect) { tileLayer?.setNeedsDisplay(rect) }
+
     override func layoutSubviews() {
         super.layoutSubviews()
         updateEdgeMask()

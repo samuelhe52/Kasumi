@@ -191,13 +191,17 @@ fileprivate final class ImageFixtureProtocol: URLProtocol, @unchecked Sendable {
     override func startLoading() {
         guard let url = request.url else { return }
         let large = url.lastPathComponent == "oversized.png"
+        let svg = url.pathExtension == "svg"
+        let fixture = svg ? "HTMLAndSVG/build.svg" : "images/tiny.png"
+        let data = large ? nil : try? Data(contentsOf: imageFixtureDirectory.appendingPathComponent(fixture))
         let response = HTTPURLResponse(
             url: url, statusCode: 200, httpVersion: "HTTP/1.1",
-            headerFields: ["Content-Length": large ? "30000000" : "128", "Content-Type": "image/png"])!
+            headerFields: [
+                "Content-Length": large ? "30000000" : String(data?.count ?? 0),
+                "Content-Type": svg ? "image/svg+xml" : "image/png"
+            ])!
         client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-        if !large, let data = try? Data(contentsOf: imageFixtureDirectory.appendingPathComponent("images/tiny.png")) {
-            client?.urlProtocol(self, didLoad: data)
-        }
+        if let data { client?.urlProtocol(self, didLoad: data) }
         client?.urlProtocolDidFinishLoading(self)
     }
     override func stopLoading() {}
@@ -208,12 +212,166 @@ fileprivate final class ImageFixtureProtocol: URLProtocol, @unchecked Sendable {
     configuration.protocolClasses = [ImageFixtureProtocol.self]
     let store = DocumentImageStore(session: URLSession(configuration: configuration))
     let url = "https://image-fixture.invalid/tiny.png"
-    let document = DocumentParser.parse("![Remote](\(url))")
+    let svg = "https://image-fixture.invalid/build.svg"
+    let document = DocumentParser.parse("![Remote](\(url))\n\n<p><img src=\"\(svg)\"></p>")
     #expect(store.image(for: url, baseURL: nil) == nil)
+    #expect(store.image(for: svg, baseURL: nil) == nil)
     #expect(await store.preload(document))
     #expect(store.image(for: url, baseURL: nil)?.size == CGSize(width: 32, height: 24))
+    #expect(store.image(for: svg, baseURL: nil)?.size == CGSize(width: 88, height: 20))
     #expect(await store.preload(document) == false)
     let oversized = "https://image-fixture.invalid/oversized.png"
     #expect(await store.preload(DocumentParser.parse("![Too big](\(oversized))")) == false)
     #expect(store.image(for: oversized, baseURL: nil) == nil)
+}
+
+@Test func svgBadgeRasterizesAtThreeTimesSizeWithText() throws {
+    let url = imageFixtureDirectory.appendingPathComponent("HTMLAndSVG/build.svg")
+    let data = try Data(contentsOf: url)
+    let badge = try #require(DocumentImageStore.decode(data))
+    #expect(badge.size == CGSize(width: 88, height: 20))
+    #expect(badge.bitmap.width == 264 && badge.bitmap.height == 60)
+
+    let raster = try #require(badge.bitmap.dataProvider?.data as Data?)
+    var whitePixels = 0
+    for row in 0..<badge.bitmap.height {
+        for column in 0..<badge.bitmap.width {
+            let offset = row * badge.bitmap.bytesPerRow + column * 4
+            if raster[offset..<(offset + 4)].allSatisfy({ $0 >= 245 }) { whitePixels += 1 }
+        }
+    }
+    #expect(whitePixels > 20) // Only the badge lettering is white.
+}
+
+@Test func svgReaderRastersFollowFittedSizeAndKeepExportPixels() async throws {
+    let store = DocumentImageStore()
+    let source = "HTMLAndSVG/logo.svg"
+    let cache = ReaderImageCache(displayScale: 3, store: store)
+    func request(_ maximumWidth: CGFloat, width: CGFloat? = nil, height: CGFloat? = nil) throws -> ReaderImageRequest {
+        try #require(cache.request(
+            for: source, baseURL: imageFixtureDirectory, maximumWidth: maximumWidth, width: width, height: height))
+    }
+    let narrow = try request(50)
+    #expect(narrow.source.info.size == CGSize(width: 120, height: 96))
+    #expect(!cache.hasResult(for: narrow.key))
+    #expect(await cache.load(narrow))
+    let reader = try #require(cache.bitmap(for: narrow.key))
+    #expect(reader.width == 150 && reader.height == 120)
+
+    let authored = try request(100, width: 50)
+    #expect(authored.key == narrow.key)
+    #expect(await cache.load(authored) == false)
+    let stretched = try request(100, width: 50, height: 20)
+    #expect(await cache.load(stretched))
+    let second = try #require(cache.bitmap(for: stretched.key))
+    #expect(second.width == 150 && second.height == 60)
+
+    let export = try #require(store.image(for: source, baseURL: imageFixtureDirectory))
+    #expect(export.bitmap.width == 360 && export.bitmap.height == 288)
+    #expect(export.fitted(to: 50) == narrow.size)
+    #expect(cache.bitmap(for: narrow.key) === reader)
+}
+
+@Test func readerRemotePreloadMakesMetadataAvailableBeforePixels() async throws {
+    let configuration = URLSessionConfiguration.ephemeral
+    configuration.protocolClasses = [ImageFixtureProtocol.self]
+    let store = DocumentImageStore(session: URLSession(configuration: configuration))
+    let svg = "https://image-fixture.invalid/build.svg"
+    let png = "https://image-fixture.invalid/tiny.png"
+    let document = DocumentParser.parse("![Badge](\(svg))\n\n![Sample](\(png))")
+    let cache = ReaderImageCache(displayScale: 2, store: store)
+    #expect(store.readerSource(for: svg, baseURL: nil) == nil)
+    #expect(await store.preload(document, forReader: true))
+    for (source, size) in [(svg, CGSize(width: 88, height: 20)), (png, CGSize(width: 32, height: 24))] {
+        let request = try #require(cache.request(
+            for: source, baseURL: nil, maximumWidth: 44, width: nil, height: nil))
+        #expect(request.source.info.size == size)
+        #expect(!cache.hasResult(for: request.key))
+        #expect(await cache.load(request))
+        let reader = try #require(cache.bitmap(for: request.key))
+        #expect(reader.width == (source == svg ? 88 : 32))
+    }
+    #expect(await store.preload(document, forReader: true) == false)
+    let export = try #require(store.image(for: svg, baseURL: nil))
+    #expect(export.bitmap.width == 264 && export.bitmap.height == 60)
+}
+
+@Test func readerRequestsOnlyVisiblePixelsAndPreservesGeometry() async throws {
+    let markdown = """
+        <a href="https://example.com"><img src="images/wide%20sample.png" alt="Wide sample"></a>
+
+        \(Array(repeating: "A paragraph before the table.", count: 50).joined(separator: "\n\n"))
+
+        | First | Second |
+        | --- | --- |
+        | ![Logo](HTMLAndSVG/logo.svg) | ![Badge](HTMLAndSVG/build.svg) |
+        """
+    let document = MarkdownDocument(markdown: markdown, baseURL: imageFixtureDirectory)
+    let style = RenderStyle(widthLimit: nil)
+    let cache = ReaderImageCache(displayScale: 1)
+    let rendered = RenderedDocument(
+        document, width: 200, style: style, scrollableTables: true, preparation: nil, readerImages: cache)
+    let first = CGRect(x: 0, y: 0, width: 200, height: 200)
+    let start = rendered.readerImageRegions(in: first)
+    #expect(start.count == 1)
+    let wide = try #require(start.first)
+    #expect(wide.rect.size == CGSize(width: 120, height: 60))
+    #expect(!rendered.hasReaderImageResult(for: wide))
+    func paint() throws -> [UInt8] {
+        let context = try #require(CGContext(
+            data: nil, width: 200, height: 200, bitsPerComponent: 8, bytesPerRow: 0,
+            space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+        context.translateBy(x: 0, y: 200)
+        context.scaleBy(x: 1, y: -1)
+        rendered.draw(in: context, rect: first)
+        let bitmap = try #require(context.makeImage())
+        return try imagePixel(bitmap, Int(wide.rect.midX), Int(wide.rect.minY + 8))
+    }
+    let before = try paint()
+    #expect(!rendered.hasReaderImageResult(for: wide))
+    #expect(await rendered.prepareReaderImage(wide))
+    #expect(cache.bitmap(for: wide.request.key)?.width == 120)
+    #expect(try paint() != before)
+    #expect(rendered.readerImageRegions(in: first) == start)
+    #expect(rendered.link(at: CGPoint(x: wide.rect.midX, y: wide.rect.midY))?.host == "example.com")
+    #expect(rendered.text(in: rendered.documentRange).contains("Wide sample"))
+
+    let table = try #require(rendered.tables.first)
+    #expect(table.isScrollable)
+    let trailing = rendered.readerImageRegions(
+        in: table.frame, tableOffsets: [table.id: table.contentWidth - table.frame.width])
+    let leading = rendered.readerImageRegions(in: table.frame)
+    #expect(leading.count == 1 && leading.first?.tableID == table.id)
+    let badge = try #require(trailing.last)
+    #expect(badge.request.source.url.lastPathComponent == "build.svg")
+    #expect(!leading.contains(badge))
+    #expect(!rendered.hasReaderImageResult(for: badge))
+    #expect(await rendered.prepareReaderImage(badge))
+}
+
+@Test func readerCacheEvictionLeavesRetainedGeometryRepaintable() async throws {
+    let cache = ReaderImageCache(displayScale: 1, byteLimit: 9 * 1024)
+    let document = MarkdownDocument(
+        markdown: "![Badge](HTMLAndSVG/build.svg)\n\n![Small](images/tiny.png)",
+        baseURL: imageFixtureDirectory)
+    let snapshot = RenderedDocument(
+        document, width: 400, style: RenderStyle(), scrollableTables: false, preparation: nil, readerImages: cache)
+    let regions = snapshot.readerImageRegions(in: CGRect(origin: .zero, size: snapshot.size))
+    #expect(regions.count == 2)
+    let badge = try #require(regions.first)
+    let small = try #require(regions.last)
+    #expect(await snapshot.prepareReaderImage(badge))
+    #expect(await snapshot.prepareReaderImage(small))
+    #expect(cache.bitmap(for: badge.request.key) == nil)
+    #expect(await snapshot.prepareReaderImage(badge))
+    #expect(snapshot.readerImageRegions(in: CGRect(origin: .zero, size: snapshot.size)) == regions)
+}
+
+@Test func svgDecodeRejectsOversizeAndMalformedImages() {
+    for (width, height) in [(1_000_000_000, 1_000_000_000), (2731, 20), (2200, 2200), (0, 10)] {
+        let svg = #"<svg xmlns="http://www.w3.org/2000/svg" width="\#(width)" height="\#(height)"/>"#
+        #expect(DocumentImageStore.decode(Data(svg.utf8)) == nil)
+    }
+    let broken = #"<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><g></svg>"#
+    #expect(DocumentImageStore.decode(Data(broken.utf8)) == nil)
 }

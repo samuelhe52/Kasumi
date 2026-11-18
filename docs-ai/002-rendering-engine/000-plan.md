@@ -122,3 +122,6 @@ Library tests pass on macOS and the iOS simulator, including comparisons against
 - Updated 2026-11-18: Preserve clickable links through PDF pagination. See [026-pdf-links.md](026-pdf-links.md).
 - Updated 2026-11-18: Expose diagram label selection and node links. See [027-diagram-interactions.md](027-diagram-interactions.md).
 - Updated 2026-11-18: Paint a hollow square when font fallback is exhausted. See [028-missing-glyphs.md](028-missing-glyphs.md).
+- Updated 2026-11-18. Render basic HTML, inline scripts, and SVG images. See [029-html-and-svg.md](029-html-and-svg.md).
+- Updated 2026-11-18. Rasterize reader SVGs at their fitted display size. See [030-reader-svg-raster-size.md](030-reader-svg-raster-size.md).
+- Updated 2026-11-18. Decode reader images on viewport demand. See [031-viewport-image-decoding.md](031-viewport-image-decoding.md).
