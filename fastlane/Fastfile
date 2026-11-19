@@ -30,9 +30,9 @@ def project_versions
   [versions.first, builds.first]
 end
 
-# The App Store Connect build number can differ from CURRENT_PROJECT_VERSION
-# when Xcode Cloud assigns its own, so lanes default to the newest uploaded
-# build of the version unless build: is given.
+# Xcode Cloud assigns the build number (its run number), so it doesn't match
+# CURRENT_PROJECT_VERSION. Lanes default to the newest uploaded build of the
+# version unless build: is given.
 def resolve(options)
   version, _ = project_versions
   [(options[:version] || version).to_s, options[:build]&.to_s]
