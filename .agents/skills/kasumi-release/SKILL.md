@@ -1,13 +1,13 @@
 ---
 name: kasumi-release
-description: Prepare and publish Kasumi releases through the GitHub `Native binary release` workflow — readiness checks, release notes, triggering and monitoring the run, failed-run recovery, and release verification. Use for Kasumi release preparation, readiness checks, or continuing an approved release. Ends at a verified GitHub release; excludes App Store and TestFlight distribution.
+description: Prepare and publish KasumiMarkdown library releases through the GitHub `Native binary release` workflow — readiness checks, release notes, triggering and monitoring the run, failed-run recovery, and release verification. Use for library release preparation, readiness checks, or continuing an approved library release. Ends at a verified GitHub release; for the iOS app, TestFlight or the App Store, use kasumi-app-release.
 ---
 
 # Kasumi release
 
 Use this skill for Kasumi's release workflow. Read `AGENTS.md` for project conventions. Resolve paths from the repository root.
 
-A Kasumi release is a GitHub release of the KasumiMarkdown package, with its prebuilt Rust XCFrameworks. CI publishes it. The scope ends at a verified GitHub release. Xcode archive and upload, TestFlight, and App Store Connect are the maintainer's work outside this skill. Don't treat their absence as a defect, and don't claim a GitHub release means the app shipped.
+A Kasumi release is a GitHub release of the KasumiMarkdown package, with its prebuilt Rust XCFrameworks. CI publishes it. The scope ends at a verified GitHub release. Xcode Cloud builds, TestFlight, and App Store Connect belong to the `kasumi-app-release` skill. Don't treat their absence as a defect, and don't claim a GitHub release means the app shipped.
 
 For a readiness check or an explanation, inspect and report only. Resume from verified current state without repeating completed steps. Preserve unrelated working-tree changes; other agents may share the tree.
 
@@ -78,4 +78,4 @@ Before an unauthorized gate, state the single next action and its remote effects
 1. **Verify the release** with `gh release view <version> --json tagName,isDraft,isPrerelease,assets`. Expect not a draft, not a prerelease, and six assets: four `kasumi_*.xcframework.zip`, `notices.tar.gz` and `provenance.json`. Confirm the remote tag resolves to the `build: Prepare <version>` commit.
 2. **Consumer check** (when asked, or when packaging changed). In the scratchpad, `swift package init --type executable`, then `swift package add-dependency https://github.com/<owner>/<repo>.git --from <version>`. Declare the tag's deployment targets in the consumer, for example `platforms: [.macOS(.v13), .iOS(.v15)]` for an iOS 15 release. SwiftPM's default macOS 12 is below the library's minimum. Keep a single entry point by deleting the template's `@main` file if you add `main.swift`. Build for macOS and for iOS Simulator at the tag's minimum. For iOS 15, use `swift build --triple arm64-apple-ios15.0-simulator --sdk "$(xcrun --sdk iphonesimulator --show-sdk-path)"`.
 3. **Do not write docs-ai records for releases.** Release versions are not tracked in `docs-ai/`. Mention a version, build, or workflow run there only as a historical record that a process was completed before, and only when the maintainer asks for it or the work is a feature or fix that `docs-ai/` covers.
-4. **Report** the version, release URL, run IDs, commits pushed, validation completed, and anything still open, such as a README install line that still needs the new version. Then hand off to the maintainer for app distribution.
+4. **Report** the version, release URL, run IDs, commits pushed, validation completed, and anything still open, such as a README install line that still needs the new version. App distribution is a separate release with `kasumi-app-release`.

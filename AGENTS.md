@@ -11,7 +11,7 @@
 
 - [`docs-ai/README.md`](docs-ai/README.md) indexes the product goal, roadmap, and decision records.
 - Use the `write-ai-doc` skill for substantial features and decision-shaping fixes, as defined in [`docs-ai/workflow.md`](docs-ai/workflow.md). There is no status document or development guide; don't add one.
-- Use the `kasumi-release` skill for release preparation and publication.
+- Use the `kasumi-release` skill for KasumiMarkdown library releases (GitHub release with prebuilt binaries) and the `kasumi-app-release` skill for iOS app releases (Xcode Cloud, TestFlight, App Store).
 
 ## Project layout
 
