@@ -2,11 +2,11 @@
 
 ## Context
 
-The maintainer chose to lower the library's iOS minimum first. The iOS 15 probe identified the URL API used to locate bundled notices. The Rust archives also carried an independent iOS 17 deployment target. Published version `0.1.0` retains its iOS 17 minimum.
+The maintainer chose to lower the library's iOS minimum first. The iOS 15 probe identified the URL API used to locate bundled notices. The Rust archives also carried an independent iOS 17 deployment target. The previously published release retained its iOS 17 minimum.
 
 ## Change
 
-`Package.swift` and `scripts/build-native` target iOS 15 for the library and its native slices. `ThirdPartyNotices` appends the bundled notice path with `URL.appendingPathComponent(_:)`. The app targets iOS 27, and the library's macOS minimum is 13.
+`Package.swift` and `scripts/build-native` target iOS 15 for the library and its native slices. `ThirdPartyNotices` appends the bundled notice path with `URL.appendingPathComponent(_:)`. The app targets iOS 18, and the library's macOS minimum is 13.
 
 The first incremental rebuild reused iOS 17 Rust objects after the environment variable changed. The build script now keys the iOS Cargo target directory by deployment target so a change to that target rebuilds both iOS slices.
 

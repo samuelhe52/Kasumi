@@ -1,13 +1,13 @@
 ---
 name: kasumi-release
-description: Prepare and publish Kasumi releases through the GitHub `Native binary release` workflow — readiness checks, release notes, triggering and monitoring the run, failed-run recovery, release verification, and the follow-up docs-ai record. Use for Kasumi release preparation, readiness checks, or continuing an approved release. Ends at a verified GitHub release; excludes App Store and TestFlight distribution.
+description: Prepare and publish Kasumi releases through the GitHub `Native binary release` workflow — readiness checks, release notes, triggering and monitoring the run, failed-run recovery, and release verification. Use for Kasumi release preparation, readiness checks, or continuing an approved release. Ends at a verified GitHub release; excludes App Store and TestFlight distribution.
 ---
 
 # Kasumi release
 
 Use this skill for Kasumi's release workflow. Read `AGENTS.md` for project conventions. Resolve paths from the repository root.
 
-A Kasumi release is a GitHub release of the KasumiMarkdown package, with its prebuilt Rust XCFrameworks. CI publishes it. The scope ends at a verified GitHub release and the updated records. Xcode archive and upload, TestFlight, and App Store Connect are the maintainer's work outside this skill. Don't treat their absence as a defect, and don't claim a GitHub release means the app shipped.
+A Kasumi release is a GitHub release of the KasumiMarkdown package, with its prebuilt Rust XCFrameworks. CI publishes it. The scope ends at a verified GitHub release. Xcode archive and upload, TestFlight, and App Store Connect are the maintainer's work outside this skill. Don't treat their absence as a defect, and don't claim a GitHub release means the app shipped.
 
 For a readiness check or an explanation, inspect and report only. Resume from verified current state without repeating completed steps. Preserve unrelated working-tree changes; other agents may share the tree.
 
@@ -29,7 +29,7 @@ These facts are settled. Do not re-derive them or propose alternatives.
 1. **Check state.** Look at the working tree, the branch, and whether `main` equals `origin/main`. Check existing tags and releases (`git fetch --tags`, `gh release list`). Confirm the target version with the maintainer, as `X.Y.Z` without a `v`.
 2. **Review changes since the previous release** (`git log <tag>^..main`). Stop and ask if newly tracked text describes another application's internals obtained by disassembly or binary analysis. Measurements from rendered output are fine. That kind of claim blocked going public once and needed a history rewrite.
 3. **Validate locally, mirroring the workflow's test step.** Run `make test-syntax-native`, `make test FILTER='PublicAPITests|CodeSyntaxTests|dagreNativeGeometryAndDirectionCrossTheCABI'`, `make app-check` and `git diff --check`. Run broader tests (`make test`) when the change set warrants it. Ask before booting a simulator.
-4. **Check docs that a release changes.** In `README.md`, the install line in "Using the library" should name a real version, not a placeholder. The platform line must match `Package.swift` `platforms`. Also check `docs/library.md` "Requirements and installation". Edit the README only with the maintainer's explicit permission, and only the parts they approve.
+4. **Check docs that a release changes.** In `README.md`, the install line in "Using the library" should name the latest release, not a placeholder. The platform line must match `Package.swift` `platforms`. Also check `docs/library.md` "Requirements and installation". Edit the README only with the maintainer's explicit permission, and only the parts they approve. Update the install line after the release is verified, not before.
 5. **Draft release notes and show them before triggering.** The workflow publishes `--generate-notes`, and the approved notes replace them afterwards. Keep them short: a title line, one sentence, then a few bullets for the app and for KasumiMarkdown. Every claim must be checked against the code.
 6. Report the checks you ran and any gaps. Then present the first approval gate.
 
@@ -44,7 +44,6 @@ When the user's message contains `QUICK_PASS_ENABLE` anywhere in its text (case-
 - dispatching the workflow
 - replacing the release notes with the approved text
 - the failed-run recovery below: deleting a stray tag, committing and pushing the fix, rerunning
-- committing and pushing the follow-up records
 
 Continue without asking again, and report progress.
 
@@ -74,15 +73,9 @@ Before an unauthorized gate, state the single next action and its remote effects
    - The runner uses macOS `/bin/bash` 3.2. Under `set -u`, expanding an empty array as `"${a[@]}"` is unbound. Use `${a[@]+"${a[@]}"}`. Reproduce script fixes with `/bin/bash -c` locally before pushing them.
 5. **Replace the notes** with the approved text: write them to a scratch file, then run `gh release edit <version> --notes-file <file>`.
 
-## Verify and record
+## Verify
 
 1. **Verify the release** with `gh release view <version> --json tagName,isDraft,isPrerelease,assets`. Expect not a draft, not a prerelease, and six assets: four `kasumi_*.xcframework.zip`, `notices.tar.gz` and `provenance.json`. Confirm the remote tag resolves to the `build: Prepare <version>` commit.
 2. **Consumer check** (when asked, or when packaging changed). In the scratchpad, `swift package init --type executable`, then `swift package add-dependency https://github.com/<owner>/<repo>.git --from <version>`. Declare the tag's deployment targets in the consumer, for example `platforms: [.macOS(.v13), .iOS(.v15)]` for an iOS 15 release. SwiftPM's default macOS 12 is below the library's minimum. Keep a single entry point by deleting the template's `@main` file if you add `main.swift`. Build for macOS and for iOS Simulator at the tag's minimum. For iOS 15, use `swift build --triple arm64-apple-ios15.0-simulator --sdk "$(xcrun --sdk iphonesimulator --show-sdk-path)"`.
-3. **Update records** in one `docs:` commit, per `AGENTS.md`:
-   - the relevant `docs-ai/` action record: timeline rows naming the run IDs and commits, failures and fixes, open questions
-   - `docs-ai/roadmap.md`
-   - the `docs-ai/README.md` index row
-   - this skill's rules and recovery steps, if the workflow or recovery changed
-
-   Close a roadmap milestone only when the maintainer asks.
+3. **Do not write docs-ai records for releases.** Release versions are not tracked in `docs-ai/`. Mention a version, build, or workflow run there only as a historical record that a process was completed before, and only when the maintainer asks for it or the work is a feature or fix that `docs-ai/` covers.
 4. **Report** the version, release URL, run IDs, commits pushed, validation completed, and anything still open, such as a README install line that still needs the new version. Then hand off to the maintainer for app distribution.

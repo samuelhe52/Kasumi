@@ -5,10 +5,11 @@
 | Date | Change | Ref |
 | --- | --- | --- |
 | 2026-11-17 | Prepared native release workflow, local manifest selection, toolchain pin and documentation. | Working tree |
-| 2026-11-18 | Production run 44328037947 failed at "Publish exact prepared archives": `${flags[@]}` with an empty array is unbound under `set -u` in the runner's bash 3.2. The `0.1.0` tag had already been pushed; no release was created. | Run 44328037947 |
-| 2026-11-18 | Fixed the expansion to `${flags[@]+"${flags[@]}"}`, deleted the stray tag and reran. Run 44329950517 published `0.1.0`. Release notes were then replaced with the release summary. | Commit 29ced2e, run 44329950517 |
+| 2026-11-18 | Production run 44328037947 failed at "Publish exact prepared archives": `${flags[@]}` with an empty array is unbound under `set -u` in the runner's bash 3.2. The release tag had already been pushed; no release was created. | Run 44328037947 |
+| 2026-11-18 | Fixed the expansion to `${flags[@]+"${flags[@]}"}`, deleted the stray tag and reran. Run 44329950517 published the release. Release notes were then replaced with the release summary. | Commit 29ced2e, run 44329950517 |
 | 2026-11-18 | README states the library's platform minimums. | Commit ea371e3 |
-| 2026-11-19 | Direct SwiftPM check: `swift package add-dependency … --from 0.1.0` resolved and downloaded all four binaries. A macOS consumer built only after declaring its platforms; the iOS 17 simulator build of KasumiMarkdown succeeded. | Scratch package |
+| 2026-11-19 | Direct SwiftPM check of the first published release: `swift package add-dependency … --from <release>` resolved and downloaded all four binaries. A macOS consumer built only after declaring its platforms; the iOS 17 simulator build of KasumiMarkdown succeeded. | Scratch package |
+| 2026-11-19 | Release run 44515644238 published a patch release with the iOS 15 library minimum. Release notes were replaced with the approved summary. A scratch SwiftPM consumer built for macOS and the arm64 iOS 15 simulator. | Commit 2fc15db, run 44515644238 |
 
 ## Outcome and current state (as of 2026-11-17)
 
@@ -18,7 +19,7 @@ The workflow passed a complete test in a separate public repository. That reposi
 
 ## Production release (2026-11-18)
 
-- Release `0.1.0` is published from `main` with four XCFramework ZIPs, `notices.tar.gz` and `provenance.json`: https://github.com/samuelhe52/Kasumi/releases/tag/0.1.0
+- The first production release was published from `main` with four XCFramework ZIPs, `notices.tar.gz` and `provenance.json` (run 44329950517).
 - The workflow's URL consumer check passed in the production run.
 - A macOS SwiftPM consumer needs `platforms: [.macOS(.v13), .iOS(.v17)]` in its manifest. Without it, SwiftPM's default macOS minimum is 12 and the product fails to build. With the line, the consumer built and rendered a PNG.
 
@@ -37,8 +38,8 @@ The local switch edits `Package.swift`, because a marker file did not invalidate
 - Two concurrent rustup operations collided during the first scratch preparation; it failed before provenance output. A single subsequent toolchain install completed, and the scratch preparation passed on retry.
 - `git diff --check` passed. No simulator was booted or driven.
 
-- GitHub Actions test run 44085888785 published `0.0.1-ci.1` but failed its generic simulator build because Xcode requested x86_64. A separate local SwiftPM consumer downloaded that release and rendered a PNG.
-- GitHub Actions test run 44087775961 for `0.0.1-ci.2` succeeded in 10m57s: native build, tests, release commit and tag, asset publication, generic iOS device and arm64 simulator builds, and a fresh URL consumer. The temporary repository was deleted after success; the run URLs no longer resolve.
+- GitHub Actions test run 44085888785 published a `-ci.` test prerelease but failed its generic simulator build because Xcode requested x86_64. A separate local SwiftPM consumer downloaded that release and rendered a PNG.
+- GitHub Actions test run 44087775961 succeeded in 10m57s: native build, tests, release commit and tag, asset publication, generic iOS device and arm64 simulator builds, and a fresh URL consumer. The temporary repository was deleted after success; the run URLs no longer resolve.
 - `make app-check-sim` also passed locally with `ARCHS=arm64`. No simulator was booted.
 - GitHub warned that `actions/checkout@v4` targets deprecated Node.js 20 and is forced to run on Node.js 24; the run passed.
 

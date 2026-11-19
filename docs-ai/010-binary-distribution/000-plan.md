@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implemented; closed 2026-11-19 with production release 0.1.0 |
+| Status | Implemented; closed 2026-11-19 |
 | Anchor date | 2026-11-17 |
 | Origin | Maintainer requested CI-built binaries for tagged releases and local builds for arbitrary checkouts, with a separate test release. |
 | Related | [Roadmap](../roadmap.md) |
@@ -15,7 +15,7 @@ The package references ignored, locally built Rust XCFrameworks. A URL consumer 
 
 - Tagged versions resolve four published XCFrameworks without Rust.
 - A local checkout can build its own native binaries.
-- Exercise the release process without creating the 0.1 release.
+- Exercise the release process without creating a production release.
 
 ## Design / approach
 
@@ -31,7 +31,7 @@ A manual GitHub Actions release builds and packages native libraries, computes c
 
 ## Validation and acceptance criteria
 
-Build a clean local consumer. Verify release preparation and artifact hashes locally. Test release publication and a clean URL consumer in a separate GitHub repository. No production 0.1 release is created during testing.
+Build a clean local consumer. Verify release preparation and artifact hashes locally. Test release publication and a clean URL consumer in a separate GitHub repository. No production release is created during testing.
 
 ## Amendments
 

@@ -115,10 +115,12 @@ Retained after milestone closure; not prerequisites for starting Reader 2:
 
 - Ready-made UIKit/AppKit views and SwiftUI wrappers, extracted from the reader
   once its views settle ([003](003-public-rendering-api/000-plan.md)).
-- Distributable XCFrameworks — closed 2026-11-19. Release `0.1.0` was published
-  by the native release workflow, and a direct SwiftPM dependency resolves and
+- Distributable XCFrameworks — closed 2026-11-19. The native release workflow
+  publishes prebuilt archives, and a direct SwiftPM dependency resolves and
   builds with platform declarations;
   [010](010-binary-distribution/001-action.md). Intel slices are not provided.
+- Library iOS 15 minimum — closed 2026-11-19; [010.002](010-binary-distribution/002-ios-15-library.md).
+  The app keeps its own deployment target.
 - Bundle license notices into the app — closed 2026-11-18. The notices under
   `Sources/KasumiMarkdown/Bundled/Notices/` ship with the app, and the launch
   screen offers Open Source Licenses.
