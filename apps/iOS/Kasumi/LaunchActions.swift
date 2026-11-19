@@ -296,7 +296,7 @@ struct URLImportView: View {
             .animation(.smooth(duration: 0.25), value: errorMessage)
             .animation(.smooth(duration: 0.25), value: loading)
         }
-        .scrollEdgeEffectStyle(.soft, for: .top)
+        .softTopScrollEdge()
         .scrollDismissesKeyboard(.interactively)
         .background(Color(uiColor: .systemGroupedBackground))
         .navigationTitle("Open URL")

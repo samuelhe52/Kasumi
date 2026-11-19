@@ -285,7 +285,7 @@ struct ReaderExportSheet: View {
             }
             .animation(.default, value: locked)
             .animation(.default, value: job.error)
-            .scrollEdgeEffectStyle(.soft, for: .top)
+            .softTopScrollEdge()
             .navigationTitle("Export")
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarBackButtonHidden()

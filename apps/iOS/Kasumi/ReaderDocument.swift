@@ -32,69 +32,73 @@ struct ReaderSnapshot: Sendable {
 }
 
 @MainActor @Observable
-final class ReaderDocument: Document, Identifiable {
+final class ReaderDocument: Identifiable {
     let id = UUID()
     nonisolated static let readableContentTypes: [UTType] = [.kasumiMarkdown, .plainText]
-    let configuration: URLDocumentConfiguration
     private(set) var snapshot: ReaderSnapshot?
-    private(set) var text = ""
+    private(set) var text: String
     private(set) var previewIsCurrent = false
     private(set) var parsePlainTextAsMarkdown = false
-    @ObservationIgnored private var source = DocumentSource(text: "")
+    var isEditable: Bool
+    private var legacyFileURL: URL?
+    @ObservationIgnored private let fileURLProvider: (() -> URL?)?
+    @ObservationIgnored private let defaultExtension: String
+    @ObservationIgnored private let didEdit: ((WriteSnapshot) -> Void)?
+    @ObservationIgnored private var source: DocumentSource
     @ObservationIgnored private var sourceRevision = UUID()
     @ObservationIgnored private var previewTask: Task<Void, Never>?
     /// The revision whose preview publishes with animation, so the reader crossfades it.
     @ObservationIgnored private var animatedRevision: UUID?
     @ObservationIgnored private var lastTyping: ContinuousClock.Instant?
 
-    var fileURL: URL? { configuration.fileURL }
+    var fileURL: URL? { fileURLProvider?() ?? legacyFileURL }
     var title: String { fileURL?.lastPathComponent ?? "Untitled" }
-    var canEdit: Bool { snapshot != nil && !source.isLossy }
+    var canEdit: Bool { isEditable && snapshot != nil && !source.isLossy }
     var isPlainText: Bool {
-        let ext = fileURL?.pathExtension.lowercased()
-        return ext == "txt" || ext == "text"
+        fileExtension == "txt" || fileExtension == "text"
     }
 
-    init(configuration: URLDocumentConfiguration) {
-        self.configuration = configuration
+    private var fileExtension: String {
+        guard let suffix = fileURL?.pathExtension, !suffix.isEmpty else { return defaultExtension }
+        return suffix.lowercased()
+    }
+
+    init(
+        source: DocumentSource = DocumentSource(text: ""), defaultExtension: String = "md",
+        isEditable: Bool = true, fileURLProvider: (() -> URL?)? = nil,
+        didEdit: ((WriteSnapshot) -> Void)? = nil
+    ) {
+        self.source = source
+        self.text = source.text
+        self.defaultExtension = defaultExtension
+        self.isEditable = isEditable
+        self.fileURLProvider = fileURLProvider
+        self.didEdit = didEdit
     }
 
     deinit { previewTask?.cancel() }
 
-    struct Reader: DocumentReader {
-        @concurrent
-        func read(from url: sending URL, progress: consuming Subprogress) async throws -> sending ReaderSnapshot {
-            let source = try DocumentSource(data: Data(contentsOf: url))
-            return ReaderSnapshot(
-                source: source, text: source.text, fileExtension: url.pathExtension,
-                baseURL: url.deletingLastPathComponent())
-        }
+    func setLegacyFileURL(_ url: URL?) {
+        guard legacyFileURL != url || (snapshot == nil && previewTask == nil) else { return }
+        legacyFileURL = url
+        previewIsCurrent = false
+        sourceRevision = UUID()
+        schedulePreview(initialDelay: .zero)
     }
 
     struct WriteSnapshot: Sendable {
         let source: DocumentSource
         let text: String
+
+        func data() throws -> Data { try source.data(replacingText: text) }
     }
 
-    struct Writer: DocumentWriter {
-        @concurrent
-        func write(
-            snapshot: sending WriteSnapshot, to destination: sending URL,
-            previous: sending WriteSnapshot?, progress: consuming Subprogress
-        ) async throws {
-            try snapshot.source.data(replacingText: snapshot.text).write(to: destination, options: .atomic)
-        }
-    }
-
-    nonisolated func reader(configuration: sending ReadConfiguration) -> sending Reader { Reader() }
-    nonisolated func writer(configuration: sending WriteConfiguration) -> sending Writer { Writer() }
-
-    func snapshot(contentType: UTType) async throws -> sending WriteSnapshot {
+    func writeSnapshot() -> WriteSnapshot {
         // Saving never waits for the preview or uses its potentially older text.
         WriteSnapshot(source: source, text: text)
     }
 
-    func apply(snapshot: sending ReaderSnapshot, previous: sending ReaderSnapshot?) async throws {
+    func apply(_ snapshot: ReaderSnapshot) {
         sourceRevision = snapshot.revision
         source = snapshot.source
         text = snapshot.text
@@ -137,21 +141,24 @@ final class ReaderDocument: Document, Identifiable {
         text = value
         previewIsCurrent = false
         sourceRevision = UUID()
+        didEdit?(writeSnapshot())
         schedulePreview()
     }
 
-    private func schedulePreview() {
+    private func schedulePreview(initialDelay: Duration = .milliseconds(200)) {
         guard previewTask == nil else { return }
         // One parser owns the slot until completion. Edits coalesce during both
         // the delay and synchronous parsing; obsolete results never publish.
         previewTask = Task { [weak self] in
+            var delay = initialDelay
             while !Task.isCancelled {
-                do { try await Task.sleep(for: .milliseconds(200)) } catch { break }
+                do { try await Task.sleep(for: delay) } catch { break }
+                delay = .milliseconds(200)
                 guard let self, self.snapshot?.revision != self.sourceRevision else { break }
                 let revision = self.sourceRevision
                 let source = self.source
                 let text = self.text
-                let ext = self.fileURL?.pathExtension ?? "md"
+                let ext = self.fileExtension
                 let baseURL = self.fileURL?.deletingLastPathComponent()
                 let parsePlainTextAsMarkdown = self.parsePlainTextAsMarkdown
                 let worker = Task.detached(priority: .userInitiated) {

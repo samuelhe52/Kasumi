@@ -106,7 +106,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         delegate = self
         alwaysBounceVertical = true
         contentInsetAdjustmentBehavior = .automatic
-        topEdgeEffect.style = .soft
+        if #available(iOS 26.0, *) { topEdgeEffect.style = .soft }
         addSubview(content)
         addInteraction(findInteraction)
         // Keep painting through the keyboard safe area, but let Auto Layout

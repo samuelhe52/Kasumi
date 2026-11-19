@@ -32,6 +32,14 @@ struct ReaderScreen: View {
     @State private var editorState = SourceEditorState()
 
     private var regular: Bool { horizontalSizeClass == .regular }
+    private var sourcePreviewPlacement: ToolbarItemPlacement {
+        if #available(iOS 27.0, *) { return .topBarTrailing }
+        return .topBarLeading
+    }
+    private var sourceDonePlacement: ToolbarItemPlacement {
+        if #available(iOS 27.0, *) { return .topBarPinnedTrailing }
+        return .topBarTrailing
+    }
     private var appearance: ReaderAppearance {
         ReaderAppearance(presetID: presetID, pairID: pairID, fontSize: fontSize)
     }
@@ -55,70 +63,20 @@ struct ReaderScreen: View {
     }
 
     var body: some View {
-        workspace
-            // On iPad the outline is a trailing inspector beside the text. Compact
-            // widths use the full-height sheet below instead of the inspector's
-            // own sheet, which has no Done button or paper background.
-            .inspector(
-                isPresented: Binding(get: { showInspector && regular }, set: { showInspector = $0 })
-            ) {
-                // Built only on iPad: even closed, the outline's search field
-                // otherwise lands in the iPhone reader's bar.
-                if regular {
-                    outline
-                        .inspectorColumnWidth(min: 260, ideal: 320, max: 420)
-                }
-            }
-            // Attach outside the inspector so the DocumentGroup receives the toolbar.
-            .toolbar {
-                if editingSource {
-                    // Native bar items keep the soft scroll edge; a custom row
-                    // under the bar would need its own opaque background.
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button(
-                            showPreview ? "Show Source" : "Show Preview",
-                            systemImage: showPreview ? "square.and.pencil" : "eye"
-                        ) {
-                            showPreview.toggle()
-                        }
-                        .accessibilityIdentifier("source-preview-toggle")
-                    }
-                    // History sits where the reader keeps its actions. The bottom
-                    // bar hides behind the keyboard; SourceTextView carries the
-                    // same pair above it.
-                    ToolbarItemGroup(placement: .bottomBar) {
-                        SourceHistoryControls(state: editorState)
-                        Spacer()
-                    }
-                    // Done must never fall into the overflow menu on iPhone.
-                    ToolbarItem(placement: .topBarPinnedTrailing) {
-                        Button("Done") {
-                            editorState.finishEditing()
-                            withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) {
-                                editingSource = false
-                            }
-                        }
-                        .accessibilityIdentifier("source-done")
-                    }
-                } else {
-                    ToolbarItemGroup(placement: .bottomBar) {
-                        Spacer()
-                        readerMenu
-                    }
-                }
-            }
-            .toolbarTitleMenu {
-                Button("Copy Markdown", systemImage: "doc.on.doc") {
-                    UIPasteboard.general.string = document.text
-                }
-                .disabled(document.snapshot == nil)
-                if let url = document.fileURL {
-                    ShareLink(item: url) {
-                        Label("Share", systemImage: "square.and.arrow.up")
-                    }
-                }
-            }
+        readerChrome
             .background(paper.ignoresSafeArea())
+            .background {
+                if #unavailable(iOS 26.0) {
+                    Color.clear.alert(
+                        "Delete \(document.title)?", isPresented: $showDeleteConfirmation
+                    ) {
+                        Button("Delete", role: .destructive, action: delete)
+                        Button("Cancel", role: .cancel) {}
+                    } message: {
+                        Text("This can't be undone.")
+                    }
+                }
+            }
             .sheet(isPresented: $showOutline) { outlineSheet }
             .sheet(isPresented: $showExport) {
                 if let parsed = document.snapshot?.parsed {
@@ -126,7 +84,7 @@ struct ReaderScreen: View {
                 }
             }
             .sheet(
-                isPresented: Binding(get: { showAppearance && !regular }, set: { showAppearance = $0 })
+                isPresented: Binding(get: { showAppearance && (!regular || usesLegacyToolbar) }, set: { showAppearance = $0 })
             ) {
                 appearanceSettings
             }
@@ -154,7 +112,7 @@ struct ReaderScreen: View {
                 WindowReader { window in
                     guard let scene = window.windowScene else { return }
                     windowScene = scene
-                    DocumentBrowser.readerAppeared(handoffID, in: scene) { dismiss() }
+                    DocumentBrowser.readerAppeared(handoffID, in: scene) { closeReader() }
                 }
             )
             .onDisappear {
@@ -163,9 +121,137 @@ struct ReaderScreen: View {
             }
     }
 
+    private var usesLegacyToolbar: Bool {
+        if #available(iOS 26.0, *) { return false }
+        return true
+    }
+
+    private var paneEdges: Edge.Set {
+        usesLegacyToolbar ? .bottom : [.top, .bottom]
+    }
+
+    @ViewBuilder
+    private var readerChrome: some View {
+        if #available(iOS 26.0, *) {
+            readerToolbar.toolbarTitleMenu { documentActions }
+        } else {
+            // On iOS 18 the document host can repeatedly lay out SwiftUI's
+            // toolbar during opening and omit the system Back button on reopen.
+            workspace
+                .safeAreaInset(edge: .top, spacing: 0) { legacyReaderBar }
+        }
+    }
+
+    private var legacyReaderBar: some View {
+        HStack(spacing: 12) {
+            if editingSource {
+                SourceHistoryControls(state: editorState)
+                Spacer()
+                sourcePreviewButton
+                sourceDoneButton
+            } else {
+                Button {
+                    closeReader()
+                } label: {
+                    Image(systemName: "chevron.backward")
+                        .frame(width: 44, height: 44)
+                }
+                .accessibilityLabel("Back")
+                .accessibilityIdentifier("reader-back")
+                Text(verbatim: document.title)
+                    .font(.headline)
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity)
+                readerMenu.frame(width: 44, height: 44)
+            }
+        }
+        .padding(.horizontal, 12)
+        .frame(minHeight: 44)
+        .background(paper)
+    }
+
+    private var readerToolbar: some View {
+        workspace
+            .navigationTitle(document.title)
+            .navigationBarTitleDisplayMode(.inline)
+            // On iPad the outline is a trailing inspector beside the text. Compact
+            // widths use the full-height sheet below instead of the inspector's
+            // own sheet, which has no Done button or paper background.
+            .inspector(
+                isPresented: Binding(get: { showInspector && regular }, set: { showInspector = $0 })
+            ) {
+                // Built only on iPad: even closed, the outline's search field
+                // otherwise lands in the iPhone reader's bar.
+                if regular {
+                    outline
+                        .inspectorColumnWidth(min: 260, ideal: 320, max: 420)
+                }
+            }
+            // Attach outside the inspector so the DocumentGroup receives the toolbar.
+            .toolbar {
+                if editingSource {
+                    // Native bar items keep the soft scroll edge; a custom row
+                    // under the bar would need its own opaque background.
+                    ToolbarItem(placement: sourcePreviewPlacement) {
+                        sourcePreviewButton
+                    }
+                    // History sits where the reader keeps its actions. The bottom
+                    // bar hides behind the keyboard; SourceTextView carries the
+                    // same pair above it.
+                    ToolbarItemGroup(placement: .bottomBar) {
+                        SourceHistoryControls(state: editorState)
+                        Spacer()
+                    }
+                    // Done must never fall into the overflow menu on iPhone.
+                    ToolbarItem(placement: sourceDonePlacement) {
+                        sourceDoneButton
+                    }
+                } else {
+                    ToolbarItemGroup(placement: .bottomBar) {
+                        Spacer()
+                        modernReaderMenu
+                    }
+                }
+            }
+    }
+
+    private var sourcePreviewButton: some View {
+        Button(
+            showPreview ? "Show Source" : "Show Preview",
+            systemImage: showPreview ? "square.and.pencil" : "eye"
+        ) {
+            showPreview.toggle()
+        }
+        .labelStyle(.iconOnly)
+        .accessibilityIdentifier("source-preview-toggle")
+    }
+
+    private var sourceDoneButton: some View {
+        Button("Done") {
+            editorState.finishEditing()
+            withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) {
+                editingSource = false
+            }
+        }
+        .accessibilityIdentifier("source-done")
+    }
+
+    @ViewBuilder
+    private var documentActions: some View {
+        Button("Copy Markdown", systemImage: "doc.on.doc") {
+            UIPasteboard.general.string = document.text
+        }
+        .disabled(document.snapshot == nil)
+        if let url = document.fileURL {
+            ShareLink(item: url) {
+                Label("Share", systemImage: "square.and.arrow.up")
+            }
+        }
+    }
+
     private var readerMenu: some View {
         Menu("Reader Actions", systemImage: "ellipsis") {
-            if regular {
+            if regular && !usesLegacyToolbar {
                 Button("Outline", systemImage: "sidebar.trailing") {
                     withAnimation { showInspector.toggle() }
                 }
@@ -213,22 +299,29 @@ struct ReaderScreen: View {
                     .accessibilityIdentifier("reader-parse-as-markdown")
                 }
             }
+            if #unavailable(iOS 26.0) {
+                Section { documentActions }
+            }
         }
         .labelStyle(.iconOnly)
         .accessibilityIdentifier("reader-actions")
+    }
+
+    private var modernReaderMenu: some View {
         // Present from the persistent menu control, not its transient menu items.
-        .popover(
-            isPresented: Binding(get: { showAppearance && regular }, set: { showAppearance = $0 })
-        ) {
-            appearanceSettings.frame(width: 360)
-        }
-        .confirmationDialog(
-            "Delete \(document.title)?", isPresented: $showDeleteConfirmation, titleVisibility: .visible
-        ) {
-            Button("Delete", role: .destructive, action: delete)
-        } message: {
-            Text("This can't be undone.")
-        }
+        readerMenu
+            .popover(
+                isPresented: Binding(get: { showAppearance && regular }, set: { showAppearance = $0 })
+            ) {
+                appearanceSettings.frame(width: 360)
+            }
+            .confirmationDialog(
+                "Delete \(document.title)?", isPresented: $showDeleteConfirmation, titleVisibility: .visible
+            ) {
+                Button("Delete", role: .destructive, action: delete)
+            } message: {
+                Text("This can't be undone.")
+            }
     }
 
     /// Both panes stay mounted once editing starts, so the caret, scroll
@@ -239,13 +332,11 @@ struct ReaderScreen: View {
         return ZStack {
             if hasEditedSource {
                 SourceEditor(document: document, state: editorState, paper: paper, isVisible: sourceVisible)
-                    .ignoresSafeArea(.all, edges: [.top, .bottom])
+                    .ignoresSafeArea(.all, edges: paneEdges)
             }
             reader(isActive: previewVisible)
         }
-        .scrollEdgeEffectStyle(.soft, for: .top)
-        .navigationTitle(document.title)
-        .navigationBarTitleDisplayMode(.inline)
+        .softTopScrollEdge()
     }
 
     private var outlineSheet: some View {
@@ -280,7 +371,7 @@ struct ReaderScreen: View {
                     }
                 )
                 // Paint behind the floating find panel as well as the toolbars.
-                .ignoresSafeArea(.all, edges: [.top, .bottom])
+                .ignoresSafeArea(.all, edges: paneEdges)
                 .task(id: snapshot.revision) {
                     guard await DocumentReflowSession.preloadImages(parsed), !Task.isCancelled,
                         document.snapshot?.revision == snapshot.revision
@@ -306,13 +397,23 @@ struct ReaderScreen: View {
 
     private var isImport: Bool { document.fileURL.map(ImportFolder.contains) ?? false }
 
+    private func closeReader() {
+        dismiss()
+        if usesLegacyToolbar, let windowScene {
+            // The iOS 18 document host can retain the reader under the browser
+            // without delivering SwiftUI's onDisappear.
+            viewport.flush()
+            DocumentBrowser.readerDisappeared(handoffID, in: windowScene)
+        }
+    }
+
     /// Pasted and downloaded documents can be deleted from the reader controls
     /// after a confirmation. The file is removed after closing; coordination
     /// waits for the document's file session to let go.
     private func delete() {
         guard let url = document.fileURL else { return }
         viewport.forget()
-        dismiss()
+        closeReader()
         Task.detached {
             var coordinationError: NSError?
             NSFileCoordinator().coordinate(

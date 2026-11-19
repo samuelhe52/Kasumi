@@ -70,7 +70,7 @@ private struct SpacingPreview: View {
                 .frame(height: rendered.size.height)
             }
             .scrollBounceBehavior(.basedOnSize)
-            .scrollEdgeEffectStyle(.soft, for: .top)
+            .softTopScrollEdge()
             .background(Color(cgColor: rendered.backgroundColor))
         }
         .accessibilityHidden(true)
@@ -121,7 +121,7 @@ private struct SpacingControls: View {
                 .accessibilityIdentifier("preset-restore-defaults")
             }
         }
-        .scrollEdgeEffectStyle(.soft, for: .top)
+        .softTopScrollEdge()
     }
 
     private func setting<Value>(_ keyPath: WritableKeyPath<TypographySpacing, Value>) -> Binding<Value> {

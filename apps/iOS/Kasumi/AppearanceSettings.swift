@@ -22,7 +22,7 @@ struct AppearanceSettings: View {
                 content
             }
             .scrollBounceBehavior(.basedOnSize)
-            .scrollEdgeEffectStyle(.soft, for: .top)
+            .softTopScrollEdge()
             .navigationTitle("Appearance")
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarBackButtonHidden()

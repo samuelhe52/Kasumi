@@ -6,7 +6,7 @@
   <p>A native iOS reader for Markdown, set with care.</p>
 
   <p>
-    <img src="https://img.shields.io/badge/platform-iOS%20%C2%B7%20iPadOS%2027%2B-34C759" alt="iOS and iPadOS 27 or later" />
+    <img src="https://img.shields.io/badge/platform-iOS%20%C2%B7%20iPadOS%2018%2B-34C759" alt="iOS and iPadOS 18 or later" />
     <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License" />
   </p>
 </div>

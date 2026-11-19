@@ -97,6 +97,10 @@ final class HandoffSceneDelegate: NSObject, UIWindowSceneDelegate {
                     readers[ObjectIdentifier(scene)]?.closed.append(continuation)
                     reader.close()
                 }
+                if #unavailable(iOS 26.0) {
+                    // Legacy close unregisters before SwiftUI finishes dismissing.
+                    continue
+                }
             }
             if let browser = readyBrowser(in: scene) {
                 // Files in Documents are already in the browser's location. Reveal
@@ -136,6 +140,9 @@ final class HandoffSceneDelegate: NSObject, UIWindowSceneDelegate {
         guard scene.activationState == .foregroundActive else { return nil }
         for window in scene.windows {
             if let root = window.rootViewController, let browser = browser(in: root) {
+                if #unavailable(iOS 26.0) {
+                    guard browser.viewIfLoaded?.window != nil, browser.transitionCoordinator == nil else { continue }
+                }
                 return browser.isBeingPresented ? nil : browser
             }
         }

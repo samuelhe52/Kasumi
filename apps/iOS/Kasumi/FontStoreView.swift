@@ -23,7 +23,7 @@ struct FontStoreView: View {
                         .accessibilityIdentifier("font-supporting")
                 }
             }
-            .scrollEdgeEffectStyle(.soft, for: .top)
+            .softTopScrollEdge()
             .navigationTitle("Fonts")
             .navigationBarTitleDisplayMode(.inline)
             // Matches the appearance sheet it opens from.
@@ -99,7 +99,7 @@ private struct FontChoiceScreen: View {
         }
         .background(Color(uiColor: .systemGroupedBackground))
         .scrollBounceBehavior(.basedOnSize)
-        .scrollEdgeEffectStyle(.soft, for: .top)
+        .softTopScrollEdge()
         .navigationTitle(choice.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -133,7 +133,7 @@ private struct SupportingFontsScreen: View {
                 ForEach(FontChoice.supporting) { FontPackageRow(package: $0) }
             }
         }
-        .scrollEdgeEffectStyle(.soft, for: .top)
+        .softTopScrollEdge()
         .navigationTitle("Supporting Fonts")
         .navigationBarTitleDisplayMode(.inline)
     }

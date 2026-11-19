@@ -94,3 +94,4 @@ paste consent prompt on a device (`make run-device`).
   size global. See [008-preset-spacing.md](008-preset-spacing.md).
 - Updated 2026-11-18. Preserve native deceleration when installing a refined
   reader snapshot. See [009-scroll-momentum.md](009-scroll-momentum.md).
+- Updated 2026-11-19. Add a document adapter for iOS 18–26 and preserve the iOS 27 document scene. See [010-ios-18-compatibility.md](010-ios-18-compatibility.md).

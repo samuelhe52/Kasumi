@@ -28,7 +28,7 @@ struct OpenSourceLicensesView: View {
         }
         .navigationTitle("Open Source Licenses")
         .navigationBarTitleDisplayMode(.inline)
-        .scrollEdgeEffectStyle(.soft, for: .top)
+        .softTopScrollEdge()
     }
 }
 
@@ -57,7 +57,7 @@ private struct ComponentNoticesView: View {
         }
         .navigationTitle(component.name)
         .navigationBarTitleDisplayMode(.inline)
-        .scrollEdgeEffectStyle(.soft, for: .top)
+        .softTopScrollEdge()
     }
 }
 
@@ -75,6 +75,6 @@ private struct NoticeTextView: View {
         }
         .navigationTitle(document.title)
         .navigationBarTitleDisplayMode(.inline)
-        .scrollEdgeEffectStyle(.soft, for: .top)
+        .softTopScrollEdge()
     }
 }

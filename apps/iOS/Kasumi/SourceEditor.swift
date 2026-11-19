@@ -81,7 +81,7 @@ struct SourceEditor: UIViewRepresentable {
         view.smartDashesType = .no
         view.smartInsertDeleteType = .no
         view.spellCheckingType = .no
-        view.topEdgeEffect.style = .soft
+        if #available(iOS 26.0, *) { view.topEdgeEffect.style = .soft }
         view.accessibilityLabel = "Markdown source"
         view.accessibilityIdentifier = "source-editor"
         view.text = document.text
@@ -316,23 +316,32 @@ final class SourceTextView: UITextView {
         row.alignment = .center
         row.translatesAutoresizingMaskIntoConstraints = false
 
-        let glass = UIGlassEffect()
-        glass.isInteractive = true
-        let capsule = UIVisualEffectView(effect: glass)
-        capsule.cornerConfiguration = .capsule()
+        let capsuleHeight: CGFloat = 44
+        let keyboardGap: CGFloat = 12
+        let capsule: UIVisualEffectView
+        if #available(iOS 26.0, *) {
+            let glass = UIGlassEffect()
+            glass.isInteractive = true
+            capsule = UIVisualEffectView(effect: glass)
+            capsule.cornerConfiguration = .capsule()
+        } else {
+            capsule = UIVisualEffectView(effect: UIBlurEffect(style: .systemMaterial))
+            capsule.layer.cornerRadius = capsuleHeight / 2
+            capsule.clipsToBounds = true
+        }
         capsule.translatesAutoresizingMaskIntoConstraints = false
         capsule.contentView.addSubview(row)
 
         // The capsule keeps the same breathing room above the keyboard that the
         // bottom bar has above the screen edge.
-        let host = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 56))
+        let host = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: capsuleHeight + keyboardGap))
         host.autoresizingMask = .flexibleWidth
         host.addSubview(capsule)
         NSLayoutConstraint.activate([
             capsule.leadingAnchor.constraint(equalTo: host.leadingAnchor, constant: 16),
             capsule.trailingAnchor.constraint(equalTo: host.trailingAnchor, constant: -16),
             capsule.topAnchor.constraint(equalTo: host.topAnchor),
-            capsule.bottomAnchor.constraint(equalTo: host.bottomAnchor, constant: -12),
+            capsule.bottomAnchor.constraint(equalTo: host.bottomAnchor, constant: -keyboardGap),
             row.leadingAnchor.constraint(equalTo: capsule.contentView.leadingAnchor, constant: 6),
             row.trailingAnchor.constraint(equalTo: capsule.contentView.trailingAnchor, constant: -6),
             row.topAnchor.constraint(equalTo: capsule.contentView.topAnchor),

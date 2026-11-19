@@ -25,7 +25,7 @@ final class ReaderTableScrollView: UIScrollView, UIScrollViewDelegate {
         alwaysBounceHorizontal = false
         showsVerticalScrollIndicator = false
         delaysContentTouches = false
-        topEdgeEffect.style = .soft
+        if #available(iOS 26.0, *) { topEdgeEffect.style = .soft }
         layer.mask = edgeMask
         canvas.isUserInteractionEnabled = false
         addSubview(canvas)

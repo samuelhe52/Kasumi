@@ -59,7 +59,7 @@ struct ReaderOutline: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
             }
-            .scrollEdgeEffectStyle(.soft, for: .top)
+            .softTopScrollEdge()
             .overlay {
                 if items.isEmpty {
                     ContentUnavailableView(
