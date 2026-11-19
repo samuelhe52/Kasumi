@@ -1,0 +1,1 @@
+reader,editor,latex,mermaid,notes,typography,pdf,math,markup,preview

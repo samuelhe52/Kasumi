@@ -1,0 +1,1 @@
+Read and edit Markdown with native typography, typeset equations, and Mermaid diagrams. Search your documents and export them as PDF or PNG.

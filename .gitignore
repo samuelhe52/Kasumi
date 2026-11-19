@@ -5,6 +5,7 @@
 /.agents/skills/*
 !/.agents/skills/write-ai-doc/
 !/.agents/skills/kasumi-release/
+!/.agents/skills/kasumi-app-release/
 /.codex/
 
 # Application build products and per-user IDE state.
@@ -24,3 +25,12 @@ __pycache__/
 
 # Git worktrees
 .worktrees/
+
+# fastlane run output, and App Review contact details kept out of the public repository.
+/fastlane/report.xml
+/fastlane/README.md
+/fastlane/Preview.html
+/fastlane/screenshots/
+/fastlane/test_output/
+/fastlane/metadata/review_information/*
+!/fastlane/metadata/review_information/notes.txt

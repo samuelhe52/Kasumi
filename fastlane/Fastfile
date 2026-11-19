@@ -1,0 +1,179 @@
+# App Store Connect automation for the Kasumi iOS app.
+#
+# Xcode Cloud builds, signs and uploads the app when an `ios-vX.Y.Z` tag is
+# pushed. These lanes take over from there: they wait for the uploaded build,
+# hand it to TestFlight, sync the App Store listing from fastlane/metadata and
+# submit the version for review. None of them builds or uploads a binary.
+#
+# Credentials come from the App Store Connect API key JSON at
+# $ASC_API_KEY_PATH (default ~/.appstoreconnect/api_key.json), which lives
+# outside the repository.
+
+default_platform(:ios)
+
+ROOT = File.expand_path("..", FastlaneCore::FastlaneFolder.path)
+PROJECT = File.join(ROOT, "apps/iOS/Kasumi.xcodeproj/project.pbxproj")
+METADATA = File.join(ROOT, "fastlane/metadata")
+API_KEY_PATH = File.expand_path(ENV.fetch("ASC_API_KEY_PATH", "~/.appstoreconnect/api_key.json"))
+APP_IDENTIFIER = CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier)
+INTERNAL_GROUP = "Kasumi Internal Testing"
+EXTERNAL_GROUP = "Kasumi External Testing"
+
+# Reads MARKETING_VERSION and CURRENT_PROJECT_VERSION and requires every build
+# configuration of every target (app and extension) to agree.
+def project_versions
+  text = File.read(PROJECT)
+  versions = text.scan(/MARKETING_VERSION = ([^;]+);/).flatten.uniq
+  builds = text.scan(/CURRENT_PROJECT_VERSION = ([^;]+);/).flatten.uniq
+  UI.user_error!("MARKETING_VERSION differs between configurations: #{versions}") unless versions.size == 1
+  UI.user_error!("CURRENT_PROJECT_VERSION differs between configurations: #{builds}") unless builds.size == 1
+  [versions.first, builds.first]
+end
+
+# The App Store Connect build number can differ from CURRENT_PROJECT_VERSION
+# when Xcode Cloud assigns its own, so lanes default to the newest uploaded
+# build of the version unless build: is given.
+def resolve(options)
+  version, _ = project_versions
+  [(options[:version] || version).to_s, options[:build]&.to_s]
+end
+
+def app
+  @app ||= Spaceship::ConnectAPI::App.find(APP_IDENTIFIER) || UI.user_error!("No App Store Connect app for #{APP_IDENTIFIER}")
+end
+
+def find_build(version, build)
+  Spaceship::ConnectAPI::Build.all(app_id: app.id, version: version, build_number: build).first
+end
+
+def label(version, build, found = nil)
+  "#{version} (#{build || found&.version || 'newest'})"
+end
+
+platform :ios do
+  before_all do
+    UI.user_error!("Missing App Store Connect API key JSON at #{API_KEY_PATH}") unless File.exist?(API_KEY_PATH)
+    Spaceship::ConnectAPI.token = Spaceship::ConnectAPI::Token.from(filepath: API_KEY_PATH)
+  end
+
+  desc "Print the project versions and the App Store Connect state (read-only)"
+  desc "Options: version (default: the project's), build (default: the newest uploaded)"
+  lane :status do |options|
+    version, build = resolve(options)
+    UI.message("Project: #{project_versions.join(' (')})")
+
+    tag = "ios-v#{version}"
+    local = sh("git", "-C", ROOT, "rev-parse", "-q", "--verify", "refs/tags/#{tag}^{commit}", error_callback: ->(_) {}, log: false).strip
+    UI.message("Tag #{tag}: #{local.empty? ? 'not created locally' : local[0, 7]}")
+
+    b = find_build(version, build)
+    if b
+      UI.message("Build #{label(version, build, b)}: #{b.processing_state}, usesNonExemptEncryption=#{b.uses_non_exempt_encryption.inspect}, " \
+                 "TestFlight external state=#{b.build_beta_detail&.external_build_state.inspect}")
+    else
+      UI.message("Build #{label(version, build)}: not on App Store Connect yet")
+    end
+
+    app.get_beta_groups.each do |g|
+      UI.message("Beta group #{g.name}: internal=#{g.is_internal_group}, all builds=#{g.has_access_to_all_builds.inspect}, public link=#{g.public_link_enabled.inspect}")
+    end
+
+    edit = app.get_edit_app_store_version
+    live = app.get_live_app_store_version
+    UI.message("Live App Store version: #{live ? live.version_string : 'none'}")
+    if edit
+      UI.message("Editable App Store version: #{edit.version_string} #{edit.app_store_state}, release=#{edit.release_type}, build=#{edit.build&.version.inspect}")
+      edit.get_app_store_version_localizations.each do |l|
+        sets = l.get_app_screenshot_sets.map { |s| "#{s.screenshot_display_type}=#{s.app_screenshots&.size || 0}" }
+        UI.message("  #{l.locale}: screenshots #{sets.empty? ? 'none' : sets.join(', ')}, whatsNew #{l.whats_new.to_s.strip.empty? ? 'empty' : 'set'}")
+      end
+    else
+      UI.message("Editable App Store version: none")
+    end
+  end
+
+  desc "Wait until App Store Connect has processed the build Xcode Cloud uploads"
+  desc "Options: version, build, after (ISO 8601 time: ignore builds uploaded before it), timeout (minutes, default 90)"
+  lane :wait_build do |options|
+    version, build = resolve(options)
+    deadline = Time.now + (options[:timeout] || 90).to_i * 60
+    loop do
+      b = find_build(version, build)
+      state = b&.processing_state
+      UI.message("Build #{label(version, build, b)}: #{state || 'not uploaded yet'}")
+      if state == "VALID" && (build || options[:after].nil? || Time.parse(b.uploaded_date) > Time.parse(options[:after]))
+        UI.success("Build #{label(version, build, b)} is processed")
+        break
+      end
+      UI.user_error!("Build #{label(version, build, b)} ended in #{state}") if %w[FAILED INVALID].include?(state)
+      UI.user_error!("Timed out waiting for build #{label(version, build)}") if Time.now > deadline
+      sleep(60)
+    end
+  end
+
+  desc "Set What to Test on the build and distribute it in TestFlight"
+  desc "The internal group gets every build automatically; external=true also adds the external group and submits beta review"
+  desc "Options: notes (path to the What to Test text, required), external (default false), version, build"
+  lane :beta do |options|
+    version, build = resolve(options)
+    notes = options[:notes] || UI.user_error!("Pass notes:<path to the What to Test text>")
+    external = options[:external].to_s == "true"
+    b = find_build(version, build) || UI.user_error!("No build #{label(version, build)} on App Store Connect")
+    upload_to_testflight(
+      api_key_path: API_KEY_PATH,
+      app_identifier: APP_IDENTIFIER,
+      distribute_only: true,
+      app_version: version,
+      build_number: b.version,
+      changelog: File.read(File.expand_path(notes, ROOT)).strip,
+      groups: external ? [EXTERNAL_GROUP] : nil,
+      distribute_external: external,
+      notify_external_testers: external,
+      submit_beta_review: external,
+      skip_waiting_for_build_processing: false
+    )
+  end
+
+  desc "Create the App Store version if needed and upload fastlane/metadata (no screenshots, no binary, no submission)"
+  desc "Options: version"
+  lane :metadata do |options|
+    version, _ = resolve(options)
+    deliver(
+      api_key_path: API_KEY_PATH,
+      app_identifier: APP_IDENTIFIER,
+      app_version: version,
+      metadata_path: METADATA,
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      skip_metadata: false,
+      submit_for_review: false,
+      run_precheck_before_submit: false,
+      force: true
+    )
+  end
+
+  desc "Upload fastlane/metadata, attach the build and submit the version for App Review (manual release after approval)"
+  desc "Options: version, build"
+  lane :submit do |options|
+    version, build = resolve(options)
+    b = find_build(version, build)
+    UI.user_error!("Build #{label(version, build, b)} is not processed (#{b&.processing_state || 'missing'})") unless b&.processing_state == "VALID"
+    UI.user_error!("Build #{label(version, build, b)} declares non-exempt encryption") unless b.uses_non_exempt_encryption == false
+    deliver(
+      api_key_path: API_KEY_PATH,
+      app_identifier: APP_IDENTIFIER,
+      app_version: version,
+      build_number: b.version,
+      metadata_path: METADATA,
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      skip_metadata: false,
+      submit_for_review: true,
+      automatic_release: false,
+      run_precheck_before_submit: true,
+      precheck_include_in_app_purchases: false,
+      submission_information: { add_id_info_uses_idfa: false },
+      force: true
+    )
+  end
+end

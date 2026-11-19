@@ -1,0 +1,1 @@
+Kasumi is a Markdown reader and editor. No account or sign-in is required. Open Welcome.md in the document browser to try the reader. Use Reader Actions to edit the Markdown source, search, change appearance, or export the document. You can also open a .md file from Files using the Import into Kasumi action.

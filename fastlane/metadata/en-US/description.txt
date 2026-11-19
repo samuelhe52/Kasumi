@@ -1,0 +1,7 @@
+Kasumi Markdown is a native Markdown reader and editor for iPhone and iPad. Open your own documents and read them with carefully set typography, from everyday notes to technical writing.
+
+• Read Markdown with typeset equations, Mermaid diagrams, tables, and footnotes.
+• Search and select text, and jump between headings with the document outline.
+• Adjust themes, text size, and typography presets to suit your reading.
+• Edit Markdown source and switch back to the rendered document.
+• Export formatted documents as PDF or images.
