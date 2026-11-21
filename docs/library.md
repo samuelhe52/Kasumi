@@ -44,9 +44,9 @@ Give the reader a viewport; do not wrap it in another scroll view. The host supp
 
 In UIKit or AppKit, embed a `MarkdownReaderView(frame: .zero)` and constrain it to the available space. Set its `style` and call `setDocument(_:url:restoring:)`. Use `scroll(toAnchorID:)` for outline actions and `onPositionChange` to save a `ReadingAnchor` in your app. Use `canPresentFind` and `presentFind()` for a native Find button.
 
-UIKit preserves the reading position when replacing content at the same non-nil URL. A distinct document without a URL starts at the top unless you supply a `restoring` anchor.
+Both native readers preserve the reading position when replacing content at the same non-nil URL. A distinct document without a URL starts at the top unless you supply a `restoring` anchor.
 
-SwiftUI consumes `initialAnchor` when the document or its URL changes. Use the scope proxy to navigate an already displayed document.
+SwiftUI consumes `initialAnchor` when the document or its URL changes. Use the scope proxy to navigate an already displayed document. A final queued `.onMarkdownPositionChange` may be delivered after the reader is removed.
 
 On UIKit, `.markdownCodeBlockControl(id:_:)` adds app-provided controls to code blocks. Without an ID, the reader refreshes controls on SwiftUI updates. Supply an ID that changes with the factory's configuration to keep existing controls during unrelated updates.
 

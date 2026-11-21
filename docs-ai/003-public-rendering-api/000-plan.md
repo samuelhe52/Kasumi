@@ -106,3 +106,5 @@ simulator through `make test-ios FILTER=PublicAPITests`.
   replacement, and section reporting — see [003.006](006-reader-host-lifecycle.md).
 - Updated 2026-11-22: Restore host Command-F, consume replacement anchors, and
   prioritize newly visible images — see [003.007](007-reader-commands-and-restoration.md).
+- Updated 2026-11-22: Preserve AppKit positions on same-file reload and deliver
+  the last SwiftUI position on teardown — see [003.008](008-reading-position-lifetime.md).

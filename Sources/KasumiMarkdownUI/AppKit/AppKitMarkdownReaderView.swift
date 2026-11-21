@@ -135,13 +135,19 @@ import os
         if sessionScale != scale { invalidateLayout() }
     }
 
-    /// Install new content. An explicit anchor takes precedence over the initial top.
+    /// Preserves position on same-file replacement unless an explicit anchor is supplied.
     public func setDocument(_ document: MarkdownDocument, url: URL? = nil, restoring anchor: ReadingAnchor? = nil) {
-        documentURL = url
         if document.readerIdentity == self.document?.readerIdentity {
+            documentURL = url
             if let anchor { scroll(to: anchor, animated: false) }
             return
         }
+        let restored = anchor ?? (
+            url != nil && documentURL == url
+                ? rendered?.readingAnchor(atY: viewport.minY) ?? self.anchor.value
+                : nil
+        )
+        documentURL = url
         cancelWork()
         session = nil
         adjusting = true
@@ -156,7 +162,7 @@ import os
         lastPosition = nil
         installations = 0
         layoutMilliseconds = nil
-        anchorStateReset(restoring: anchor)
+        anchorStateReset(restoring: restored)
         canvas.replaceDocument()
         customFind.clear()
         highlightIndex = nil
@@ -533,7 +539,10 @@ import os
         find.finder.performAction(action)
     }
 
-    package func finish() { isActive = false }
+    package func finish() {
+        publishPosition()
+        isActive = false
+    }
 
     private enum RevealTarget {
         case anchor(ReadingAnchor)

@@ -166,9 +166,9 @@ extension EnvironmentValues {
     }
 }
 
-@MainActor fileprivate final class ReaderBridgeCoordinator {
+@MainActor final class ReaderBridgeCoordinator {
     weak var view: MarkdownReaderView?
-    weak var connection: ReaderConnection?
+    private weak var connection: ReaderConnection?
     var documentID: UUID?
     var documentURL: URL?
     var layoutRevision: Int?
@@ -217,7 +217,7 @@ extension EnvironmentValues {
         view.onFindPresentationChange = { [weak self] in self?.findVisibilityChanged($0) }
     }
 
-    func connect(_ next: ReaderConnection?) {
+    fileprivate func connect(_ next: ReaderConnection?) {
         if connection !== next, connection?.view === view { connection?.view = nil }
         connection = next
         if let view { next?.view = view }
@@ -271,12 +271,21 @@ extension EnvironmentValues {
         }
     }
 
-    func finish() {
-        callbackTask?.cancel()
+    func finish(_ view: MarkdownReaderView) {
         findEpoch &+= 1
         findBinding = nil
         connect(nil)
-        view = nil
+        view.finish()
+        callbackTask?.cancel()
+        callbackTask = nil
+        if let (anchor, heading) = position, let positionChange {
+            // Dismantling can run during a SwiftUI update; deliver next turn
+            // without requiring the coordinator to outlive the reader.
+            Task { @MainActor in positionChange(anchor, heading) }
+        }
+        position = nil
+        result = nil
+        self.view = nil
     }
 }
 
@@ -299,8 +308,7 @@ extension EnvironmentValues {
             update(view, coordinator: context.coordinator, animated: context.transaction.animation != nil)
         }
         static func dismantleUIView(_ view: MarkdownReaderView, coordinator: ReaderBridgeCoordinator) {
-            coordinator.finish()
-            view.finish()
+            coordinator.finish(view)
         }
     }
 #elseif os(macOS)
@@ -310,8 +318,7 @@ extension EnvironmentValues {
             update(view, coordinator: context.coordinator, animated: false)
         }
         static func dismantleNSView(_ view: MarkdownReaderView, coordinator: ReaderBridgeCoordinator) {
-            coordinator.finish()
-            view.finish()
+            coordinator.finish(view)
         }
     }
 #endif

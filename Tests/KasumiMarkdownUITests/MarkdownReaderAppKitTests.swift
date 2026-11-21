@@ -96,6 +96,39 @@ import Testing
         #expect(await eventually { section == "section-777" && reader.readerViewportDiagnostics.isViewportMeasured })
     }
 
+    @Test(arguments: [false, true]) func sameFileReloadRestoresPositionUnlessOverridden(explicit: Bool) async throws {
+        _ = NSApplication.shared
+        let frame = CGRect(x: 0, y: 0, width: 360, height: 300)
+        let reader = MarkdownReaderView(frame: frame)
+        reader.readerPreparesForScrolling = false
+        let window = NSWindow(contentRect: frame, styleMask: [.titled], backing: .buffered, defer: false)
+        window.contentView = reader
+        window.makeKeyAndOrderFront(nil)
+        defer { window.orderOut(nil) }
+
+        let url = URL(fileURLWithPath: "/tmp/reflow-reload.md")
+        let paragraphs = (0..<24).map { "Paragraph number \($0) for the same-file reload." }.joined(separator: "\n\n")
+        let markdown = "# Start\n\n\(paragraphs)\n\n# Middle\n\n\(paragraphs)\n\n# End\n\n\(paragraphs)"
+        reader.setDocument(MarkdownDocument(markdown: markdown), url: url)
+        try #require(await eventually { reader.readerViewportDiagnostics.isViewportMeasured })
+        reader.scroll(toAnchorID: "middle", animated: false)
+        try #require(await eventually {
+            guard let y = reader.rendered?.readerAnchorY(for: "middle") else { return false }
+            return abs(reader.viewport.minY - y) < 20 && reader.readerViewportDiagnostics.isViewportMeasured
+        })
+
+        let updated = MarkdownDocument(markdown: "A paragraph inserted above every heading.\n\n" + markdown)
+        let restore = explicit
+            ? try #require(RenderedDocument(updated, width: 360, style: .init()).readingAnchor(forAnchor: "end"))
+            : nil
+        reader.setDocument(updated, url: url, restoring: restore)
+        let heading = explicit ? "end" : "middle"
+        #expect(await eventually {
+            guard let y = reader.rendered?.readerAnchorY(for: heading) else { return false }
+            return abs(reader.viewport.minY - y) < 20 && reader.readerViewportDiagnostics.isViewportMeasured
+        })
+    }
+
     @Test func newlyVisibleRemoteImageGetsTheNextSlotWithoutMembershipChanging() async throws {
         let gate = PriorityGate()
         let queue = ReaderViewportImages()

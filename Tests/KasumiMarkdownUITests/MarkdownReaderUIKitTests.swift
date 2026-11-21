@@ -1,6 +1,6 @@
 #if os(iOS)
 import KasumiMarkdown
-import KasumiMarkdownUI
+@testable import KasumiMarkdownUI
 import SwiftUI
 import Testing
 import UIKit
@@ -112,6 +112,37 @@ import UIKit
             MarkdownReader(document: model.document, initialAnchor: model.anchor)
                 .onMarkdownPositionChange { _, heading in model.heading = heading }
         }
+    }
+
+    @Test func teardownDeliversQueuedPositionAfterReleasingCoordinator() async throws {
+        let host = UIViewController()
+        let window = makeWindow(hosting: host)
+        defer { window.isHidden = true }
+        let reader = MarkdownReaderView(frame: host.view.bounds)
+        host.view.addSubview(reader)
+        let tail = String(repeating: "\n\nA paragraph after the final heading.", count: 40)
+        let document = MarkdownDocument(markdown: "# Start\n\nFirst section.\n\n# Destination" + tail)
+        let layout = RenderedDocument(document, width: 320, style: .init())
+        let destination = try #require(layout.readingAnchor(forAnchor: "destination"))
+        var headings: [String] = []
+        var coordinator: ReaderBridgeCoordinator? = ReaderBridgeCoordinator()
+        coordinator?.configure(
+            MarkdownReader(document: document).onMarkdownPositionChange { _, id in
+                if let id { headings.append(id) }
+            },
+            view: reader)
+        reader.setDocument(document)
+        try #require(await eventually { headings.last == "start" })
+        headings.removeAll()
+
+        reader.scroll(to: destination, animated: false)
+        coordinator?.finish(reader)
+        coordinator = nil
+        reader.removeFromSuperview()
+
+        #expect(headings.isEmpty)
+        try #require(await eventually { !headings.isEmpty })
+        #expect(headings == ["destination"])
     }
 
     @Test(arguments: [false, true]) func swiftUIFactoryUpdatesInstalledAction(keyed: Bool) async throws {
