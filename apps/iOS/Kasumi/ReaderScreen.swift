@@ -170,6 +170,7 @@ struct ReaderScreen: View {
                     .font(.headline)
                     .lineLimit(1)
                     .frame(maxWidth: .infinity)
+                findButton.frame(width: 44, height: 44)
                 readerMenu.frame(width: 44, height: 44)
             }
         }
@@ -217,10 +218,19 @@ struct ReaderScreen: View {
                 } else {
                     ToolbarItemGroup(placement: .bottomBar) {
                         Spacer()
+                        findButton
                         modernReaderMenu
                     }
                 }
             }
+    }
+
+    private var findButton: some View {
+        Button("Find", systemImage: "magnifyingglass") { findPresented = true }
+            .labelStyle(.iconOnly)
+            .keyboardShortcut("f", modifiers: .command)
+            .disabled(document.snapshot == nil)
+            .accessibilityIdentifier("reader-find")
     }
 
     private var sourcePreviewButton: some View {
@@ -271,9 +281,6 @@ struct ReaderScreen: View {
             }
             Button("Appearance", systemImage: "textformat.size") { showAppearance = true }
                 .accessibilityIdentifier("reader-appearance")
-            Button("Find", systemImage: "magnifyingglass") { findPresented = true }
-                .disabled(document.snapshot == nil)
-                .accessibilityIdentifier("reader-find")
             Button("Export", systemImage: "square.and.arrow.up") { showExport = true }
                 .disabled(!document.previewIsCurrent)
                 .accessibilityIdentifier("reader-export")

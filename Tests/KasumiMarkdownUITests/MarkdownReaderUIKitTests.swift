@@ -81,6 +81,39 @@ import UIKit
         #expect(heading == (sharedURL ? "end" : "start"))
     }
 
+    @Test func swiftUIReplacementAppliesNewDocumentAnchor() async throws {
+        let tail = (0..<35).map { "Paragraph \($0) after the heading." }.joined(separator: "\n\n")
+        let replacement = MarkdownDocument(markdown: "# Replacement\n\n\(tail)\n\n# Restored\n\n\(tail)")
+        let layout = RenderedDocument(replacement, width: 320, style: .init())
+        let anchor = try #require(layout.readingAnchor(forAnchor: "restored"))
+
+        let model = RestorationModel()
+        let host = UIHostingController(rootView: RestorationHost(model: model))
+        let window = makeWindow(hosting: host)
+        defer { window.isHidden = true }
+        try #require(await eventually { model.heading == "original" })
+
+        model.anchor = anchor
+        model.document = replacement
+        try #require(await eventually { model.heading != "original" })
+        #expect(model.heading == "restored")
+    }
+
+    private final class RestorationModel: ObservableObject {
+        @Published var document = MarkdownDocument(markdown: "# Original\n\nThe first in-memory document.")
+        var anchor: ReadingAnchor?
+        var heading: String?
+    }
+
+    private struct RestorationHost: View {
+        @ObservedObject var model: RestorationModel
+
+        var body: some View {
+            MarkdownReader(document: model.document, initialAnchor: model.anchor)
+                .onMarkdownPositionChange { _, heading in model.heading = heading }
+        }
+    }
+
     @Test(arguments: [false, true]) func swiftUIFactoryUpdatesInstalledAction(keyed: Bool) async throws {
         let model = FactoryModel()
         let host = UIHostingController(rootView: FactoryHost(model: model, keyed: keyed))

@@ -96,6 +96,64 @@ import Testing
         #expect(await eventually { section == "section-777" && reader.readerViewportDiagnostics.isViewportMeasured })
     }
 
+    @Test func newlyVisibleRemoteImageGetsTheNextSlotWithoutMembershipChanging() async throws {
+        let gate = PriorityGate()
+        let queue = ReaderViewportImages()
+        defer {
+            queue.stop()
+            gate.releaseAll()
+        }
+        let names = ["overscan", "a", "b", "c", "d", "entering"]
+        let markdown = names.map { name in
+            "<img src=\"https://example.invalid/\(name)\" alt=\"\(name)\" width=\"40\" height=\"40\">"
+        }.joined(separator: "\n\n")
+        let resources = ReaderImageResources(MarkdownRemoteImages { url in
+            await gate.wait(url.lastPathComponent)
+            return nil
+        })
+        let snapshot = await DocumentReflowSession(
+            MarkdownDocument(markdown: markdown), style: .init(), readerDisplayScale: 1, readerResources: resources
+        ).render(width: 320)
+        let regions = snapshot.readerImageRegions(in: CGRect(origin: .zero, size: snapshot.size))
+        try #require(regions.count == 6)
+        let top = regions[0].rect.maxY + 1
+        let bottom = regions[5].rect.minY - 1
+        let viewport = CGRect(x: 0, y: top, width: snapshot.size.width, height: bottom - top)
+        let scrolled = viewport.offsetBy(dx: 0, dy: 10)
+        let overscan: CGFloat = 80
+        try #require(snapshot.readerImageRegions(in: viewport) == Array(regions[1...4]))
+        try #require(snapshot.readerImageRegions(in: scrolled).last == regions[5])
+        try #require(snapshot.readerImageRegions(in: viewport.insetBy(dx: 0, dy: -overscan)) == regions)
+        try #require(snapshot.readerImageRegions(in: scrolled.insetBy(dx: 0, dy: -overscan)) == regions)
+
+        queue.update(snapshot, in: viewport, overscan: overscan, tableOffsets: [:], invalidate: { _ in }, relayout: {})
+        try #require(await eventually { gate.started.count == 4 })
+        #expect(Set(gate.started) == Set(names[1...4]))
+        queue.update(snapshot, in: scrolled, overscan: overscan, tableOffsets: [:], invalidate: { _ in }, relayout: {})
+        gate.release(gate.started[0])
+        try #require(await eventually { gate.started.count == 5 })
+        #expect(gate.started.last == "entering")
+    }
+
+    @MainActor private final class PriorityGate {
+        private(set) var started: [String] = []
+        private var waiting: [String: CheckedContinuation<Void, Never>] = [:]
+        private var released = false
+
+        func wait(_ name: String) async {
+            started.append(name)
+            if !released { await withCheckedContinuation { waiting[name] = $0 } }
+        }
+
+        func release(_ name: String) { waiting.removeValue(forKey: name)?.resume() }
+
+        func releaseAll() {
+            released = true
+            for continuation in waiting.values { continuation.resume() }
+            waiting.removeAll()
+        }
+    }
+
     private func eventually(_ condition: () -> Bool) async -> Bool {
         for _ in 0..<300 {
             if condition() { return true }

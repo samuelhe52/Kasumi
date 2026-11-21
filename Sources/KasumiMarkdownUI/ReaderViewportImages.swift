@@ -4,6 +4,7 @@ import KasumiMarkdown
 /// The installed viewport owns one local decode slot and four remote slots.
 @MainActor final class ReaderViewportImages {
     private weak var snapshot: RenderedDocument?
+    private var viewport = CGRect.zero
     private var visible: [ReaderImageRegion] = []
     private var local: ArraySlice<ReaderImageRegion> = []
     private var remote: ArraySlice<ReaderImageRegion> = []
@@ -18,6 +19,7 @@ import KasumiMarkdown
         invalidate: @escaping (ReaderImageRegion) -> Void, relayout: @escaping () -> Void
     ) {
         guard rendered.hasReaderImages else { stop(); return }
+        self.viewport = viewport
         let regions = rendered.readerImageRegions(in: viewport.insetBy(dx: 0, dy: -overscan), tableOffsets: tableOffsets)
         guard snapshot !== rendered || visible != regions else { return }
         let previous = snapshot === rendered ? visible : []
@@ -28,31 +30,18 @@ import KasumiMarkdown
             loads.removeValue(forKey: id)
         }
 
-        let tables = rendered.tables
-        var nearLocal: [ReaderImageRegion] = []
-        var nearRemote: [ReaderImageRegion] = []
-        var farLocal: [ReaderImageRegion] = []
-        var farRemote: [ReaderImageRegion] = []
+        var nextLocal: [ReaderImageRegion] = []
+        var nextRemote: [ReaderImageRegion] = []
         for region in regions {
             if rendered.hasReaderImageResult(for: region) {
                 // A tile may have painted a placeholder before this cached image entered the viewport.
                 if !previous.contains(region) { invalidate(region) }
                 continue
             }
-            let tableY = region.tableID.map { tables[$0].frame.minY } ?? 0
-            let onScreen = region.rect.minY + tableY < viewport.maxY && region.rect.maxY + tableY > viewport.minY
-            if region.isRemote {
-                if onScreen { nearRemote.append(region) } else { farRemote.append(region) }
-            } else if onScreen {
-                nearLocal.append(region)
-            } else {
-                farLocal.append(region)
-            }
+            if region.isRemote { nextRemote.append(region) } else { nextLocal.append(region) }
         }
-        nearLocal.append(contentsOf: farLocal)
-        nearRemote.append(contentsOf: farRemote)
-        local = nearLocal[...]
-        remote = nearRemote[...]
+        local = nextLocal[...]
+        remote = nextRemote[...]
         drain(invalidate: invalidate, relayout: relayout)
     }
 
@@ -80,7 +69,15 @@ import KasumiMarkdown
         in snapshot: RenderedDocument, remote: Bool,
         invalidate: @escaping (ReaderImageRegion) -> Void, relayout: @escaping () -> Void
     ) -> Bool {
-        while let region = remote ? self.remote.popFirst() : local.popFirst() {
+        let viewport = self.viewport
+        let tables = snapshot.tables
+        func isOnScreen(_ region: ReaderImageRegion) -> Bool {
+            let tableY = region.tableID.map { tables[$0].frame.minY } ?? 0
+            return region.rect.minY + tableY < viewport.maxY && region.rect.maxY + tableY > viewport.minY
+        }
+        while let region = remote
+            ? Self.dequeue(&self.remote, prioritizing: isOnScreen) : Self.dequeue(&local, prioritizing: isOnScreen)
+        {
             guard !snapshot.hasReaderImageResult(for: region),
                 !loads.values.contains(where: { $0.region.sharesRaster(with: region) })
             else { continue }
@@ -102,5 +99,14 @@ import KasumiMarkdown
             return true
         }
         return false
+    }
+
+    private static func dequeue(
+        _ pending: inout ArraySlice<ReaderImageRegion>, prioritizing isOnScreen: (ReaderImageRegion) -> Bool
+    ) -> ReaderImageRegion? {
+        if let index = pending.firstIndex(where: isOnScreen), index != pending.startIndex {
+            return pending.remove(at: index)
+        }
+        return pending.popFirst()
     }
 }

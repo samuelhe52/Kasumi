@@ -91,7 +91,7 @@ import SwiftUI
     #endif
 
     fileprivate func update(_ view: MarkdownReaderView, coordinator: ReaderBridgeCoordinator, animated: Bool) {
-        let restores = !coordinator.configuredDocument || coordinator.documentURL != documentURL
+        let restores = coordinator.documentID != document.readerIdentity || coordinator.documentURL != documentURL
         if restores { coordinator.resetPosition() }
         coordinator.configure(self, view: view)
         #if os(iOS)
@@ -102,7 +102,7 @@ import SwiftUI
         view.style = style
         view.setRemoteImages(remoteImages, revision: imageRevision)
         view.setDocument(document, url: documentURL, restoring: restores ? initialAnchor : nil)
-        coordinator.configuredDocument = true
+        coordinator.documentID = document.readerIdentity
         coordinator.documentURL = documentURL
         if coordinator.layoutRevision != layoutRevision {
             if coordinator.layoutRevision != nil { view.invalidateLayout() }
@@ -169,7 +169,7 @@ extension EnvironmentValues {
 @MainActor fileprivate final class ReaderBridgeCoordinator {
     weak var view: MarkdownReaderView?
     weak var connection: ReaderConnection?
-    var configuredDocument = false
+    var documentID: UUID?
     var documentURL: URL?
     var layoutRevision: Int?
     var openLink: ((URL) -> Void)?

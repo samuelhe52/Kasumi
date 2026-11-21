@@ -104,3 +104,5 @@ simulator through `make test-ios FILTER=PublicAPITests`.
   link routing, pending Find, and code controls — see [003.005](005-reader-integration-fixes.md).
 - Updated 2026-11-22: Share viewport image scheduling and tighten focus, document
   replacement, and section reporting — see [003.006](006-reader-host-lifecycle.md).
+- Updated 2026-11-22: Restore host Command-F, consume replacement anchors, and
+  prioritize newly visible images — see [003.007](007-reader-commands-and-restoration.md).
