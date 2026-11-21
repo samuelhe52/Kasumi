@@ -108,3 +108,5 @@ simulator through `make test-ios FILTER=PublicAPITests`.
   prioritize newly visible images — see [003.007](007-reader-commands-and-restoration.md).
 - Updated 2026-11-22: Preserve AppKit positions on same-file reload and deliver
   the last SwiftUI position on teardown — see [003.008](008-reading-position-lifetime.md).
+- Updated 2026-11-22: Report the visible AppKit position during pending reflow
+  and reuse same-file image caches — see [003.009](009-reader-state-across-reflow.md).

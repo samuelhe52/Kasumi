@@ -239,6 +239,7 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
             return
         }
         if fileURL == nil || fileURL != url {
+            imageResources = nil
             reflowAnchor = ReaderReflowAnchorState()
             pendingReveal = nil
             if self.document != nil {
@@ -258,7 +259,6 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
         self.document = document
         fileURL = url
         revision = UUID()
-        imageResources = nil
         invalidateSession(animate: animatesDocumentChanges)
     }
 

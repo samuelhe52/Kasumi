@@ -183,6 +183,16 @@ import UIKit
         #expect(await eventually { provider.requestedFast })
     }
 
+    @Test func sameFileEditsReuseRemoteImageCache() async throws {
+        let host = UIViewController()
+        let window = makeWindow(hosting: host)
+        defer { window.isHidden = true }
+        let reader = MarkdownReaderView(frame: host.view.bounds)
+        host.view.addSubview(reader)
+        let scroll = try #require(reader.subviews.compactMap { $0 as? UIScrollView }.first)
+        try await checkSameFileRemoteImageCache(reader) { scroll.contentSize.height }
+    }
+
     @MainActor private final class ImageGate {
         var slow: CheckedContinuation<Void, Never>?
         var requestedFast = false

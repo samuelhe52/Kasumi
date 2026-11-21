@@ -78,6 +78,18 @@ import Testing
         })
     }
 
+    @Test func sameFileEditsReuseRemoteImageCache() async throws {
+        _ = NSApplication.shared
+        let frame = CGRect(x: 0, y: 0, width: 360, height: 300)
+        let reader = MarkdownReaderView(frame: frame)
+        reader.readerPreparesForScrolling = false
+        let window = NSWindow(contentRect: frame, styleMask: [.titled], backing: .buffered, defer: false)
+        window.contentView = reader
+        window.makeKeyAndOrderFront(nil)
+        defer { window.orderOut(nil) }
+        try await checkSameFileRemoteImageCache(reader) { reader.rendered?.size.height ?? 0 }
+    }
+
     @Test func reportsTheSectionAfterRefiningALateHeading() async throws {
         _ = NSApplication.shared
         let frame = CGRect(x: 0, y: 0, width: 360, height: 300)
@@ -127,6 +139,31 @@ import Testing
             guard let y = reader.rendered?.readerAnchorY(for: heading) else { return false }
             return abs(reader.viewport.minY - y) < 20 && reader.readerViewportDiagnostics.isViewportMeasured
         })
+    }
+
+    @Test func teardownSavesVisiblePositionWhileStyleReflowIsPending() async throws {
+        _ = NSApplication.shared
+        let frame = CGRect(x: 0, y: 0, width: 360, height: 300)
+        let reader = MarkdownReaderView(frame: frame)
+        reader.readerPreparesForScrolling = false
+        let window = NSWindow(contentRect: frame, styleMask: [.titled], backing: .buffered, defer: false)
+        window.contentView = reader
+        window.makeKeyAndOrderFront(nil)
+        defer { window.orderOut(nil) }
+        let body = String(repeating: "\n\nParagraph after the heading.", count: 30)
+        reader.setDocument(MarkdownDocument(markdown: "# Start\n\nIntroduction.\n\n# Later" + body))
+        try #require(await eventually { reader.readerViewportDiagnostics.isViewportMeasured })
+        let visibleLayout = try #require(reader.rendered)
+        let later = try #require(visibleLayout.readerAnchorY(for: "later"))
+        var saved: ReadingAnchor?
+        var section: String?
+        reader.onPositionChange = { saved = $0; section = $1 }
+        reader.style.fontSize = 24
+        reader.scrollReaderViewport(toY: later + 8)
+        reader.finish()
+        #expect(reader.rendered === visibleLayout)
+        #expect(section == "later")
+        #expect(saved == visibleLayout.readingAnchor(atY: reader.viewport.minY))
     }
 
     @Test func newlyVisibleRemoteImageGetsTheNextSlotWithoutMembershipChanging() async throws {

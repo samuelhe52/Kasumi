@@ -137,15 +137,14 @@ import os
 
     /// Preserves position on same-file replacement unless an explicit anchor is supplied.
     public func setDocument(_ document: MarkdownDocument, url: URL? = nil, restoring anchor: ReadingAnchor? = nil) {
-        if document.readerIdentity == self.document?.readerIdentity {
-            documentURL = url
+        let sameDocument = document.readerIdentity == self.document?.readerIdentity
+        if sameDocument, documentURL == url {
             if let anchor { scroll(to: anchor, animated: false) }
             return
         }
+        let sameFile = url != nil && documentURL == url
         let restored = anchor ?? (
-            url != nil && documentURL == url
-                ? rendered?.readingAnchor(atY: viewport.minY) ?? self.anchor.value
-                : nil
+            sameDocument || sameFile ? rendered?.readingAnchor(atY: viewport.minY) ?? self.anchor.value : nil
         )
         documentURL = url
         cancelWork()
@@ -154,7 +153,7 @@ import os
         find.noteStringWillChange()
         self.document = document
         outline = document.outline
-        imageResources = ReaderImageResources(configuration)
+        if !sameFile { imageResources = ReaderImageResources(configuration) }
         installedDocument = nil
         installedGeneration = nil
         rendered = nil
@@ -638,7 +637,8 @@ import os
     }
 
     private func publishPosition() {
-        guard isActive, installedGeneration == generation, let rendered else { return }
+        // Geometry can be out of date while the installed document is still visible.
+        guard isActive, installedDocument == document?.readerIdentity, let rendered else { return }
         let top = max(0, viewport.minY)
         let reading = rendered.readingAnchor(atY: top)
         var lower = 0

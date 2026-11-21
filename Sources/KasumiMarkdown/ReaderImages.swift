@@ -195,8 +195,8 @@ package enum ReaderResourceUpdate: Sendable, Equatable {
     case none, pixels, geometry
 }
 
-/// Owned by one document/provider/revision. New reflow generations reuse the
-/// same remote resolution and pixel caches but capture fresh geometry.
+/// Owned by one reader file/provider/revision. Same-file edits and reflows
+/// reuse remote metadata and pixels, but each layout captures fresh geometry.
 package final class ReaderImageResources: Sendable {
     struct Metadata: Sendable {
         let size: CGSize?

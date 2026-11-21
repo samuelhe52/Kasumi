@@ -61,7 +61,7 @@ let images = MarkdownRemoteImages { url in
 }
 ```
 
-To supply custom pixels, return `MarkdownImageResource(intrinsicSize:rasterize:)`. The async rasterizer receives a bounded target size in pixels. A decline or failure uses the document placeholder; the reader does not try another loader. Change the configuration or its `revision` to reload the same URLs. The provider only affects reader views; `DocumentExport` continues to use its own explicit preload.
+To supply custom pixels, return `MarkdownImageResource(intrinsicSize:rasterize:)`. The async rasterizer receives a bounded target size in pixels. A decline or failure uses the document placeholder; the reader does not try another loader. Edits at the same non-nil document URL keep the reader's remote image cache. Change the configuration or its `revision` to reload the same URLs. The provider only affects reader views; `DocumentExport` continues to use its own explicit preload.
 
 ## Rendering a document
 
