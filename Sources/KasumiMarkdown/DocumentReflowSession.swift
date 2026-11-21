@@ -39,9 +39,9 @@ public actor DocumentReflowSession {
                     else { return false }
                     if knownSources.insert(source).inserted {
                         guard
-                            let image = DocumentImageStore.shared.readerSource(
-                                for: source, baseURL: document.parsed.baseURL),
-                            image.url.isFileURL || image.url.scheme?.lowercased() == "data"
+                            let url = DocumentImageStore.resourceURL(source, baseURL: document.parsed.baseURL),
+                            !DocumentImageStore.isRemote(url),
+                            DocumentImageStore.shared.readerSource(for: url) != nil
                         else { return false }
                     }
                 }
@@ -83,11 +83,20 @@ public actor DocumentReflowSession {
         _ document: MarkdownDocument, style: RenderStyle, scrollableTables: Bool = false,
         readerDisplayScale: CGFloat?, preparesLocalImageLayout: Bool
     ) {
+        self.init(
+            document, style: style, scrollableTables: scrollableTables, readerDisplayScale: readerDisplayScale,
+            readerResources: nil, preparesLocalImageLayout: preparesLocalImageLayout)
+    }
+
+    package init(
+        _ document: MarkdownDocument, style: RenderStyle, scrollableTables: Bool = false,
+        readerDisplayScale: CGFloat?, readerResources: ReaderImageResources?, preparesLocalImageLayout: Bool = false
+    ) {
         self.document = document
         self.style = style
         self.scrollableTables = scrollableTables
         readerImages = readerDisplayScale.flatMap {
-            $0.isFinite && $0 > 0 ? ReaderImageCache(displayScale: $0) : nil
+            $0.isFinite && $0 > 0 ? ReaderImageCache(displayScale: $0, resources: readerResources) : nil
         }
         self.preparesLocalImageLayout = preparesLocalImageLayout && readerImages != nil
     }

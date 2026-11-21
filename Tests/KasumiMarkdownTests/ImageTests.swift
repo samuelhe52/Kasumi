@@ -306,7 +306,7 @@ fileprivate final class ImageFixtureProtocol: URLProtocol, @unchecked Sendable {
 
         | First | Second |
         | --- | --- |
-        | ![Logo](HTMLAndSVG/logo.svg) | ![Badge](HTMLAndSVG/build.svg) |
+        | ![Logo](HTMLAndSVG/logo.svg) | [![Badge](HTMLAndSVG/build.svg)](https://example.com/table) |
         """
     let document = MarkdownDocument(markdown: markdown, baseURL: imageFixtureDirectory)
     let style = RenderStyle(widthLimit: nil)
@@ -350,6 +350,14 @@ fileprivate final class ImageFixtureProtocol: URLProtocol, @unchecked Sendable {
     #expect(!leading.contains(badge))
     #expect(!rendered.hasReaderImageResult(for: badge))
     #expect(await rendered.prepareReaderImage(badge))
+    #expect(rendered.readerLinks(in: table.frame).isEmpty)
+    let link = try #require(
+        rendered.readerLinks(
+            in: table.frame, tableOffsets: [table.id: table.contentWidth - table.frame.width]).first)
+    #expect(link.url.path == "/table")
+    #expect(table.frame.contains(link.rect))
+    #expect(link.rect.intersects(
+        badge.rect.offsetBy(dx: table.frame.minX - (table.contentWidth - table.frame.width), dy: table.frame.minY)))
 }
 
 @Test func readerCacheEvictionLeavesRetainedGeometryRepaintable() async throws {
@@ -377,4 +385,204 @@ fileprivate final class ImageFixtureProtocol: URLProtocol, @unchecked Sendable {
     }
     let broken = #"<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><g></svg>"#
     #expect(DocumentImageStore.decode(Data(broken.utf8)) == nil)
+}
+
+@Test func scopedReaderKeepsAuthoredPlaceholdersWithoutAnImageProviderFallback() async throws {
+    let configuration = URLSessionConfiguration.ephemeral
+    configuration.protocolClasses = [ImageFixtureProtocol.self]
+    let store = DocumentImageStore(session: URLSession(configuration: configuration))
+    let url = "https://image-fixture.invalid/tiny.png"
+    let markdown = """
+        <img src="\(url)" alt="Block" width="43" height="19">
+
+        An inline <img src="\(url)" alt="Inline" width="42" height="18"> image.
+
+        | Cell |
+        | --- |
+        | <img src="\(url)" alt="Table" width="41" height="17"> |
+        """
+    let document = MarkdownDocument(markdown: markdown)
+    // The explicit legacy preload makes the very same URL resolvable. Scoped
+    // reader policy must not inspect those cached headers or use those pixels.
+    #expect(await store.preload(document.parsed, forReader: true))
+    #expect(store.image(for: url, baseURL: nil)?.size == CGSize(width: 32, height: 24))
+    struct ProviderFailure: Error {}
+    let unavailable: [MarkdownRemoteImages?] = [
+        nil, MarkdownRemoteImages { _ in nil }, MarkdownRemoteImages { _ in throw ProviderFailure() }
+    ]
+    for policy in unavailable {
+        let cache = ReaderImageCache(displayScale: 1, store: store, resources: ReaderImageResources(policy))
+        let rendered = RenderedDocument(
+            document, width: 400, style: RenderStyle(), scrollableTables: true, preparation: nil, readerImages: cache)
+        let viewport = CGRect(origin: .zero, size: rendered.size)
+        let regions = rendered.readerImageRegions(in: viewport)
+        #expect(regions.map(\.rect.size) == [
+            CGSize(width: 43, height: 19), CGSize(width: 42, height: 18), CGSize(width: 41, height: 17)
+        ])
+        for region in regions {
+            #expect(await rendered.prepareReaderResource(region) == .none)
+            #expect(rendered.hasReaderImageResult(for: region))
+            #expect(cache.bitmap(for: region.request.key) == nil)
+        }
+        #expect(rendered.readerImageRegions(in: viewport) == regions)
+        #expect(rendered.readerSemanticText.contains("An inline Inline image."))
+    }
+}
+
+@Test func scopedReaderResolvesNearTableImagesAndRetainsPixelsAcrossReflowOnlyWithinScope() async throws {
+    let logoURL = try #require(URL(string: "https://image-fixture.invalid/logo.svg"))
+    let badgeURL = try #require(URL(string: "https://image-fixture.invalid/build.svg"))
+    let logo = try MarkdownImageResource(
+        encodedData: Data(contentsOf: imageFixtureDirectory.appendingPathComponent("HTMLAndSVG/logo.svg")))
+    let badge = try MarkdownImageResource(
+        encodedData: Data(contentsOf: imageFixtureDirectory.appendingPathComponent("HTMLAndSVG/build.svg")))
+    actor Calls {
+        var urls: [URL] = []
+        func record(_ url: URL) { urls.append(url) }
+    }
+    let calls = Calls()
+    let policy = MarkdownRemoteImages { url in
+        await calls.record(url)
+        return url == logoURL ? logo : badge
+    }
+    #expect(policy.id != MarkdownRemoteImages { _ in nil }.id)
+    let document = MarkdownDocument(markdown: """
+        | First | Second |
+        | --- | --- |
+        | ![Logo](\(logoURL)) | ![Badge](\(badgeURL)) |
+        """)
+    let scope = ReaderImageResources(policy)
+    let style = RenderStyle(widthLimit: nil)
+    func render(_ resources: ReaderImageResources) async -> RenderedDocument {
+        await DocumentReflowSession(
+            document, style: style, scrollableTables: true, readerDisplayScale: 2,
+            readerResources: resources).render(width: 200)
+    }
+    let initial = await render(scope)
+    let table = try #require(initial.tables.first)
+    #expect(table.isScrollable)
+    let leading = initial.readerImageRegions(in: table.frame)
+    #expect(leading.map(\.request.source.url) == [logoURL])
+    let visible = try #require(leading.first)
+    #expect(await initial.prepareReaderResource(visible) == .geometry)
+    #expect(await calls.urls == [logoURL])
+    #expect(initial.readerImageRegions(in: table.frame) == leading)
+
+    let resolved = await render(scope)
+    let frame = try #require(resolved.tables.first?.frame)
+    let region = try #require(resolved.readerImageRegions(in: frame).first)
+    #expect(region.rect.size == logo.intrinsicSize)
+    #expect(await resolved.prepareReaderResource(region) == .pixels)
+    let raster = try #require(scope.rasters.bitmap(for: region.request.key))
+    #expect(raster.width == 240 && raster.height == 192)
+    let revisited = await render(scope)
+    #expect(revisited.hasReaderImageResult(for: region))
+    #expect(await revisited.prepareReaderResource(region) == .none)
+    #expect(await calls.urls == [logoURL])
+
+    // Constructing another scope models a changed revision even with the very
+    // same provider configuration object and URL.
+    let replacement = await render(ReaderImageResources(policy))
+    let nextRegion = try #require(replacement.readerImageRegions(in: table.frame).first)
+    #expect(!nextRegion.sharesRaster(with: visible))
+    #expect(await replacement.prepareReaderResource(region) == .none)
+    #expect(await replacement.prepareReaderResource(nextRegion) == .geometry)
+    #expect(await calls.urls == [logoURL, logoURL])
+}
+
+@Test func scopedReaderCancellationDoesNotPublishAStaleResolution() async throws {
+    actor Provider {
+        private var first: CheckedContinuation<Void, Never>?
+        private var started: CheckedContinuation<Void, Never>?
+        private var calls = 0
+
+        func resolve() async -> MarkdownImageResource {
+            calls += 1
+            if calls == 1 {
+                await withCheckedContinuation { continuation in
+                    first = continuation
+                    started?.resume()
+                    started = nil
+                }
+                return MarkdownImageResource(intrinsicSize: CGSize(width: 12, height: 12)) { _ in nil }
+            }
+            return MarkdownImageResource(intrinsicSize: CGSize(width: 24, height: 24)) { _ in nil }
+        }
+
+        func waitForFirst() async {
+            if first != nil { return }
+            await withCheckedContinuation { continuation in started = continuation }
+        }
+
+        func finishFirst() {
+            first?.resume()
+            first = nil
+        }
+    }
+    let provider = Provider()
+    let scope = ReaderImageResources(MarkdownRemoteImages { _ in await provider.resolve() })
+    let document = MarkdownDocument(markdown: "![Remote](https://image-fixture.invalid/late.png)")
+    let style = RenderStyle()
+    func render() async -> RenderedDocument {
+        await DocumentReflowSession(
+            document, style: style, readerDisplayScale: 1, readerResources: scope).render(width: 320)
+    }
+    let initial = await render()
+    let region = try #require(initial.readerImageRegions(in: CGRect(origin: .zero, size: initial.size)).first)
+    let first = Task { await initial.prepareReaderResource(region) }
+    await provider.waitForFirst()
+    first.cancel()
+    #expect(await first.value == .none)
+    #expect(!initial.hasReaderImageResult(for: region))
+    // The first provider is still suspended and intentionally ignores its
+    // cancellation. A replacement request must not join it.
+    let update = await initial.prepareReaderResource(region)
+    await provider.finishFirst()
+    #expect(update == .geometry)
+    let resolved = await render()
+    let next = try #require(resolved.readerImageRegions(in: CGRect(origin: .zero, size: resolved.size)).first)
+    #expect(next.rect.size == CGSize(width: 24, height: 24))
+}
+
+@Test func scopedReaderCoalescesBoundedPixelOnlyRequests() async throws {
+    final class RasterCalls: @unchecked Sendable {
+        private let lock = NSLock()
+        private var sizes: [CGSize] = []
+
+        func record(_ size: CGSize) { lock.withLock { sizes.append(size) } }
+        var requested: [CGSize] { lock.withLock { sizes } }
+    }
+    let calls = RasterCalls()
+    let tinyData = try Data(contentsOf: imageFixtureDirectory.appendingPathComponent("images/tiny.png"))
+    let encoded = try MarkdownImageResource(encodedData: tinyData)
+    #expect(encoded.intrinsicSize == CGSize(width: 32, height: 24))
+    let decoded = try await encoded.rasterize(CGSize(width: 16, height: 12))
+    let bitmap = try #require(decoded)
+    #expect(bitmap.width == 16 && bitmap.height == 12)
+    #expect(throws: (any Error).self) { try MarkdownImageResource(encodedData: Data("invalid".utf8)) }
+    let resource = MarkdownImageResource(intrinsicSize: CGSize(width: 400, height: 50)) { pixels in
+        calls.record(pixels)
+        return bitmap
+    }
+    let scope = ReaderImageResources(MarkdownRemoteImages { _ in resource })
+    let image = "<img src=\"https://image-fixture.invalid/authored.png\" alt=\"Authored\" width=\"80\" height=\"40\">"
+    let document = MarkdownDocument(markdown: "\(image)\n\n\(image)")
+    let session = DocumentReflowSession(document, style: RenderStyle(), readerDisplayScale: 100, readerResources: scope)
+    let rendered = await session.render(width: 400)
+    let viewport = CGRect(origin: .zero, size: rendered.size)
+    let regions = rendered.readerImageRegions(in: viewport)
+    #expect(regions.count == 2)
+    let first = try #require(regions.first)
+    let last = try #require(regions.last)
+    #expect(first.sharesRaster(with: last))
+    async let leading = rendered.prepareReaderResource(first)
+    async let trailing = rendered.prepareReaderResource(last)
+    let updates = await [leading, trailing]
+    #expect(updates.contains(.pixels))
+    #expect(!updates.contains(.geometry))
+    #expect(calls.requested.count == 1)
+    let pixels = try #require(calls.requested.first)
+    #expect(max(pixels.width, pixels.height) <= 8192)
+    #expect(pixels.width * pixels.height <= 4_000_000)
+    #expect(rendered.readerImageRegions(in: viewport) == regions)
 }

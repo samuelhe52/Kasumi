@@ -210,9 +210,9 @@ public final class RenderedDocument: @unchecked Sendable {
         return regions
     }
 
-    /// True when this snapshot has already attempted to load the occurrence.
+    /// True when no further preparation is needed for this occurrence.
     public func hasReaderImageResult(for region: ReaderImageRegion) -> Bool {
-        readerImages?.hasResult(for: region.request.key) == true
+        readerImages?.hasResult(for: region.request) == true
     }
 
     /// Load one raster away from drawing. Hosts should serialize requests and
@@ -220,6 +220,12 @@ public final class RenderedDocument: @unchecked Sendable {
     @discardableResult public func prepareReaderImage(_ region: ReaderImageRegion) async -> Bool {
         await readerImages?.load(region.request) == true
     }
+
+    package func prepareReaderResource(_ region: ReaderImageRegion) async -> ReaderResourceUpdate {
+        await readerImages?.prepare(region.request) ?? .none
+    }
+
+    package var readerSemanticText: String { semanticText }
 
     /// `rect` and the CGContext must use document coordinates (top-left, y down).
     /// Each caller owns its context. The clip protects adjacent tiles, and the
@@ -503,6 +509,47 @@ public final class RenderedDocument: @unchecked Sendable {
                 let value = item.paragraph.attributed.attribute(.link, at: index, effectiveRange: nil)
             else { return nil }
             return DocumentLink.url(value, relativeTo: baseURL)
+        }
+    }
+
+    /// Visible link geometry in document coordinates, with wide-table links
+    /// shifted and clipped to the current horizontal table viewport.
+    package func readerLinks(in rect: CGRect, tableOffsets: [Int: CGFloat] = [:]) -> [(url: URL, rect: CGRect)] {
+        guard !rect.isEmpty, rect.minY.isFinite, rect.maxY.isFinite else { return [] }
+        return layoutLock.withLock {
+            var links: [(url: URL, rect: CGRect)] = []
+            for line in lines where line.rect.minY < rect.maxY && line.rect.maxY > rect.minY {
+                let item = layout.paragraphs[line.paragraph]
+                var clip = rect
+                var offset: CGFloat = 0
+                if let index = item.tableIndex, layout.tables[index].isScrollable {
+                    let table = layout.tables[index]
+                    let requestedOffset = tableOffsets[index] ?? 0
+                    if requestedOffset.isFinite {
+                        offset = min(max(0, requestedOffset), table.contentWidth - table.frame.width)
+                    }
+                    clip = clip.intersection(table.frame)
+                }
+                guard !clip.isEmpty, line.rect.offsetBy(dx: -offset, dy: 0).intersects(clip) else { continue }
+                func append(_ url: URL, _ bounds: CGRect) {
+                    let visible = bounds.offsetBy(dx: -offset, dy: 0).intersection(clip)
+                    if !visible.isEmpty { links.append((url, visible)) }
+                }
+                if let diagram = layout.diagrams[line.paragraph] {
+                    for link in diagram.linkRects {
+                        if let url = DocumentLink.url(link.target, relativeTo: baseURL) { append(url, link.rect) }
+                    }
+                    continue
+                }
+                let attributed = item.paragraph.attributed
+                attributed.enumerateAttribute(.link, in: line.shaped.range) { value, range, _ in
+                    guard let value, let url = DocumentLink.url(value, relativeTo: baseURL) else { return }
+                    for bounds in line.shaped.linkRects(for: range, in: attributed) {
+                        append(url, bounds.offsetBy(dx: line.origin.x, dy: line.origin.y))
+                    }
+                }
+            }
+            return links
         }
     }
 

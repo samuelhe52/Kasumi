@@ -98,6 +98,10 @@ package final class DocumentImageStore: @unchecked Sendable {
 
     func readerSource(for source: String, baseURL: URL?) -> ReaderImageSource? {
         guard let url = Self.resourceURL(source, baseURL: baseURL) else { return nil }
+        return readerSource(for: url)
+    }
+
+    func readerSource(for url: URL) -> ReaderImageSource? {
         let key = cacheKey(url)
         let info: Metadata?
         if let entry = metadata.object(forKey: key) {
@@ -124,6 +128,7 @@ package final class DocumentImageStore: @unchecked Sendable {
     }
 
     func readerBitmap(_ request: ReaderImageRequest) async -> CGImage? {
+        if case .provider = request.rasterization { return nil }
         let url = request.source.url
         let key = request.source.revision as NSString
         let data: Data?
@@ -143,15 +148,17 @@ package final class DocumentImageStore: @unchecked Sendable {
             case .svg(let pixels):
                 return SVGImageDecoder.source(data)
                     .flatMap { SVGImageDecoder.rasterize($0, readerPixels: pixels)?.bitmap }
+            case .provider:
+                return nil
             }
         }
     }
 
-    private static func isRemote(_ url: URL) -> Bool {
+    static func isRemote(_ url: URL) -> Bool {
         ["http", "https"].contains(url.scheme?.lowercased() ?? "")
     }
 
-    private static func validByteCount(_ count: Int) -> Bool { count > 0 && count <= maximumBytes }
+    static func validByteCount(_ count: Int) -> Bool { count > 0 && count <= maximumBytes }
 
     private static func validFileSize(_ url: URL) -> Bool {
         guard let count = try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize else { return false }
@@ -230,9 +237,9 @@ package final class DocumentImageStore: @unchecked Sendable {
         }
     }
 
-    private func download(_ url: URL) async -> Data? {
+    func download(_ url: URL, cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy) async -> Data? {
         do {
-            let (bytes, response) = try await session.bytes(for: URLRequest(url: url))
+            let (bytes, response) = try await session.bytes(for: URLRequest(url: url, cachePolicy: cachePolicy))
             defer { bytes.task.cancel() }
             guard let response = response as? HTTPURLResponse, (200..<300).contains(response.statusCode),
                 response.expectedContentLength <= Int64(Self.maximumBytes)
@@ -275,7 +282,7 @@ package final class DocumentImageStore: @unchecked Sendable {
         return SVGImageDecoder.sourceSize(data).map { Metadata(size: $0, isSVG: true) }
     }
 
-    private static func rasterSize(_ source: CGImageSource) -> CGSize? {
+    static func rasterSize(_ source: CGImageSource) -> CGSize? {
         guard let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
             let width = (properties[kCGImagePropertyPixelWidth] as? NSNumber)?.doubleValue,
             let height = (properties[kCGImagePropertyPixelHeight] as? NSNumber)?.doubleValue,
@@ -286,7 +293,7 @@ package final class DocumentImageStore: @unchecked Sendable {
             ? CGSize(width: height, height: width) : CGSize(width: width, height: height)
     }
 
-    private static func decodeRaster(_ data: Data, maxDimension: Int = 8192) -> DocumentImage? {
+    static func decodeRaster(_ data: Data, maxDimension: Int = 8192) -> DocumentImage? {
         guard let source = CGImageSourceCreateWithData(data as CFData, sourceOptions), let size = rasterSize(source)
         else { return nil }
         let options: [CFString: Any] = [
