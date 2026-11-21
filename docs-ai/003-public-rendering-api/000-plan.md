@@ -23,8 +23,8 @@ built on without reaching into internals.
 
 ### Non-goals (for now)
 
-- Ready-made UIKit/AppKit views and SwiftUI wrappers. They will be extracted from
-  the reader once its views settle ([roadmap](../roadmap.md)).
+- Ready-made UIKit/AppKit views and SwiftUI wrappers were outside the initial
+  headless API. They are tracked in [003.004](004-native-reader-views.md).
 
 ## Design / approach
 
@@ -98,3 +98,5 @@ simulator through `make test-ios FILTER=PublicAPITests`.
 - Updated 2026-11-17: Added a metadata-only conservative vertical text-range query for viewport clients — see [007.004](../007-reader-interactions/004-viewport-find-highlights.md).
 - Updated 2026-11-18. Use the theme background color for unavailable images and
   remove `chrome` from the theme API and file format. See [003.003](003-theme-palette-fields.md).
+- Updated 2026-11-21: Approved native reader views, SwiftUI Find, and a
+  reader-only image provider — see [003.004](004-native-reader-views.md).

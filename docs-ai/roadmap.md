@@ -113,8 +113,8 @@ Retained after milestone closure; not prerequisites for starting Reader 2:
   removes duplicate tokenization. First-use grammar setup remains a cold parsing
   cost.
 
-- Ready-made UIKit/AppKit views and SwiftUI wrappers, extracted from the reader
-  once its views settle ([003](003-public-rendering-api/000-plan.md)).
+- Ready-made UIKit/AppKit views and SwiftUI wrappers — in progress;
+  [003.004](003-public-rendering-api/004-native-reader-views.md).
 - Distributable XCFrameworks — closed 2026-11-19. The native release workflow
   publishes prebuilt archives, and a direct SwiftPM dependency resolves and
   builds with platform declarations;
