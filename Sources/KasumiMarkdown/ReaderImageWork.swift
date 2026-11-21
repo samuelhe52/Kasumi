@@ -106,8 +106,9 @@ final class ReaderImageWork<Key: Hashable & Sendable, Value: Sendable>: @uncheck
     }
 }
 
-/// Strict entry and byte limits. Drawing reads without touching recency or
-/// performing any I/O. Work admission touches recency instead.
+/// An LRU cache with entry-count and byte limits. `value(for:)` reads without
+/// changing recency, so drawing never reorders the cache. `touch(_:)` marks an
+/// entry as recently used when work for it is scheduled.
 final class ReaderImageLRU<Key: Hashable & Sendable, Value: Sendable>: @unchecked Sendable {
     private struct Entry {
         let value: Value

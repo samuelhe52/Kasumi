@@ -5,9 +5,11 @@ import os
 
 /// A read-only Markdown viewport backed by immutable, progressively refined layouts.
 @MainActor public final class MarkdownReaderView: NSView, NSUserInterfaceValidations {
+    /// Changing the style lays the document out again.
     public var style = RenderStyle() {
         didSet { if style != oldValue { invalidateLayout() } }
     }
+    /// Pauses background work and closes Find while false. The scroll position is kept.
     public var isActive = true {
         didSet {
             guard isActive != oldValue else { return }
@@ -22,7 +24,9 @@ import os
             }
         }
     }
+    /// Reports the reading anchor and the outline ID of the current section, or nil before the first heading.
     public var onPositionChange: ((ReadingAnchor, String?) -> Void)?
+    /// Receives every link that doesn't point into the current document.
     public var onOpenLink: ((URL) -> Void)?
     public var onFindPresentationChange: ((Bool) -> Void)?
     public var onFindResultChange: ((FindResult) -> Void)?
@@ -412,7 +416,7 @@ import os
                 self.warmupMilliseconds = Self.milliseconds(since: start)
                 self.didInstall(previousFind: previousFind)
             } catch is CancellationError {
-                // Cancelled idle work retains completed actor preparation at this width.
+                // Canceled idle work keeps whatever preparation it finished at this width.
             } catch {
                 self?.signposter.emitEvent("IdlePreparationFailed")
             }

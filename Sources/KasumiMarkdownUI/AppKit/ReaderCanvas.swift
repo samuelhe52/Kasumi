@@ -302,7 +302,7 @@ import KasumiMarkdown
 
     override func isAccessibilityElement() -> Bool { true }
     override func accessibilityRole() -> NSAccessibility.Role? { .textArea }
-    override func accessibilityLabel() -> String? { String(localized: "Markdown Document", bundle: .module) }
+    override func accessibilityLabel() -> String? { String(localized: "Document", bundle: .module) }
     override func accessibilityValue() -> Any? { semanticString }
     override func accessibilityNumberOfCharacters() -> Int { semanticString.length }
     override func accessibilitySelectedTextRange() -> NSRange { owner?.find.selection ?? selection ?? NSRange(location: 0, length: 0) }

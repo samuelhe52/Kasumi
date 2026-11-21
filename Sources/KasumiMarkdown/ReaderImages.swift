@@ -110,9 +110,12 @@ final class ReaderImageCache: Equatable, @unchecked Sendable {
     // yet laid out. Text preparation must not mix pre/post-resolution geometry.
     private let metadata: [URL: ReaderImageResources.Metadata]
     private let geometryLock = NSLock()
-    // A URL is present only if some occurrence depends on intrinsic aspect.
-    // The widest measure of wholly unauthored occurrences can also use its
-    // intrinsic width. This includes the first pass that sizes table columns.
+    // URLs whose layout depends on the resolved image, so a resolution can tell
+    // whether it changes geometry. A URL is present when some occurrence takes its
+    // aspect ratio from the image. The value is the widest space given to an
+    // occurrence with neither width nor height authored (0 if none), because only
+    // those also take their width from the image. The pass that sizes table
+    // columns counts too.
     private var intrinsicWidthLimits: [URL: CGFloat] = [:]
 
     init(

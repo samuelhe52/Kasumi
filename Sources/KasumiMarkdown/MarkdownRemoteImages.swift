@@ -6,9 +6,10 @@ import ImageIO
 /// fall back to another provider or to the export cache.
 public typealias MarkdownRemoteImageProvider = @Sendable (URL) async throws -> MarkdownImageResource?
 
-/// An opt-in remote-image policy for a native Markdown reader.
+/// How a native Markdown reader loads HTTP(S) images. Without one, the reader makes no network requests.
 public struct MarkdownRemoteImages: Sendable {
-    /// Copies of this configuration retain their identity.
+    /// Shared by copies of this value. Passing a configuration with a different ID clears
+    /// the reader's remote image cache, so create one configuration and keep it.
     public let id: UUID
     let provider: MarkdownRemoteImageProvider
 
@@ -17,8 +18,7 @@ public struct MarkdownRemoteImages: Sendable {
         self.provider = provider
     }
 
-    /// Fetch HTTP(S) images using the library's bounded downloader and decoder.
-    /// No network requests are made unless the reader is explicitly given a provider.
+    /// Downloads HTTP(S) images with the library's size-limited downloader and decoder.
     public static let http = MarkdownRemoteImages { url in
         guard DocumentImageStore.isRemote(url),
             let data = await DocumentImageStore.shared.download(url, cachePolicy: .reloadIgnoringLocalCacheData)
@@ -43,8 +43,9 @@ public struct MarkdownImageResource: Sendable {
         retainedBytes = 0
     }
 
-    /// Inspect a bounded, supported raster or SVG without producing display pixels.
-    /// Retains the image source for sized decoding when an occurrence is visible.
+    /// Reads the dimensions of a raster or SVG image without decoding it. The data is kept
+    /// and decoded at the requested size when the image becomes visible. Throws if the
+    /// data is too large or isn't a supported image.
     public init(encodedData data: Data) throws {
         guard DocumentImageStore.validByteCount(data.count) else { throw DecodingError.invalidImageData }
         if let source = CGImageSourceCreateWithData(data as CFData, [kCGImageSourceShouldCache: false] as CFDictionary),

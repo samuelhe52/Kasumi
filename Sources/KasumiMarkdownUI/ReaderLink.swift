@@ -1,6 +1,8 @@
 import Foundation
 
-/// A relative path with a fragment is still a link to another resource.
+/// Returns the fragment when `url` points into the current document: a bare `#fragment`,
+/// or a file URL with the same path, host, port, credentials, and query. A relative
+/// link such as `chapter.md#intro` returns nil, so it goes to the host.
 func readerDocumentFragment(in url: URL, documentURL: URL?) -> String? {
     guard let fragment = url.fragment else { return nil }
     if url.absoluteString.hasPrefix("#") { return fragment }

@@ -28,7 +28,8 @@ import os
         set { scrollView.setStyle(newValue) }
     }
 
-    /// Pauses background work and native interactions without discarding the viewport.
+    /// Pauses background work and input while false, and fades the reader out.
+    /// The scroll position is kept.
     public var isActive: Bool {
         get { scrollView.isActive }
         set {
@@ -60,11 +61,13 @@ import os
         scrollView.navigate(to: .anchor(id, inset: scrollView.headingTopInset), animated: animated)
     }
 
+    /// Reports the reading anchor and the outline ID of the current section, or nil before the first heading.
     public var onPositionChange: ((ReadingAnchor, String?) -> Void)? {
         get { scrollView.onPositionChange }
         set { scrollView.onPositionChange = newValue }
     }
 
+    /// Receives every link that doesn't point into the current document.
     public var onOpenLink: ((URL) -> Void)? {
         get { scrollView.onOpenLink }
         set { scrollView.onOpenLink = newValue }
@@ -78,8 +81,8 @@ import os
     public var canPresentFind: Bool { scrollView.canPresentFind }
     public var isFindPresented: Bool { scrollView.isFindPresented }
 
-    /// Returns whether the request was accepted. An opening document presents
-    /// Find when its first viewport becomes available.
+    /// Returns whether the request was accepted. While a document is still opening,
+    /// the panel appears once the first screen is laid out.
     @discardableResult public func presentFind() -> Bool { scrollView.presentFind() }
     public func dismissFind() { scrollView.dismissFind() }
 
@@ -101,8 +104,8 @@ import os
         scrollView.setRemoteImages(configuration, revision: revision)
     }
 
-    /// Optionally adds a native control to a code block. The factory supplies
-    /// its frame in document coordinates, or returns nil to omit the control.
+    /// Adds a control to code blocks. The factory is called for each code block and
+    /// returns a control framed in document coordinates, or nil to skip that block.
     public var codeBlockControl: ((RenderedCodeBlock) -> UIControl?)? {
         get { scrollView.codeBlockControl }
         set { scrollView.setCodeBlockControl(newValue, refresh: true) }
@@ -219,7 +222,7 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
             openingIndicator.centerXAnchor.constraint(equalTo: frameLayoutGuide.centerXAnchor),
             openingIndicator.centerYAnchor.constraint(equalTo: frameLayoutGuide.centerYAnchor)
         ])
-        accessibilityLabel = String(localized: "Document reading surface", bundle: .module)
+        accessibilityLabel = String(localized: "Document", bundle: .module)
         accessibilityIdentifier = "reader-surface"
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }

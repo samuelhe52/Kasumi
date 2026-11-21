@@ -80,8 +80,8 @@ import os
 
     func scrollRangeToVisible(_ range: NSRange) { owner?.revealNativeFindMatch(range) }
 
-    // Forward the container contract to NSScrollView so the actual system bar
-    // controls layout while we can observe its visibility, including its close button.
+    // Pass the find bar through to the NSScrollView, which lays it out. Keeping the
+    // setter here lets the reader see every visibility change, including the close button.
     var findBarView: NSView? {
         get { owner?.nativeFindBarContainer.findBarView }
         set { owner?.nativeFindBarContainer.findBarView = newValue }

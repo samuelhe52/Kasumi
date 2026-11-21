@@ -96,7 +96,8 @@ import KasumiMarkdown
     override func mouseUp(with event: NSEvent) { host?.owner?.canvas.mouseUp(with: event) }
 }
 
-/// Only immutable pixels cross the detached viewport prepaint boundary.
+/// A prepainted viewport image. Background prepaint hands only this immutable
+/// value back to the main actor, never the context it drew into.
 struct ReaderViewportBitmap: Sendable {
     let image: CGImage
     let rect: CGRect

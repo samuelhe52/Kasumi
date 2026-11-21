@@ -27,6 +27,12 @@ import SwiftUI
     #endif
     @Environment(\.markdownReaderConnection) private var connection
 
+    /// - Parameters:
+    ///   - documentURL: The file's URL. Relative images resolve against it, links to it stay in
+    ///     the reader, and a new document at the same URL keeps the reading position.
+    ///   - initialAnchor: Applied when the document or `documentURL` changes, not on other updates.
+    ///   - isActive: Pauses background work and input while false.
+    ///   - layoutRevision: Change it to lay the document out again, for example after a font downloads.
     public init(
         document: MarkdownDocument, style: RenderStyle = .init(), documentURL: URL? = nil,
         initialAnchor: ReadingAnchor? = nil, isActive: Bool = true, layoutRevision: Int = 0
@@ -48,12 +54,15 @@ import SwiftUI
         return reader
     }
 
+    /// Reports the reading anchor and the outline ID of the current section, or nil before
+    /// the first heading. The last report can arrive just after the reader is removed.
     public func onMarkdownPositionChange(_ action: @escaping (ReadingAnchor, String?) -> Void) -> Self {
         var reader = self
         reader.positionChange = action
         return reader
     }
 
+    /// Reports programmatic Find results from `MarkdownReaderProxy`.
     public func onMarkdownFindResultChange(_ action: @escaping (FindResult) -> Void) -> Self {
         var reader = self
         reader.findResultChange = action
@@ -77,9 +86,10 @@ import SwiftUI
     }
 
     #if os(iOS)
-        /// Installs a host control with a frame in document coordinates for each eligible code block.
-        /// With no ID, SwiftUI updates replace installed controls. Supply an ID
-        /// that changes with the factory's configuration to preserve live controls between updates.
+        /// Adds a control to code blocks. The factory is called for each code block and returns a
+        /// control framed in document coordinates, or nil to skip that block. Without an ID, every
+        /// SwiftUI update rebuilds the controls. Pass an ID that changes only when the factory's
+        /// output would, so controls keep their state across unrelated updates.
         public func markdownCodeBlockControl(
             id: AnyHashable? = nil, _ factory: @escaping (RenderedCodeBlock) -> UIControl?
         ) -> Self {
@@ -130,10 +140,12 @@ import SwiftUI
         connection.view?.scroll(toAnchorID: id, animated: animated)
     }
 
+    /// Searches without the system panel, closing it if it is open.
     public func setFindQuery(_ query: String, options: SearchOptions = []) {
         connection.view?.setFindQuery(query, options: options)
     }
 
+    /// Ignored while the system panel is open.
     public func moveToFindMatch(_ direction: FindDirection) { connection.view?.moveToFindMatch(direction) }
     public func clearFind() { connection.view?.clearFind() }
 }
