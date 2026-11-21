@@ -1,1 +1,1 @@
-../../apps/iOS/Kasumi/ReaderSearchState.swift
+../../Sources/KasumiMarkdownUI/ReaderSearchState.swift

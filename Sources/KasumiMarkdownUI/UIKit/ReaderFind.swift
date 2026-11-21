@@ -1,9 +1,67 @@
+#if os(iOS)
 import KasumiMarkdown
 import UIKit
 
+@MainActor protocol ReaderFindNavigator: AnyObject {
+    var isPresented: Bool { get }
+    func present()
+    func dismiss()
+    func install(_ rendered: RenderedDocument)
+}
+
+/// Keep all references to the iOS 16 Find APIs out of the iOS 15 viewport.
+@available(iOS 16.0, *)
+@MainActor final class UIKitReaderFind: NSObject, ReaderFindNavigator, UIFindInteractionDelegate {
+    private let snapshot: () -> RenderedDocument?
+    private let update: ([TextRange], Int?, Bool) -> Void
+    private let begin: () -> Void
+    private let end: () -> Void
+    private lazy var interaction = UIFindInteraction(sessionDelegate: self)
+    private lazy var session = ReaderFindSession { [weak self] matches, current, scroll in
+        self?.update(matches, current, scroll)
+        self?.interaction.updateResultCount()
+    }
+
+    init(
+        view: UIView, snapshot: @escaping () -> RenderedDocument?,
+        update: @escaping ([TextRange], Int?, Bool) -> Void, begin: @escaping () -> Void, end: @escaping () -> Void
+    ) {
+        self.snapshot = snapshot
+        self.update = update
+        self.begin = begin
+        self.end = end
+        super.init()
+        view.addInteraction(interaction)
+    }
+
+    var isPresented: Bool { interaction.isFindNavigatorVisible }
+    func present() { interaction.presentFindNavigator(showingReplace: false) }
+    func dismiss() {
+        if isPresented { interaction.dismissFindNavigator() }
+    }
+    func install(_ rendered: RenderedDocument) { session.install(rendered, scroll: false) }
+
+    func findInteraction(_ interaction: UIFindInteraction, sessionFor view: UIView) -> UIFindSession? {
+        guard let rendered = snapshot() else { return nil }
+        session.install(rendered)
+        return session
+    }
+
+    func findInteraction(_ interaction: UIFindInteraction, didBegin session: UIFindSession) {
+        begin()
+        self.session.begin()
+    }
+
+    func findInteraction(_ interaction: UIFindInteraction, didEnd session: UIFindSession) {
+        self.session.end()
+        end()
+    }
+}
+
 /// The system owns the field, keyboard presentation, count, navigation controls,
 /// and shortcuts. The session supplies results in Kasumi's immutable layout.
-final class ReaderFindSession: UIFindSession {
+@available(iOS 16.0, *)
+@MainActor private final class ReaderFindSession: UIFindSession {
     private var rendered: RenderedDocument?
     private var query = ""
     private var options: UITextSearchOptions?
@@ -76,7 +134,7 @@ final class ReaderFindSession: UIFindSession {
 
     private func matchingRanges(in rendered: RenderedDocument) -> [TextRange] {
         guard !query.isEmpty else { return [] }
-        let text = rendered.text(in: rendered.documentRange)
+        let text = rendered.readerSemanticText
         let method = options?.wordMatchMethod ?? .contains
         let wordMatch: ReaderSearchState.WordMatch =
             method == .contains ? .contains : method == .fullWord ? .fullWord : .startsWith
@@ -94,3 +152,4 @@ final class ReaderFindSession: UIFindSession {
         }
     }
 }
+#endif

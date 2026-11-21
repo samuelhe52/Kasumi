@@ -1,1 +1,1 @@
-../../apps/iOS/Kasumi/ReaderHighlightIndex.swift
+../../Sources/KasumiMarkdownUI/ReaderHighlightIndex.swift

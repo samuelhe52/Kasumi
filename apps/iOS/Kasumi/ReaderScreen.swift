@@ -1,4 +1,5 @@
 import KasumiMarkdown
+import KasumiMarkdownUI
 import SwiftUI
 
 struct ReaderScreen: View {
@@ -14,8 +15,7 @@ struct ReaderScreen: View {
     @AppStorage("reader.font-size") private var fontSize = ReaderAppearance.defaultFontSize
     @AppStorage("reader.preset-spacing") private var presetSpacing = ReaderPresetSpacing()
     @State private var viewport = ReaderViewport()
-    @State private var imageRevision = 0
-    @State private var findRequest = 0
+    @State private var findPresented = false
     @State private var pendingLink: URL?
     @State private var showLinkConfirmation = false
     @State private var showLinkFailure = false
@@ -56,14 +56,19 @@ struct ReaderScreen: View {
         AppearanceSettings(presetID: $presetID, pairID: $pairID, fontSize: $fontSize, presetSpacing: $presetSpacing)
     }
     private var paper: Color {
-        if let rendered = viewport.rendered { return Color(cgColor: rendered.backgroundColor) }
         return appearance.theme(dark: colorScheme == .dark).document["paper"].map {
             Color(.sRGB, red: $0.red, green: $0.green, blue: $0.blue, opacity: $0.alpha)
         } ?? Color(.sRGB, white: colorScheme == .dark ? 0.15 : 0.98, opacity: 1)
     }
 
     var body: some View {
-        readerChrome
+        MarkdownReaderScope { proxy in
+            readerBody(scrollTo: { proxy.scroll(toAnchorID: $0) })
+        }
+    }
+
+    private func readerBody(scrollTo: @escaping (String) -> Void) -> some View {
+        readerChrome(scrollTo: scrollTo)
             .background(paper.ignoresSafeArea())
             .background {
                 if #unavailable(iOS 26.0) {
@@ -77,7 +82,7 @@ struct ReaderScreen: View {
                     }
                 }
             }
-            .sheet(isPresented: $showOutline) { outlineSheet }
+            .sheet(isPresented: $showOutline) { outlineSheet(scrollTo: scrollTo) }
             .sheet(isPresented: $showExport) {
                 if let parsed = document.snapshot?.parsed {
                     ReaderExportSheet(document: parsed, title: document.title, style: style)
@@ -107,9 +112,12 @@ struct ReaderScreen: View {
                 editorState.previewDidChange(isVisible: preview)
             }
             .onChange(of: scenePhase) { _, phase in if phase != .active { viewport.flush() } }
+            .onChange(of: paper) { _, color in viewport.window?.backgroundColor = UIColor(color) }
             // A file handed to the app while this reader shows closes it first.
             .background(
                 WindowReader { window in
+                    viewport.window = window
+                    window.backgroundColor = UIColor(paper)
                     guard let scene = window.windowScene else { return }
                     windowScene = scene
                     DocumentBrowser.readerAppeared(handoffID, in: scene) { closeReader() }
@@ -131,9 +139,9 @@ struct ReaderScreen: View {
     }
 
     @ViewBuilder
-    private var readerChrome: some View {
+    private func readerChrome(scrollTo: @escaping (String) -> Void) -> some View {
         if #available(iOS 26.0, *) {
-            readerToolbar.toolbarTitleMenu { documentActions }
+            readerToolbar(scrollTo: scrollTo).toolbarTitleMenu { documentActions }
         } else {
             // On iOS 18 the document host can repeatedly lay out SwiftUI's
             // toolbar during opening and omit the system Back button on reopen.
@@ -170,7 +178,7 @@ struct ReaderScreen: View {
         .background(paper)
     }
 
-    private var readerToolbar: some View {
+    private func readerToolbar(scrollTo: @escaping (String) -> Void) -> some View {
         workspace
             .navigationTitle(document.title)
             .navigationBarTitleDisplayMode(.inline)
@@ -183,7 +191,7 @@ struct ReaderScreen: View {
                 // Built only on iPad: even closed, the outline's search field
                 // otherwise lands in the iPhone reader's bar.
                 if regular {
-                    outline
+                    outline(scrollTo: scrollTo)
                         .inspectorColumnWidth(min: 260, ideal: 320, max: 420)
                 }
             }
@@ -263,7 +271,8 @@ struct ReaderScreen: View {
             }
             Button("Appearance", systemImage: "textformat.size") { showAppearance = true }
                 .accessibilityIdentifier("reader-appearance")
-            Button("Find", systemImage: "magnifyingglass") { findRequest += 1 }
+            Button("Find", systemImage: "magnifyingglass") { findPresented = true }
+                .disabled(document.snapshot == nil)
                 .accessibilityIdentifier("reader-find")
             Button("Export", systemImage: "square.and.arrow.up") { showExport = true }
                 .disabled(!document.previewIsCurrent)
@@ -339,9 +348,9 @@ struct ReaderScreen: View {
         .softTopScrollEdge()
     }
 
-    private var outlineSheet: some View {
+    private func outlineSheet(scrollTo: @escaping (String) -> Void) -> some View {
         NavigationStack {
-            outline
+            outline(scrollTo: scrollTo)
                 .navigationTitle("Outline")
                 .navigationBarTitleDisplayMode(.inline)
                 .navigationBarBackButtonHidden()
@@ -359,38 +368,41 @@ struct ReaderScreen: View {
     private func reader(isActive: Bool) -> some View {
         Group {
             if let snapshot = document.snapshot {
-                let parsed = snapshot.parsed
-                ReadingSurface(
-                    document: parsed, revision: snapshot.revision, style: style, fontRevision: fontStore.revision,
-                    imageRevision: imageRevision,
-                    outline: parsed.outline, fileURL: document.fileURL, viewport: viewport, findRequest: findRequest,
-                    isActive: isActive,
-                    openLink: { url in
-                        pendingLink = url
-                        showLinkConfirmation = true
-                    }
+                let style = self.style
+                let codeColor = style.theme.document["secondary_text"].map {
+                    UIColor(red: $0.red, green: $0.green, blue: $0.blue, alpha: $0.alpha)
+                } ?? .secondaryLabel
+                MarkdownReader(
+                    document: snapshot.parsed, style: style, documentURL: document.fileURL,
+                    initialAnchor: viewport.prepare(fileURL: document.fileURL),
+                    isActive: isActive, layoutRevision: fontStore.revision
                 )
+                .markdownFindNavigator(isPresented: $findPresented)
+                .markdownRemoteImages(.http)
+                .markdownCodeBlockControl { block in
+                    guard let frame = ReaderCodeBlockStyle.copyButtonFrame(in: block) else { return nil }
+                    return ReaderCodeCopyButton(block: block, frame: frame, color: codeColor)
+                }
+                .onMarkdownPositionChange { anchor, heading in viewport.moved(anchor: anchor, heading: heading) }
+                .onMarkdownLink { url in
+                    pendingLink = url
+                    showLinkConfirmation = true
+                }
                 // Paint behind the floating find panel as well as the toolbars.
                 .ignoresSafeArea(.all, edges: paneEdges)
-                .task(id: snapshot.revision) {
-                    guard await DocumentReflowSession.preloadImages(parsed), !Task.isCancelled,
-                        document.snapshot?.revision == snapshot.revision
-                    else { return }
-                    imageRevision += 1
-                }
             } else {
                 ProgressView("Opening document…").frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
     }
 
-    private var outline: some View {
+    private func outline(scrollTo: @escaping (String) -> Void) -> some View {
         ReaderOutline(
             items: document.snapshot?.parsed.outline ?? [], currentID: viewport.headingID,
             searchable: !regular
         ) { item in
             showPreview = true
-            viewport.jump(to: item.id)
+            scrollTo(item.id)
             showOutline = false
         }
     }

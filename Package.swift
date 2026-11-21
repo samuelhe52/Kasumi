@@ -18,9 +18,11 @@ func nativeTarget(_ name: String, _ library: String) -> Target {
 
 let package = Package(
     name: "KasumiMarkdown",
+    defaultLocalization: "en",
     platforms: [.iOS(.v15), .macOS(.v13)],
     products: [
         .library(name: "KasumiMarkdown", targets: ["KasumiMarkdown"]),
+        .library(name: "KasumiMarkdownUI", targets: ["KasumiMarkdownUI"]),
         .executable(name: "KasumiRender", targets: ["KasumiRender"]),
         .executable(name: "KasumiReflowLab", targets: ["KasumiReflowLab"]),
         .executable(name: "KasumiReaderBench", targets: ["KasumiReaderBench"])
@@ -59,11 +61,15 @@ let package = Package(
             ],
             resources: [.copy("Bundled")]
         ),
+        .target(
+            name: "KasumiMarkdownUI", dependencies: ["KasumiMarkdown"],
+            resources: [.process("Resources")]),
         .executableTarget(name: "KasumiRender", dependencies: ["KasumiMarkdown"]),
         .executableTarget(
-            name: "KasumiReflowLab", dependencies: ["KasumiMarkdown"], path: "tools/ReflowLab",
+            name: "KasumiReflowLab", dependencies: ["KasumiMarkdown", "KasumiMarkdownUI"], path: "tools/ReflowLab",
             exclude: ["README.md"]),
         .executableTarget(name: "KasumiReaderBench", dependencies: ["KasumiMarkdown"], path: "tools/ReaderBench"),
-        .testTarget(name: "KasumiMarkdownTests", dependencies: ["KasumiMarkdown"], resources: [.copy("fixtures")])
+        .testTarget(name: "KasumiMarkdownTests", dependencies: ["KasumiMarkdown"], resources: [.copy("fixtures")]),
+        .testTarget(name: "KasumiMarkdownUITests", dependencies: ["KasumiMarkdown", "KasumiMarkdownUI"])
     ]
 )

@@ -1,10 +1,8 @@
 # Kasumi Reflow Lab
 
-A native macOS test window for manually inspecting the shared reflow engine.
-It uses `DocumentReflowSession`, the reader's actual coalescing/anchor state, a
-background layout/prepaint pipeline, and a native AppKit scroll view. Its UI and
-bitmap/tile implementation are a harness, not the UIKit reader. Its frame times
-must not be presented as iOS performance.
+A native macOS test window hosting the public AppKit `MarkdownReaderView` from
+`KasumiMarkdownUI`. The window adds sample and file controls; the reader owns
+scrolling, background layout and prepaint. Its timings are not iOS measurements.
 
 From the worktree root:
 
@@ -23,12 +21,20 @@ use **Open…** to read your own UTF-8 Markdown/text file without modifying it.
 **Reload** resets preparation for a cold run. Local images reserve space during
 layout and decode at the display scale as they enter the visible viewport.
 The timing label covers layout, prepaint, and installation. Image decoding
-runs separately. Table columns fit the window.
+runs separately. Wide tables scroll independently. The Edit menu exposes
+Find, Copy, and Select All.
 
 `make check-reflow-lab` checks offscreen launch, rendering, scroll refinement,
-and the visible-image refresh after idle installation. It writes JSON under
-`build/`. It does not benchmark live resizing or
-prove 120 Hz presentation. Native iOS scrolling is checked separately.
+programmatic Find navigation, and the visible-image refresh after idle
+installation. It writes JSON under `build/`. It does not benchmark live
+resizing or prove 120 Hz presentation. Native iOS scrolling is checked separately.
+
+For a check that opens a real window and exercises native Find visibility and
+its handoff to programmatic Find, run:
+
+```sh
+build/KasumiReflowLab.app/Contents/MacOS/KasumiReflowLab --interaction-check build/reflow-lab-interaction.json
+```
 
 
 ## Fixed-width scrolling checks
@@ -62,9 +68,8 @@ frame. The iOS Animation Hitches instrument is unavailable on the tested
 simulator, so these checks cannot establish a physical-device hitch rate or
 stable 120 fps.
 
-The Mac harness uses an SDR sRGB prepaint bitmap and native AppKit drawing,
-whereas the UIKit reader retains automatic image range and tiled layers. It is a
-shared-engine test window, not a reproduction of the production drawing backend.
+The AppKit reader uses an SDR sRGB prepaint bitmap and native AppKit drawing.
+The UIKit reader retains automatic image range and tiled layers.
 
 ## Mac measurements without a simulator
 
@@ -79,7 +84,7 @@ make check-fast-reflow-scrolling REFLOW_IDLE_WARMUP=0
 `make benchmark-reader` replaces the old in-app benchmark; see
 [the benchmark protocol](../../benchmarks/reader/README.md).
 
-The scrolling check drives the actual Mac controller through 100 downward and
+The scrolling check drives the public AppKit reader through 100 downward and
 100 return steps while background work runs, recording viewport coverage,
 installations and process peak memory in `build/reflow-lab-scrolling.json`.
 
@@ -96,10 +101,10 @@ first coverage miss it also saves a rendered viewport PNG beside that JSON.
 Sampling records measured geometry, not presented frames; the diagnostic PNG
 can lengthen the first measured gap. Actual scheduling varies.
 
-After 200 ms idle, the harness and UIKit reader prepare bounded text/table/math
-documents in cancellable batches. The harness also prepares bounded documents
-with known local or embedded image dimensions. Visible images still decode
-separately. The harness says **Entire document measured** when the complete
+After 200 ms idle, the native readers prepare bounded text/table/math documents
+in cancellable batches. The AppKit reader also prepares bounded documents with
+known local or embedded image dimensions. Visible images still decode
+separately. The Lab says **Entire document measured** when the complete
 snapshot is installed. Width/content/style changes invalidate
 that snapshot. This retains more geometry in memory; very large or resource-heavy
 documents keep the viewport path. The fast check explicitly records readiness

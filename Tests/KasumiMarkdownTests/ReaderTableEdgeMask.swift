@@ -1,1 +1,1 @@
-../../apps/iOS/Kasumi/ReaderTableEdgeMask.swift
+../../Sources/KasumiMarkdownUI/UIKit/ReaderTableEdgeMask.swift

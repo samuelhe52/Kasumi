@@ -25,6 +25,7 @@ ONBOARDING_ARGS = $(if $(filter reset,$(ONBOARDING)),-- -onboarding.fonts-offere
 DEVICE_PROBE = xcrun xcdevice list | /usr/bin/python3 -c 'import json, sys; interface = {"usb": 0, "network": 1}; devices = [device for device in json.load(sys.stdin) if device.get("platform") == "com.apple.platform.iphoneos" and device.get("available") and not device.get("simulator")]; devices.sort(key=lambda device: (interface.get(device.get("interface"), 2), not device.get("modelCode", "").startswith("iPhone"), device.get("identifier", ""))); print(devices[0]["identifier"] if devices else "")'
 # Narrow `make test` to matching tests, e.g. `make test FILTER=ParagraphTests`.
 FILTER ?=
+IOS_TEST_TARGET ?= KasumiMarkdownTests
 REFLOW_IDLE_WARMUP ?= 1
 BENCHMARK_OUTPUT ?= build/benchmarks/$(shell date -u +%Y%m%dT%H%M%SZ)
 BENCHMARK_BUILD = .build/bench
@@ -90,9 +91,10 @@ benchmark-typography: native ## Measure bounded language and punctuation cost (o
 
 # Xcode suite identifiers omit (), while function identifiers include it.
 # Selecting both forms lets FILTER accept either kind of name.
+# Set IOS_TEST_TARGET=KasumiMarkdownUITests for tests of the reader surface.
 test-ios: native ## Run package tests on iOS Simulator (optionally FILTER=<name>)
 	xcodebuild -scheme KasumiMarkdown-Package -destination 'platform=iOS Simulator,name=$(SIMULATOR)' \
-		-derivedDataPath build/iOSTests $(if $(FILTER),'-only-testing:KasumiMarkdownTests/$(FILTER)' '-only-testing:KasumiMarkdownTests/$(FILTER)()') test
+		-derivedDataPath build/iOSTests $(if $(FILTER),'-only-testing:$(IOS_TEST_TARGET)/$(FILTER)' '-only-testing:$(IOS_TEST_TARGET)/$(FILTER)()') test
 
 app-check: native ## Compile the iOS app without signing or launching a device
 	xcodebuild -project apps/iOS/Kasumi.xcodeproj -scheme Kasumi \

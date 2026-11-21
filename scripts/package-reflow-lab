@@ -8,12 +8,13 @@ cp "$products/KasumiReflowLab" "$app/Contents/MacOS/KasumiReflowLab"
 if [[ -d "$app/Contents/Resources/KasumiMarkdown_KasumiMarkdownTests.bundle" ]]; then
     rm -r "$app/Contents/Resources/KasumiMarkdown_KasumiMarkdownTests.bundle"
 fi
-resource="$products/KasumiMarkdown_KasumiMarkdown.bundle"
 # SwiftPM's Xcode build layout can contain a self-referencing convenience
-# symlink beside Contents. Package only the actual macOS bundle payload.
-destination="$app/Contents/Resources/${resource:t}"
-if [[ -e "$destination" ]]; then rm -r "$destination"; fi
-ditto "$resource/Contents" "$destination/Contents"
+# symlink beside Contents. Package only the actual macOS bundle payloads.
+for target in KasumiMarkdown KasumiMarkdownUI; do
+    resource="$products/KasumiMarkdown_$target.bundle"
+    destination="$app/Contents/Resources/${resource:t}"
+    ditto "$resource/Contents" "$destination/Contents"
+done
 cat > "$app/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">

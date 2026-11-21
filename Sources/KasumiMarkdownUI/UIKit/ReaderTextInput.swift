@@ -1,3 +1,4 @@
+#if os(iOS)
 import KasumiMarkdown
 import UIKit
 
@@ -146,18 +147,19 @@ class ReaderTextInputView: UIView, UITextInput, UITextInteractionDelegate, UIGes
         inputDelegate?.selectionDidChange(self)
     }
     override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
+        // iOS 15's native selection menu queries the responder actions below.
         switch action {
         case #selector(copy(_:)): return selection.map { !$0.isEmpty } ?? false
         case #selector(selectAll(_:)): return hasText && selection?.value != rendered.documentRange
         default: return false
         }
     }
+    @available(iOS 16.0, *)
     func editMenu(for textRange: UITextRange, suggestedActions: [UIMenuElement]) -> UIMenu? {
-        // Limit the read-only menu to supported operations (including hardware
-        // Command-C/Command-A through the standard responder actions).
+        // Limit the modern read-only menu to supported responder operations.
         UIMenu(children: [
-            UIAction(title: String(localized: "Copy")) { [weak self] _ in self?.copy(nil) },
-            UIAction(title: String(localized: "Select All")) { [weak self] _ in self?.selectAll(nil) }
+            UIAction(title: String(localized: "Copy", bundle: .module)) { [weak self] _ in self?.copy(nil) },
+            UIAction(title: String(localized: "Select All", bundle: .module)) { [weak self] _ in self?.selectAll(nil) }
         ])
     }
 
@@ -304,3 +306,4 @@ class ReaderTextInputView: UIView, UITextInput, UITextInteractionDelegate, UIGes
     func unmarkText() {}
     func setBaseWritingDirection(_ writingDirection: NSWritingDirection, for range: UITextRange) {}
 }
+#endif

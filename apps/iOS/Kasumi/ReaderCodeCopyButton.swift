@@ -16,6 +16,13 @@ final class ReaderCodeCopyButton: UIButton {
         isEnabled = !block.source.isEmpty
         showCopied(false)
         addAction(UIAction { [weak self] _ in self?.copyCode() }, for: .primaryActionTriggered)
+        if isEnabled {
+            accessibilityCustomActions = [
+                UIAccessibilityCustomAction(name: String(localized: "Copy code block")) { [weak self] _ in
+                    self?.copyCode() ?? false
+                }
+            ]
+        }
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     deinit { resetTask?.cancel() }

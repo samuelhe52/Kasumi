@@ -12,6 +12,48 @@ You can use local native builds. Clone the repository, run `make native-local`, 
 
 A tagged checkout can also use local binaries with `make native-local`. This changes its `Package.swift` locally. Run `make native-release` to select its published binaries again.
 
+## Embedding a native reader
+
+Add the `KasumiMarkdownUI` product to your target for UIKit, AppKit, or SwiftUI. It uses the same iOS 15 and arm64 macOS 13 minimums as `KasumiMarkdown`. Use the headless product alone if you only render or export.
+
+```swift
+import KasumiMarkdown
+import KasumiMarkdownUI
+import SwiftUI
+
+struct DocumentView: View {
+    let document: MarkdownDocument
+    @State private var showFind = false
+
+    var body: some View {
+        if #available(iOS 16, *) {
+            MarkdownReader(document: document)
+                .markdownFindNavigator(isPresented: $showFind)
+                .toolbar { Button("Find") { showFind = true } }
+        } else {
+            MarkdownReader(document: document)
+        }
+    }
+}
+```
+
+Give the reader a viewport; do not wrap it in another scroll view. The host supplies toolbar controls and handles external links through `.onMarkdownLink`. Heading and footnote links within the document work without a callback. Use `MarkdownReaderScope` for outline jumps or custom Find. Its proxy accepts `setFindQuery`, `moveToFindMatch`, and `clearFind`; `.onMarkdownFindResultChange` reports the count and zero-based current index. On iOS 15, use these commands with a host search field instead of a system Find panel.
+
+In UIKit or AppKit, embed a `MarkdownReaderView(frame: .zero)` and constrain it to the available space. Set its `style` and call `setDocument(_:url:restoring:)`. Use `scroll(toAnchorID:)` for outline actions and `onPositionChange` to save a `ReadingAnchor` in your app. Use `canPresentFind` and `presentFind()` for a native Find button.
+
+### Reader images
+
+Remote HTTP(S) images do not load by default. Use `.markdownRemoteImages(.http)` or `setRemoteImages(.http)` to opt in to Kasumi's bounded downloader. For an app-managed byte cache or authenticated loader, create one `MarkdownRemoteImages` configuration and keep it across view updates:
+
+```swift
+let images = MarkdownRemoteImages { url in
+    guard let bytes = try await myCache.imageData(for: url) else { return nil }
+    return try MarkdownImageResource(encodedData: bytes)
+}
+```
+
+To supply custom pixels, return `MarkdownImageResource(intrinsicSize:rasterize:)`. The async rasterizer receives a bounded target size in pixels. A decline or failure uses the document placeholder; the reader does not try another loader. Change the configuration or its `revision` to reload the same URLs. The provider only affects reader views; `DocumentExport` continues to use its own explicit preload.
+
 ## Rendering a document
 
 ```swift

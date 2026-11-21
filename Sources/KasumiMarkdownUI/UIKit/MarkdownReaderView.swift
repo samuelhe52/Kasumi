@@ -1,47 +1,128 @@
+#if os(iOS)
 import KasumiMarkdown
-import SwiftUI
 import UIKit
 import os
 
-struct ReadingSurface: UIViewRepresentable {
-    let document: MarkdownDocument
-    let revision: UUID
-    let style: RenderStyle
-    /// `FontStore.revision`: a face that became available changes the rendering
-    /// even when the style's resolved families stay the same.
-    let fontRevision: Int
-    let imageRevision: Int
-    let outline: [OutlineItem]
-    let fileURL: URL?
-    let viewport: ReaderViewport
-    let findRequest: Int
-    let isActive: Bool
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.displayScale) private var displayScale
-    let openLink: (URL) -> Void
+/// A selectable, reflowing Markdown viewport backed by native scrolling.
+@MainActor public final class MarkdownReaderView: UIView {
+    private let scrollView = ReaderScrollView(frame: .zero)
 
-    func makeUIView(context: Context) -> ReaderScrollView {
-        let view = ReaderScrollView()
-        view.alpha = isActive ? 1 : 0
-        return view
+    public override init(frame: CGRect = .zero) {
+        super.init(frame: frame)
+        scrollView.frame = bounds
+        scrollView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        addSubview(scrollView)
     }
-    func updateUIView(_ view: ReaderScrollView, context: Context) {
-        ReaderPaneTransition.update(view, visible: isActive, reduceMotion: reduceMotion)
-        view.setActive(isActive)
-        guard isActive else { return }
-        view.update(
-            document: document, revision: revision, animated: context.transaction.animation != nil,
-            style: style, fontRevision: fontRevision,
-            imageRevision: imageRevision, displayScale: displayScale, outline: outline,
-            fileURL: fileURL, viewport: viewport, openLink: openLink)
-        view.requestFind(findRequest)
+
+    @available(*, unavailable)
+    public required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    /// Replaces the document. A replacement at the same URL preserves position
+    /// unless an explicit anchor is supplied.
+    public func setDocument(_ document: MarkdownDocument, url: URL? = nil, restoring anchor: ReadingAnchor? = nil) {
+        scrollView.setDocument(document, url: url, restoring: anchor)
     }
-    static func dismantleUIView(_ view: ReaderScrollView, coordinator: ()) { view.finish() }
+
+    public var style: RenderStyle {
+        get { scrollView.style }
+        set { scrollView.setStyle(newValue) }
+    }
+
+    /// Pauses background work and native interactions without discarding the viewport.
+    public var isActive: Bool {
+        get { scrollView.isActive }
+        set {
+            guard newValue != scrollView.isActive else { return }
+            isUserInteractionEnabled = newValue
+            accessibilityElementsHidden = !newValue
+            scrollView.setActive(newValue)
+            let opacity: CGFloat = newValue ? 1 : 0
+            if UIAccessibility.isReduceMotionEnabled || window == nil {
+                layer.removeAnimation(forKey: "opacity")
+                alpha = opacity
+            } else {
+                UIView.animate(
+                    withDuration: 0.24, delay: 0,
+                    options: [.beginFromCurrentState, .allowUserInteraction, .curveEaseInOut]
+                ) { self.alpha = opacity }
+            }
+        }
+    }
+
+    /// Rebuilds layout after external font or layout inputs change.
+    public func invalidateLayout() { scrollView.invalidateReaderLayout() }
+
+    public func scroll(to anchor: ReadingAnchor, animated: Bool = true) {
+        scrollView.navigate(to: .position(anchor), animated: animated)
+    }
+
+    public func scroll(toAnchorID id: String, animated: Bool = true) {
+        scrollView.navigate(to: .anchor(id, inset: scrollView.headingTopInset), animated: animated)
+    }
+
+    public var onPositionChange: ((ReadingAnchor, String?) -> Void)? {
+        get { scrollView.onPositionChange }
+        set { scrollView.onPositionChange = newValue }
+    }
+
+    public var onOpenLink: ((URL) -> Void)? {
+        get { scrollView.onOpenLink }
+        set { scrollView.onOpenLink = newValue }
+    }
+
+    public var onFindPresentationChange: ((Bool) -> Void)? {
+        get { scrollView.onFindPresentationChange }
+        set { scrollView.onFindPresentationChange = newValue }
+    }
+
+    public var canPresentFind: Bool { scrollView.canPresentFind }
+    public var isFindPresented: Bool { scrollView.isFindPresented }
+
+    /// Returns whether the request was accepted. An opening document presents
+    /// Find when its first viewport becomes available.
+    @discardableResult public func presentFind() -> Bool { scrollView.presentFind() }
+    public func dismissFind() { scrollView.dismissFind() }
+
+    public func setFindQuery(_ query: String, options: SearchOptions = []) {
+        scrollView.setFindQuery(query, options: options)
+    }
+
+    public func moveToFindMatch(_ direction: FindDirection) { scrollView.moveToFindMatch(direction) }
+    public func clearFind() { scrollView.clearFind() }
+
+    public var onFindResultChange: ((FindResult) -> Void)? {
+        get { scrollView.onFindResultChange }
+        set { scrollView.onFindResultChange = newValue }
+    }
+
+    /// Sets an opt-in remote image provider. Changing the revision discards
+    /// cached resolutions associated with the previous revision.
+    public func setRemoteImages(_ configuration: MarkdownRemoteImages?, revision: Int = 0) {
+        scrollView.setRemoteImages(configuration, revision: revision)
+    }
+
+    /// Optionally adds a native control to a code block. The factory supplies
+    /// its frame in document coordinates, or returns nil to omit the control.
+    public var codeBlockControl: ((RenderedCodeBlock) -> UIControl?)? {
+        get { scrollView.codeBlockControl }
+        set { scrollView.setCodeBlockControl(newValue, refresh: true) }
+    }
+
+    package func configureCodeBlockControl(_ factory: ((RenderedCodeBlock) -> UIControl?)?) {
+        scrollView.setCodeBlockControl(factory, refresh: (factory == nil) != (scrollView.codeBlockControl == nil))
+    }
+
+    package var animatesDocumentChanges: Bool {
+        get { scrollView.animatesDocumentChanges }
+        set { scrollView.animatesDocumentChanges = newValue }
+    }
+
+    package func finish() { scrollView.finish() }
 }
 
-final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteractionDelegate {
+private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
     nonisolated private static let signposter = OSSignposter(subsystem: "com.samuelhe.Kasumi", category: "ReaderReflow")
-    private let headingTopInset: CGFloat = 15
+    let headingTopInset: CGFloat = 15
     private let findTopInset: CGFloat = 120
 
     // Pages swap inside a permanent container so the scroll view's own subviews
@@ -55,19 +136,24 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
     private let openingIndicator = UIActivityIndicatorView(style: .medium)
     private var document: MarkdownDocument?
     private var revision: UUID?
-    private var style: RenderStyle?
-    private var fontRevision = 0
+    private(set) var style = RenderStyle()
+    private var remoteImages: MarkdownRemoteImages?
     private var imageRevision = 0
+    private var imageResources: ReaderImageResources?
     private var displayScale: CGFloat = 1
-    private var outline: [OutlineItem] = []
+    private let preparesLocalImages =
+        ProcessInfo.processInfo.environment["KASUMI_READER_IMAGE_IDLE_PREPARATION"] == "1"
     private var headings: [(String, CGFloat)] = []
     private var fileURL: URL?
-    private weak var viewport: ReaderViewport?
-    private var openLink: ((URL) -> Void)?
-    private var restoreAnchor: ReadingAnchor?
+    private var installedFileURL: URL?
+    var onPositionChange: ((ReadingAnchor, String?) -> Void)?
+    var onOpenLink: ((URL) -> Void)?
+    var onFindPresentationChange: ((Bool) -> Void)?
+    var onFindResultChange: ((FindResult) -> Void)?
+    private(set) var codeBlockControl: ((RenderedCodeBlock) -> UIControl?)?
     private var layoutTask: Task<Void, Never>?
     private var imageTask: Task<Void, Never>?
-    private var imageDecode: (region: ReaderImageRegion, worker: Task<Bool, Never>)?
+    private var imageDecode: (region: ReaderImageRegion, worker: Task<ReaderResourceUpdate, Never>)?
     private weak var imageSnapshot: RenderedDocument?
     private var visibleImages: [ReaderImageRegion] = []
     private var pendingImages: ArraySlice<ReaderImageRegion> = []
@@ -79,26 +165,32 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
     private var installedGeneration: UUID?
     private var installedRevision: UUID?
     private var finished = false
-    private var isActive = true
-    private var animateAppearanceReplacement = true
-    private var lastJump: UUID?
+    private(set) var isActive = true
+    var animatesDocumentChanges = false
+    private var animateAppearanceReplacement = false
     private var adjusting = false
     private var scrollDiagnostics: ReaderScrollDiagnostics?
-    private lazy var findInteraction = UIFindInteraction(sessionDelegate: self)
-    private lazy var findSession = ReaderFindSession { [weak self] matches, current, scroll in
-        self?.displayFindResults(matches, current: current, scroll: scroll)
-        self?.findInteraction.updateResultCount()
-    }
-    private var findRequest = 0
-    private var presentedFindRequest = 0
+    private var nativeFind: (any ReaderFindNavigator)?
+    private var wantsFind = false
     private var findPresentationTask: Task<Void, Never>?
+    private var didReportFind = false
+    private var systemFindActive = false
+    private var programmaticFind = ProgrammaticFind()
+    private var wantsProgrammaticReveal = false
+    private var reportedFindResult = FindResult(count: 0, currentIndex: nil)
     private let unobscuredViewport = UILayoutGuide()
     private var currentFindRect: CGRect?
     private var currentFindAnchor: ReadingAnchor?
+
+    enum ScrollTarget {
+        case position(ReadingAnchor)
+        case anchor(String, inset: CGFloat)
+    }
     private enum PendingReveal {
-        case anchor(String, CGFloat)
+        case target(ScrollTarget)
         case find
     }
+    private var pendingNavigation: (target: ScrollTarget, animated: Bool)?
     private var pendingReveal: PendingReveal?
 
     override init(frame: CGRect) {
@@ -108,7 +200,17 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         contentInsetAdjustmentBehavior = .automatic
         if #available(iOS 26.0, *) { topEdgeEffect.style = .soft }
         addSubview(content)
-        addInteraction(findInteraction)
+        if #available(iOS 16.0, *) {
+            nativeFind = UIKitReaderFind(
+                view: self,
+                snapshot: { [weak self] in self?.findSnapshot },
+                update: { [weak self] matches, current, scroll in
+                    guard let self, self.systemFindActive else { return }
+                    self.displayFindResults(matches, current: current, scroll: scroll)
+                },
+                begin: { [weak self] in self?.didBeginNativeFind() },
+                end: { [weak self] in self?.didEndNativeFind() })
+        }
         // Keep painting through the keyboard safe area, but let Auto Layout
         // track the keyboard/accessory boundary for scrolling and indicators.
         addLayoutGuide(unobscuredViewport)
@@ -125,90 +227,136 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
             openingIndicator.centerXAnchor.constraint(equalTo: frameLayoutGuide.centerXAnchor),
             openingIndicator.centerYAnchor.constraint(equalTo: frameLayoutGuide.centerYAnchor)
         ])
-        openingIndicator.startAnimating()
-        accessibilityLabel = "Document reading surface"
+        accessibilityLabel = String(localized: "Document reading surface", bundle: .module)
         accessibilityIdentifier = "reader-surface"
-        scrollDiagnostics = ReaderScrollDiagnostics.make { [weak self] in
-            guard let self, self.window != nil, self.isActive, !self.finished else { return nil }
-            let visible = CGRect(x: 0, y: self.topY, width: self.bounds.width, height: self.bounds.height)
-            return ReaderScrollDiagnostics.Viewport(
-                top: self.topY, width: self.bounds.width, height: self.bounds.height,
-                active: self.isDragging || self.isDecelerating || self.isTracking,
-                measured: self.rendered.map { !$0.needsLayout(in: visible) } ?? false,
-                fullyMeasured: self.rendered?.hasEstimatedGeometry == false)
-        }
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     deinit {
         layoutTask?.cancel()
         scrollWarmup?.cancel()
+        imageTask?.cancel()
+        imageDecode?.worker.cancel()
     }
 
     override func touchesShouldCancel(in view: UIView) -> Bool {
-        if view is ReaderCodeCopyButton { return true }
+        if page?.containsCodeControl(view) == true { return true }
         return super.touchesShouldCancel(in: view)
     }
 
-    func update(
-        document: MarkdownDocument, revision: UUID, animated: Bool,
-        style: RenderStyle, fontRevision: Int, imageRevision: Int,
-        displayScale: CGFloat,
-        outline: [OutlineItem], fileURL: URL?, viewport: ReaderViewport, openLink: @escaping (URL) -> Void
-    ) {
-        self.viewport = viewport
-        self.openLink = openLink
-        self.fileURL = fileURL
-        let persisted = viewport.prepare(fileURL: fileURL)
-        if rendered == nil {
-            restoreAnchor = persisted
-            setPaper(style.theme)
+    func setDocument(_ document: MarkdownDocument, url: URL?, restoring anchor: ReadingAnchor?) {
+        guard self.document?.readerIdentity != document.readerIdentity || fileURL != url else {
+            if let anchor { navigate(to: .position(anchor), animated: false) }
+            return
         }
-        let appearanceChanged = self.style != style || self.fontRevision != fontRevision
-        let contentChanged = self.revision != revision
-        if contentChanged { stopImageLoading() }
-        let needsSession = contentChanged || appearanceChanged || self.displayScale != displayScale
-        let changed = needsSession || self.imageRevision != imageRevision
-        // An animated transaction (such as a re-parse) crossfades a content change.
-        if changed { animateAppearanceReplacement = appearanceChanged || (contentChanged && animated) }
-        self.fontRevision = fontRevision
-        self.imageRevision = imageRevision
-        self.displayScale = displayScale
-        self.document = document
-        self.outline = outline
-        self.revision = revision
-        self.style = style
-        if changed {
-            cancelScrollWarmup()
-            generation = UUID()
-            if needsSession {
-                reflowSession = DocumentReflowSession(
-                    document, style: style, scrollableTables: true, readerDisplayScale: displayScale,
-                    preparesLocalImageLayout:
-                        ProcessInfo.processInfo.environment["KASUMI_READER_IMAGE_IDLE_PREPARATION"] == "1")
+        if self.document == nil || fileURL != url {
+            reflowAnchor = ReaderReflowAnchorState()
+            pendingReveal = nil
+            if self.document != nil {
+                pendingNavigation = nil
+                suspendFind()
             }
-            rebuildIfNeeded()
         }
-        jumpIfNeeded()
+        if let anchor {
+            reflowAnchor.navigate(to: anchor)
+            pendingReveal = nil
+            if rendered != nil { pendingNavigation = (.position(anchor), false) }
+        }
+        if rendered == nil {
+            setPaper()
+            openingIndicator.startAnimating()
+        }
+        self.document = document
+        fileURL = url
+        revision = UUID()
+        imageResources = nil
+        invalidateSession(animate: animatesDocumentChanges)
     }
 
-    override var canBecomeFirstResponder: Bool { true }
+    func setStyle(_ style: RenderStyle) {
+        guard self.style != style else { return }
+        self.style = style
+        if rendered == nil { setPaper() }
+        invalidateReaderLayout()
+    }
+
+    func invalidateReaderLayout() { invalidateSession(animate: true) }
+
+    func setRemoteImages(_ configuration: MarkdownRemoteImages?, revision: Int) {
+        guard remoteImages?.id != configuration?.id || imageRevision != revision else { return }
+        if remoteImages != nil, rendered?.hasReaderImages == true {
+            // A new policy must not leave the previous provider's tiles visible.
+            page?.isHidden = true
+            transitionOverlay?.removeFromSuperview()
+            transitionOverlay = nil
+        }
+        remoteImages = configuration
+        imageRevision = revision
+        imageResources = nil
+        invalidateSession(animate: false)
+    }
+
+    func setCodeBlockControl(_ factory: ((RenderedCodeBlock) -> UIControl?)?, refresh: Bool) {
+        codeBlockControl = factory
+        if refresh { page?.installCodeControls(factory) }
+    }
+
+    private func invalidateSession(animate: Bool) {
+        stopImageLoading()
+        cancelScrollWarmup()
+        reflow.stop()
+        reflowSession = nil
+        // Retire requests immediately, even when a caller updates the style and
+        // document together before the next UIKit layout pass starts a session.
+        if installedGeneration == generation { animateAppearanceReplacement = false }
+        generation = UUID()
+        animateAppearanceReplacement = animateAppearanceReplacement || animate
+        setNeedsLayout()
+    }
+
+    override var canBecomeFirstResponder: Bool { isActive && !finished && nativeFind != nil }
     override func didMoveToWindow() {
         super.didMoveToWindow()
-        if let backgroundColor { window?.backgroundColor = backgroundColor }
+        guard window != nil, !finished else { return }
+        if scrollDiagnostics == nil {
+            scrollDiagnostics = ReaderScrollDiagnostics.make { [weak self] in
+                guard let self, self.window != nil, self.isActive, !self.finished else { return nil }
+                let visible = CGRect(x: 0, y: self.topY, width: self.bounds.width, height: self.bounds.height)
+                return ReaderScrollDiagnostics.Viewport(
+                    top: self.topY, width: self.bounds.width, height: self.bounds.height,
+                    active: self.isDragging || self.isDecelerating || self.isTracking,
+                    measured: self.rendered.map { !$0.needsLayout(in: visible) } ?? false,
+                    fullyMeasured: self.rendered?.hasEstimatedGeometry == false)
+            }
+        }
+        setNeedsLayout()
         updateImageViewport()
         scheduleScrollWarmup()
+        presentFindIfNeeded()
     }
 
     override func layoutSubviews() {
         let wasAdjusting = adjusting
         adjusting = true
         super.layoutSubviews()
+        let scale = max(1, traitCollection.displayScale)
+        if scale != displayScale {
+            displayScale = scale
+            invalidateSession(animate: false)
+        }
         rebuildIfNeeded()
         updateScrollExtent()
         updateKeyboardInset()
         updateHighlightViewport()
         adjusting = wasAdjusting
+        if isActive, installedRevision == revision {
+            if let pendingNavigation {
+                navigate(to: pendingNavigation.target, animated: pendingNavigation.animated)
+            }
+            if wantsProgrammaticReveal { displayProgrammaticFind() }
+        }
         updateImageViewport()
+        updateLinkAccessibility()
+        presentFindIfNeeded()
     }
 
     private func updateKeyboardInset() {
@@ -218,7 +366,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         guard abs(contentInset.bottom - inset) > 0.5 else { return }
         contentInset.bottom = inset
         verticalScrollIndicatorInsets.bottom = inset
-        if let currentFindRect {
+        if systemFindActive, let currentFindRect {
             setTop(max(0, currentFindRect.minY - findTopInset), trackingAnchor: true)
             if rendered?.needsLayout(in: currentFindRect.insetBy(dx: 0, dy: -1)) == true,
                 let currentFindAnchor
@@ -233,10 +381,14 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
 
     override func willMove(toWindow newWindow: UIWindow?) {
         if newWindow == nil {
+            reportPosition()
             stopImageLoading()
             cancelScrollWarmup()
-            reportPosition()
-            viewport?.flush()
+            reflow.stop()
+            layoutTask?.cancel()
+            suspendFind()
+            scrollDiagnostics?.finish()
+            scrollDiagnostics = nil
         }
         super.willMove(toWindow: newWindow)
     }
@@ -251,9 +403,16 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
     private var topY: CGFloat { max(0, contentOffset.y + adjustedContentInset.top) }
 
     private func rebuildIfNeeded() {
-        guard isActive, !finished, bounds.width.isFinite, bounds.width > 0, bounds.height.isFinite, bounds.height > 0,
-            document != nil, style != nil
+        guard isActive, !finished, window != nil, bounds.width.isFinite, bounds.width > 0,
+            bounds.height.isFinite, bounds.height > 0, let document
         else { return }
+        if reflowSession == nil {
+            let resources = imageResources ?? ReaderImageResources(remoteImages)
+            imageResources = resources
+            reflowSession = DocumentReflowSession(
+                document, style: style, scrollableTables: true, readerDisplayScale: displayScale,
+                readerResources: resources, preparesLocalImageLayout: preparesLocalImages)
+        }
         if rendered?.size.width != bounds.width { cancelScrollWarmup() }
         // Refill while most of the one-screen layout buffer still remains;
         // waiting until only a quarter-screen remains cannot absorb paint tails.
@@ -268,7 +427,9 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
                 width: installed.width, generation: installed.generation, anchor: installed.anchor,
                 height: installed.height)
         } else {
-            reflowAnchor.captureIfNeeded(in: rendered, atY: topY, restoring: restoreAnchor)
+            if installedFileURL == fileURL {
+                reflowAnchor.captureIfNeeded(in: rendered, atY: topY, restoring: nil)
+            }
             reflow.request(
                 width: bounds.width, generation: generation, anchor: reflowAnchor.value, height: bounds.height)
         }
@@ -276,11 +437,9 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         // Do not cancel on width or style changes: synchronous typesetting cannot
         // stop midway. Drain the newest request after the current pipeline ends.
         layoutTask = Task { [weak self] in
-            while let self, self.isActive, !self.finished, let request = self.reflow.begin(),
-                let session = self.reflowSession,
-                let revision = self.revision
+            while !Task.isCancelled, let self, self.isActive, !self.finished, self.window != nil,
+                let session = self.reflowSession, let revision = self.revision, let request = self.reflow.begin()
             {
-                self.reflowAnchor.captureIfNeeded(in: self.rendered, atY: self.topY, restoring: self.restoreAnchor)
                 let worker = Task.detached(priority: .userInitiated) {
                     let interval = Self.signposter.beginInterval("Layout", id: Self.signposter.makeSignpostID())
                     defer { Self.signposter.endInterval("Layout", interval) }
@@ -296,14 +455,14 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
                     } onCancel: {
                         worker.cancel()
                     }
-                    guard !Task.isCancelled else { break }
+                    try Task.checkCancellation()
                     let rect = self.visibleRect(in: next, restoring: self.reflowAnchor.value)
                     let coversViewport = !next.needsLayout(in: rect)
                     guard self.reflow.accepts(request, coversDesiredViewport: coversViewport) else {
                         _ = self.reflow.complete(request)
                         continue
                     }
-                    let scale = max(1, self.traitCollection.displayScale)
+                    let scale = self.displayScale
                     let tableOffsets = self.installedRevision == revision ? self.page?.tableOffsets ?? [:] : [:]
                     // Prepaint only the viewport, off-main, before publishing.
                     // Painting and layout share one worker slot, even during drag.
@@ -321,7 +480,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
                     } onCancel: {
                         painter.cancel()
                     }
-                    guard !Task.isCancelled else { break }
+                    try Task.checkCancellation()
                     let liveRect = self.visibleRect(in: next, restoring: self.reflowAnchor.value)
                     if self.reflow.complete(request, coversDesiredViewport: !next.needsLayout(in: liveRect)) {
                         let appearanceChanged = self.installedGeneration != request.generation
@@ -337,6 +496,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
                 }
             }
             self?.layoutTask = nil
+            if Task.isCancelled { self?.rebuildIfNeeded() }
             self?.scheduleScrollWarmup()
         }
     }
@@ -349,7 +509,8 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
 
     private func scheduleScrollWarmup() {
         guard scrollWarmup == nil, rendered?.hasEstimatedGeometry == true,
-            isActive, !finished, window != nil, let session = reflowSession, let revision
+            isActive, !finished, window != nil, installedGeneration == generation, installedRevision == revision,
+            let session = reflowSession, let revision
         else { return }
         let generation = self.generation
         let width = bounds.width
@@ -358,14 +519,14 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         scrollWarmup = Task(priority: .utility) { [weak self] in
             defer { if self?.scrollWarmupID == id { self?.scrollWarmup = nil } }
             do {
-                try await Task.sleep(for: .milliseconds(200))
+                try await Task.sleep(nanoseconds: 200_000_000)
                 guard let self, self.isActive, !self.finished, !self.isDragging, !self.isDecelerating,
                     self.layoutTask == nil, self.generation == generation, self.bounds.width == width
                 else { return }
                 guard let next = try await session.prepareForScrolling(width: width) else { return }
                 try Task.checkCancellation()
                 let rect = self.visibleRect(in: next, restoring: self.reflowAnchor.value)
-                let scale = max(1, self.traitCollection.displayScale)
+                let scale = self.displayScale
                 let offsets = self.page?.tableOffsets ?? [:]
                 let preview = await Task.detached(priority: .utility) {
                     ReaderPageView.preview(next, rect: rect, scale: scale, tableOffsets: offsets)
@@ -405,6 +566,7 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         let sameContent = installedRevision == revision
         let tableOffsets = sameContent ? page?.tableOffsets ?? [:] : [:]
         installedRevision = revision
+        installedFileURL = fileURL
         let animate = !UIAccessibility.isReduceMotionEnabled && window != nil
         let widthChanged = rendered?.size.width != next.size.width
         let overlay =
@@ -412,45 +574,45 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
             ? content.resizableSnapshotView(from: bounds, afterScreenUpdates: false, withCapInsets: .zero) : nil
         transitionOverlay?.removeFromSuperview()
         transitionOverlay = overlay
-        let codeColor =
-            style?.theme.document["secondary_text"].map {
-                UIColor(
-                    red: CGFloat($0.red), green: CGFloat($0.green), blue: CGFloat($0.blue), alpha: CGFloat($0.alpha))
-            } ?? .secondaryLabel
         let nextPage: ReaderPageView
         if sameContent, !animateReplacement, !widthChanged, let page {
             page.refine(
-                next, scale: max(1, traitCollection.displayScale), preview: preview, previewRect: previewRect,
-                codeControlColor: codeColor)
+                next, scale: displayScale, preview: preview, previewRect: previewRect,
+                codeBlockControl: codeBlockControl)
             nextPage = page
         } else {
             nextPage = ReaderPageView(
-                rendered: next, scale: max(1, traitCollection.displayScale), preview: preview, previewRect: previewRect,
-                codeControlColor: codeColor, tableOffsets: tableOffsets)
+                rendered: next, scale: displayScale, preview: preview, previewRect: previewRect,
+                codeBlockControl: codeBlockControl, tableOffsets: tableOffsets)
             content.addSubview(nextPage)
             page?.clearSelection()
             page?.removeFromSuperview()
         }
         rendered = next
         page = nextPage
+        nextPage.isHidden = false
         if let selection { nextPage.restoreSelection(selection) }
         nextPage.onLink = { [weak self] url in self?.follow(url) }
-        nextPage.onTableScroll = { [weak self] in self?.updateImageViewport() }
+        nextPage.onTableScroll = { [weak self] in
+            self?.updateImageViewport()
+            self?.updateLinkAccessibility()
+        }
         backgroundColor = UIColor(cgColor: next.backgroundColor)
-        window?.backgroundColor = backgroundColor
-        indicatorStyle = style?.theme.appearance == .dark ? .white : .black
-        headings = outline.compactMap { item in next.rect(for: item).map { (item.id, $0.minY) } }
+        indicatorStyle = style.theme.appearance == .dark ? .white : .black
+        headings = document?.outline.compactMap { item in next.rect(for: item).map { (item.id, $0.minY) } } ?? []
         updateScrollExtent()
         setTop(anchor.flatMap { next.y(for: $0) } ?? 0, preservingMomentum: true)
         reflowAnchor.didInstall(next, revision: revision, atY: topY)
-        viewport?.rendered = next
         adjusting = false
-        jumpIfNeeded()
-        findSession.install(next, scroll: false)
+        if let pendingNavigation {
+            navigate(to: pendingNavigation.target, animated: pendingNavigation.animated)
+        }
+        findSnapshotDidChange(next)
         revealPendingTarget()
         presentFindIfNeeded()
         openingIndicator.stopAnimating()
         updateImageViewport()
+        updateLinkAccessibility()
         if firstLayout { becomeFirstResponder() }
         if selection != nil && hadTextFocus { nextPage.becomeFirstResponder() }
         if let overlay {
@@ -473,10 +635,9 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         reportPosition()
     }
 
-    private func setPaper(_ theme: DocumentTheme) {
-        guard let c = theme.document["paper"] else { return }
+    private func setPaper() {
+        guard let c = style.theme.document["paper"] else { return }
         backgroundColor = UIColor(red: c.red, green: c.green, blue: c.blue, alpha: c.alpha)
-        window?.backgroundColor = backgroundColor
     }
 
     private func setTop(
@@ -499,26 +660,35 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         }
         updateHighlightViewport()
         updateImageViewport()
+        updateLinkAccessibility()
         if trackingAnchor && !animated {
             reflowAnchor.moved(in: rendered, atY: topY)
         }
     }
 
-    private func jumpIfNeeded() {
-        guard let viewport, lastJump != viewport.jumpRevision, let id = viewport.jumpID,
-            let rendered, let rect = rendered.rect(forAnchor: id)
-        else { return }
-        lastJump = viewport.jumpRevision
-        let approximate = rendered.needsLayout(in: rect.insetBy(dx: 0, dy: -1))
+    func navigate(to target: ScrollTarget, animated: Bool) {
+        guard !finished else { return }
+        guard isActive, installedRevision == revision, let rendered else {
+            pendingNavigation = (target, animated)
+            if case .position(let anchor) = target {
+                reflowAnchor.navigate(to: anchor)
+                rebuildIfNeeded()
+            }
+            return
+        }
+        pendingNavigation = nil
+        guard let destination = destination(for: target, in: rendered) else { return }
+        let approximate = rendered.needsLayout(in: destination.rect.insetBy(dx: 0, dy: -1))
         adjusting = true
         setTop(
-            max(0, rect.minY - headingTopInset), animated: !approximate && !UIAccessibility.isReduceMotionEnabled,
-            trackingAnchor: true)
+            max(0, destination.rect.minY - destination.inset),
+            animated: animated && !approximate && !UIAccessibility.isReduceMotionEnabled, trackingAnchor: true)
         adjusting = false
         updateImageViewport()
-        if approximate, let anchor = rendered.readingAnchor(forAnchor: id) {
+        updateLinkAccessibility()
+        if approximate, let anchor = destination.anchor {
             reflowAnchor.navigate(to: anchor)
-            pendingReveal = .anchor(id, headingTopInset)
+            pendingReveal = .target(target)
         }
         reportPosition()
         rebuildIfNeeded()
@@ -533,11 +703,14 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         updateHighlightViewport()
-        guard !adjusting else { return }
+        guard !adjusting, isActive, !finished else { return }
         updateImageViewport()
+        updateLinkAccessibility()
         cancelScrollWarmup()
         if isDragging || isDecelerating { pendingReveal = nil }
-        reflowAnchor.moved(in: rendered, atY: topY)
+        if installedFileURL == fileURL && pendingNavigation == nil {
+            reflowAnchor.moved(in: rendered, atY: topY)
+        }
         reportPosition()
         rebuildIfNeeded()
         scheduleScrollWarmup()
@@ -546,13 +719,18 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         guard let page else { return }
         page.updateHighlightViewport(page.convert(bounds, from: self))
     }
+    private func updateLinkAccessibility() {
+        guard !adjusting, isActive, let page else { return }
+        page.updateLinkAccessibility(in: page.convert(bounds, from: self))
+    }
+
     private func updateImageViewport() {
         guard !adjusting, !finished, isActive, window != nil, installedRevision == revision,
-            let page, let rendered
+            installedGeneration == generation, let page, let rendered
         else { return }
-        let regions =
-            rendered.hasReaderImages
-            ? rendered.readerImageRegions(in: page.convert(bounds, from: self), tableOffsets: page.tableOffsets) : []
+        let preload = page.convert(bounds, from: self).insetBy(dx: 0, dy: -min(128, bounds.height * 0.25))
+        let regions = rendered.hasReaderImages
+            ? rendered.readerImageRegions(in: preload, tableOffsets: page.tableOffsets) : []
         let sameSnapshot = imageSnapshot === rendered
         guard !sameSnapshot || regions != visibleImages else { return }
         let previous = sameSnapshot ? visibleImages : []
@@ -576,21 +754,32 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         guard imageTask == nil, !pendingImages.isEmpty else { return }
         imageTask = Task { [weak self] in
             while !Task.isCancelled, let snapshot = self?.imageSnapshot,
-                let region = self?.pendingImages.popFirst()
+                let generation = self?.generation, let region = self?.pendingImages.popFirst()
             {
+                if snapshot.hasReaderImageResult(for: region) { continue }
                 let worker = Task.detached(priority: .userInitiated) {
-                    await snapshot.prepareReaderImage(region)
+                    await snapshot.prepareReaderResource(region)
                 }
                 self?.imageDecode = (region, worker)
-                let changed = await withTaskCancellationHandler {
+                let update = await withTaskCancellationHandler {
                     await worker.value
                 } onCancel: {
                     worker.cancel()
                 }
                 self?.imageDecode = nil
-                guard changed, !Task.isCancelled, let self else { continue }
-                for visible in self.visibleImages where visible.sharesRaster(with: region) {
-                    self.page?.invalidateImage(visible)
+                guard !Task.isCancelled, let self, self.isActive, self.window != nil,
+                    self.generation == generation
+                else { continue }
+                switch update {
+                case .none: break
+                case .pixels:
+                    for visible in self.visibleImages where visible.sharesRaster(with: region) {
+                        self.page?.invalidateImage(visible)
+                    }
+                case .geometry:
+                    // Resolving dimensions changes placement, not just pixels.
+                    // Keep the provider cache but retire this immutable layout.
+                    self.invalidateSession(animate: false)
                 }
             }
             self?.imageTask = nil
@@ -603,100 +792,174 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         pendingImages = []
         imageSnapshot = nil
         imageTask?.cancel()
+        imageDecode?.worker.cancel()
     }
 
     private func reportPosition() {
-        guard window != nil, let rendered else { return }
+        guard !finished, window != nil, installedRevision == revision, let rendered else { return }
         let y = topY
         let heading = headings.last { $0.1 <= y + headingTopInset }?.0 ?? headings.first?.0
-        viewport?.moved(anchor: reflowAnchor.value ?? rendered.readingAnchor(atY: y), heading: heading)
+        onPositionChange?(reflowAnchor.value ?? rendered.readingAnchor(atY: y), heading)
     }
+
     func finish() {
+        guard !finished else { return }
+        reportPosition()
+        finished = true
         stopImageLoading()
         cancelScrollWarmup()
         scrollDiagnostics?.finish()
         scrollDiagnostics = nil
-        findPresentationTask?.cancel()
-        finished = true
         reflow.stop()
         reflowSession = nil
-        viewport?.flush()
-        findInteraction.dismissFindNavigator()
+        dismissFind()
         layoutTask?.cancel()
         transitionOverlay?.removeFromSuperview()
         transitionOverlay = nil
     }
 
     func setActive(_ active: Bool) {
-        guard isActive != active else { return }
         isActive = active
-        // A hidden preview skips layout; catch up on a size change meanwhile.
         if active {
             setNeedsLayout()
             scheduleScrollWarmup()
-        }
-        if !active {
+        } else {
             stopImageLoading()
             cancelScrollWarmup()
             reflow.stop()
+            layoutTask?.cancel()
             reportPosition()
-            findPresentationTask?.cancel()
-            findPresentationTask = nil
-            // Responder changes can ask SwiftUI for its responder graph. Do not
-            // make that reentrant while updateUIView is evaluating that graph.
-            Task { @MainActor [weak self] in
-                guard let self, !self.isActive else { return }
-                self.findInteraction.dismissFindNavigator()
+        }
+        // UIKit responder changes can query SwiftUI's responder graph. Do not
+        // make that reentrant while updateUIView is evaluating the same graph.
+        Task { @MainActor [weak self] in
+            guard let self, self.isActive == active, !self.finished else { return }
+            if active {
+                if self.window != nil, self.rendered != nil, self.page?.isFirstResponder != true {
+                    self.becomeFirstResponder()
+                }
+            } else {
+                self.suspendFind()
+                self.page?.resignFirstResponder()
                 self.resignFirstResponder()
             }
         }
     }
 
-    func requestFind(_ revision: Int) {
-        findRequest = revision
-        presentFindIfNeeded()
+    private var currentSnapshot: RenderedDocument? {
+        !finished && installedRevision == revision ? rendered : nil
+    }
+    private var findSnapshot: RenderedDocument? { isActive ? currentSnapshot : nil }
+    var canPresentFind: Bool { nativeFind != nil && isActive && !finished && document != nil }
+    var isFindPresented: Bool { nativeFind?.isPresented == true }
+
+    func presentFind() -> Bool {
+        guard canPresentFind else { return false }
+        if !isFindPresented {
+            wantsFind = true
+            presentFindIfNeeded()
+        }
+        return true
+    }
+
+    func dismissFind() {
+        wantsFind = false
+        suspendFind()
+    }
+
+    private func suspendFind() {
+        findPresentationTask?.cancel()
+        findPresentationTask = nil
+        nativeFind?.dismiss()
     }
 
     private func presentFindIfNeeded() {
-        guard isActive, rendered != nil, window != nil, findRequest != presentedFindRequest,
-            findPresentationTask == nil
-        else { return }
+        guard wantsFind, findSnapshot != nil, window != nil, findPresentationTask == nil else { return }
         findPresentationTask = Task { @MainActor [weak self] in
-            guard let self else { return }
+            guard let self, !Task.isCancelled else { return }
             self.findPresentationTask = nil
-            guard !Task.isCancelled, self.isActive, self.window != nil,
-                self.findRequest != self.presentedFindRequest
-            else { return }
-            self.presentedFindRequest = self.findRequest
-            self.findInteraction.presentFindNavigator(showingReplace: false)
+            guard self.wantsFind, self.findSnapshot != nil, self.window != nil else { return }
+            self.wantsFind = false
+            self.becomeFirstResponder()
+            self.nativeFind?.present()
         }
     }
 
-    func findInteraction(_ interaction: UIFindInteraction, sessionFor view: UIView) -> UIFindSession? {
-        guard let rendered else { return nil }
-        findSession.install(rendered)
-        return findSession
-    }
-
-    func findInteraction(_ interaction: UIFindInteraction, didBegin session: UIFindSession) {
+    private func didBeginNativeFind() {
+        systemFindActive = true
         page?.clearSelection()
-        findSession.begin()
+        programmaticFind.clear()
+        wantsProgrammaticReveal = false
+        publishFindResult()
+        displayFindResults([], current: nil, scroll: false)
+        reportFindPresentation(true)
     }
 
-    func findInteraction(_ interaction: UIFindInteraction, didEnd session: UIFindSession) {
-        findSession.end()
-        // Let UIKit finish resigning its search field, then restore the reader's
-        // responder chain so Command-F can start another session.
+    private func didEndNativeFind() {
+        if systemFindActive { displayFindResults([], current: nil, scroll: false) }
+        systemFindActive = false
+        reportFindPresentation(false)
+        // Let UIKit finish resigning its search field before restoring Command-F.
         Task { @MainActor [weak self] in
-            guard let self, self.isActive, self.window != nil, !self.findInteraction.isFindNavigatorVisible else {
-                return
-            }
+            guard let self, self.canPresentFind, self.window != nil, !self.isFindPresented else { return }
             self.becomeFirstResponder()
         }
     }
 
+    private func reportFindPresentation(_ presented: Bool) {
+        guard didReportFind != presented else { return }
+        didReportFind = presented
+        onFindPresentationChange?(presented)
+    }
+
+    func setFindQuery(_ query: String, options: SearchOptions) {
+        systemFindActive = false
+        dismissFind()
+        wantsProgrammaticReveal = !query.isEmpty
+        programmaticFind.setQuery(query, options: options, in: currentSnapshot)
+        displayProgrammaticFind()
+    }
+
+    func moveToFindMatch(_ direction: FindDirection) {
+        guard !systemFindActive else { return }
+        programmaticFind.move(direction)
+        wantsProgrammaticReveal = true
+        displayProgrammaticFind()
+    }
+
+    func clearFind() {
+        programmaticFind.clear()
+        wantsProgrammaticReveal = false
+        if systemFindActive { publishFindResult() } else { displayProgrammaticFind() }
+    }
+
+    private func findSnapshotDidChange(_ rendered: RenderedDocument) {
+        nativeFind?.install(rendered)
+        if !systemFindActive {
+            programmaticFind.install(rendered)
+            displayProgrammaticFind()
+        }
+    }
+
+    private func publishFindResult() {
+        let result = programmaticFind.result
+        guard result != reportedFindResult else { return }
+        reportedFindResult = result
+        onFindResultChange?(result)
+    }
+
+    private func displayProgrammaticFind() {
+        let reveal = findSnapshot != nil && wantsProgrammaticReveal
+        if reveal { wantsProgrammaticReveal = false }
+        if installedRevision == revision {
+            displayFindResults(programmaticFind.ranges, current: programmaticFind.currentIndex, scroll: reveal)
+        }
+        publishFindResult()
+    }
+
     private func displayFindResults(_ matches: [TextRange], current: Int?, scroll: Bool) {
-        if scroll, let current, matches.indices.contains(current) {
+        let refiningFindMatch = if case .find = pendingReveal { true } else { false }
+        if scroll || refiningFindMatch, let current, matches.indices.contains(current) {
             page?.reveal(matches[current])
         }
         page?.highlight(matches: matches, current: current)
@@ -713,7 +976,8 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         guard scroll, let rect = currentFindRect else { return }
         let approximate = rendered?.needsLayout(in: rect.insetBy(dx: 0, dy: -1)) == true
         setTop(
-            max(0, rect.minY - findTopInset), animated: !approximate && !UIAccessibility.isReduceMotionEnabled,
+            max(0, rect.minY - (systemFindActive ? findTopInset : headingTopInset)),
+            animated: !approximate && !UIAccessibility.isReduceMotionEnabled,
             trackingAnchor: true)
         if approximate, let current, matches.indices.contains(current),
             let anchor = rendered?.readingAnchor(at: matches[current].lowerBound)
@@ -725,25 +989,28 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
     }
 
     private func follow(_ url: URL) {
-        guard let rendered else { return }
-        if let fragment = url.fragment, url.scheme == nil || (url.isFileURL && url.path == fileURL?.path) {
+        guard isActive, installedFileURL == fileURL else { return }
+        let fragmentOnly = url.scheme == nil && url.absoluteString.hasPrefix("#")
+        let sameFile = url.isFileURL && fileURL?.isFileURL == true
+            && url.standardizedFileURL.path == fileURL?.standardizedFileURL.path
+        if let fragment = url.fragment, fragmentOnly || sameFile {
             // An unresolved same-document fragment is not an external URL.
-            guard let rect = rendered.rect(forAnchor: fragment) else { return }
-            let approximate = rendered.needsLayout(in: rect.insetBy(dx: 0, dy: -1))
-            adjusting = true
-            setTop(
-                max(0, rect.minY - 8), animated: !approximate && !UIAccessibility.isReduceMotionEnabled,
-                trackingAnchor: true)
-            adjusting = false
-            updateImageViewport()
-            if approximate, let anchor = rendered.readingAnchor(forAnchor: fragment) {
-                reflowAnchor.navigate(to: anchor)
-                pendingReveal = .anchor(fragment, 8)
-            }
-            reportPosition()
-            rebuildIfNeeded()
+            navigate(to: .anchor(fragment, inset: 8), animated: true)
         } else {
-            openLink?(url)
+            onOpenLink?(url)
+        }
+    }
+
+    private func destination(
+        for target: ScrollTarget, in rendered: RenderedDocument
+    ) -> (rect: CGRect, inset: CGFloat, anchor: ReadingAnchor?)? {
+        switch target {
+        case .position(let anchor):
+            guard let y = rendered.y(for: anchor) else { return nil }
+            return (CGRect(x: 0, y: y, width: rendered.size.width, height: 1), 0, anchor)
+        case .anchor(let id, let inset):
+            guard let rect = rendered.rect(forAnchor: id) else { return nil }
+            return (rect, inset, rendered.readingAnchor(forAnchor: id))
         }
     }
 
@@ -752,9 +1019,10 @@ final class ReaderScrollView: UIScrollView, UIScrollViewDelegate, UIFindInteract
         let rect: CGRect?
         let inset: CGFloat
         switch pendingReveal {
-        case .anchor(let id, let topInset):
-            rect = rendered.rect(forAnchor: id)
-            inset = topInset
+        case .target(let target):
+            let destination = destination(for: target, in: rendered)
+            rect = destination?.rect
+            inset = destination?.inset ?? 0
         case .find:
             rect = currentFindRect
             inset = 24
@@ -788,14 +1056,22 @@ fileprivate final class ReaderPageView: ReaderTextInputView {
     var onTableScroll: (() -> Void)?
     private var seedLayer: CALayer?
     private var tileLayer: ReaderTileLayer?
-    private var copyButtons: [ReaderCodeCopyButton] = []
+    private var codeControls: [UIControl] = []
+    private lazy var textElement = UIAccessibilityElement(accessibilityContainer: self)
+    private var accessibilityViewport = CGRect.null
+    private var linkWindow = CGRect.null
+    private var cachedAccessibilityElements: [Any]?
     var tableOffsets: [Int: CGFloat] {
-        Dictionary(uniqueKeysWithValues: tableScrollViews.map { ($0.tableID, $0.contentOffset.x) })
+        var offsets: [Int: CGFloat] = [:]
+        for table in tableScrollViews where table.contentOffset.x != 0 {
+            offsets[table.tableID] = table.contentOffset.x
+        }
+        return offsets
     }
 
     init(
         rendered: RenderedDocument, scale: CGFloat, preview: ReaderPagePreview?, previewRect: CGRect,
-        codeControlColor: UIColor, tableOffsets: [Int: CGFloat] = [:]
+        codeBlockControl: ((RenderedCodeBlock) -> UIControl?)?, tableOffsets: [Int: CGFloat] = [:]
     ) {
         super.init(rendered: rendered)
         layer.anchorPoint = .zero
@@ -812,48 +1088,75 @@ fileprivate final class ReaderPageView: ReaderTextInputView {
         currentHighlight.fillColor = UIColor.systemOrange.withAlphaComponent(0.45).cgColor
         layer.addSublayer(matchHighlights)
         layer.addSublayer(currentHighlight)
-        installCodeControls(color: codeControlColor)
+        updateAccessibleText()
+        installCodeControls(codeBlockControl)
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
     func refine(
         _ next: RenderedDocument, scale: CGFloat, preview: ReaderPagePreview?, previewRect: CGRect,
-        codeControlColor: UIColor
+        codeBlockControl: ((RenderedCodeBlock) -> UIControl?)?
     ) {
         highlightIndex = nil
         highlightWindow = .null
         replaceRendered(next)
         installDrawingLayers(scale: scale, preview: preview, previewRect: previewRect)
         installTables(scale: scale, preview: preview)
-        installCodeControls(color: codeControlColor)
+        updateAccessibleText()
+        installCodeControls(codeBlockControl)
     }
 
-    /// Viewport refinement moves code blocks as estimated heights become exact,
-    /// so Copy buttons and the document accessibility element follow each layout.
-    private func installCodeControls(color: UIColor) {
-        for button in copyButtons { button.removeFromSuperview() }
-        copyButtons = []
-        for block in rendered.codeBlocks {
-            guard let frame = ReaderCodeBlockStyle.copyButtonFrame(in: block) else { continue }
-            let button = ReaderCodeCopyButton(block: block, frame: frame, color: color)
-            copyButtons.append(button)
-            addSubview(button)
-        }
-        // Preserve the existing whole-document reading element, while allowing
-        // assistive technologies to discover the native Copy buttons as well.
+    /// Viewport refinement moves code blocks as estimated heights become exact.
+    func installCodeControls(_ factory: ((RenderedCodeBlock) -> UIControl?)?) {
+        for control in codeControls { control.removeFromSuperview() }
+        codeControls = factory.map { rendered.codeBlocks.compactMap($0) } ?? []
+        for control in codeControls { addSubview(control) }
+        textElement.accessibilityCustomActions = codeControls.flatMap { $0.accessibilityCustomActions ?? [] }
+        cachedAccessibilityElements = nil
+    }
+
+    func containsCodeControl(_ view: UIView) -> Bool {
+        codeControls.contains { view === $0 || view.isDescendant(of: $0) }
+    }
+
+    private func updateAccessibleText() {
         isAccessibilityElement = false
-        let textElement = UIAccessibilityElement(accessibilityContainer: self)
-        textElement.accessibilityLabel = rendered.text(in: rendered.documentRange)
+        textElement.accessibilityLabel = rendered.readerSemanticText
         textElement.accessibilityTraits = .staticText
         textElement.accessibilityFrameInContainerSpace = bounds
-        textElement.accessibilityCustomActions = copyButtons.enumerated().compactMap { index, button in
-            guard button.isEnabled else { return nil }
-            return UIAccessibilityCustomAction(name: String(localized: "Copy code block \(index + 1)")) {
-                [weak button] _ in
-                button?.copyCode() ?? false
+        linkWindow = .null
+        cachedAccessibilityElements = nil
+    }
+
+    func updateLinkAccessibility(in viewport: CGRect) { accessibilityViewport = viewport }
+
+    override var accessibilityElements: [Any]? {
+        get {
+            // Geometry is queried when UIKit needs the accessibility tree, not
+            // synchronously on every native scroll or table drag callback.
+            let visible = accessibilityViewport.intersection(bounds)
+            if let cachedAccessibilityElements, visible.isNull || linkWindow.contains(visible) {
+                return cachedAccessibilityElements
             }
+            var elements: [NSObject] = [textElement]
+            elements += tableScrollViews
+            elements += codeControls
+            linkWindow = visible.insetBy(dx: 0, dy: -max(128, visible.height * 0.5)).intersection(bounds)
+            if !linkWindow.isNull, !linkWindow.isEmpty {
+                for link in rendered.readerLinks(in: linkWindow, tableOffsets: tableOffsets) {
+                    let element = ReaderLinkAccessibilityElement(container: self, url: link.url)
+                    element.accessibilityFrameInContainerSpace = link.rect
+                    element.activate = { [weak self] in self?.onLink?(link.url) }
+                    elements.append(element)
+                }
+            }
+            cachedAccessibilityElements = elements
+            return elements
         }
-        accessibilityElements = [textElement] + copyButtons
+        set {
+            cachedAccessibilityElements = newValue
+            linkWindow = accessibilityViewport.intersection(bounds)
+        }
     }
 
     private func installTables(scale: CGFloat, preview: ReaderPagePreview?) {
@@ -868,6 +1171,7 @@ fileprivate final class ReaderPageView: ReaderTextInputView {
                 scroll = ReaderTableScrollView(
                     rendered: rendered, table: table, scale: scale, preview: preview?.tables[table.id])
                 scroll.onScroll = { [weak self] in
+                    self?.linkWindow = .null
                     self?.paintHighlights()
                     self?.onTableScroll?()
                 }
@@ -1012,6 +1316,22 @@ fileprivate final class ReaderPageView: ReaderTextInputView {
     }
 }
 
+private final class ReaderLinkAccessibilityElement: UIAccessibilityElement {
+    var activate: (() -> Void)?
+
+    init(container: UIView, url: URL) {
+        super.init(accessibilityContainer: container)
+        accessibilityLabel = url.absoluteString
+        accessibilityTraits = .link
+    }
+
+    override func accessibilityActivate() -> Bool {
+        guard let activate else { return false }
+        activate()
+        return true
+    }
+}
+
 fileprivate final class ReaderTileLayer: CATiledLayer {
     private let rendered: RenderedDocument?
     init(rendered: RenderedDocument) {
@@ -1028,3 +1348,4 @@ fileprivate final class ReaderTileLayer: CATiledLayer {
         rendered?.draw(in: context, rect: context.boundingBoxOfClipPath, excludingScrollableTables: true)
     }
 }
+#endif

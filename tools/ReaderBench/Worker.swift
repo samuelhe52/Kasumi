@@ -26,9 +26,8 @@ struct BenchmarkCase {
 
 enum BenchError: Error { case invalid(String) }
 
-func milliseconds(_ start: ContinuousClock.Instant) -> Double {
-    let elapsed = start.duration(to: .now).components
-    return Double(elapsed.seconds) * 1000 + Double(elapsed.attoseconds) / 1e15
+func milliseconds(_ start: DispatchTime) -> Double {
+    Double(DispatchTime.now().uptimeNanoseconds - start.uptimeNanoseconds) / 1e6
 }
 
 func hostState() -> [String: Any] {
@@ -62,7 +61,7 @@ struct Worker {
     func paint(_ snapshot: RenderedDocument, rect: CGRect, scale: CGFloat = 2) throws -> Double {
         guard !rect.isEmpty, !snapshot.needsLayout(in: rect) else { throw BenchError.invalid("uncovered engine paint") }
         return try autoreleasepool {
-            let start = ContinuousClock.now
+            let start = DispatchTime.now()
             guard let bitmap = LabPreview.paint(snapshot, rect: rect, scale: scale) else {
                 throw BenchError.invalid("bitmap creation failed")
             }
@@ -74,7 +73,7 @@ struct Worker {
 
     func prepared(_ session: DocumentReflowSession, width: CGFloat = width) async throws -> (RenderedDocument?, Double)
     {
-        let start = ContinuousClock.now
+        let start = DispatchTime.now()
         let snapshot = try await session.prepareForScrolling(width: width)
         let elapsed = milliseconds(start)
         guard (snapshot != nil) == (item.sample != .single), snapshot?.hasEstimatedGeometry != true else {
@@ -83,18 +82,18 @@ struct Worker {
         return (snapshot, elapsed)
     }
 
-    func open(warm: Bool, fileStart: ContinuousClock.Instant? = nil) async throws -> [String: Any] {
+    func open(warm: Bool, fileStart: DispatchTime? = nil) async throws -> [String: Any] {
         // A discarded in-process parse/layout/paint warms library/font/raster initialization.
         // Only this worker's warm mode uses it; cold workers never do.
         if warm { try await warmOpen() }
-        let total = ContinuousClock.now
-        let parseStart = ContinuousClock.now
+        let total = DispatchTime.now()
+        let parseStart = DispatchTime.now()
         let document = autoreleasepool { MarkdownDocument(markdown: source) }
         let parseMs = milliseconds(parseStart)
-        let setupStart = ContinuousClock.now
+        let setupStart = DispatchTime.now()
         let session = DocumentReflowSession(document, style: style)
         let setupMs = milliseconds(setupStart)
-        let firstStart = ContinuousClock.now
+        let firstStart = DispatchTime.now()
         let initial = await session.render(width: Self.width, viewportHeight: Self.height)
         let firstMs = milliseconds(firstStart)
         let paintMs = try paint(initial, rect: rect(initial))
@@ -133,13 +132,13 @@ struct Worker {
         // The first complete cycle is explicit warmup, never silently filtered later.
         for cycle in 0..<(full ? 26 : 4) {
             for width in Self.widths {
-                let start = ContinuousClock.now
+                let start = DispatchTime.now()
                 var next: RenderedDocument? = await session.render(
                     width: width, viewportHeight: Self.height, anchor: anchor)
                 let construct = milliseconds(start)
                 let visible = rect(next!, top: next!.y(for: anchor) ?? 0, width: width)
                 let painting = try paint(next!, rect: visible)
-                let releaseStart = ContinuousClock.now
+                let releaseStart = DispatchTime.now()
                 releaseSnapshot(&previous)
                 let dispose = milliseconds(releaseStart)
                 previous = next
@@ -160,13 +159,13 @@ struct Worker {
         for index in 0..<(full ? 100 : 12) {
             let fraction = CGFloat((index * 37) % 101) / 100
             let target = current.readingAnchor(atY: max(0, current.size.height - Self.height) * fraction)
-            var start = ContinuousClock.now
+            var start = DispatchTime.now()
             current = await movingSession.render(width: Self.width, viewportHeight: Self.height, anchor: target)
             let moving = milliseconds(start)
             guard !current.needsLayout(in: rect(current, top: current.y(for: target) ?? 0)) else {
                 throw BenchError.invalid("uncovered moving-anchor refinement")
             }
-            start = ContinuousClock.now
+            start = DispatchTime.now()
             let same = await movingSession.render(width: Self.width, viewportHeight: Self.height, anchor: target)
             let fixed = milliseconds(start)
             refinements.append([
@@ -185,7 +184,7 @@ struct Worker {
         let session = DocumentReflowSession(document, style: style)
         let initial = await session.render(width: Self.width, viewportHeight: Self.height)
         let (snapshot, prepareMs) = try await prepared(session)
-        let start = ContinuousClock.now
+        let start = DispatchTime.now()
         let changed = await session.render(width: 900, viewportHeight: Self.height)
         let elapsed = milliseconds(start)
         _ = try paint(changed, rect: rect(changed, width: 900))
@@ -241,14 +240,14 @@ struct Worker {
         for index in 0..<iterations {
             // Different query forces a miss while retaining the immutable semantic text.
             _ = search.ranges(in: text, matching: "__no_benchmark_match__")
-            var start = ContinuousClock.now
+            var start = DispatchTime.now()
             let numeric = search.ranges(in: text, matching: query)
             let searchMs = milliseconds(start)
-            start = ContinuousClock.now
+            start = DispatchTime.now()
             let retained = search.ranges(in: text, matching: query)
             let hitMs = milliseconds(start)
             guard retained == numeric, !numeric.isEmpty else { throw BenchError.invalid("Find lost matches") }
-            start = ContinuousClock.now
+            start = DispatchTime.now()
             let origin = snapshot.documentRange.lowerBound
             let matches = numeric.map { range in
                 KasumiMarkdown.TextRange(
@@ -260,7 +259,7 @@ struct Worker {
             }
             let remapMs = milliseconds(start)
             let top = max(0, snapshot.size.height - Self.height) * CGFloat((index * 37) % 101) / 100
-            start = ContinuousClock.now
+            start = DispatchTime.now()
             let candidates = indexer.candidates(in: snapshot, verticalRange: top..<(top + Self.height))
             var rectangles = 0
             for i in candidates { rectangles += snapshot.selectionRects(for: matches[i]).count }
@@ -271,7 +270,7 @@ struct Worker {
                 "candidates": candidates.count, "rectangles": rectangles
             ])
         }
-        let start = ContinuousClock.now
+        let start = DispatchTime.now()
         let giant = snapshot.selectionRects(for: snapshot.documentRange)
         let giantMs = milliseconds(start)
         withExtendedLifetime((initial, snapshot, session, giant)) {}
@@ -325,7 +324,7 @@ struct Worker {
             }
             var previous = 0
             for idle in full ? [0, 5, 15] : [0, 1] {
-                if idle > previous { try await Task.sleep(for: .seconds(idle - previous)) }
+                if idle > previous { try await Task.sleep(nanoseconds: UInt64(idle - previous) * 1_000_000_000) }
                 try sample(stage, idle)
                 previous = idle
             }

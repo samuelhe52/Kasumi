@@ -3,6 +3,7 @@ import Foundation
 /// Parsed content and resource provenance, independent of any viewport or app.
 public struct MarkdownDocument: Sendable {
     let parsed: ParsedDocument
+    package let readerIdentity = UUID()
 
     /// Cached document default for `hyphenation_language = "auto"`.
     /// An explicit profile/CLI dictionary overrides this selection at layout time.

@@ -1,3 +1,4 @@
+#if os(iOS)
 import UIKit
 
 /// Opt-in measurement only. No display link, samples or files exist unless the
@@ -89,3 +90,4 @@ import UIKit
         }
     }
 }
+#endif

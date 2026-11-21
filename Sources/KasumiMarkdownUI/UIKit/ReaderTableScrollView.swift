@@ -1,3 +1,4 @@
+#if os(iOS)
 import KasumiMarkdown
 import UIKit
 
@@ -111,3 +112,4 @@ fileprivate final class ReaderTableTileLayer: CATiledLayer {
         rendered?.drawTable(at: index, in: context, rect: context.boundingBoxOfClipPath)
     }
 }
+#endif

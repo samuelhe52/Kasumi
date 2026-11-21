@@ -10,7 +10,7 @@ import KasumiMarkdown
             var samples: [Double] = []
             var pixels = 0
             for _ in 0..<repeats {
-                let start = ContinuousClock.now
+                let start = DispatchTime.now()
                 samples.append(
                     try autoreleasepool {
                         guard let bitmap = DocumentImageStore.decode(data)?.bitmap else {
@@ -35,7 +35,7 @@ import KasumiMarkdown
             var checksum = 0
             for _ in 0..<repeats {
                 try Task.checkCancellation()
-                let start = ContinuousClock.now
+                let start = DispatchTime.now()
                 checksum += autoreleasepool { MarkdownDocument(markdown: source).outline.count }
                 samples.append(milliseconds(start))
             }
@@ -56,7 +56,7 @@ import KasumiMarkdown
         if args.count == 6, args[0] == "--worker", let item = BenchmarkCase.all.first(where: { $0.id == args[2] }) {
             let phase = args[1]
             let startState = hostState()
-            let readStart = ContinuousClock.now
+            let readStart = DispatchTime.now()
             let data = try Data(contentsOf: URL(fileURLWithPath: args[3]))
             guard let source = String(data: data, encoding: .utf8) else { throw BenchError.invalid("source decoding") }
             let readMs = milliseconds(readStart)
@@ -94,7 +94,7 @@ import KasumiMarkdown
     }
 
     static func measureReaderImages(source: URL, output: String) async throws {
-        let start = ContinuousClock.now
+        let start = DispatchTime.now()
         let width: CGFloat = 402
         let height: CGFloat = 874
         let scale: CGFloat = 3

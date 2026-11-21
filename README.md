@@ -57,6 +57,8 @@ Add KasumiMarkdown to your `Package.swift` dependencies:
 .package(url: "https://github.com/samuelhe52/Kasumi.git", from: "0.1.1")
 ```
 
+Add the optional [`KasumiMarkdownUI` product](docs/library.md#embedding-a-native-reader) for a scrollable UIKit, AppKit, or SwiftUI reader.
+
 Render a document into any `CGContext`:
 
 ```swift
