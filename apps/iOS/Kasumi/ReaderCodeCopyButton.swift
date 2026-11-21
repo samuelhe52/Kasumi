@@ -18,7 +18,7 @@ final class ReaderCodeCopyButton: UIButton {
         addAction(UIAction { [weak self] _ in self?.copyCode() }, for: .primaryActionTriggered)
         if isEnabled {
             accessibilityCustomActions = [
-                UIAccessibilityCustomAction(name: String(localized: "Copy code block")) { [weak self] _ in
+                UIAccessibilityCustomAction(name: String(localized: "Copy code block \(block.id + 1)")) { [weak self] _ in
                     self?.copyCode() ?? false
                 }
             ]

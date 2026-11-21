@@ -587,3 +587,49 @@ fileprivate final class ImageFixtureProtocol: URLProtocol, @unchecked Sendable {
     #expect(pixels.width * pixels.height <= 4_000_000)
     #expect(rendered.readerImageRegions(in: viewport) == regions)
 }
+
+@MainActor @Test func scopedReaderDecodesLocalPixelsWhileAllRemoteRasterizersAreSuspended() async throws {
+    @MainActor final class Gate {
+        var waiting: [CheckedContinuation<Void, Never>] = []
+        var released = false
+
+        func block() async -> CGImage? {
+            if !released { await withCheckedContinuation { waiting.append($0) } }
+            return nil
+        }
+
+        func release() {
+            released = true
+            for continuation in waiting { continuation.resume() }
+            waiting.removeAll()
+        }
+    }
+
+    let gate = Gate()
+    let resource = MarkdownImageResource(intrinsicSize: CGSize(width: 16, height: 12)) { _ in await gate.block() }
+    let scope = ReaderImageResources(MarkdownRemoteImages { _ in resource })
+    let sources = (0..<4).map { "https://example.invalid/\($0)" } + ["images/tiny.png"]
+    let markdown = sources.map { "<img src=\"\($0)\" alt=\"Sample\" width=\"16\" height=\"12\">" }
+        .joined(separator: "\n\n")
+    let document = MarkdownDocument(markdown: markdown, baseURL: imageFixtureDirectory)
+    let snapshot = await DocumentReflowSession(
+        document, style: .init(), readerDisplayScale: 1, readerResources: scope
+    ).render(width: 320)
+    let regions = snapshot.readerImageRegions(in: CGRect(origin: .zero, size: snapshot.size))
+    let local = try #require(regions.first { !$0.isRemote })
+    let remote = regions.filter(\.isRemote)
+    try #require(remote.count == 4)
+    let blocked = remote.map { region in Task { await snapshot.prepareReaderResource(region) } }
+    defer {
+        for task in blocked { task.cancel() }
+        gate.release()
+    }
+    for _ in 0..<200 where gate.waiting.count < 4 { try await Task.sleep(nanoseconds: 10_000_000) }
+    try #require(gate.waiting.count == 4)
+
+    var result: ReaderResourceUpdate?
+    let localTask = Task { result = await snapshot.prepareReaderResource(local) }
+    defer { localTask.cancel() }
+    for _ in 0..<200 where result == nil { try await Task.sleep(nanoseconds: 10_000_000) }
+    #expect(result == .pixels)
+}

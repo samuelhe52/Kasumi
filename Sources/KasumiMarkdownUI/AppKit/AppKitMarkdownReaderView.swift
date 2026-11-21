@@ -13,8 +13,9 @@ import os
             guard isActive != oldValue else { return }
             if isActive {
                 requestLayout()
+                resumePendingFind()
             } else {
-                dismissFind()
+                closeFindBar()
                 canvas.endDrag()
                 cancelWork()
                 find.finder.cancelFindIndicator()
@@ -125,12 +126,13 @@ import os
     public override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
         if window == nil {
-            dismissFind()
+            closeFindBar()
             canvas.endDrag()
             cancelWork()
         } else {
             if sessionScale != scale { invalidateLayout() }
             requestLayout()
+            resumePendingFind()
         }
     }
 
@@ -501,6 +503,14 @@ import os
 
     public func dismissFind() {
         find.presentationPending = false
+        closeFindBar()
+    }
+
+    private func resumePendingFind() {
+        if find.presentationPending, canPresentFind { presentFind() }
+    }
+
+    private func closeFindBar() {
         if isFindPresented { find.finder.performAction(.hideFindInterface) }
         if case .nativeFindMatch? = pendingReveal?.target { userWillScroll() }
         if isFindPresented { find.isFindBarVisible = false }
@@ -656,7 +666,7 @@ import os
     }
 
     func activateLink(_ url: URL) {
-        if let fragment = url.fragment, url.scheme == nil || (url.isFileURL && url.path == documentURL?.path) {
+        if let fragment = readerDocumentFragment(in: url, documentURL: documentURL) {
             scroll(toAnchorID: fragment)
         } else {
             onOpenLink?(url)

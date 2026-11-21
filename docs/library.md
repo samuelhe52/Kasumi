@@ -41,6 +41,8 @@ Give the reader a viewport; do not wrap it in another scroll view. The host supp
 
 In UIKit or AppKit, embed a `MarkdownReaderView(frame: .zero)` and constrain it to the available space. Set its `style` and call `setDocument(_:url:restoring:)`. Use `scroll(toAnchorID:)` for outline actions and `onPositionChange` to save a `ReadingAnchor` in your app. Use `canPresentFind` and `presentFind()` for a native Find button.
 
+On UIKit, `.markdownCodeBlockControl(id:_:)` adds app-provided controls to code blocks. Without an ID, the reader refreshes controls on SwiftUI updates. Supply an ID that changes with the factory's configuration to keep existing controls during unrelated updates.
+
 ### Reader images
 
 Remote HTTP(S) images do not load by default. Use `.markdownRemoteImages(.http)` or `setRemoteImages(.http)` to opt in to Kasumi's bounded downloader. For an app-managed byte cache or authenticated loader, create one `MarkdownRemoteImages` configuration and keep it across view updates:

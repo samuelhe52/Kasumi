@@ -379,7 +379,7 @@ struct ReaderScreen: View {
                 )
                 .markdownFindNavigator(isPresented: $findPresented)
                 .markdownRemoteImages(.http)
-                .markdownCodeBlockControl { block in
+                .markdownCodeBlockControl(id: codeColor) { block in
                     guard let frame = ReaderCodeBlockStyle.copyButtonFrame(in: block) else { return nil }
                     return ReaderCodeCopyButton(block: block, frame: frame, color: codeColor)
                 }

@@ -100,3 +100,5 @@ simulator through `make test-ios FILTER=PublicAPITests`.
   remove `chrome` from the theme API and file format. See [003.003](003-theme-palette-fields.md).
 - Updated 2026-11-21: Approved native reader views, SwiftUI Find, and a
   reader-only image provider — see [003.004](004-native-reader-views.md).
+- Updated 2026-11-22: Corrected reader focus, background image scheduling,
+  link routing, pending Find, and code controls — see [003.005](005-reader-integration-fixes.md).

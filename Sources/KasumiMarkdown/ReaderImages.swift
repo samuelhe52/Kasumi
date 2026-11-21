@@ -86,6 +86,7 @@ public struct ReaderImageRegion: Sendable, Equatable {
     public let rect: CGRect
     public let tableID: Int?
     let request: ReaderImageRequest
+    package var isRemote: Bool { DocumentImageStore.isRemote(request.source.url) }
 
     public static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.rect == rhs.rect && lhs.tableID == rhs.tableID && lhs.request.key == rhs.request.key
@@ -208,7 +209,7 @@ package final class ReaderImageResources: Sendable {
     }
 
     let id = UUID()
-    let rasters = ReaderImageRasterCache(byteLimit: 64 * 1024 * 1024)
+    let rasters = ReaderImageRasterCache(byteLimit: 64 * 1024 * 1024, separatesLocalWork: true)
     private let configuration: MarkdownRemoteImages?
     private let metadata = ReaderImageLRU<URL, Metadata>(countLimit: 2048)
     private let resources = ReaderImageLRU<URL, MarkdownImageResource>(
@@ -259,11 +260,13 @@ final class ReaderImageRasterCache: Sendable {
     }
     private let entries: ReaderImageLRU<ReaderImageRequest.Key, Entry>
     private let work = ReaderImageWork<ReaderImageRequest.Key, Entry>()
+    private let localWork: ReaderImageWork<ReaderImageRequest.Key, Entry>?
     private let byteLimit: Int
 
-    init(byteLimit: Int) {
+    init(byteLimit: Int, separatesLocalWork: Bool = false) {
         self.byteLimit = byteLimit
         entries = ReaderImageLRU(countLimit: 256, byteLimit: byteLimit)
+        localWork = separatesLocalWork ? ReaderImageWork(limit: 1) : nil
     }
 
     func bitmap(for key: ReaderImageRequest.Key) -> CGImage? { entries.value(for: key)?.bitmap }
@@ -272,6 +275,7 @@ final class ReaderImageRasterCache: Sendable {
     func load(
         _ key: ReaderImageRequest.Key, operation: @escaping @Sendable () async -> CGImage?
     ) async -> Bool {
+        let work = key.scope == nil ? localWork ?? self.work : self.work
         let result = await work.run(key) {
             self.entries.touch(key)
         } operation: {

@@ -23,6 +23,7 @@ import SwiftUI
     private var findResultChange: ((FindResult) -> Void)?
     #if os(iOS)
         private var codeControl: ((RenderedCodeBlock) -> UIControl?)?
+        private var codeControlID: AnyHashable?
     #endif
     @Environment(\.markdownReaderConnection) private var connection
 
@@ -77,9 +78,14 @@ import SwiftUI
 
     #if os(iOS)
         /// Installs a host control with a frame in document coordinates for each eligible code block.
-        public func markdownCodeBlockControl(_ factory: @escaping (RenderedCodeBlock) -> UIControl?) -> Self {
+        /// With no ID, SwiftUI updates replace installed controls. Supply an ID
+        /// that changes with the factory's configuration to preserve live controls between updates.
+        public func markdownCodeBlockControl(
+            id: AnyHashable? = nil, _ factory: @escaping (RenderedCodeBlock) -> UIControl?
+        ) -> Self {
             var reader = self
             reader.codeControl = factory
+            reader.codeControlID = id
             return reader
         }
     #endif
@@ -90,7 +96,7 @@ import SwiftUI
         coordinator.configure(self, view: view)
         #if os(iOS)
             view.animatesDocumentChanges = animated
-            view.configureCodeBlockControl(codeControl)
+            coordinator.updateCodeBlockControl(codeControl, id: codeControlID, view: view)
         #endif
         view.isActive = isActive
         view.style = style
@@ -176,6 +182,22 @@ extension EnvironmentValues {
     private var position: (ReadingAnchor, String?)?
     private var result: FindResult?
     private var callbackTask: Task<Void, Never>?
+    #if os(iOS)
+        private var installedCodeControlID: AnyHashable?
+
+        func updateCodeBlockControl(
+            _ factory: ((RenderedCodeBlock) -> UIControl?)?, id: AnyHashable?, view: MarkdownReaderView
+        ) {
+            if let factory {
+                guard id == nil || installedCodeControlID != id || view.codeBlockControl == nil else { return }
+                view.codeBlockControl = factory
+                installedCodeControlID = id
+            } else if view.codeBlockControl != nil {
+                view.codeBlockControl = nil
+                installedCodeControlID = nil
+            }
+        }
+    #endif
 
     func configure(_ reader: MarkdownReader, view: MarkdownReaderView) {
         reader.attachCallbacks(to: self)

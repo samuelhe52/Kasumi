@@ -30,6 +30,9 @@ final class ReaderImageWork<Key: Hashable & Sendable, Value: Sendable>: @uncheck
     private var flights: [Key: Flight] = [:]
     private var queued: [Key] = []
     private var running = 0
+    private let limit: Int
+
+    init(limit: Int = 4) { self.limit = limit }
 
     func run(
         _ key: Key, cached: @escaping @Sendable () -> Value?, operation: @escaping @Sendable () async -> Value,
@@ -49,7 +52,7 @@ final class ReaderImageWork<Key: Hashable & Sendable, Value: Sendable>: @uncheck
                         let flight = Flight(
                             operation: operation, publish: publish, waiter: waiter, continuation: continuation)
                         flights[key] = flight
-                        if running < 4 {
+                        if running < limit {
                             start(flight, for: key)
                         } else {
                             queued.append(key)

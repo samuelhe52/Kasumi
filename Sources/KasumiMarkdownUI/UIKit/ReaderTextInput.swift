@@ -48,12 +48,12 @@ private final class ReaderSelectionRect: UITextSelectionRect {
 class ReaderTextInputView: UIView, UITextInput, UITextInteractionDelegate, UIGestureRecognizerDelegate {
     private(set) var rendered: RenderedDocument
     var onLink: ((URL) -> Void)?
+    var onTap: (() -> Void)?
     private var selection: ReaderTextRange?
     // UIKit positions belong to this text-input view. A same-content refinement
     // changes the renderer's namespace without invalidating an active gesture's
     // semantic offsets. A replacement view gets a different owner.
     private let positionOwner = UUID()
-    private var dismissingSelection = false
     private let textInteraction = UITextInteraction(for: .nonEditable)
     private lazy var stringTokenizer = UITextInputStringTokenizer(textInput: self)
 
@@ -63,7 +63,9 @@ class ReaderTextInputView: UIView, UITextInput, UITextInteractionDelegate, UIGes
         textInteraction.textInput = self
         textInteraction.delegate = self
         addInteraction(textInteraction)
-        let tap = UITapGestureRecognizer(target: self, action: #selector(openTappedLink(_:)))
+        let tap = UITapGestureRecognizer(target: self, action: #selector(tapped(_:)))
+        tap.cancelsTouchesInView = false
+        tap.delaysTouchesEnded = false
         tap.delegate = self
         for gesture in textInteraction.gesturesForFailureRequirements {
             tap.require(toFail: gesture)
@@ -283,17 +285,14 @@ class ReaderTextInputView: UIView, UITextInput, UITextInteractionDelegate, UIGes
         return hasText && becomeFirstResponder()
     }
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
-        guard !isControl(touch.view) else { return false }
-        // Native text selection handles double taps and long presses. The link
-        // recognizer only participates when a link is actually under the finger.
-        dismissingSelection = !(selection?.isEmpty ?? true)
-        return dismissingSelection || rendered.link(at: documentPoint(touch.location(in: self))) != nil
+        !isControl(touch.view)
     }
-    @objc private func openTappedLink(_ gesture: UITapGestureRecognizer) {
-        if dismissingSelection {
-            clearSelection()
-            return
-        }
+
+    @objc private func tapped(_ gesture: UITapGestureRecognizer) {
+        let hadSelection = !(selection?.isEmpty ?? true)
+        if hadSelection { clearSelection() }
+        onTap?()
+        guard !hadSelection else { return }
         guard let url = rendered.link(at: documentPoint(gesture.location(in: self))) else { return }
         onLink?(url)
     }

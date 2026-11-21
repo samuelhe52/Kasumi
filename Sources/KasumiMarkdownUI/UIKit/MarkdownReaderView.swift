@@ -108,10 +108,6 @@ import os
         set { scrollView.setCodeBlockControl(newValue, refresh: true) }
     }
 
-    package func configureCodeBlockControl(_ factory: ((RenderedCodeBlock) -> UIControl?)?) {
-        scrollView.setCodeBlockControl(factory, refresh: (factory == nil) != (scrollView.codeBlockControl == nil))
-    }
-
     package var animatesDocumentChanges: Bool {
         get { scrollView.animatesDocumentChanges }
         set { scrollView.animatesDocumentChanges = newValue }
@@ -152,11 +148,11 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
     var onFindResultChange: ((FindResult) -> Void)?
     private(set) var codeBlockControl: ((RenderedCodeBlock) -> UIControl?)?
     private var layoutTask: Task<Void, Never>?
-    private var imageTask: Task<Void, Never>?
-    private var imageDecode: (region: ReaderImageRegion, worker: Task<ReaderResourceUpdate, Never>)?
+    private var imageLoads: [UUID: (region: ReaderImageRegion, task: Task<Void, Never>)] = [:]
     private weak var imageSnapshot: RenderedDocument?
     private var visibleImages: [ReaderImageRegion] = []
-    private var pendingImages: ArraySlice<ReaderImageRegion> = []
+    private var pendingLocalImages: ArraySlice<ReaderImageRegion> = []
+    private var pendingRemoteImages: ArraySlice<ReaderImageRegion> = []
     private var scrollWarmup: Task<Void, Never>?
     private var scrollWarmupID = UUID()
     private var generation = UUID()
@@ -234,8 +230,7 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
     deinit {
         layoutTask?.cancel()
         scrollWarmup?.cancel()
-        imageTask?.cancel()
-        imageDecode?.worker.cancel()
+        for load in imageLoads.values { load.task.cancel() }
     }
 
     override func touchesShouldCancel(in view: UIView) -> Bool {
@@ -593,6 +588,7 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
         nextPage.isHidden = false
         if let selection { nextPage.restoreSelection(selection) }
         nextPage.onLink = { [weak self] url in self?.follow(url) }
+        nextPage.onTap = { [weak self] in self?.becomeFirstResponder() }
         nextPage.onTableScroll = { [weak self] in
             self?.updateImageViewport()
             self?.updateLinkAccessibility()
@@ -613,7 +609,6 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
         openingIndicator.stopAnimating()
         updateImageViewport()
         updateLinkAccessibility()
-        if firstLayout { becomeFirstResponder() }
         if selection != nil && hadTextFocus { nextPage.becomeFirstResponder() }
         if let overlay {
             overlay.frame = bounds
@@ -728,48 +723,69 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
         guard !adjusting, !finished, isActive, window != nil, installedRevision == revision,
             installedGeneration == generation, let page, let rendered
         else { return }
-        let preload = page.convert(bounds, from: self).insetBy(dx: 0, dy: -min(128, bounds.height * 0.25))
+        let viewport = page.convert(bounds, from: self)
+        let preload = viewport.insetBy(dx: 0, dy: -min(128, bounds.height * 0.25))
         let regions = rendered.hasReaderImages
             ? rendered.readerImageRegions(in: preload, tableOffsets: page.tableOffsets) : []
+        let tables = rendered.tables
+        var visible: [ReaderImageRegion] = []
+        var overscan: [ReaderImageRegion] = []
+        for region in regions {
+            let tableY = region.tableID.map { tables[$0].frame.minY } ?? 0
+            if region.rect.minY + tableY < viewport.maxY, region.rect.maxY + tableY > viewport.minY {
+                visible.append(region)
+            } else {
+                overscan.append(region)
+            }
+        }
+        visible.append(contentsOf: overscan)
         let sameSnapshot = imageSnapshot === rendered
-        guard !sameSnapshot || regions != visibleImages else { return }
+        guard !sameSnapshot || visible != visibleImages else { return }
         let previous = sameSnapshot ? visibleImages : []
         imageSnapshot = rendered
-        visibleImages = regions
-        if let imageDecode, !regions.contains(where: { $0.sharesRaster(with: imageDecode.region) }) {
-            imageDecode.worker.cancel()
+        visibleImages = visible
+        for (id, load) in imageLoads where !visible.contains(where: { $0.sharesRaster(with: load.region) }) {
+            load.task.cancel()
+            imageLoads.removeValue(forKey: id)
         }
-        pendingImages =
-            regions.filter { region in
-                if !rendered.hasReaderImageResult(for: region) { return true }
-                // A tile may have painted a placeholder before this cached image
-                // entered the viewport, including in another cell using the raster.
+        var local: [ReaderImageRegion] = []
+        var remote: [ReaderImageRegion] = []
+        for region in visible {
+            if rendered.hasReaderImageResult(for: region) {
+                // A tile may have painted a placeholder before this cached image entered the viewport.
                 if !previous.contains(region) { page.invalidateImage(region) }
-                return false
-            }[...]
+            } else if region.isRemote {
+                remote.append(region)
+            } else {
+                local.append(region)
+            }
+        }
+        pendingLocalImages = local[...]
+        pendingRemoteImages = remote[...]
         drainImages()
     }
 
     private func drainImages() {
-        guard imageTask == nil, !pendingImages.isEmpty else { return }
-        imageTask = Task { [weak self] in
-            while !Task.isCancelled, let snapshot = self?.imageSnapshot,
-                let generation = self?.generation, let region = self?.pendingImages.popFirst()
-            {
-                if snapshot.hasReaderImageResult(for: region) { continue }
-                let worker = Task.detached(priority: .userInitiated) {
-                    await snapshot.prepareReaderResource(region)
-                }
-                self?.imageDecode = (region, worker)
-                let update = await withTaskCancellationHandler {
-                    await worker.value
-                } onCancel: {
-                    worker.cancel()
-                }
-                self?.imageDecode = nil
-                guard !Task.isCancelled, let self, self.isActive, self.window != nil,
-                    self.generation == generation
-                else { continue }
+        guard installedGeneration == generation, let snapshot = imageSnapshot else { return }
+        if !imageLoads.values.contains(where: { !$0.region.isRemote }) {
+            startNextImage(in: snapshot, remote: false)
+        }
+        var remoteCount = imageLoads.values.reduce(into: 0) { if $1.region.isRemote { $0 += 1 } }
+        while remoteCount < 4, startNextImage(in: snapshot, remote: true) { remoteCount += 1 }
+    }
+
+    @discardableResult private func startNextImage(in snapshot: RenderedDocument, remote: Bool) -> Bool {
+        while let region = remote ? pendingRemoteImages.popFirst() : pendingLocalImages.popFirst() {
+            guard !snapshot.hasReaderImageResult(for: region),
+                !imageLoads.values.contains(where: { $0.region.sharesRaster(with: region) })
+            else { continue }
+            let id = UUID()
+            let generation = generation
+            let task = Task(priority: .userInitiated) { [weak self] in
+                let update = await snapshot.prepareReaderResource(region)
+                guard let self, self.imageLoads.removeValue(forKey: id) != nil,
+                    !Task.isCancelled, self.generation == generation
+                else { return }
                 switch update {
                 case .none: break
                 case .pixels:
@@ -777,22 +793,24 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
                         self.page?.invalidateImage(visible)
                     }
                 case .geometry:
-                    // Resolving dimensions changes placement, not just pixels.
-                    // Keep the provider cache but retire this immutable layout.
+                    // Retire this layout, but keep the scoped resolution cache.
                     self.invalidateSession(animate: false)
                 }
+                self.drainImages()
             }
-            self?.imageTask = nil
-            self?.drainImages()
+            imageLoads[id] = (region, task)
+            return true
         }
+        return false
     }
 
     private func stopImageLoading() {
         visibleImages = []
-        pendingImages = []
+        pendingLocalImages = []
+        pendingRemoteImages = []
         imageSnapshot = nil
-        imageTask?.cancel()
-        imageDecode?.worker.cancel()
+        for load in imageLoads.values { load.task.cancel() }
+        imageLoads.removeAll()
     }
 
     private func reportPosition() {
@@ -830,19 +848,13 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
             layoutTask?.cancel()
             reportPosition()
         }
-        // UIKit responder changes can query SwiftUI's responder graph. Do not
-        // make that reentrant while updateUIView is evaluating the same graph.
+        guard !active else { return }
+        // UIKit may query the SwiftUI responder graph while dismissing Find.
         Task { @MainActor [weak self] in
-            guard let self, self.isActive == active, !self.finished else { return }
-            if active {
-                if self.window != nil, self.rendered != nil, self.page?.isFirstResponder != true {
-                    self.becomeFirstResponder()
-                }
-            } else {
-                self.suspendFind()
-                self.page?.resignFirstResponder()
-                self.resignFirstResponder()
-            }
+            guard let self, !self.isActive, !self.finished else { return }
+            self.suspendFind()
+            self.page?.resignFirstResponder()
+            self.resignFirstResponder()
         }
     }
 
@@ -990,10 +1002,7 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
 
     private func follow(_ url: URL) {
         guard isActive, installedFileURL == fileURL else { return }
-        let fragmentOnly = url.scheme == nil && url.absoluteString.hasPrefix("#")
-        let sameFile = url.isFileURL && fileURL?.isFileURL == true
-            && url.standardizedFileURL.path == fileURL?.standardizedFileURL.path
-        if let fragment = url.fragment, fragmentOnly || sameFile {
+        if let fragment = readerDocumentFragment(in: url, documentURL: fileURL) {
             // An unresolved same-document fragment is not an external URL.
             navigate(to: .anchor(fragment, inset: 8), animated: true)
         } else {
