@@ -102,3 +102,5 @@ simulator through `make test-ios FILTER=PublicAPITests`.
   reader-only image provider — see [003.004](004-native-reader-views.md).
 - Updated 2026-11-22: Corrected reader focus, background image scheduling,
   link routing, pending Find, and code controls — see [003.005](005-reader-integration-fixes.md).
+- Updated 2026-11-22: Share viewport image scheduling and tighten focus, document
+  replacement, and section reporting — see [003.006](006-reader-host-lifecycle.md).

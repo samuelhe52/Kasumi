@@ -148,11 +148,7 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
     var onFindResultChange: ((FindResult) -> Void)?
     private(set) var codeBlockControl: ((RenderedCodeBlock) -> UIControl?)?
     private var layoutTask: Task<Void, Never>?
-    private var imageLoads: [UUID: (region: ReaderImageRegion, task: Task<Void, Never>)] = [:]
-    private weak var imageSnapshot: RenderedDocument?
-    private var visibleImages: [ReaderImageRegion] = []
-    private var pendingLocalImages: ArraySlice<ReaderImageRegion> = []
-    private var pendingRemoteImages: ArraySlice<ReaderImageRegion> = []
+    private let images = ReaderViewportImages()
     private var scrollWarmup: Task<Void, Never>?
     private var scrollWarmupID = UUID()
     private var generation = UUID()
@@ -230,7 +226,6 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
     deinit {
         layoutTask?.cancel()
         scrollWarmup?.cancel()
-        for load in imageLoads.values { load.task.cancel() }
     }
 
     override func touchesShouldCancel(in view: UIView) -> Bool {
@@ -243,7 +238,7 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
             if let anchor { navigate(to: .position(anchor), animated: false) }
             return
         }
-        if self.document == nil || fileURL != url {
+        if fileURL == nil || fileURL != url {
             reflowAnchor = ReaderReflowAnchorState()
             pendingReveal = nil
             if self.document != nil {
@@ -296,7 +291,7 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
     }
 
     private func invalidateSession(animate: Bool) {
-        stopImageLoading()
+        images.stop()
         cancelScrollWarmup()
         reflow.stop()
         reflowSession = nil
@@ -377,7 +372,7 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
     override func willMove(toWindow newWindow: UIWindow?) {
         if newWindow == nil {
             reportPosition()
-            stopImageLoading()
+            images.stop()
             cancelScrollWarmup()
             reflow.stop()
             layoutTask?.cancel()
@@ -422,7 +417,7 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
                 width: installed.width, generation: installed.generation, anchor: installed.anchor,
                 height: installed.height)
         } else {
-            if installedFileURL == fileURL {
+            if canCaptureInstalledPosition {
                 reflowAnchor.captureIfNeeded(in: rendered, atY: topY, restoring: nil)
             }
             reflow.request(
@@ -494,6 +489,10 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
             if Task.isCancelled { self?.rebuildIfNeeded() }
             self?.scheduleScrollWarmup()
         }
+    }
+
+    private var canCaptureInstalledPosition: Bool {
+        installedRevision == revision || (fileURL != nil && installedFileURL == fileURL)
     }
 
     private func cancelScrollWarmup() {
@@ -595,7 +594,7 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
         }
         backgroundColor = UIColor(cgColor: next.backgroundColor)
         indicatorStyle = style.theme.appearance == .dark ? .white : .black
-        headings = document?.outline.compactMap { item in next.rect(for: item).map { (item.id, $0.minY) } } ?? []
+        headings = document?.outline.compactMap { item in next.readerAnchorY(for: item.id).map { (item.id, $0) } } ?? []
         updateScrollExtent()
         setTop(anchor.flatMap { next.y(for: $0) } ?? 0, preservingMomentum: true)
         reflowAnchor.didInstall(next, revision: revision, atY: topY)
@@ -703,7 +702,7 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
         updateLinkAccessibility()
         cancelScrollWarmup()
         if isDragging || isDecelerating { pendingReveal = nil }
-        if installedFileURL == fileURL && pendingNavigation == nil {
+        if canCaptureInstalledPosition && pendingNavigation == nil {
             reflowAnchor.moved(in: rendered, atY: topY)
         }
         reportPosition()
@@ -723,94 +722,10 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
         guard !adjusting, !finished, isActive, window != nil, installedRevision == revision,
             installedGeneration == generation, let page, let rendered
         else { return }
-        let viewport = page.convert(bounds, from: self)
-        let preload = viewport.insetBy(dx: 0, dy: -min(128, bounds.height * 0.25))
-        let regions = rendered.hasReaderImages
-            ? rendered.readerImageRegions(in: preload, tableOffsets: page.tableOffsets) : []
-        let tables = rendered.tables
-        var visible: [ReaderImageRegion] = []
-        var overscan: [ReaderImageRegion] = []
-        for region in regions {
-            let tableY = region.tableID.map { tables[$0].frame.minY } ?? 0
-            if region.rect.minY + tableY < viewport.maxY, region.rect.maxY + tableY > viewport.minY {
-                visible.append(region)
-            } else {
-                overscan.append(region)
-            }
-        }
-        visible.append(contentsOf: overscan)
-        let sameSnapshot = imageSnapshot === rendered
-        guard !sameSnapshot || visible != visibleImages else { return }
-        let previous = sameSnapshot ? visibleImages : []
-        imageSnapshot = rendered
-        visibleImages = visible
-        for (id, load) in imageLoads where !visible.contains(where: { $0.sharesRaster(with: load.region) }) {
-            load.task.cancel()
-            imageLoads.removeValue(forKey: id)
-        }
-        var local: [ReaderImageRegion] = []
-        var remote: [ReaderImageRegion] = []
-        for region in visible {
-            if rendered.hasReaderImageResult(for: region) {
-                // A tile may have painted a placeholder before this cached image entered the viewport.
-                if !previous.contains(region) { page.invalidateImage(region) }
-            } else if region.isRemote {
-                remote.append(region)
-            } else {
-                local.append(region)
-            }
-        }
-        pendingLocalImages = local[...]
-        pendingRemoteImages = remote[...]
-        drainImages()
-    }
-
-    private func drainImages() {
-        guard installedGeneration == generation, let snapshot = imageSnapshot else { return }
-        if !imageLoads.values.contains(where: { !$0.region.isRemote }) {
-            startNextImage(in: snapshot, remote: false)
-        }
-        var remoteCount = imageLoads.values.reduce(into: 0) { if $1.region.isRemote { $0 += 1 } }
-        while remoteCount < 4, startNextImage(in: snapshot, remote: true) { remoteCount += 1 }
-    }
-
-    @discardableResult private func startNextImage(in snapshot: RenderedDocument, remote: Bool) -> Bool {
-        while let region = remote ? pendingRemoteImages.popFirst() : pendingLocalImages.popFirst() {
-            guard !snapshot.hasReaderImageResult(for: region),
-                !imageLoads.values.contains(where: { $0.region.sharesRaster(with: region) })
-            else { continue }
-            let id = UUID()
-            let generation = generation
-            let task = Task(priority: .userInitiated) { [weak self] in
-                let update = await snapshot.prepareReaderResource(region)
-                guard let self, self.imageLoads.removeValue(forKey: id) != nil,
-                    !Task.isCancelled, self.generation == generation
-                else { return }
-                switch update {
-                case .none: break
-                case .pixels:
-                    for visible in self.visibleImages where visible.sharesRaster(with: region) {
-                        self.page?.invalidateImage(visible)
-                    }
-                case .geometry:
-                    // Retire this layout, but keep the scoped resolution cache.
-                    self.invalidateSession(animate: false)
-                }
-                self.drainImages()
-            }
-            imageLoads[id] = (region, task)
-            return true
-        }
-        return false
-    }
-
-    private func stopImageLoading() {
-        visibleImages = []
-        pendingLocalImages = []
-        pendingRemoteImages = []
-        imageSnapshot = nil
-        for load in imageLoads.values { load.task.cancel() }
-        imageLoads.removeAll()
+        images.update(
+            rendered, in: page.convert(bounds, from: self), overscan: min(128, bounds.height * 0.25),
+            tableOffsets: page.tableOffsets, invalidate: { [weak self] in self?.page?.invalidateImage($0) },
+            relayout: { [weak self] in self?.invalidateSession(animate: false) })
     }
 
     private func reportPosition() {
@@ -824,7 +739,7 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
         guard !finished else { return }
         reportPosition()
         finished = true
-        stopImageLoading()
+        images.stop()
         cancelScrollWarmup()
         scrollDiagnostics?.finish()
         scrollDiagnostics = nil
@@ -842,7 +757,7 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
             setNeedsLayout()
             scheduleScrollWarmup()
         } else {
-            stopImageLoading()
+            images.stop()
             cancelScrollWarmup()
             reflow.stop()
             layoutTask?.cancel()
@@ -911,11 +826,18 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
         if systemFindActive { displayFindResults([], current: nil, scroll: false) }
         systemFindActive = false
         reportFindPresentation(false)
-        // Let UIKit finish resigning its search field before restoring Command-F.
+        // Let UIKit finish resigning its search field, without taking focus back from the host.
         Task { @MainActor [weak self] in
-            guard let self, self.canPresentFind, self.window != nil, !self.isFindPresented else { return }
+            guard let self, self.canPresentFind, let window = self.window, window.isKeyWindow, !self.isFindPresented,
+                !Self.containsFirstResponder(window)
+            else { return }
             self.becomeFirstResponder()
         }
+    }
+
+    private static func containsFirstResponder(_ view: UIView) -> Bool {
+        if view.isFirstResponder || (view.next as? UIViewController)?.isFirstResponder == true { return true }
+        return view.subviews.contains(where: containsFirstResponder)
     }
 
     private func reportFindPresentation(_ presented: Bool) {

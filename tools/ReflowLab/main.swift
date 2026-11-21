@@ -20,6 +20,7 @@
         private var loading: Task<Void, Never>?
         private var loadID = UUID()
         private var sourceURL: URL?
+        private var openFailed = false
 
         override func loadView() {
             view = LabRootView()
@@ -67,7 +68,7 @@
 
         private func updateStatus() {
             let snapshot = reader.readerViewportDiagnostics
-            if let size = snapshot.documentSize, let ms = snapshot.layoutMilliseconds {
+            if loading == nil, !openFailed, let size = snapshot.documentSize, let ms = snapshot.layoutMilliseconds {
                 status.stringValue = String(
                     format: "%.0f pt × %.0f pt · %.2f ms layout + prepaint + install · snapshot %d",
                     size.width, snapshot.viewportHeight, ms, snapshot.installations)
@@ -77,13 +78,12 @@
         }
 
         @objc private func reloadSample() {
-            sourceURL = nil
-            reload()
-        }
-        @objc private func reload() {
             let sample = LabSample.allCases[samples.indexOfSelectedItem]
             let count = [10000, 50000, 200000][counts.indexOfSelectedItem]
-            load(markdown: sourceURL == nil ? sample.markdown(characters: count) : nil, url: sourceURL)
+            load(markdown: sample.markdown(characters: count))
+        }
+        @objc private func reload() {
+            if let sourceURL { load(markdown: nil, url: sourceURL) } else { reloadSample() }
         }
         @objc private func openFile() {
             let panel = NSOpenPanel()
@@ -100,11 +100,9 @@
             loading?.cancel()
             loadID = UUID()
             let expected = loadID
-            reader.isActive = false
-            sourceURL = url
-            view.window?.title =
-                "Kasumi Reflow Lab — " + (url?.lastPathComponent ?? samples.titleOfSelectedItem ?? "Sample")
-            status.stringValue = "Preparing \(url?.lastPathComponent ?? samples.titleOfSelectedItem ?? "sample")…"
+            openFailed = false
+            let name = url?.lastPathComponent ?? samples.titleOfSelectedItem ?? "Sample"
+            status.stringValue = "Preparing \(name)…"
             loading = Task { [weak self] in
                 do {
                     let document = try await Task.detached(priority: .userInitiated) {
@@ -119,10 +117,14 @@
                         return MarkdownDocument(markdown: source, baseURL: url?.deletingLastPathComponent())
                     }.value
                     guard let self, !Task.isCancelled, self.loadID == expected else { return }
+                    self.loading = nil
+                    self.sourceURL = url
+                    self.view.window?.title = "Kasumi Reflow Lab — " + name
                     self.reader.setDocument(document, url: url)
-                    self.reader.isActive = true
                 } catch {
                     guard let self, self.loadID == expected else { return }
+                    self.loading = nil
+                    self.openFailed = true
                     self.status.stringValue = "Could not open document: \(error.localizedDescription)"
                 }
             }
@@ -138,11 +140,11 @@
                 load(markdown: LabSample.mixed.markdown(characters: count))
                 for _ in 0..<1500 {
                     let snapshot = reader.readerViewportDiagnostics
-                    if snapshot.documentSize != nil, !snapshot.isLayingOut, reader.isActive { break }
+                    if loading == nil, snapshot.documentSize != nil, !snapshot.isLayingOut { break }
                     try await Task.sleep(for: .milliseconds(10))
                 }
                 let initial = reader.readerViewportDiagnostics
-                guard let initialSize = initial.documentSize, reader.isActive else { throw CocoaError(.coderReadCorrupt) }
+                guard loading == nil, let initialSize = initial.documentSize else { throw CocoaError(.coderReadCorrupt) }
                 let initialInstalls = initial.installations
                 var uncovered = 0
                 var samples = 0
@@ -256,11 +258,11 @@
                         + LabSample.chinese.markdown(characters: 10000))
                 for _ in 0..<1000 {
                     let snapshot = reader.readerViewportDiagnostics
-                    if reader.isActive, snapshot.idlePreparationMilliseconds != nil { break }
+                    if loading == nil, snapshot.idlePreparationMilliseconds != nil { break }
                     try await Task.sleep(for: .milliseconds(10))
                 }
                 let snapshot = reader.readerViewportDiagnostics
-                guard reader.isActive, snapshot.idlePreparationMilliseconds != nil, snapshot.isFullyMeasured,
+                guard loading == nil, snapshot.idlePreparationMilliseconds != nil, snapshot.isFullyMeasured,
                     snapshot.hasCurrentImageQueue
                 else {
                     throw CocoaError(
@@ -277,7 +279,7 @@
         private func waitForLayout() async throws -> ReaderViewportDiagnostics {
             for _ in 0..<1000 {
                 let snapshot = reader.readerViewportDiagnostics
-                if reader.isActive, snapshot.documentSize != nil, !snapshot.isLayingOut { return snapshot }
+                if loading == nil, snapshot.documentSize != nil, !snapshot.isLayingOut { return snapshot }
                 try await Task.sleep(for: .milliseconds(10))
             }
             throw CocoaError(.coderReadCorrupt)
@@ -319,7 +321,16 @@
             guard !reader.isFindPresented, events == [true, false, true, false], result?.count == 20 else {
                 throw CocoaError(.coderReadCorrupt)
             }
-            let record: [String: Any] = ["nativeFindVisibility": events, "programmaticFindNavigated": true]
+            let title = view.window?.title
+            load(markdown: nil, url: FileManager.default.temporaryDirectory)
+            _ = try await waitForLayout()
+            guard openFailed, reader.isActive, view.window?.title == title,
+                reader.presentFind(), reader.isFindPresented
+            else { throw CocoaError(.coderReadCorrupt) }
+            reader.dismissFind()
+            let record: [String: Any] = [
+                "nativeFindVisibility": events, "programmaticFindNavigated": true, "openFailureKeptReaderActive": true
+            ]
             try FileManager.default.createDirectory(at: output.deletingLastPathComponent(), withIntermediateDirectories: true)
             try JSONSerialization.data(withJSONObject: record, options: [.prettyPrinted, .sortedKeys]).write(to: output)
         }

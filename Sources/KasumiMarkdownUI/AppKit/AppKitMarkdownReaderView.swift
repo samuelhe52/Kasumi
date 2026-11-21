@@ -53,11 +53,7 @@ import os
     private var configuration: MarkdownRemoteImages?
     private var resourceRevision = 0
     private var imageResources = ReaderImageResources(nil)
-    private var imageTask: Task<Void, Never>?
-    private var imageWorker: (region: ReaderImageRegion, task: Task<ReaderResourceUpdate, Never>)?
-    private weak var imageSnapshot: RenderedDocument?
-    private var visibleImages: [ReaderImageRegion] = []
-    private var pendingImages: ArraySlice<ReaderImageRegion> = []
+    private let images = ReaderViewportImages()
     private var tableViews: [Int: ReaderTableScrollView] = [:]
     private(set) var tableOffsets: [Int: CGFloat] = [:]
     private(set) var rendered: RenderedDocument?
@@ -104,8 +100,6 @@ import os
     deinit {
         layoutTask?.cancel()
         warmup?.cancel()
-        imageTask?.cancel()
-        imageWorker?.task.cancel()
     }
 
     public override var isFlipped: Bool { true }
@@ -224,10 +218,7 @@ import os
         state.stop()
         cancelWarmup()
         warmupMilliseconds = nil
-        imageWorker?.task.cancel()
-        imageSnapshot = nil
-        visibleImages.removeAll()
-        pendingImages = []
+        images.stop()
         // Do not cancel the single publisher. Let its active render drain;
         // the stopped state and generation reject any stale completion.
     }
@@ -326,9 +317,8 @@ import os
         rendered = next
         installedGeneration = generation
         installedHeight = height
-        sectionPositions = outline.compactMap { item in
-            next.readingAnchor(forAnchor: item.id).flatMap { next.y(for: $0) }.map { ($0, item.id) }
-        }.sorted { $0.y < $1.y }
+        sectionPositions = outline.compactMap { item in next.readerAnchorY(for: item.id).map { (y: $0, id: item.id) } }
+            .sorted { $0.y < $1.y }
         canvas.preview = preview
         updateCanvasFrame(size: next.size)
         scrollDirectly(top: top)
@@ -430,50 +420,15 @@ import os
     }
 
     private func updateImages() {
-        guard canLayout, installedGeneration == generation, let rendered, rendered.hasReaderImages else {
-            imageWorker?.task.cancel()
-            imageSnapshot = nil
-            pendingImages = []
-            visibleImages.removeAll()
+        guard canLayout, installedGeneration == generation, let rendered else {
+            images.stop()
             return
         }
-        let regions = rendered.readerImageRegions(in: viewport.insetBy(dx: 0, dy: -viewport.height * 0.25), tableOffsets: tableOffsets)
-        let sameSnapshot = imageSnapshot === rendered
-        guard !sameSnapshot || visibleImages != regions else { return }
-        let previous = sameSnapshot ? visibleImages : []
-        imageSnapshot = rendered
-        visibleImages = regions
-        if let imageWorker, !sameSnapshot || !regions.contains(where: { $0.sharesRaster(with: imageWorker.region) }) {
-            imageWorker.task.cancel()
-        }
-        pendingImages = regions.filter { region in
-            if !rendered.hasReaderImageResult(for: region) { return true }
-            if !previous.contains(region) { invalidateImage(region) }
-            return false
-        }[...]
-        guard imageTask == nil, !pendingImages.isEmpty else { return }
-        imageTask = Task { [weak self] in
-            while !Task.isCancelled, let snapshot = self?.imageSnapshot, let region = self?.pendingImages.popFirst() {
-                guard !snapshot.hasReaderImageResult(for: region) else { continue }
-                let expected = self?.generation
-                let worker = Task.detached(priority: .userInitiated) { await snapshot.prepareReaderResource(region) }
-                self?.imageWorker = (region, worker)
-                let result = await worker.value
-                guard let self else { return }
-                self.imageWorker = nil
-                guard !Task.isCancelled, self.generation == expected, self.canLayout,
-                    self.installedGeneration == expected
-                else { continue }
-                switch result {
-                case .none: break
-                case .pixels:
-                    for visible in self.visibleImages where visible.sharesRaster(with: region) { self.invalidateImage(visible) }
-                case .geometry:
-                    self.restartSession()
-                }
-            }
-            self?.imageTask = nil
-        }
+        let viewport = self.viewport
+        images.update(
+            rendered, in: viewport, overscan: viewport.height * 0.25, tableOffsets: tableOffsets,
+            invalidate: { [weak self] in self?.invalidateImage($0) },
+            relayout: { [weak self] in self?.restartSession() })
     }
 
     private func invalidateImage(_ region: ReaderImageRegion) {
@@ -836,7 +791,7 @@ import os
             isLayingOut: layoutTask != nil, installations: installations, layoutMilliseconds: layoutMilliseconds,
             idlePreparationMilliseconds: warmupMilliseconds, isFullyMeasured: rendered?.hasEstimatedGeometry == false,
             isViewportMeasured: rendered.map { !$0.needsLayout(in: rect) } ?? false,
-            hasCurrentImageQueue: imageSnapshot === rendered && !visibleImages.isEmpty)
+            hasCurrentImageQueue: images.isTracking(rendered))
     }
 
     package func scrollReaderViewport(toY top: CGFloat) {

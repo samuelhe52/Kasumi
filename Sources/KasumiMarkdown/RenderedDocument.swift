@@ -474,6 +474,9 @@ public final class RenderedDocument: @unchecked Sendable {
 
     public func rect(for item: OutlineItem) -> CGRect? { rect(forAnchor: item.id) }
 
+    /// Block top for a canonical outline ID, with no glyph or semantic lookup.
+    package func readerAnchorY(for id: String) -> CGFloat? { layout.anchorPositions[id] }
+
     /// Accepts a slug or a URL fragment, including footnote anchors not in outline.
     public func rect(forAnchor anchor: String) -> CGRect? {
         let key = DocumentLink.anchorKey(anchor)
