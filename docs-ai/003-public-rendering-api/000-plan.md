@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implemented (retrospective); ready-made views planned |
+| Status | Implemented (retrospective); native views shipped in [003.004](004-native-reader-views.md) |
 | Anchor date | 2026-11-14 |
 | Origin | Required by [001](../001-library-and-reader/000-plan.md): the app may use only the library's public API. Reconstructed on 2026-11-15 from Git history during the docs-ai migration; it did not precede the work. |
 | Related | [002](../002-rendering-engine/000-plan.md), [004](../004-ios-reader/000-plan.md), [goal](../001-library-and-reader/goal.md) |
