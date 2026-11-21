@@ -68,8 +68,9 @@ frame. The iOS Animation Hitches instrument is unavailable on the tested
 simulator, so these checks cannot establish a physical-device hitch rate or
 stable 120 fps.
 
-The AppKit reader uses an SDR sRGB prepaint bitmap and native AppKit drawing.
-The UIKit reader retains automatic image range and tiled layers.
+The two readers draw differently. The AppKit reader prepaints into an SDR sRGB
+bitmap, and the UIKit reader draws into tiled layers. Coverage measured here
+does not describe UIKit drawing.
 
 ## Mac measurements without a simulator
 
@@ -104,7 +105,7 @@ can lengthen the first measured gap. Actual scheduling varies.
 After 200 ms idle, the native readers prepare bounded text/table/math documents
 in cancellable batches. The AppKit reader also prepares bounded documents with
 known local or embedded image dimensions. Visible images still decode
-separately. The Lab says **Entire document measured** when the complete
+separately. The window shows **Entire document measured** when the complete
 snapshot is installed. Width/content/style changes invalidate
 that snapshot. This retains more geometry in memory; very large or resource-heavy
 documents keep the viewport path. The fast check explicitly records readiness

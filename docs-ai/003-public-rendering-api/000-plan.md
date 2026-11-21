@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Implemented (retrospective); native views shipped in [003.004](004-native-reader-views.md) |
+| Status | Implemented (retrospective) |
 | Anchor date | 2026-11-14 |
 | Origin | Required by [001](../001-library-and-reader/000-plan.md): the app may use only the library's public API. Reconstructed on 2026-11-15 from Git history during the docs-ai migration; it did not precede the work. |
 | Related | [002](../002-rendering-engine/000-plan.md), [004](../004-ios-reader/000-plan.md), [goal](../001-library-and-reader/goal.md) |
@@ -24,7 +24,7 @@ built on without reaching into internals.
 ### Non-goals (for now)
 
 - Ready-made UIKit/AppKit views and SwiftUI wrappers were outside the initial
-  headless API. They are tracked in [003.004](004-native-reader-views.md).
+  headless API. They shipped later in [003.004](004-native-reader-views.md).
 
 ## Design / approach
 
@@ -98,15 +98,5 @@ simulator through `make test-ios FILTER=PublicAPITests`.
 - Updated 2026-11-17: Added a metadata-only conservative vertical text-range query for viewport clients — see [007.004](../007-reader-interactions/004-viewport-find-highlights.md).
 - Updated 2026-11-18. Use the theme background color for unavailable images and
   remove `chrome` from the theme API and file format. See [003.003](003-theme-palette-fields.md).
-- Updated 2026-11-21: Approved native reader views, SwiftUI Find, and a
-  reader-only image provider — see [003.004](004-native-reader-views.md).
-- Updated 2026-11-22: Corrected reader focus, background image scheduling,
-  link routing, pending Find, and code controls — see [003.005](005-reader-integration-fixes.md).
-- Updated 2026-11-22: Share viewport image scheduling and tighten focus, document
-  replacement, and section reporting — see [003.006](006-reader-host-lifecycle.md).
-- Updated 2026-11-22: Restore host Command-F, consume replacement anchors, and
-  prioritize newly visible images — see [003.007](007-reader-commands-and-restoration.md).
-- Updated 2026-11-22: Preserve AppKit positions on same-file reload and deliver
-  the last SwiftUI position on teardown — see [003.008](008-reading-position-lifetime.md).
-- Updated 2026-11-22: Report the visible AppKit position during pending reflow
-  and reuse same-file image caches — see [003.009](009-reader-state-across-reflow.md).
+- Updated 2026-11-22: Added native UIKit, AppKit, and SwiftUI reader views with
+  system and programmatic Find and an opt-in remote image provider. See [003.004](004-native-reader-views.md).

@@ -113,7 +113,8 @@ Retained after milestone closure; not prerequisites for starting Reader 2:
   removes duplicate tokenization. First-use grammar setup remains a cold parsing
   cost.
 
-- Ready-made UIKit/AppKit views and SwiftUI wrappers — implemented in `KasumiMarkdownUI`;
+- Ready-made UIKit/AppKit views and SwiftUI wrappers — closed 2026-11-22. The
+  `KasumiMarkdownUI` product ships them;
   [003.004](003-public-rendering-api/004-native-reader-views.md).
 - Distributable XCFrameworks — closed 2026-11-19. The native release workflow
   publishes prebuilt archives, and a direct SwiftPM dependency resolves and
