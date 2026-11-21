@@ -34,21 +34,18 @@ let package = Package(
         .package(url: "https://github.com/swhitty/SwiftDraw.git", exact: "0.30.0")
     ],
     targets: [
-        nativeTarget("KasumiDagreNative", "kasumi_dagre"),
-        nativeTarget("KasumiLineBreakNative", "kasumi_linebreak"),
-        nativeTarget("KasumiHyphenationNative", "kasumi_hyphenation"),
-        nativeTarget("KasumiSyntaxNative", "kasumi_syntax"),
+        nativeTarget("KasumiNative", "kasumi_native"),
         .target(
-            name: "CSyntax", dependencies: ["KasumiSyntaxNative"], path: "packages/NativeSyntax/Bridge",
+            name: "CSyntax", dependencies: ["KasumiNative"], path: "packages/NativeSyntax/Bridge",
             publicHeadersPath: "include"),
         .target(
-            name: "CDagre", dependencies: ["KasumiDagreNative"], path: "packages/NativeDagre/Bridge",
+            name: "CDagre", dependencies: ["KasumiNative"], path: "packages/NativeDagre/Bridge",
             publicHeadersPath: "include"),
         .target(
-            name: "CLineBreak", dependencies: ["KasumiLineBreakNative"], path: "packages/NativeLineBreak/Bridge",
+            name: "CLineBreak", dependencies: ["KasumiNative"], path: "packages/NativeLineBreak/Bridge",
             publicHeadersPath: "include"),
         .target(
-            name: "CHyphenation", dependencies: ["KasumiHyphenationNative"], path: "packages/NativeHyphenation/Bridge",
+            name: "CHyphenation", dependencies: ["KasumiNative"], path: "packages/NativeHyphenation/Bridge",
             publicHeadersPath: "include"),
         .target(
             name: "KasumiMarkdown",

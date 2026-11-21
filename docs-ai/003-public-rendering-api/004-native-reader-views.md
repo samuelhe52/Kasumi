@@ -74,4 +74,4 @@ These were not recorded when the plan was approved. The following are inferred f
 
 ## Not verified
 
-There was no iOS 15 or macOS 13 runtime, no physical device, and no VoiceOver session. An Xcode command-line build of the macOS 13 consumer failed with duplicate Rust archive symbols, but the SwiftPM build of the same consumer linked and ran. This was not investigated further.
+There was no iOS 15 or macOS 13 runtime, no physical device, and no VoiceOver session. An Xcode command-line build of the macOS 13 consumer failed with duplicate Rust archive symbols, while the SwiftPM build of the same consumer linked and ran. The native packaging fix is recorded in [010.003](../010-binary-distribution/003-single-native-archive.md).

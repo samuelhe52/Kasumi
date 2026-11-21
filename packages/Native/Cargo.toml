@@ -1,0 +1,21 @@
+[package]
+name = "kasumi-native"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[lib]
+crate-type = ["staticlib"]
+
+[dependencies]
+# 0.1.1 unconditionally compiles graph/json.rs, which requires serde even
+# with default features disabled. Enable only that dependency, not serde_json.
+dagre = { version = "=0.1.1", default-features = false, features = ["serde"] }
+unicode-linebreak = "=0.1.5"
+hyphenation = { version = "=0.8.4", default-features = false }
+syntect = { version = "=5.3.0", default-features = false, features = ["parsing", "regex-fancy"] }
+two-face = { version = "=0.5.2", default-features = false, features = ["syntect-fancy"] }
+
+[profile.release]
+lto = true
+codegen-units = 1

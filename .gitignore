@@ -11,6 +11,7 @@
 # Application build products and per-user IDE state.
 /apps/iOS/buildServer.json
 .build/
+/packages/Native/target/
 /packages/NativeDagre/target/
 /packages/NativeLineBreak/target/
 /packages/NativeHyphenation/target/

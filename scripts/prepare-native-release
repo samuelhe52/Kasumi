@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Package existing native XCFrameworks and update the release manifest."""
+"""Package the existing native XCFramework and update the release manifest."""
 import argparse
 import hashlib
 import json
@@ -9,12 +9,7 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-LIBRARIES = {
-    "KasumiDagreNative": "kasumi_dagre",
-    "KasumiLineBreakNative": "kasumi_linebreak",
-    "KasumiHyphenationNative": "kasumi_hyphenation",
-    "KasumiSyntaxNative": "kasumi_syntax",
-}
+LIBRARIES = {"KasumiNative": "kasumi_native"}
 
 def main():
     parser = argparse.ArgumentParser()

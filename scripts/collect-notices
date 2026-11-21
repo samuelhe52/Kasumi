@@ -2,7 +2,8 @@
 """Regenerate the third-party notices that ship inside Kasumi and KasumiMarkdown.
 
 `notices/manifest.json` inventories every distributed component. This script
-checks that inventory against the native Cargo.lock files and the SwiftPM
+checks that inventory against the native Cargo.lock files (and that the combined
+packages/Native/Cargo.lock resolves the same crates) and the SwiftPM
 Package.resolved pins, then rewrites Sources/KasumiMarkdown/Bundled/Notices/:
 an index.json plus the copied notice files. Notice files already under
 Sources/KasumiMarkdown/Bundled are referenced in place.
@@ -21,6 +22,8 @@ MANIFEST = ROOT / "notices" / "manifest.json"
 BUNDLED = ROOT / "Sources" / "KasumiMarkdown" / "Bundled"
 OUTPUT = BUNDLED / "Notices"
 PACKAGE_RESOLVED = ROOT / "Package.resolved"
+# The shipped binary is built from this lockfile; the per-bridge lockfiles map crates to notices.
+SHIPPED_CARGO_LOCK = "packages/Native/Cargo.lock"
 HYPHENATION = ROOT / "packages" / "NativeHyphenation"
 SOURCE_PATTERNS = HYPHENATION / "Notices" / "SourcePatterns"
 PATTERN_EXTRAS = [SOURCE_PATTERNS / "hyphenex-2016" / "ushyphex.tex"]
@@ -38,14 +41,29 @@ def repo_file(relative: str) -> Path:
     return path
 
 
-def check_cargo_lock(component: dict, texts: str) -> None:
-    """Every registry crate in the lockfile must be recorded and named in the notice text."""
-    lock = tomllib.loads(repo_file(component["cargo_lock"]).read_text(encoding="utf-8"))
-    crates = {
+def registry_crates(relative: str) -> set[tuple[str, str, str]]:
+    lock = tomllib.loads(repo_file(relative).read_text(encoding="utf-8"))
+    return {
         (pkg["name"], pkg["version"], pkg.get("checksum", ""))
         for pkg in lock.get("package", [])
         if str(pkg.get("source", "")).startswith("registry+")
     }
+
+
+def check_shipped_lock(components: list[dict]) -> None:
+    """The combined native lockfile must resolve exactly the crates the per-bridge lockfiles list."""
+    shipped = registry_crates(SHIPPED_CARGO_LOCK)
+    bridges = set().union(*(registry_crates(c["cargo_lock"]) for c in components if "cargo_lock" in c))
+    if shipped != bridges:
+        raise CheckError(
+            f"{SHIPPED_CARGO_LOCK} differs from the per-bridge lockfiles "
+            f"(only shipped: {sorted(shipped - bridges)[:3]}; only in bridges: {sorted(bridges - shipped)[:3]})"
+        )
+
+
+def check_cargo_lock(component: dict, texts: str) -> None:
+    """Every registry crate in the lockfile must be recorded and named in the notice text."""
+    crates = registry_crates(component["cargo_lock"])
     if "dependencies" in component:
         recorded = json.loads(repo_file(component["dependencies"]).read_text(encoding="utf-8"))
         recorded_set = {(e["name"], e["version"], e.get("checksum", "")) for e in recorded}
@@ -125,6 +143,7 @@ def build(output: Path) -> None:
     """Write index.json and the copied notice files for every component under `output`."""
     components = json.loads(MANIFEST.read_text(encoding="utf-8"))["components"]
     check_swift_pins(components)
+    check_shipped_lock(components)
     generated = {"hyphenation-pattern-headers": hyphenation_pattern_headers()}
 
     index = []

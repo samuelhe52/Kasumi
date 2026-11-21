@@ -38,6 +38,7 @@ NATIVE_INPUTS := scripts/build-native rust-toolchain.toml \
 
 .DEFAULT_GOAL := help
 .PHONY: help format native native-local native-release build test test-ios app run-sim run-device launch-sim test-syntax-native syntax-notices render app-check app-check-sim check clean benchmark-typography reflow-lab run-reflow-lab check-reflow-lab check-reader-scrolling check-reflow-scrolling check-fast-reflow-scrolling benchmark-build benchmark-corpus benchmark-self-check benchmark-reader benchmark-reader-full benchmark-reflow-lab
+.PHONY: check-native-consumer
 
 help: ## List available targets
 	@awk 'BEGIN { FS = ":.*## " } /^[a-z-]+:.*## / { printf "  %-8s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
@@ -52,7 +53,7 @@ format: ## Format tracked Swift and Rust sources
 		cargo fmt --manifest-path "$$manifest" || exit 1; \
 	done
 
-native: $(NATIVE_STAMP) ## Build the Rust XCFrameworks (only when inputs changed)
+native: $(NATIVE_STAMP) ## Build the Rust XCFramework (only when inputs changed)
 
 native-local: native ## Select locally built native binaries for this checkout
 	@./scripts/native-mode local
@@ -103,6 +104,9 @@ app-check: native ## Compile the iOS app without signing or launching a device
 app-check-sim: native ## Compile the iOS app for a generic simulator without launching it
 	xcodebuild -project apps/iOS/Kasumi.xcodeproj -scheme Kasumi \
 		-destination 'generic/platform=iOS Simulator' -derivedDataPath $(DERIVED_DATA) ARCHS=arm64 CODE_SIGNING_ALLOWED=NO build
+
+check-native-consumer: native ## Build and run a macOS Xcode and SwiftPM consumer
+	./scripts/check-native-consumer
 
 app: native ## Build the iOS app for the simulator
 	xcodebuild -project apps/iOS/Kasumi.xcodeproj -scheme Kasumi \

@@ -120,6 +120,8 @@ Retained after milestone closure; not prerequisites for starting Reader 2:
   publishes prebuilt archives, and a direct SwiftPM dependency resolves and
   builds with platform declarations;
   [010](010-binary-distribution/001-action.md). Intel slices are not provided.
+  Since 2026-11-22 the four Rust bridges ship as one XCFramework, so a consumer
+  links one Rust runtime; [010.003](010-binary-distribution/003-single-native-archive.md).
 - Library iOS 15 minimum — closed 2026-11-19; [010.002](010-binary-distribution/002-ios-15-library.md).
   The app keeps its own deployment target.
 - Bundle license notices into the app — closed 2026-11-18. The notices under

@@ -59,6 +59,7 @@ jobs:
         run: |
           make test-syntax-native
           make test FILTER='PublicAPITests|CodeSyntaxTests|dagreNativeGeometryAndDirectionCrossTheCABI'
+          make check-native-consumer
           make app-check
       - name: Prepare artifacts and manifest
         run: |

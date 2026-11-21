@@ -13,7 +13,7 @@ The package references ignored, locally built Rust XCFrameworks. A URL consumer 
 
 ## Goals
 
-- Tagged versions resolve four published XCFrameworks without Rust.
+- Tagged versions resolve published XCFrameworks without Rust.
 - A local checkout can build its own native binaries.
 - Exercise the release process without creating a production release.
 
@@ -36,3 +36,4 @@ Build a clean local consumer. Verify release preparation and artifact hashes loc
 ## Amendments
 
 - Updated 2026-11-19. The library deployment target drops to iOS 15. See [002-ios-15-library.md](002-ios-15-library.md).
+- Updated 2026-11-22. The four bridges ship as one native archive, so consumers link one Rust runtime. See [003-single-native-archive.md](003-single-native-archive.md).

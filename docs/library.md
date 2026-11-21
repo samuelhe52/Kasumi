@@ -4,7 +4,7 @@ KasumiMarkdown is the Swift package behind the Kasumi reader. It parses Markdown
 
 ## Requirements and installation
 
-KasumiMarkdown requires Swift 6.2 or later and supports arm64 macOS 13+, iOS 15+, and iOS Simulator. Tagged releases include prebuilt Rust XCFrameworks.
+KasumiMarkdown requires Swift 6.2 or later and supports arm64 macOS 13+, iOS 15+, and iOS Simulator. Tagged releases include a prebuilt Rust XCFramework.
 
 Set compatible deployment targets in your package manifest, such as `platforms: [.macOS(.v13), .iOS(.v15)]`.
 
