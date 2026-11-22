@@ -17,6 +17,8 @@
 
 Kasumi sets every page with its own typesetting engine: no web view, no `UITextView`. Paragraphs are justified with real hyphenation, punctuation hangs in the margin, and Latin and CJK text sit together with tuned spacing. Math and Mermaid diagrams are typeset natively alongside tables and footnotes, and the text stays selectable and searchable. It is built on **KasumiMarkdown**, a Swift package for parsing, layout and drawing.
 
+Join the public beta on TestFlight: https://testflight.apple.com/join/yTy2vaSb
+
 ## Screenshots
 
 <table>
