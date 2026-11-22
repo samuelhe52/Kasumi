@@ -558,8 +558,9 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
         defer { Self.signposter.endInterval("Install", interval) }
         adjusting = true
         let firstLayout = rendered == nil
-        let selection = installedRevision == revision ? page?.selectionOffsets : nil
-        let hadTextFocus = page?.isFirstResponder == true
+        let selection = installedRevision == revision ? page?.selectionInput.selectionOffsets : nil
+        let selectionTableID = page?.selectionTableID
+        let hadTextFocus = page?.selectionInput.isFirstResponder == true
         let sameContent = installedRevision == revision
         let tableOffsets = sameContent ? page?.tableOffsets ?? [:] : [:]
         installedRevision = revision
@@ -582,13 +583,13 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
                 rendered: next, scale: displayScale, preview: preview, previewRect: previewRect,
                 codeBlockControl: codeBlockControl, tableOffsets: tableOffsets)
             content.addSubview(nextPage)
-            page?.clearSelection()
+            page?.clearReaderSelection()
             page?.removeFromSuperview()
+            if let selection { nextPage.restoreReaderSelection(selection, tableID: selectionTableID) }
         }
         rendered = next
         page = nextPage
         nextPage.isHidden = false
-        if let selection { nextPage.restoreSelection(selection) }
         nextPage.onLink = { [weak self] url in self?.follow(url) }
         nextPage.onTap = { [weak self] in self?.becomeFirstResponder() }
         nextPage.onTableScroll = { [weak self] in
@@ -611,7 +612,7 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
         openingIndicator.stopAnimating()
         updateImageViewport()
         updateLinkAccessibility()
-        if selection != nil && hadTextFocus { nextPage.becomeFirstResponder() }
+        if selection != nil && hadTextFocus { nextPage.selectionInput.becomeFirstResponder() }
         if let overlay {
             overlay.frame = bounds
             overlay.isUserInteractionEnabled = false
@@ -771,7 +772,7 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
         Task { @MainActor [weak self] in
             guard let self, !self.isActive, !self.finished else { return }
             self.suspendFind()
-            self.page?.resignFirstResponder()
+            self.page?.selectionInput.resignFirstResponder()
             self.resignFirstResponder()
         }
     }
@@ -817,7 +818,7 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
 
     private func didBeginNativeFind() {
         systemFindActive = true
-        page?.clearSelection()
+        page?.clearReaderSelection()
         programmaticFind.clear()
         wantsProgrammaticReveal = false
         publishFindResult()
@@ -987,6 +988,11 @@ fileprivate final class ReaderPageView: ReaderTextInputView {
     private var highlightIndex: ReaderHighlightIndex?
     private var highlightWindow = CGRect.null
     private var tableScrollViews: [ReaderTableScrollView] = []
+    private weak var selectionTable: ReaderTableScrollView?
+    var selectionTableID: Int? { selectionTable?.tableID }
+    var selectionInput: ReaderTextInputView { selectionTable?.textInput ?? self }
+    var onLink: ((URL) -> Void)?
+    var onTap: (() -> Void)?
     var onTableScroll: (() -> Void)?
     private var seedLayer: CALayer?
     private var tileLayer: ReaderTileLayer?
@@ -1008,6 +1014,8 @@ fileprivate final class ReaderPageView: ReaderTextInputView {
         codeBlockControl: ((RenderedCodeBlock) -> UIControl?)?, tableOffsets: [Int: CGFloat] = [:]
     ) {
         super.init(rendered: rendered)
+        onBeginSelection = { [weak self] in self?.changeSelectionTable(to: nil) }
+        onDocumentTap = { [weak self] point in self?.handleTap(at: point) }
         layer.anchorPoint = .zero
         layer.position = .zero
         backgroundColor = UIColor(cgColor: rendered.backgroundColor)
@@ -1033,6 +1041,7 @@ fileprivate final class ReaderPageView: ReaderTextInputView {
     ) {
         highlightIndex = nil
         highlightWindow = .null
+        frame.size = next.size
         replaceRendered(next)
         installDrawingLayers(scale: scale, preview: preview, previewRect: previewRect)
         installTables(scale: scale, preview: preview)
@@ -1093,6 +1102,29 @@ fileprivate final class ReaderPageView: ReaderTextInputView {
         }
     }
 
+    func restoreReaderSelection(_ offsets: (Int, Int), tableID: Int?) {
+        selectionTable = tableScrollViews.first { $0.tableID == tableID }
+        selectionInput.restoreSelection(offsets)
+    }
+
+    func clearReaderSelection() {
+        selectionInput.clearSelection()
+        selectionTable = nil
+    }
+
+    private func changeSelectionTable(to table: ReaderTableScrollView?) {
+        guard selectionTable !== table else { return }
+        clearReaderSelection()
+        selectionTable = table
+    }
+
+    private func handleTap(at point: CGPoint) {
+        let hadSelection = selectionInput.hasSelection
+        if hadSelection { clearReaderSelection() }
+        onTap?()
+        if !hadSelection, let url = rendered.link(at: point) { onLink?(url) }
+    }
+
     private func installTables(scale: CGFloat, preview: ReaderPagePreview?) {
         var existing = Dictionary(uniqueKeysWithValues: tableScrollViews.map { ($0.tableID, $0) })
         var next: [ReaderTableScrollView] = []
@@ -1109,7 +1141,15 @@ fileprivate final class ReaderPageView: ReaderTextInputView {
                     self?.paintHighlights()
                     self?.onTableScroll?()
                 }
-                scroll.onBeginDragging = { [weak self] in self?.clearSelection() }
+                scroll.onBeginDragging = { [weak self, weak scroll] in
+                    // Keep a table-local selection attached to its text while it scrolls.
+                    guard let self, self.selectionTable !== scroll else { return }
+                    self.clearReaderSelection()
+                }
+                scroll.textInput.onBeginSelection = { [weak self, weak scroll] in
+                    self?.changeSelectionTable(to: scroll)
+                }
+                scroll.textInput.onDocumentTap = { [weak self] point in self?.handleTap(at: point) }
                 addSubview(scroll)
             }
             next.append(scroll)

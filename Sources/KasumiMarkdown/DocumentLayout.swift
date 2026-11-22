@@ -357,6 +357,7 @@ enum DocumentTypesetter {
                 let tableWidth = widths.reduce(0, +)
                 let tableLeft = left + max(0, (measure - tableWidth) / 2)
                 let paragraphStart = paragraphs.count
+                let textStart = storageLength
                 let imageStart = readerImages.count
                 let backgroundStart = backgrounds.count
                 let ruleStart = rules.count
@@ -421,7 +422,7 @@ enum DocumentTypesetter {
                     RenderedTable(
                         id: tableIndex,
                         frame: CGRect(x: tableLeft, y: top - 1, width: min(measure, tableWidth), height: y - top + 2),
-                        contentWidth: tableWidth))
+                        contentWidth: tableWidth, textOffsets: textStart..<max(textStart, storageLength - 1)))
                 y += style.size
             } else {
                 let isCode = block.kind == .code || block.kind == .diagram

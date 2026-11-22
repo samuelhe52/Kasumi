@@ -280,6 +280,13 @@ public final class RenderedDocument: @unchecked Sendable {
         TextRange(position(0), position(semanticLength))
     }
 
+    package func readerTableTextRange(at index: Int) -> TextRange {
+        let offsets = layout.tables[index].textOffsets
+        return TextRange(
+            position(layout.textMap.semanticOffset(forRenderedOffset: offsets.lowerBound)),
+            position(layout.textMap.semanticOffset(forRenderedOffset: offsets.upperBound)))
+    }
+
     /// Moves by semantic UTF-16 code units, as required by UIKit text input.
     /// Returns nil for a foreign snapshot, overflow, or an out-of-document offset.
     /// Hit testing snaps to graphemes; arithmetic intentionally preserves exact

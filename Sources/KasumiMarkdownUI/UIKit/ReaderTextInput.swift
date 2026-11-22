@@ -47,9 +47,10 @@ private final class ReaderSelectionRect: UITextSelectionRect {
 /// Kasumi supplies semantic text and geometry from the same snapshot it paints.
 class ReaderTextInputView: UIView, UITextInput, UITextInteractionDelegate, UIGestureRecognizerDelegate {
     private(set) var rendered: RenderedDocument
-    var onLink: ((URL) -> Void)?
-    var onTap: (() -> Void)?
+    var onBeginSelection: (() -> Void)?
+    var onDocumentTap: ((CGPoint) -> Void)?
     private var selection: ReaderTextRange?
+    var hasSelection: Bool { !(selection?.isEmpty ?? true) }
     // UIKit positions belong to this text-input view. A same-content refinement
     // changes the renderer's namespace without invalidating an active gesture's
     // semantic offsets. A replacement view gets a different owner.
@@ -83,13 +84,14 @@ class ReaderTextInputView: UIView, UITextInput, UITextInteractionDelegate, UIGes
 
     override var canBecomeFirstResponder: Bool { true }
     var isEditable: Bool { false }
-    var hasText: Bool { !rendered.documentRange.isEmpty }
+    var selectableRange: TextRange { rendered.documentRange }
+    var hasText: Bool { !selectableRange.isEmpty }
     weak var inputDelegate: (any UITextInputDelegate)?
     var tokenizer: any UITextInputTokenizer { stringTokenizer }
     var markedTextStyle: [NSAttributedString.Key: Any]?
     var markedTextRange: UITextRange? { nil }
-    var beginningOfDocument: UITextPosition { readerPosition(rendered.documentRange.lowerBound) }
-    var endOfDocument: UITextPosition { readerPosition(rendered.documentRange.upperBound) }
+    var beginningOfDocument: UITextPosition { readerPosition(selectableRange.lowerBound) }
+    var endOfDocument: UITextPosition { readerPosition(selectableRange.upperBound) }
     var textInputView: UIView { self }
     var unobscuredContentRect: CGRect {
         guard let scroll = superview?.superview as? UIScrollView else { return bounds }
@@ -134,7 +136,6 @@ class ReaderTextInputView: UIView, UITextInput, UITextInteractionDelegate, UIGes
         let saved = selectionOffsets
         inputDelegate?.selectionWillChange(self)
         rendered = next
-        frame.size = next.size
         selection = nil
         if let saved { restoreSelection(saved) }
         inputDelegate?.selectionDidChange(self)
@@ -145,14 +146,14 @@ class ReaderTextInputView: UIView, UITextInput, UITextInteractionDelegate, UIGes
     }
     override func selectAll(_ sender: Any?) {
         inputDelegate?.selectionWillChange(self)
-        selection = readerRange(rendered.documentRange)
+        selection = readerRange(selectableRange)
         inputDelegate?.selectionDidChange(self)
     }
     override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
         // iOS 15's native selection menu queries the responder actions below.
         switch action {
         case #selector(copy(_:)): return selection.map { !$0.isEmpty } ?? false
-        case #selector(selectAll(_:)): return hasText && selection?.value != rendered.documentRange
+        case #selector(selectAll(_:)): return hasText && selection?.value != selectableRange
         default: return false
         }
     }
@@ -176,6 +177,8 @@ class ReaderTextInputView: UIView, UITextInput, UITextInteractionDelegate, UIGes
         guard let start = checkedPosition(position), let result = rendered.position(from: start, offset: offset) else {
             return nil
         }
+        let scope = selectableRange
+        guard result >= scope.lowerBound, result <= scope.upperBound else { return nil }
         return readerPosition(result)
     }
     func position(from position: UITextPosition, in direction: UITextLayoutDirection, offset: Int) -> UITextPosition? {
@@ -205,13 +208,14 @@ class ReaderTextInputView: UIView, UITextInput, UITextInteractionDelegate, UIGes
     }
     func characterRange(byExtending position: UITextPosition, in direction: UITextLayoutDirection) -> UITextRange? {
         guard let start = checkedPosition(position) else { return nil }
-        let text = rendered.text(in: rendered.documentRange) as NSString
-        guard let offset = rendered.offset(from: rendered.documentRange.lowerBound, to: start) else { return nil }
+        let scope = selectableRange
+        let text = rendered.text(in: scope) as NSString
+        guard let offset = rendered.offset(from: scope.lowerBound, to: start) else { return nil }
         let backward = direction == .left || direction == .up
         let index = backward ? offset - 1 : offset
         guard index >= 0, index < text.length else { return nil }
         let range = text.rangeOfComposedCharacterSequence(at: index)
-        guard let a = rendered.position(from: rendered.documentRange.lowerBound, offset: range.location),
+        guard let a = rendered.position(from: scope.lowerBound, offset: range.location),
             let b = rendered.position(from: a, offset: range.length)
         else { return nil }
         return readerRange(TextRange(a, b))
@@ -235,7 +239,9 @@ class ReaderTextInputView: UIView, UITextInput, UITextInteractionDelegate, UIGes
         }
     }
     func closestPosition(to point: CGPoint) -> UITextPosition? {
-        readerPosition(rendered.position(closestTo: documentPoint(point)))
+        let scope = selectableRange
+        let closest = rendered.position(closestTo: documentPoint(point))
+        return readerPosition(min(scope.upperBound, max(scope.lowerBound, closest)))
     }
     func closestPosition(to point: CGPoint, within range: UITextRange) -> UITextPosition? {
         guard let range = checkedRange(range) else { return nil }
@@ -271,30 +277,26 @@ class ReaderTextInputView: UIView, UITextInput, UITextInteractionDelegate, UIGes
             upper: rendered.offset(from: rendered.documentRange.lowerBound, to: value.upperBound)!)
     }
 
-    private func isControl(_ view: UIView?) -> Bool {
+    private func hasOwnInteraction(_ view: UIView?) -> Bool {
         var candidate = view
         while let current = candidate, current !== self {
-            if current is UIControl { return true }
+            if current is UIControl || current is ReaderTextInputView { return true }
             candidate = current.superview
         }
         return false
     }
 
     func interactionShouldBegin(_ interaction: UITextInteraction, at point: CGPoint) -> Bool {
-        guard !isControl(hitTest(point, with: nil)) else { return false }
-        return hasText && becomeFirstResponder()
+        guard !hasOwnInteraction(hitTest(point, with: nil)), hasText, becomeFirstResponder() else { return false }
+        onBeginSelection?()
+        return true
     }
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
-        !isControl(touch.view)
+        !hasOwnInteraction(touch.view)
     }
 
     @objc private func tapped(_ gesture: UITapGestureRecognizer) {
-        let hadSelection = !(selection?.isEmpty ?? true)
-        if hadSelection { clearSelection() }
-        onTap?()
-        guard !hadSelection else { return }
-        guard let url = rendered.link(at: documentPoint(gesture.location(in: self))) else { return }
-        onLink?(url)
+        onDocumentTap?(documentPoint(gesture.location(in: self)))
     }
 
     // Read-only even if an input method or responder action requests editing.

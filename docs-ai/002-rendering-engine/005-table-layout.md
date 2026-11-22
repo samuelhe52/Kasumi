@@ -51,7 +51,8 @@ previews are painted off-main before the layout swap, while only visible regions
 are seeded.
 
 Text-input hit points add each table's offset; selection/caret/link geometry and
-Find highlights subtract it. Selection is cleared at the start of a table drag.
+Find highlights subtract it. The initial reader cleared selection at the start
+of a table drag; see the iOS selection follow-up below.
 Find reveals an active result's first rectangle horizontally before scrolling
 vertically. The snapshot itself owns no mutable scroll state. Replacing a reader
 layout resets table offsets. Native selection dragging does not implement
@@ -133,3 +134,22 @@ preview probe was removed. No frozen reference data changed.
 
 Before committing, `make app` also passed in an isolated export of the staged
 table changes, excluding the concurrent reader-reflow edits in the working tree.
+
+## Follow-up: iOS selection in horizontally scrollable tables (2026-11-22)
+
+Long-press worked in a fitted table but not in an overflowing one. On iOS
+27.2, a press inside the nested scroll view did not reach the page's native
+selection recognizers. Adding a second `UITextInteraction` to the table canvas
+but keeping the page as its text input did not fix it.
+
+The table canvas is now its own native text input. It uses table-content
+coordinates and the document's semantic range for that table, so Select All
+within an overflowing table selects only that table. The selection follows the
+cell text during a horizontal swipe of the same table; UIKit still owns the
+scroll and selection gestures. Fitted tables continue to use page selection.
+
+On the iPhone 18 Pro simulator (iOS 27.2), `fixtures/Tables.md` showed the native
+menu before and after a horizontal swipe. Copy from a revealed column put
+`Audit` on the pasteboard. Select All highlighted only the active table, a
+fitted cell remained selectable, and tapping the revealed `Final result` link
+opened the expected confirmation. The focused table semantics test also passed.

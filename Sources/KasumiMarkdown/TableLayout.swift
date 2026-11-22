@@ -10,6 +10,7 @@ public struct RenderedTable: Identifiable, Sendable {
     public let id: Int
     public let frame: CGRect
     public let contentWidth: CGFloat
+    let textOffsets: Range<Int>
     public var isScrollable: Bool { contentWidth > frame.width + 0.5 }
 }
 

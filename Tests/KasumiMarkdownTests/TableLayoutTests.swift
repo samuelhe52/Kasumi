@@ -95,6 +95,9 @@ fileprivate func tableFixture() throws -> MarkdownDocument {
         let style = RenderStyle(fontSize: 16, insets: .init(top: 20, left: 20, bottom: 20, right: 20))
         let rendered = RenderedDocument(document, width: 360, style: style, scrollableTables: true)
         let table = rendered.tables[1]
+        let tableText = rendered.text(in: rendered.readerTableTextRange(at: table.id))
+        #expect(tableText.hasPrefix("Run (full claim panel)\nScienceWorld reward\n"))
+        #expect(tableText.hasSuffix("14.2 pp\nFinal result"))
         let match = try #require(rendered.ranges(matching: "Final result").first)
         let rect = try #require(rendered.selectionRects(for: match).first)
         #expect(rect.maxX > table.frame.maxX)

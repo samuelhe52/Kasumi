@@ -13,11 +13,14 @@ final class ReaderTableScrollView: UIScrollView, UIScrollViewDelegate {
     var onScroll: (() -> Void)?
     var onBeginDragging: (() -> Void)?
     private let edgeMask = ReaderTableEdgeMask()
-    private let canvas = UIView()
+    let textInput: ReaderTableTextInputView
     private var seedLayer: CALayer?
     private var tileLayer: ReaderTableTileLayer?
 
     init(rendered: RenderedDocument, table: RenderedTable, scale: CGFloat, preview: ReaderTablePreview?) {
+        // UIKit does not admit the page's selection gestures across a nested
+        // scroll view. The table needs a text-input view inside its own scroll.
+        textInput = ReaderTableTextInputView(rendered: rendered, tableID: table.id)
         tableID = table.id
         super.init(frame: table.frame)
         delegate = self
@@ -28,8 +31,7 @@ final class ReaderTableScrollView: UIScrollView, UIScrollViewDelegate {
         delaysContentTouches = false
         if #available(iOS 26.0, *) { topEdgeEffect.style = .soft }
         layer.mask = edgeMask
-        canvas.isUserInteractionEnabled = false
-        addSubview(canvas)
+        addSubview(textInput)
         refine(rendered: rendered, table: table, scale: scale, preview: preview)
         accessibilityIdentifier = "reader-table-\(table.id)"
     }
@@ -49,7 +51,9 @@ final class ReaderTableScrollView: UIScrollView, UIScrollViewDelegate {
         indicatorStyle = components.prefix(3).reduce(0, +) < 1.5 ? .white : .black
         let size = CGSize(width: table.contentWidth, height: table.frame.height)
         if contentSize != size { contentSize = size }
-        canvas.frame = CGRect(origin: .zero, size: contentSize)
+        textInput.frame = CGRect(origin: .zero, size: size)
+        textInput.tableOrigin = table.frame.origin
+        if textInput.rendered !== rendered { textInput.replaceRendered(rendered) }
         seedLayer?.removeFromSuperlayer()
         tileLayer?.removeFromSuperlayer()
         seedLayer = nil
@@ -58,14 +62,14 @@ final class ReaderTableScrollView: UIScrollView, UIScrollViewDelegate {
             seed.frame = preview.rect
             seed.contents = preview.image
             seed.contentsScale = scale
-            canvas.layer.addSublayer(seed)
+            textInput.layer.insertSublayer(seed, at: 0)
             seedLayer = seed
         }
         let tiles = ReaderTableTileLayer(rendered: rendered, index: table.id)
-        tiles.frame = canvas.bounds
+        tiles.frame = textInput.bounds
         tiles.contentsScale = scale
         tiles.tileSize = CGSize(width: 512, height: 512)
-        canvas.layer.addSublayer(tiles)
+        textInput.layer.insertSublayer(tiles, at: seedLayer == nil ? 0 : 1)
         tileLayer = tiles
         let clamped = CGPoint(x: min(max(0, previousOffset.x), max(0, contentSize.width - bounds.width)), y: 0)
         // Preserve an in-flight edge bounce when horizontal geometry is stable.
@@ -91,6 +95,35 @@ final class ReaderTableScrollView: UIScrollView, UIScrollViewDelegate {
         onScroll?()
     }
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) { onBeginDragging?() }
+}
+
+final class ReaderTableTextInputView: ReaderTextInputView {
+    private let tableID: Int
+    var tableOrigin = CGPoint.zero
+
+    init(rendered: RenderedDocument, tableID: Int) {
+        self.tableID = tableID
+        super.init(rendered: rendered)
+    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    override var selectableRange: TextRange { rendered.readerTableTextRange(at: tableID) }
+
+    override var unobscuredContentRect: CGRect {
+        guard let scroll = superview as? UIScrollView,
+            let page = scroll.superview as? ReaderTextInputView
+        else { return bounds }
+        return convert(scroll.bounds, from: scroll).intersection(convert(page.unobscuredContentRect, from: page))
+    }
+
+    override func documentPoint(_ point: CGPoint) -> CGPoint {
+        CGPoint(x: point.x + tableOrigin.x, y: point.y + tableOrigin.y)
+    }
+
+    override func viewRect(_ rect: CGRect, clipped: Bool = false) -> CGRect {
+        let local = rect.offsetBy(dx: -tableOrigin.x, dy: -tableOrigin.y)
+        return clipped ? local.intersection(bounds) : local
+    }
 }
 
 fileprivate final class ReaderTableTileLayer: CATiledLayer {
