@@ -95,3 +95,22 @@ Nothing here establishes display FPS, 120 Hz rendering, UIKit tile presentation 
 [2026-11-17 Apple M1 Pro](baselines/2026-11-17-m1-pro/report.md): all 689 children completed. Cold file-to-first-bitmap medians for mixed 20k/50k/200k were 134.16/153.08/187.67 ms. Mixed 200k engine footprint settled at 132.04 MB after full traversal (134.74 MB peak). Warmed native fast scrolling had zero coverage misses.
 
 Paint tails varied widely: mixed 200k first/return p99 were 44.85/17.55 ms, and one session supplied over half the top 1% in each direction. Earlier separate runs were lower. This does not establish a cause or a regression, so repeat under similar host load before concluding anything. The host was shared and load was not measured continuously.
+
+### Native reader extraction check (2026-11-22)
+
+No material regression observed in macOS cold opening or mixed-content iOS
+simulator scrolling from `5468506` (before extraction) to `3120c6a` (after).
+Both sessions used the same Release binaries on one M1 Pro.
+
+| Metric | AC | Battery |
+| --- | ---: | ---: |
+| Cold file-to-first-bitmap change, range of fixture-level median paired changes | −0.9% to +1.1% | −1.6% to +3.1% |
+| Active-scroll callback-gap p99, before → after | 20.6–20.8 → 20.3 ms | 20.1–23.9 → 20.4 ms |
+
+`KasumiReaderBench --worker cold` ran 12 interleaved fresh-process pairs per
+fixture per session: English 50k, Chinese 50k, mixed 50k/200k, and one 50k
+paragraph. `scripts/check-reader-scrolling --cases mixed` ran two 16-swipe
+trials per build per session on the same iPhone 18 Pro simulator (iOS 27.2),
+with Find closed. Both builds had occasional active callback gaps over 100 ms;
+neither reported an unmeasured viewport during scrolling. The simulator samples
+callback timing, not presented frames; physical-device scrolling was not tested.
