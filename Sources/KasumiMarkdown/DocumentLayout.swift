@@ -361,7 +361,12 @@ enum DocumentTypesetter {
                             func build() -> [CGFloat] {
                                 TableColumns.widths(
                                     cells: cells, count: columns, measure: measure, em: style.size,
-                                    padding: horizontalPadding, scrollable: scrollableTables)
+                                    padding: horizontalPadding, scrollable: scrollableTables,
+                                    options: ParagraphProfileOptions(values: paragraphValues)
+                                ) { cell in
+                                    preparation?.paragraph(cell, fontSize: style.size, verbatim: false)
+                                        ?? ParagraphPreparation(cell, fontSize: style.size, verbatim: false)
+                                }
                             }
                             return preparation?.tableWidths(
                                 block: blockIndex, rows: block.rows, width: measure, em: style.size,
@@ -381,9 +386,12 @@ enum DocumentTypesetter {
                     var x = tableLeft
                     var height: CGFloat = style.size * style.lineSpacing + verticalPadding * 2
                     for (column, cell) in row.enumerated() where column < columns {
-                        let attr = attributed(
-                            cell, heading: rowIndex == 0,
-                            imageMaxWidth: max(1, widths[column] - horizontalPadding * 2))
+                        let attr =
+                            cell.contains(where: { $0.traits.contains(.image) })
+                            ? attributed(
+                                cell, heading: rowIndex == 0,
+                                imageMaxWidth: max(1, widths[column] - horizontalPadding * 2))
+                            : cells[rowIndex][column]
                         let alignment: ParagraphAlignment =
                             column < block.alignments.count && block.alignments[column].lowercased().contains("right")
                             ? .trailing

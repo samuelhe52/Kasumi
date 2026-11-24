@@ -125,6 +125,23 @@ enum ParagraphEngine {
         fileprivate let diagnostics: [ParagraphEngineDiagnostic]
         fileprivate let total: Float
         fileprivate let code: Float
+
+        /// The widest forced line at natural spacing, using the same Float
+        /// additions as the breaker and excluding discretionary hyphens.
+        var unwrappedWidth: Float? {
+            guard let items else { return nil }
+            var width: Float = 0
+            var widest: Float = 0
+            for item in items {
+                if item.kind != .penalty {
+                    width += item.width
+                } else if item.penalty <= -10_000 {
+                    widest = max(widest, width)
+                    width = 0
+                }
+            }
+            return max(widest, width)
+        }
     }
 
     static func prepare(

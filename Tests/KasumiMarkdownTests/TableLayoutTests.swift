@@ -66,6 +66,25 @@ fileprivate func tableFixture() throws -> MarkdownDocument {
         #expect(description.paragraph.lines.allSatisfy { $0.width <= header.origin.x - description.origin.x })
     }
 
+    @Test func spareMeasureWidensProseWithoutWrappingShortStyledHeaders() throws {
+        let source = """
+            | Description | Avg. grade | Snapshot |
+            | --- | --- | --- |
+            | \(String(repeating: "Several words in a long description. ", count: 6)) | 4 | Link |
+            """
+        let style = Typography()
+        for scrollable in [false, true] {
+            let layout = DocumentTypesetter.layout(
+                DocumentParser.parse(source), width: 800, style: style, insets: .zero, scrollableTables: scrollable)
+            let table = try #require(layout.tables.first)
+            #expect(abs(table.contentWidth - 800) < 0.01)
+            let grade = try #require(layout.paragraphs.first { $0.paragraph.attributed.string == "Avg. grade" })
+            let snapshot = try #require(layout.paragraphs.first { $0.paragraph.attributed.string == "Snapshot" })
+            #expect(grade.paragraph.lines.count == 1)
+            #expect(snapshot.paragraph.lines.count == 1)
+        }
+    }
+
     @Test func narrowReaderOverflowsButRoomyPagesAndFileExportsFit() throws {
         let document = try tableFixture()
         let style = RenderStyle(fontSize: 16, widthLimit: nil, insets: .init(top: 20, left: 20, bottom: 20, right: 20))

@@ -15,19 +15,27 @@ public struct RenderedTable: Identifiable, Sendable {
 }
 
 enum TableColumns {
-    /// Short columns keep their natural width. Prose columns get a comfortable
-    /// minimum and bounded preferred width, rather than a share of the longest
-    /// cell's unwrapped length. Measurements use the same styled cells as paint.
+    /// Satisfy short columns and prose minima first. Give prose its bounded
+    /// preference before spending remaining measure on natural widths.
     static func widths(
         cells: [[NSAttributedString]], count: Int, measure: CGFloat, em: CGFloat,
-        padding: CGFloat, scrollable: Bool
+        padding: CGFloat, scrollable: Bool, options: ParagraphProfileOptions,
+        prepare: (NSAttributedString) -> ParagraphPreparation
     ) -> [CGFloat] {
         var minimum = Array(repeating: padding * 2 + 1, count: count)
         var preferred = minimum
+        var unwrapped = minimum
         for row in cells {
             for (column, cell) in row.enumerated() where column < count {
-                let line = CTLineCreateWithAttributedString(cell)
-                let natural = CGFloat(CTLineGetTypographicBounds(line, nil, nil, nil))
+                // Core Text is also the painting path for bidirectional cells.
+                // Engine cells can differ by spacing or even one Float ULP.
+                let natural: CGFloat
+                if let width = prepare(cell).items(indent: 0, options: options)?.unwrappedWidth {
+                    natural = CGFloat(width)
+                } else {
+                    let line = CTLineCreateWithAttributedString(cell)
+                    natural = CGFloat(CTLineGetTypographicBounds(line, nil, nil, nil))
+                }
                 // UAX14 permits CJK wrapping without treating a whole sentence
                 // as one word. Do not include trailing spaces in word measures.
                 let text = cell.string
@@ -55,6 +63,7 @@ enum TableColumns {
                 let upper = max(lower, min(natural, max(12 * em, measure * 0.6)) + padding * 2)
                 minimum[column] = max(minimum[column], lower)
                 preferred[column] = max(preferred[column], upper)
+                unwrapped[column] = max(unwrapped[column], natural + padding * 2)
             }
         }
         let lower = minimum.reduce(0, +)
@@ -62,8 +71,13 @@ enum TableColumns {
         if lower > measure {
             return scrollable ? minimum : minimum.map { $0 * measure / lower }
         }
-        guard upper > lower else { return minimum }
-        let fraction = min(1, (measure - lower) / (upper - lower))
-        return zip(minimum, preferred).map { $0 + ($1 - $0) * fraction }
+        if upper > measure {
+            let fraction = (measure - lower) / (upper - lower)
+            return zip(minimum, preferred).map { $0 + ($1 - $0) * fraction }
+        }
+        let natural = unwrapped.reduce(0, +)
+        guard natural > measure else { return unwrapped }
+        let fraction = (measure - upper) / (natural - upper)
+        return zip(preferred, unwrapped).map { $0 + ($1 - $0) * fraction }
     }
 }
