@@ -34,6 +34,12 @@ or is reordered; record the work itself in a numbered entry.
    Validation uses only the iPhone simulator.
    See [validation limits](009-source-editor/001-action.md#open-questions).
 
+5. Native Mac app — [011](011-mac-app/000-plan.md), implemented 2026-11-24.
+   A macOS 26 document app with native window tabs, a navigator, an outline
+   inspector, source mode and menu-routed Find. Developer ID signing,
+   notarization and distribution remain. See
+   [validation limits](011-mac-app/001-action.md#open-questions).
+
 ## Non-blocking Reader 1 follow-ups
 
 [Preset spacing](004-ios-reader/008-preset-spacing.md) adds live editing in
