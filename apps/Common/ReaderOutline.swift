@@ -46,7 +46,6 @@ struct ReaderOutline: View {
                             #if os(macOS)
                                 Text(item.title)
                                     .font(.system(size: 12))
-                                    .underline(current)
                                     .foregroundStyle(.secondary)
                                     .lineLimit(1)
                                     .frame(maxWidth: .infinity, alignment: .leading)
