@@ -98,6 +98,24 @@ fileprivate func linkBitmap(_ layout: DocumentLayout, extra: [PaintedRect] = [],
         }
     }
 
+    @Test func insertedSpacingConnectsOnlyAdjacentRangesOfTheSameLink() throws {
+        let style = Typography()
+        for source in ["[出**品**：持续](#target)", "[**8** 月 **6** 日](#target)"] {
+            let layout = DocumentTypesetter.layout(DocumentParser.parse(source), width: 500, style: style)
+            let paragraph = try #require(layout.paragraphs.first?.paragraph)
+            let line = try #require(paragraph.lines.first)
+            #expect(paragraph.underlines.count == 1)
+            let stripe = try #require(paragraph.underlines.first?.rect)
+            #expect(abs(stripe.minX - line.origin.x) < 0.001)
+            #expect(abs(stripe.width - line.width) < 0.001)
+        }
+        for source in ["[甲](#one)[乙](#two)", "[甲](#one) 中 [乙](#one)"] {
+            let layout = DocumentTypesetter.layout(DocumentParser.parse(source), width: 500, style: style)
+            let paragraph = try #require(layout.paragraphs.first?.paragraph)
+            #expect(paragraph.underlines.count == 2)
+        }
+    }
+
     @Test(arguments: ["LinkJumps.md#middle", "file:///tmp/document.md", "mailto:reader@example.com"])
     func nonWebTargetsUseDashedIndicators(destination: String) throws {
         let style = Typography().applying(ProfileValues([.baseSize: .number(20)]))

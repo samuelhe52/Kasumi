@@ -141,14 +141,20 @@ enum TextUnderline {
                     x: line.origin.x + min(start, end), y: line.origin.y - baseline + em * 0.185,
                     width: abs(end - start), height: max(0.5, em * 0.07))
                 guard rect.width > 0 else { return }
-                if let current = pending, pendingDestination == destination, pendingColor == color,
-                    current.minY == rect.minY, current.height == rect.height,
+                let adjacent = previousEnd == range.location
+                if let current = pending, adjacent, pendingDestination == destination, pendingColor == color,
+                    pendingSolid == solid, current.minY == rect.minY, current.height == rect.height,
                     abs(current.maxX - rect.minX) < 0.001
+                        || (linked && !line.fragments.isEmpty && current.minX <= rect.minX)
                 {
+                    // The paragraph engine inserts glue between adjacent source
+                    // ranges. Core Text's bidirectional path retains its visual gaps.
+                    let left = min(current.minX, rect.minX)
                     pending = CGRect(
-                        x: current.minX, y: current.minY, width: rect.maxX - current.minX, height: current.height)
+                        x: left, y: current.minY,
+                        width: max(current.maxX, rect.maxX) - left, height: current.height)
                 } else {
-                    let continues = pending != nil && pendingDestination == destination && previousEnd == range.location
+                    let continues = pending != nil && pendingDestination == destination && adjacent
                     flush()
                     if !continues { dashOrigin = rect.minX }
                     pending = rect
