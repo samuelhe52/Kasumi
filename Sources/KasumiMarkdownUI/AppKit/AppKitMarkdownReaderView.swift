@@ -102,6 +102,9 @@ import os
         NotificationCenter.default.addObserver(
             self, selector: #selector(boundsChanged), name: NSView.boundsDidChangeNotification,
             object: scrollView.contentView)
+        for name in [NSWindow.didBecomeKeyNotification, NSWindow.didResignKeyNotification] {
+            NotificationCenter.default.addObserver(self, selector: #selector(windowKeyChanged), name: name, object: nil)
+        }
     }
 
     @available(*, unavailable)
@@ -868,35 +871,46 @@ import os
         for table in tableViews.values { table.tableCanvas.setNeedsDisplay(table.tableCanvas.visibleRect) }
     }
 
-    func drawHighlights(in context: CGContext, dirtyRect: CGRect, table: RenderedTable? = nil) {
-        guard let rendered else { return }
+    @objc private func windowKeyChanged(_ notification: Notification) {
+        if let window, notification.object as? NSWindow === window { setHighlightsNeedDisplay() }
+    }
+
+    func highlights(in dirtyRect: CGRect, table: RenderedTable? = nil) -> [(rects: [CGRect], color: CGColor)] {
+        guard let rendered else { return [] }
         let selection = find.selection ?? canvas.selection
-        guard (selection?.length ?? 0) > 0 || !customFind.ranges.isEmpty else { return }
+        guard (selection?.length ?? 0) > 0 || !customFind.ranges.isEmpty else { return [] }
         let documentRect = table.map { dirtyRect.offsetBy(dx: $0.frame.minX, dy: $0.frame.minY) } ?? dirtyRect
-        guard let visible = rendered.textRange(intersectingVerticalRange: documentRect.minY..<documentRect.maxY) else { return }
-        let color = NSColor.selectedTextBackgroundColor.withAlphaComponent(0.5).cgColor
-        func paint(_ match: KasumiMarkdown.TextRange, color: CGColor) {
-            guard match.lowerBound < visible.upperBound, match.upperBound > visible.lowerBound else { return }
+        guard let visible = rendered.textRange(intersectingVerticalRange: documentRect.minY..<documentRect.maxY)
+        else { return [] }
+        func rectangles(for match: KasumiMarkdown.TextRange) -> [CGRect] {
+            guard match.lowerBound < visible.upperBound, match.upperBound > visible.lowerBound else { return [] }
             let clippedRange = KasumiMarkdown.TextRange(
                 max(match.lowerBound, visible.lowerBound), min(match.upperBound, visible.upperBound))
-            context.setFillColor(color)
-            for rect in rendered.selectionRects(for: clippedRange) where rect.intersects(documentRect) {
-                if let table {
-                    context.fill(rect.offsetBy(dx: -table.frame.minX, dy: -table.frame.minY))
-                } else if scrollableTable(atY: rect.midY) == nil {
-                    context.fill(rect)
-                }
+            return rendered.selectionRects(for: clippedRange).filter {
+                $0.intersects(documentRect) && (table != nil || scrollableTable(atY: $0.midY) == nil)
             }
         }
-        if let selection = find.selection ?? canvas.selection, let range = rendered.readerTextRange(for: selection) {
-            paint(range, color: color)
+        var highlights: [(rects: [CGRect], color: CGColor)] = []
+        effectiveAppearance.performAsCurrentDrawingAppearance {
+            if let selection, let range = rendered.readerTextRange(for: selection) {
+                let color =
+                    window?.isKeyWindow == false
+                    ? NSColor.unemphasizedSelectedTextBackgroundColor : .selectedTextBackgroundColor
+                let rects = rectangles(for: range)
+                if !rects.isEmpty { highlights.append((rects, color.withAlphaComponent(1).cgColor)) }
+            }
+            guard let highlightIndex else { return }
+            var matches: [CGRect] = []
+            var current: [CGRect] = []
+            for index in highlightIndex.candidates(in: rendered, verticalRange: documentRect.minY..<documentRect.maxY) {
+                let rects = rectangles(for: customFind.ranges[index])
+                if index == customFind.currentIndex { current.append(contentsOf: rects) }
+                else { matches.append(contentsOf: rects) }
+            }
+            if !matches.isEmpty { highlights.append((matches, NSColor.systemYellow.withAlphaComponent(0.34).cgColor)) }
+            if !current.isEmpty { highlights.append((current, NSColor.systemOrange.withAlphaComponent(0.55).cgColor)) }
         }
-        guard let highlightIndex else { return }
-        let normal = NSColor.systemYellow.withAlphaComponent(0.34).cgColor
-        let current = NSColor.systemOrange.withAlphaComponent(0.55).cgColor
-        for index in highlightIndex.candidates(in: rendered, verticalRange: documentRect.minY..<documentRect.maxY) {
-            paint(customFind.ranges[index], color: index == customFind.currentIndex ? current : normal)
-        }
+        return highlights
     }
 
     package var readerViewportDiagnostics: ReaderViewportDiagnostics {

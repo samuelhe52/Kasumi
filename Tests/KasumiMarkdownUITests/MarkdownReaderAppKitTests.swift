@@ -22,6 +22,80 @@ import Testing
         #expect(opened == external)
     }
 
+    @Test(arguments: [false, true])
+    func selectionPaintsBelowColoredGlyphsOnThePageAndInScrollableTables(dark: Bool) async throws {
+        _ = NSApplication.shared
+        let frame = CGRect(x: 0, y: 0, width: 350, height: 320)
+        let reader = MarkdownReaderView(frame: frame)
+        reader.readerPreparesForScrolling = false
+        reader.appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
+        let text = try #require(DocumentColor(hex: dark ? "#E8D29D" : "#3B214A"))
+        let paper = try #require(DocumentColor(hex: dark ? "#202720" : "#FEF8E8"))
+        let theme = DocumentTheme(
+            id: "selection-test", name: "Selection Test", appearance: dark ? .dark : .light,
+            document: ["text": text, "heading": text, "paper": paper])
+        reader.style = RenderStyle(theme: theme, fontSize: 32, insets: .zero)
+        let window = NSWindow(contentRect: frame, styleMask: [.titled], backing: .buffered, defer: false)
+        window.contentView = reader
+        reader.setDocument(MarkdownDocument(markdown: """
+            MMMM
+
+            | HHHH | A very long column | Larger column |
+            |---|---|---|
+            | A | A very long description | Another long description |
+            """))
+        try #require(await eventually { reader.rendered?.tables.first?.isScrollable == true })
+        let rendered = try #require(reader.rendered)
+        let table = try #require(rendered.tables.first)
+        window.contentView = nil
+        for (token, table) in [("MMMM", nil), ("HHHH", table as RenderedTable?)] {
+            reader.canvas.setSelection(reader.canvas.semanticString.range(of: token))
+            let offset = table?.frame.origin ?? .zero
+            let area = table.map { CGRect(x: 0, y: 0, width: $0.contentWidth, height: $0.frame.height) } ?? frame
+            let highlights = reader.highlights(in: area, table: table)
+            let highlight = try #require(highlights.first)
+            #expect(highlight.color.alpha == 1)
+            let rect = try #require(highlight.rects.first)
+                .offsetBy(dx: -offset.x, dy: -offset.y).insetBy(dx: 2, dy: 2).integral
+            let plain = try pixelsInReaderRect(rect) { context in
+                if let table { rendered.drawTable(at: table.id, in: context, rect: rect) }
+                else { rendered.draw(in: context, rect: rect) }
+            }
+            let selected = try pixelsInReaderRect(rect) { context in
+                if let table { rendered.drawTable(at: table.id, in: context, rect: rect, highlights: highlights) }
+                else { rendered.draw(in: context, rect: rect, excludingScrollableTables: true, highlights: highlights) }
+            }
+            let space = CGColorSpace(name: CGColorSpace.sRGB)!
+            let color = try #require(
+                highlight.color.converted(to: space, intent: .defaultIntent, options: nil)?.components)
+            let expected = color.prefix(3).map { Int(($0 * 255).rounded()) }
+            let rgb = [text.red, text.green, text.blue].map { Int(($0 * 255).rounded()) }
+            func equals(_ image: [UInt8], at i: Int, _ color: [Int]) -> Bool {
+                (0..<3).allSatisfy { abs(Int(image[i + $0]) - color[$0]) <= 1 }
+            }
+            let indices = stride(from: 0, to: plain.count, by: 4)
+            #expect(indices.filter { equals(selected, at: $0, expected) }.count > 30)
+            #expect(indices.filter { equals(plain, at: $0, rgb) && equals(selected, at: $0, rgb) }.count > 20)
+        }
+    }
+
+    private func pixelsInReaderRect(_ rect: CGRect, draw: (CGContext) -> Void) throws -> [UInt8] {
+        let width = Int(rect.width)
+        let height = Int(rect.height)
+        var pixels = [UInt8](repeating: 0, count: width * height * 4)
+        try pixels.withUnsafeMutableBytes { bytes in
+            let context = try #require(CGContext(
+                data: bytes.baseAddress, width: width, height: height, bitsPerComponent: 8,
+                bytesPerRow: width * 4, space: CGColorSpace(name: CGColorSpace.sRGB)!,
+                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+            context.translateBy(x: 0, y: CGFloat(height))
+            context.scaleBy(x: 1, y: -1)
+            context.translateBy(x: -rect.minX, y: -rect.minY)
+            draw(context)
+        }
+        return pixels
+    }
+
     @Test(arguments: [false, true]) func queuedFindSurvivesSuspensionUnlessDismissed(dismiss: Bool) async throws {
         _ = NSApplication.shared
         let frame = CGRect(x: 0, y: 0, width: 360, height: 300)

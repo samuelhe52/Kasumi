@@ -608,7 +608,8 @@ enum DocumentTypesetter {
     /// Draw in a top-left, downward-positive graphics coordinate space.
     static func draw(
         _ layout: DocumentLayout, in context: CGContext, sourceRange: Range<CGFloat>? = nil,
-        excludingScrollableTables: Bool = false, tableIndex: Int? = nil, pdfLinks: PDFLinkAnnotations? = nil
+        excludingScrollableTables: Bool = false, tableIndex: Int? = nil, pdfLinks: PDFLinkAnnotations? = nil,
+        highlights: [(rects: [CGRect], color: CGColor)] = []
     ) {
         func include(_ index: Int?) -> Bool {
             if let tableIndex { return index == tableIndex }
@@ -635,6 +636,14 @@ enum DocumentTypesetter {
             } else {
                 context.fill(background.rect)
             }
+        }
+        // A single winding fill keeps overlapping rectangles at one opacity.
+        // Paint under the glyphs so their colors survive selection and Find.
+        for highlight in highlights where !highlight.rects.isEmpty {
+            context.setFillColor(highlight.color)
+            context.beginPath()
+            context.addRects(highlight.rects)
+            context.fillPath()
         }
         if tableIndex == nil {
             for code in layout.codeBlocks { code.drawLabel(in: context) }

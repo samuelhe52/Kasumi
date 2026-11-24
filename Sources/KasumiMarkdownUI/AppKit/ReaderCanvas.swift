@@ -71,7 +71,8 @@ import KasumiMarkdown
         context.setFillColor(owner?.rendered?.backgroundColor ?? NSColor.textBackgroundColor.cgColor)
         context.fill(dirtyRect)
         guard let owner, let rendered = owner.rendered else { return }
-        if let preview, preview.rect.intersects(dirtyRect) {
+        let highlights = owner.highlights(in: dirtyRect)
+        if highlights.isEmpty, let preview, preview.rect.intersects(dirtyRect) {
             context.saveGState()
             context.clip(to: preview.rect)
             context.translateBy(x: preview.rect.minX, y: preview.rect.minY + preview.pixelSize.height)
@@ -87,9 +88,8 @@ import KasumiMarkdown
                 context.restoreGState()
             }
         } else {
-            rendered.draw(in: context, rect: dirtyRect, excludingScrollableTables: true)
+            rendered.draw(in: context, rect: dirtyRect, excludingScrollableTables: true, highlights: highlights)
         }
-        owner.drawHighlights(in: context, dirtyRect: dirtyRect)
     }
 
     private func documentPoint(_ event: NSEvent) -> CGPoint { convert(event.locationInWindow, from: nil) }

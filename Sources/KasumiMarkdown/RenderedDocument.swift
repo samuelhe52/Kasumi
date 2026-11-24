@@ -233,6 +233,13 @@ public final class RenderedDocument: @unchecked Sendable {
     /// Unmeasured text is not painted: viewport clients must check `needsLayout`
     /// and request a refined snapshot when moving outside the measured window.
     public func draw(in context: CGContext, rect: CGRect, excludingScrollableTables: Bool = false) {
+        draw(in: context, rect: rect, excludingScrollableTables: excludingScrollableTables, highlights: [])
+    }
+
+    package func draw(
+        in context: CGContext, rect: CGRect, excludingScrollableTables: Bool,
+        highlights: [(rects: [CGRect], color: CGColor)]
+    ) {
         guard rect.minX.isFinite, rect.minY.isFinite, rect.width.isFinite, rect.height.isFinite,
             rect.width > 0, rect.height > 0
         else { return }
@@ -248,13 +255,19 @@ public final class RenderedDocument: @unchecked Sendable {
             context.fill(visible.integral)
             DocumentTypesetter.draw(
                 layout, in: context, sourceRange: (visible.minY - 4)..<(visible.maxY + 4),
-                excludingScrollableTables: excludingScrollableTables)
+                excludingScrollableTables: excludingScrollableTables, highlights: highlights)
         }
     }
 
     /// Paint one table in table-content coordinates (0,0 at its frame's origin),
     /// including columns outside the page. Use a native scroll view to clip it.
     public func drawTable(at index: Int, in context: CGContext, rect: CGRect) {
+        drawTable(at: index, in: context, rect: rect, highlights: [])
+    }
+
+    package func drawTable(
+        at index: Int, in context: CGContext, rect: CGRect, highlights: [(rects: [CGRect], color: CGColor)]
+    ) {
         guard layout.tables.indices.contains(index),
             rect.minX.isFinite, rect.minY.isFinite, rect.width.isFinite, rect.height.isFinite,
             rect.width > 0, rect.height > 0
@@ -272,7 +285,7 @@ public final class RenderedDocument: @unchecked Sendable {
             DocumentTypesetter.draw(
                 layout, in: context,
                 sourceRange: (visible.minY + table.frame.minY - 4)..<(visible.maxY + table.frame.minY + 4),
-                tableIndex: index)
+                tableIndex: index, highlights: highlights)
         }
     }
 

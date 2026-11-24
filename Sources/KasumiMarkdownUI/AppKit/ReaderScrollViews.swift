@@ -87,8 +87,8 @@ import KasumiMarkdown
         guard let context = NSGraphicsContext.current?.cgContext, let owner = host?.owner,
             let rendered = owner.rendered, let table
         else { return }
-        rendered.drawTable(at: table.id, in: context, rect: dirtyRect)
-        owner.drawHighlights(in: context, dirtyRect: dirtyRect, table: table)
+        rendered.drawTable(
+            at: table.id, in: context, rect: dirtyRect, highlights: owner.highlights(in: dirtyRect, table: table))
     }
 
     override func mouseDown(with event: NSEvent) { host?.owner?.canvas.mouseDown(with: event) }
