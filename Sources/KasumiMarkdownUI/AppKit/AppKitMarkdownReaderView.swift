@@ -369,6 +369,9 @@ import os
         adjusting = true
         find.finder.cancelFindIndicator()
         rendered = next
+        // A legacy scroller's gutter is outside the canvas.
+        scrollView.backgroundColor = NSColor(cgColor: next.backgroundColor) ?? .textBackgroundColor
+        scrollView.drawsBackground = true
         installedGeneration = generation
         installedHeight = height
         sectionPositions = outline.compactMap { item in next.readerAnchorY(for: item.id).map { (y: $0, id: item.id) } }
