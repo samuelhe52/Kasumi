@@ -53,6 +53,12 @@ public struct DocumentInsets: Sendable, Equatable {
     public static let reader = DocumentInsets(top: 28, left: 40, bottom: 48, right: 40)
     public static let zero = DocumentInsets(top: 0, left: 0, bottom: 0, right: 0)
 }
+struct SourceBlockPosition {
+    let lines: ClosedRange<Int>
+    let start: CGFloat
+    let top: CGFloat
+}
+
 struct DocumentLayout {
     var width: CGFloat
     var height: CGFloat
@@ -71,6 +77,7 @@ struct DocumentLayout {
     var codeBlocks: [CodeBlockLayout] = []
     var semanticContent: DocumentSemanticContent? = nil
     var diagrams: [Int: PlacedDiagram] = [:]
+    var sourceBlocks: [SourceBlockPosition] = []
 }
 
 enum DocumentTypesetter {
@@ -146,6 +153,7 @@ enum DocumentTypesetter {
         var tables: [RenderedTable] = []
         var codeBlocks: [CodeBlockLayout] = []
         var diagrams: [Int: PlacedDiagram] = [:]
+        var sourceBlocks: [SourceBlockPosition] = []
         var paragraphValues = style.profileValues
         paragraphValues[.hangingPunctuation] = .flag(style.hangingPunctuation)
         paragraphValues[.autoRaggedNarrow] = .flag(style.narrowMeasureRagged)
@@ -261,6 +269,12 @@ enum DocumentTypesetter {
         }
         var firstBodyParagraph = true
         for (blockIndex, block) in document.blocks.enumerated() {
+            let top = y
+            defer {
+                if let lines = block.sourceLines, y > top {
+                    sourceBlocks.append(SourceBlockPosition(lines: lines, start: top, top: headings[block.id] ?? top))
+                }
+            }
             preparationBlock = blockIndex
             preparationSlot = 0
             let count: Int
@@ -574,7 +588,7 @@ enum DocumentTypesetter {
             paragraphs: paragraphs, backgrounds: backgrounds, rules: rules, headingPositions: headings,
             anchorPositions: anchors, imageBounds: imageBounds, readerImages: readerImages,
             paginationGroups: paginationGroups, tables: tables,
-            codeBlocks: codeBlocks, semanticContent: semantic, diagrams: diagrams)
+            codeBlocks: codeBlocks, semanticContent: semantic, diagrams: diagrams, sourceBlocks: sourceBlocks)
     }
 
     static func anchorSlug(_ text: String) -> String {

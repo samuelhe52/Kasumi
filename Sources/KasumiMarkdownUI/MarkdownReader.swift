@@ -140,6 +140,33 @@ import SwiftUI
         connection.view?.scroll(toAnchorID: id, animated: animated)
     }
 
+    /// The one-based first source line of the block at the top of the viewport.
+    /// On macOS, a line or outline heading scrolled to without moving since is
+    /// reported instead, so it survives at the end of the document.
+    /// Returns nil before layout or for a document with no rendered blocks.
+    public var topSourceLine: Int? { connection.view?.topSourceLine }
+
+    /// Brings the block containing a one-based source line to the top when
+    /// possible. A gap targets the following block, or the last block at EOF.
+    public func scroll(toSourceLine line: Int, animated: Bool = true) {
+        connection.view?.scroll(toSourceLine: line, animated: animated)
+    }
+
+    #if os(macOS)
+        /// Routes an AppKit Find menu action to this reader, even when another
+        /// view owns keyboard focus.
+        public func performTextFinderAction(_ action: NSTextFinder.Action) {
+            let item = NSMenuItem(title: "", action: #selector(NSResponder.performTextFinderAction(_:)), keyEquivalent: "")
+            item.tag = action.rawValue
+            connection.view?.performTextFinderAction(item)
+        }
+
+        /// Centers the current native selection in the reader.
+        public func jumpToSelection() {
+            connection.view?.centerSelectionInVisibleArea(nil)
+        }
+    #endif
+
     /// Searches without the system panel, closing it if it is open.
     public func setFindQuery(_ query: String, options: SearchOptions = []) {
         connection.view?.setFindQuery(query, options: options)

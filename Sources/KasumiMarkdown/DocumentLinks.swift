@@ -1,14 +1,14 @@
 import CoreText
 import Foundation
 
-enum DocumentLink {
+package enum DocumentLink {
     static func url(_ value: Any, relativeTo baseURL: URL?) -> URL? {
         if let url = value as? URL { return url }
         guard let string = value as? String, !string.isEmpty else { return nil }
         return URL(string: string, relativeTo: string.hasPrefix("#") ? nil : baseURL)?.absoluteURL
     }
 
-    static func anchorKey(_ anchor: String) -> String {
+    package static func anchorKey(_ anchor: String) -> String {
         let fragment = anchor.hasPrefix("#") ? String(anchor.dropFirst()) : anchor
         return fragment.removingPercentEncoding ?? fragment
     }

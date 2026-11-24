@@ -37,6 +37,10 @@ private struct HTMLTokenizer {
 
     private let bytes: [UInt8]
     private var cursor = 0
+    private var countedBytes = 0
+    private var line = 0
+    /// Zero-based source lines of the last token, without surrounding whitespace.
+    private(set) var lines = 0...0
     private static let attributes: Set<String> = ["align", "width", "height", "href", "src", "alt"]
 
     init(_ source: String) { bytes = Array(source.utf8) }
@@ -64,6 +68,28 @@ private struct HTMLTokenizer {
             if cursor + end.count >= bytes.count { cursor = bytes.count }
         }
         guard cursor < bytes.count else { return nil }
+        let start = cursor
+        let token = scan()
+        let tokenBytes = bytes[start..<cursor]
+        let first = tokenBytes.firstIndex { !Self.whitespace($0) } ?? start
+        let last = tokenBytes.lastIndex { !Self.whitespace($0) } ?? start
+        let lower = lineNumber(at: first)
+        lines = lower...lineNumber(at: last)
+        return token
+    }
+
+    private mutating func lineNumber(at offset: Int) -> Int {
+        while countedBytes < offset {
+            let next = countedBytes + 1
+            if bytes[countedBytes] == 10 || (bytes[countedBytes] == 13 && (next == bytes.count || bytes[next] != 10)) {
+                line += 1
+            }
+            countedBytes = next
+        }
+        return line
+    }
+
+    private mutating func scan() -> Token {
         let start = cursor
         if bytes[cursor] == 60, let markup = markup() { return markup }
         cursor = start + 1
@@ -299,6 +325,8 @@ enum HTMLFragment {
         var runs: [InlineRun] = []
         var level: Int = 0
         var alignment: ParagraphAlignment?
+        /// Zero-based lines within the raw HTML.
+        var lines = 0...0
     }
 
     static func blocks(_ raw: String, context: inout Context) -> [Block] {
@@ -310,6 +338,13 @@ enum HTMLFragment {
         var trailingBoundary = false
         var headingLevel = 0
         var summary = false
+        var firstLine: Int?
+        var lastLine = 0
+
+        func includeToken() {
+            firstLine = firstLine ?? tokenizer.lines.lowerBound
+            lastLine = tokenizer.lines.upperBound
+        }
 
         func flush(alignment: ParagraphAlignment?) {
             if trailingBoundary { runs.removeLast() }
@@ -318,9 +353,10 @@ enum HTMLFragment {
                 output.append(
                     Block(
                         kind: headingLevel > 0 ? .heading : .paragraph, runs: runs, level: headingLevel,
-                        alignment: alignment))
+                        alignment: alignment, lines: (firstLine ?? lastLine)...lastLine))
             }
             runs = []
+            firstLine = nil
             headingLevel = 0
             summary = false
             pendingSpace = false
@@ -339,6 +375,7 @@ enum HTMLFragment {
                 }
             }
             guard !bytes.isEmpty else { return }
+            includeToken()
             let traits = summary ? inline.traits.union([.strong]) : inline.traits
             runs.append(
                 InlineRun(String(decoding: bytes, as: UTF8.self), traits: traits, destination: inline.destination))
@@ -359,13 +396,15 @@ enum HTMLFragment {
                     ? context.frames.contains { $0.name == tag.name }
                     : tag.alignment != nil && !voidTags.contains(tag.name)
                 if boundary || aligned {
+                    if tag.closing, !runs.isEmpty { lastLine = tokenizer.lines.upperBound }
                     flush(alignment: context.alignment)
                     if tag.closing {
                         context.close(tag.name)
                     } else if tag.name == "hr" {
-                        output.append(Block(kind: .rule, alignment: context.alignment))
+                        output.append(Block(kind: .rule, alignment: context.alignment, lines: tokenizer.lines))
                     } else {
                         context.open(tag)
+                        includeToken()
                         headingLevel = level
                         summary = tag.name == "summary" && context.inDetails
                     }
@@ -376,6 +415,7 @@ enum HTMLFragment {
                     }
                     pendingSpace = false
                 } else if let run = inline.consume(tag) {
+                    includeToken()
                     if pendingSpace, !runs.isEmpty, runs.last?.text != "\n", run.traits.contains(.image) {
                         runs.append(InlineRun(" "))
                     }

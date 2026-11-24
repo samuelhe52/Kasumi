@@ -37,7 +37,7 @@ public struct MarkdownDocument: Sendable {
             counts[slug] = duplicate + 1
             return OutlineItem(
                 level: heading.level, title: heading.text,
-                id: slug + (duplicate == 0 ? "" : "-\(duplicate)"))
+                id: slug + (duplicate == 0 ? "" : "-\(duplicate)"), sourceLine: heading.sourceLines?.lowerBound)
         }
     }
 }
@@ -47,4 +47,6 @@ public struct OutlineItem: Identifiable, Hashable, Sendable {
     public let title: String
     /// Matches in-document fragment links, with deterministic duplicate suffixes.
     public let id: String
+    /// One-based line of this heading in the original source.
+    public let sourceLine: Int?
 }

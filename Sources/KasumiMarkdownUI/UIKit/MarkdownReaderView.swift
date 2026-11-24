@@ -61,6 +61,12 @@ import os
         scrollView.navigate(to: .anchor(id, inset: scrollView.headingTopInset), animated: animated)
     }
 
+    package var topSourceLine: Int? { scrollView.topSourceLine }
+
+    package func scroll(toSourceLine line: Int, animated: Bool) {
+        scrollView.navigate(to: .sourceLine(line), animated: animated)
+    }
+
     /// Reports the reading anchor and the outline ID of the current section, or nil before the first heading.
     public var onPositionChange: ((ReadingAnchor, String?) -> Void)? {
         get { scrollView.onPositionChange }
@@ -180,6 +186,7 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
     enum ScrollTarget {
         case position(ReadingAnchor)
         case anchor(String, inset: CGFloat)
+        case sourceLine(Int)
     }
     private enum PendingReveal {
         case target(ScrollTarget)
@@ -394,6 +401,11 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
     }
 
     private var topY: CGFloat { max(0, contentOffset.y + adjustedContentInset.top) }
+
+    var topSourceLine: Int? {
+        guard installedRevision == revision else { return nil }
+        return rendered?.readerSourceLine(atY: topY)
+    }
 
     private func rebuildIfNeeded() {
         guard isActive, !finished, window != nil, bounds.width.isFinite, bounds.width > 0,
@@ -946,6 +958,9 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
         case .anchor(let id, let inset):
             guard let rect = rendered.rect(forAnchor: id) else { return nil }
             return (rect, inset, rendered.readingAnchor(forAnchor: id))
+        case .sourceLine(let line):
+            guard let y = rendered.readerSourceTop(for: line) else { return nil }
+            return (CGRect(x: 0, y: y, width: rendered.size.width, height: 1), 0, rendered.readingAnchor(atY: y))
         }
     }
 

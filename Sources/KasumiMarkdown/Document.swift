@@ -166,6 +166,10 @@ enum DocumentParser {
                         node, kind: body && quoteDepth > 0 ? .quote : part.kind, runs: part.runs,
                         level: body ? max(quoteDepth, listDepth) : part.level,
                         prefix: body ? prefix : "", alignment: part.alignment)
+                    if let firstLine = node.range?.lowerBound.line {
+                        blocks[blocks.count - 1].sourceLines =
+                            (firstLine + part.lines.lowerBound)...(firstLine + part.lines.upperBound)
+                    }
                 }
             default:
                 for child in node.children { walk(child, quoteDepth: quoteDepth, listDepth: listDepth, prefix: prefix) }

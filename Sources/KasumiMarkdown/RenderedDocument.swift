@@ -563,6 +563,36 @@ public final class RenderedDocument: @unchecked Sendable {
         }
     }
 
+    /// The first source line of the block at the viewport's top edge. The
+    /// vertical space after a block belongs to that block until the next starts.
+    package func readerSourceLine(atY y: CGFloat) -> Int? {
+        let blocks = layout.sourceBlocks
+        guard y.isFinite, !blocks.isEmpty else { return nil }
+        var lower = 0
+        var upper = blocks.count
+        while lower < upper {
+            let middle = lower + (upper - lower) / 2
+            if blocks[middle].start <= y { lower = middle + 1 } else { upper = middle }
+        }
+        return blocks[max(0, lower - 1)].lines.lowerBound
+    }
+
+    /// Blank lines and non-rendered source resolve to the next block, or to
+    /// the last block when the line is after the final rendered content.
+    package func readerSourceTop(for line: Int) -> CGFloat? {
+        var following: SourceBlockPosition?
+        var preceding: SourceBlockPosition?
+        for block in layout.sourceBlocks {
+            if block.lines.contains(line) { return block.top }
+            if line < block.lines.lowerBound {
+                if following.map({ block.lines.lowerBound < $0.lines.lowerBound }) ?? true { following = block }
+            } else if preceding.map({ block.lines.upperBound >= $0.lines.upperBound }) ?? true {
+                preceding = block
+            }
+        }
+        return (following ?? preceding)?.top
+    }
+
     public func readingAnchor(atY y: CGFloat) -> ReadingAnchor {
         readingIndex.capture(y: y)
             ?? ReadingAnchor(blockKey: "", blockIndex: 0, offset: 0, blockCount: 0, verticalFraction: 0)

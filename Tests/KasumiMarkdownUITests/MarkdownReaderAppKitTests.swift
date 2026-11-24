@@ -108,6 +108,61 @@ import Testing
         #expect(await eventually { section == "section-777" && reader.readerViewportDiagnostics.isViewportMeasured })
     }
 
+    @Test(arguments: [false, true]) func clampedHeadingStaysCurrentUntilTheViewportMoves(animated: Bool) async throws {
+        _ = NSApplication.shared
+        let frame = CGRect(x: 0, y: 0, width: 360, height: 300)
+        let reader = MarkdownReaderView(frame: frame)
+        let window = NSWindow(contentRect: frame, styleMask: [.titled], backing: .buffered, defer: false)
+        window.contentView = reader
+        window.makeKeyAndOrderFront(nil)
+        defer { window.orderOut(nil) }
+        var section: String?
+        reader.onPositionChange = { _, id in section = id }
+        let body = String(repeating: "\n\nA paragraph.", count: 20)
+        reader.setDocument(MarkdownDocument(markdown: "# A\(body)\n\n# C\n\nShort.\n\n# D\n\nEnd."))
+        try #require(await eventually { reader.readerViewportDiagnostics.isFullyMeasured })
+        reader.scroll(toAnchorID: "d", animated: animated)
+        #expect(await eventually { section == "d" })
+        let end = reader.viewport.minY
+        let heading = try #require(reader.rendered?.readerAnchorY(for: "d"))
+        #expect(heading > end + 50)
+        reader.scroll(toAnchorID: "c", animated: false)
+        #expect(section == "c")
+        #expect(abs(reader.viewport.minY - end) < 1)
+        reader.scroll(toAnchorID: "d", animated: false)
+        #expect(section == "d")
+        let line = try #require(reader.topSourceLine)
+        #expect(line > 40)
+        reader.scroll(toSourceLine: line - 2, animated: false)
+        #expect(section == "c" && reader.topSourceLine == line - 2)
+        reader.scroll(toSourceLine: line - 1, animated: false)
+        #expect(section == "d")
+        reader.scroll(toAnchorID: "#c", animated: false)
+        #expect(section == "c")
+        // A finished older animation must not replace a newer destination.
+        reader.scroll(toAnchorID: "a", animated: false)
+        reader.scroll(toAnchorID: "c", animated: true)
+        try await Task.sleep(for: .milliseconds(60))
+        reader.scroll(toAnchorID: "d", animated: false)
+        try await Task.sleep(for: .milliseconds(400))
+        #expect(section == "d")
+        reader.scroll(toAnchorID: "missing", animated: animated)
+        #expect(reader.topSourceLine == line)
+        reader.style.fontSize = 60
+        #expect(await eventually {
+            guard let y = reader.rendered?.readerAnchorY(for: "d"), y > reader.viewport.maxY else { return false }
+            return section != "d" && (reader.topSourceLine ?? line) < line
+        })
+        reader.style.fontSize = nil
+        try #require(await eventually {
+            reader.readerViewportDiagnostics.isFullyMeasured && reader.rendered?.readerAnchorY(for: "d") == heading
+        })
+        reader.scroll(toAnchorID: "d", animated: false)
+        #expect(section == "d")
+        reader.scrollReaderViewport(toY: end - 5)
+        #expect(section == "a")
+    }
+
     @Test(arguments: [false, true]) func sameFileReloadRestoresPositionUnlessOverridden(explicit: Bool) async throws {
         _ = NSApplication.shared
         let frame = CGRect(x: 0, y: 0, width: 360, height: 300)

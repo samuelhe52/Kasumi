@@ -51,6 +51,12 @@ import os
     private var installedHeight: CGFloat = 0
     private var sectionPositions: [(y: CGFloat, id: String)] = []
     private var outline: [OutlineItem] = []
+    /// What was navigated to stays current until the viewport moves, even if it
+    /// could not reach the top of the viewport.
+    private var navigated: (section: String?, line: Int?, target: RevealTarget)?
+    private var navigationID = 0
+    private var animatingScroll = false
+    private var navigating = false
     private var lastPosition: (ReadingAnchor, String?)?
     private var scale: CGFloat { window?.backingScaleFactor ?? 2 }
     private var sessionScale: CGFloat = 0
@@ -112,6 +118,10 @@ import os
     @objc func copy(_ sender: Any?) { canvas.copy(sender) }
     public override func selectAll(_ sender: Any?) { canvas.selectAll(sender) }
     public override func performTextFinderAction(_ sender: Any?) { canvas.performTextFinderAction(sender) }
+    public override func centerSelectionInVisibleArea(_ sender: Any?) {
+        if let range = find.selection ?? canvas.selection { reveal(.centerSelection(range), animated: false) }
+    }
+
     public func validateUserInterfaceItem(_ item: any NSValidatedUserInterfaceItem) -> Bool {
         canvas.validateUserInterfaceItem(item)
     }
@@ -162,6 +172,7 @@ import os
         installedGeneration = nil
         rendered = nil
         sectionPositions = []
+        navigated = nil
         lastPosition = nil
         installations = 0
         layoutMilliseconds = nil
@@ -205,6 +216,16 @@ import os
         reveal(.heading(id), animated: animated)
     }
 
+    package var topSourceLine: Int? {
+        guard installedDocument == document?.readerIdentity else { return nil }
+        if case .sourceLine(let line)? = pendingReveal?.target { return line }
+        return navigated?.line ?? rendered?.readerSourceLine(atY: viewport.minY)
+    }
+
+    package func scroll(toSourceLine line: Int, animated: Bool) {
+        reveal(.sourceLine(line), animated: animated)
+    }
+
     private func anchorStateReset(restoring restored: ReadingAnchor?) {
         anchor = ReaderReflowAnchorState()
         if let restored { anchor.navigate(to: restored) }
@@ -245,6 +266,7 @@ import os
         let sizeChanged = now.size != previousViewport.size
         previousViewport = now
         cancelWarmup()
+        if !sizeChanged, !navigating { navigated = nil }
         if !sizeChanged, rendered != nil, pendingReveal == nil {
             anchor.moved(in: rendered, atY: max(0, now.minY))
         }
@@ -343,9 +365,11 @@ import os
                 anchor.navigate(to: geometry.anchor)
             } else {
                 pendingReveal = nil
+                navigated = destination(of: reveal.target, top: geometry.top)
                 anchor.moved(in: next, atY: viewport.minY)
             }
         } else {
+            retainVisibleDestination(in: next)
             pendingReveal = nil // A missing fragment is not a persistent scroll request.
         }
         previousViewport = viewport
@@ -535,8 +559,18 @@ import os
     }
 
     func performFindAction(_ action: NSTextFinder.Action) {
-        if action == .showFindInterface { _ = presentFind(); return }
+        if action == .showFindInterface {
+            if isFindPresented {
+                find.finder.performAction(action)
+            } else {
+                _ = presentFind()
+            }
+            return
+        }
         if action == .hideFindInterface { dismissFind(); return }
+        // Commit any active find field and make the reader the native find
+        // client before dispatching a scene command from another pane.
+        window?.makeFirstResponder(canvas)
         guard validateFindAction(action) else { return }
         clearFind()
         find.finder.performAction(action)
@@ -547,10 +581,12 @@ import os
         isActive = false
     }
 
-    private enum RevealTarget {
+    private enum RevealTarget: Sendable {
         case anchor(ReadingAnchor)
         case heading(String)
+        case sourceLine(Int)
         case range(NSRange)
+        case centerSelection(NSRange)
         case findMatch(NSRange)
         case nativeFindMatch(NSRange)
     }
@@ -567,13 +603,19 @@ import os
         guard canLayout, installedGeneration == generation, let rendered,
             let geometry = revealGeometry(target, in: rendered)
         else {
+            // A missing fragment leaves the current destination alone.
             if installedGeneration != generation || rendered == nil || !canLayout {
+                stopScrollAnimation()
+                navigationID += 1
                 pendingReveal = Reveal(target: target)
                 if case .anchor(let destination) = target { anchor.navigate(to: destination) }
                 requestLayout()
             }
             return
         }
+        stopScrollAnimation()
+        navigated = nil
+        navigationID += 1
         let top = max(0, min(max(0, rendered.size.height - viewport.height), geometry.top))
         let rect = CGRect(origin: CGPoint(x: 0, y: top), size: viewport.size)
             .intersection(CGRect(origin: .zero, size: rendered.size))
@@ -586,14 +628,56 @@ import os
         pendingReveal = nil
         if let horizontalTarget = geometry.horizontalTarget { revealHorizontally(horizontalTarget) }
         if animated, !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion, abs(top - viewport.minY) > 0.5 {
+            animatingScroll = true
             NSAnimationContext.runAnimationGroup { context in
                 context.duration = 0.22
                 context.allowsImplicitAnimation = true
                 scrollView.contentView.animator().setBoundsOrigin(CGPoint(x: 0, y: top))
+            } completionHandler: { [weak self, generation, navigationID] in
+                Task { @MainActor in
+                    guard let self, self.navigationID == navigationID else { return }
+                    self.animatingScroll = false
+                    guard self.generation == generation,
+                        abs(self.viewport.minY - top) < 0.5
+                    else { return }
+                    self.navigated = self.destination(of: target, top: geometry.top)
+                    self.publishPosition()
+                }
             }
         } else {
+            navigating = true
             scrollDirectly(top: top)
+            navigated = destination(of: target, top: geometry.top)
             viewportChanged()
+            navigating = false
+            publishPosition()
+        }
+    }
+
+    /// A reflow can move a clamped destination out of the viewport.
+    private func retainVisibleDestination(in rendered: RenderedDocument) {
+        guard let target = navigated?.target else { return }
+        guard let top = revealGeometry(target, in: rendered)?.top, top > viewport.minY - 13,
+            top + 13 < viewport.maxY
+        else {
+            navigated = nil
+            return
+        }
+        navigated = destination(of: target, top: top)
+    }
+
+    private func destination(
+        of target: RevealTarget, top: CGFloat
+    ) -> (section: String?, line: Int?, target: RevealTarget)? {
+        switch target {
+        case .heading(let fragment):
+            let id = DocumentLink.anchorKey(fragment)
+            return outline.first { $0.id == id }.map { ($0.id, $0.sourceLine, target) }
+        case .sourceLine(let line):
+            guard viewport.minY < top - 0.5 else { return (nil, line, target) }
+            return (sectionPositions.last { $0.y <= top + 12.5 }?.id, line, target)
+        default:
+            return nil
         }
     }
 
@@ -606,17 +690,34 @@ import os
         case .heading(let id):
             guard let anchor = rendered.readingAnchor(forAnchor: id), let y = rendered.y(for: anchor) else { return nil }
             return (anchor, y - 12, nil)
-        case .range(let range), .findMatch(let range), .nativeFindMatch(let range):
+        case .sourceLine(let line):
+            guard let top = rendered.readerSourceTop(for: line) else { return nil }
+            let clamped = min(top, max(0, rendered.size.height - viewport.height))
+            return (rendered.readingAnchor(atY: clamped), top, nil)
+        case .range(let range), .centerSelection(let range), .findMatch(let range), .nativeFindMatch(let range):
             guard let selection = rendered.readerTextRange(for: range),
                 let anchor = rendered.readingAnchor(at: selection.lowerBound)
             else { return nil }
             let caret = rendered.caretRect(for: selection.lowerBound)
             let endCaret = rendered.caretRect(for: selection.upperBound)
             let line = caret.minY == endCaret.minY ? caret.union(endCaret) : caret
+            if case .centerSelection = target { return (anchor, line.midY - viewport.height / 2, line) }
             let top = line.minY < viewport.minY + 6 ? line.minY - 12
                 : line.maxY > viewport.maxY - 6 ? line.maxY - viewport.height + 12
                 : viewport.minY
             return (anchor, top, line)
+        }
+    }
+
+    /// A running animation would keep moving the viewport after a newer jump.
+    private func stopScrollAnimation() {
+        guard animatingScroll else { return }
+        animatingScroll = false
+        let origin = viewport.origin
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = 0
+            context.allowsImplicitAnimation = true
+            scrollView.contentView.animator().setBoundsOrigin(origin)
         }
     }
 
@@ -626,6 +727,7 @@ import os
     }
 
     @objc func userWillScroll() {
+        navigationID += 1
         guard pendingReveal != nil else { return }
         pendingReveal = nil
         anchor.moved(in: rendered, atY: viewport.minY)
@@ -651,7 +753,7 @@ import os
             let middle = lower + (upper - lower) / 2
             if sectionPositions[middle].y <= top + 12.5 { lower = middle + 1 } else { upper = middle }
         }
-        let section = lower > 0 ? sectionPositions[lower - 1].id : nil
+        let section = navigated?.section ?? (lower > 0 ? sectionPositions[lower - 1].id : nil)
         guard lastPosition?.0 != reading || lastPosition?.1 != section else { return }
         lastPosition = (reading, section)
         onPositionChange?(reading, section)
