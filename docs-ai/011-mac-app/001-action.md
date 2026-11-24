@@ -29,7 +29,7 @@ design, reviewed each diff, fixed one bug (below), and made the docs and commits
   before opening, because AppKit rejected a symlink URL. Saves go to the target file.
 - `MacMenu` builds the AppKit main menu. Settings is a SwiftUI `Settings` scene
   hosted by `NSHostingSceneRepresentation`.
-- The toolbar comes from `NSHostingController.sceneBridgingOptions = [.toolbars]`.
+- The window content and toolbar are AppKit ([003](003-window-split-and-panes.md)).
 - ⇧⌘[ / ⇧⌘], ⌥⌘← / ⌥⌘→ and ⌃⇥ / ⌃⇧⇥ are handled by a local key monitor.
 
 Key files: `apps/macOS/Kasumi/MacDocument.swift`,
@@ -80,8 +80,6 @@ close, quit and latency checks were rerun after that fix.
   and Find across an external reload, iOS at runtime, Developer ID signing.
 - AppKit does not complete several opens in request order, so tab order at a cold
   launch with several files is unspecified.
-- Navigator rows measure 32 pt apart although the list requests 22 pt, and no outline
-  heading is current at the very top of a document. Both predate the rewrite.
 - Typing at the end of a 5 MB file takes about 0.7 s per key. Also predates it.
 - With the system setting that asks before keeping changes on close, ⌘W prompts for
   named files. That is AppKit's behavior.

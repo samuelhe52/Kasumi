@@ -22,7 +22,7 @@ platform-neutral. There is no Mac app target.
 - Opening a file from any route adds a native tab without a visible flash, and
   opening a file that is already open selects its tab.
 - A compact leading navigator with Recent and Workspace tabs, and a trailing
-  compact outline that underlines the current heading.
+  compact outline.
 - A per-document source mode with a plain `NSTextView` editor that keeps the
   reading place when switching modes.
 - Find that works the same in the reader and the source, from the menu bar,
@@ -81,12 +81,12 @@ AppKit owns documents and windows; SwiftUI draws their content. Types in
 
 ### Panes
 
-- Navigator: leading sidebar (`NavigationSplitView` sidebar column) with compact
+- Navigator: leading native sidebar ([003](003-window-split-and-panes.md)) with compact
   Recent and Workspace tabs: the newest eight documents, and the files in the
   active file's folder (`.md`, `.markdown`, `.txt`, name order). Clicking opens or
   activates the file's tab.
 - Outline: trailing inspector reusing `ReaderOutline` with compact, single-line
-  secondary-text headings and an underline for the current one.
+  secondary-text headings under a fixed title.
 - Pane visibility is shared across tabs so switching tabs does not flip panes.
 
 ### Source mode
@@ -166,3 +166,4 @@ Markdown files open as documents.
 ## Amendments
 
 - Updated 2026-11-24: Mac icon built with Icon Composer — see [002-native-app-icon.md](002-native-app-icon.md).
+- Updated 2026-11-24: AppKit window split, live sidebar reflow and pane changes; the Panes and goals text was corrected in place — see [003-window-split-and-panes.md](003-window-split-and-panes.md).

@@ -111,7 +111,7 @@ velocity exists. That is the source-based explanation for the report; it has not
 been reproduced interactively here. The override is removed, leaving pan admission
 and interruption to `UIScrollView`.
 
-`apps/iOS/Kasumi/ReaderTableEdgeMask.swift` supplies an 18 pt alpha gradient at
+`ReaderTableEdgeMask` supplies an 18 pt alpha gradient at
 each edge with hidden content. Its frame tracks the scroll view's bounds origin,
 so the mask stays fixed to the viewport during scrolling and bouncing. Fade
 strength ramps down over the final 18 pt before reaching either content end;
@@ -153,3 +153,19 @@ menu before and after a horizontal swipe. Copy from a revealed column put
 `Audit` on the pasteboard. Select All highlighted only the active table, a
 fitted cell remained selectable, and tapping the revealed `Final result` link
 opened the expected confirmation. The focused table semantics test also passed.
+
+## Follow-up: use of spare width (2026-11-24)
+
+Columns stopped at their preferred width, so a long prose column wrapped beside empty
+page margins. Preferred widths now only set the first step: spare width grows columns
+towards their natural widths, and a table whose natural widths fit stays compact and
+centered. Tables too wide for the measure are unchanged. Reader, iOS and exports share
+this allocation.
+
+Short headers wrapped because Core Text measured them slightly narrower than the
+paragraph engine requires. Natural widths now come from the engine; bidirectional
+cells still use Core Text, which paints them.
+
+The AppKit reader fades table edges with the mask UIKit uses, now
+`Sources/KasumiMarkdownUI/ReaderTableEdgeMask.swift`. `TableLayoutTests` and
+`ReaderTableEdgeTests` cover both. The iOS appearance was not run.
