@@ -161,10 +161,9 @@ final class MacReaderSession {
     }
 
     func selectTab(_ index: Int?) {
-        guard let group = window?.tabGroup,
-            let selected = index.flatMap({ group.windows.indices.contains($0) ? group.windows[$0] : nil })
-                ?? (index == nil ? group.windows.last : nil)
-        else { return }
+        // An index past the last tab selects the last tab; `nil` means the last tab.
+        guard let group = window?.tabGroup, !group.windows.isEmpty else { return }
+        let selected = group.windows[min(index ?? .max, group.windows.count - 1)]
         group.selectedWindow = selected
         selected.makeKeyAndOrderFront(nil)
     }
