@@ -1,13 +1,10 @@
 import AppKit
-import SwiftUI
 
 final class MacDocumentWindowController: NSWindowController, NSMenuItemValidation {
     private var didPlaceWindow = false
 
     init(session: MacReaderSession, undoManager: UndoManager?) {
-        let host = NSHostingController(rootView: MacReaderScreen(session: session, undoManager: undoManager))
-        host.sceneBridgingOptions = [.toolbars]
-        host.sizingOptions = []
+        let host = MacNavigatorSplit(session: session, undoManager: undoManager)
         let contentSize = NSSize(width: 1000, height: 720)
         let window = NSWindow(
             contentRect: NSRect(origin: .zero, size: contentSize),
@@ -19,6 +16,7 @@ final class MacDocumentWindowController: NSWindowController, NSMenuItemValidatio
         window.isRestorable = true
         window.contentMinSize = NSSize(width: 460, height: 320)
         window.contentViewController = host
+        host.installToolbar(in: window)
         window.setContentSize(contentSize)
         window.center()
         super.init(window: window)

@@ -57,7 +57,6 @@ struct MacNavigator: View {
             .softTopScrollEdge()
         }
         .accessibilityIdentifier("mac-navigator")
-        .navigationSplitViewColumnWidth(min: 165, ideal: 200, max: 330)
         .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { _ in
             refreshRecents()
         }

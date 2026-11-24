@@ -7,6 +7,8 @@ import UniformTypeIdentifiers
 struct MacReaderScreen: View {
     let session: MacReaderSession
     let undoManager: UndoManager?
+    let setNavigatorVisible: (Bool) -> Void
+    let refreshSourceToolbar: () -> Void
     private var document: ReaderDocument { session.document }
     @Environment(\.colorScheme) private var colorScheme
     private var panes = MacPanePreferences()
@@ -20,22 +22,12 @@ struct MacReaderScreen: View {
             spacing: preferences.presetSpacing[appearance.preset])
     }
 
-    private var columns: Binding<NavigationSplitViewVisibility> {
-        Binding(
-            get: { panes.navigatorVisible ? .all : .detailOnly },
-            set: { panes.navigatorVisible = $0 != .detailOnly })
-    }
-
     var body: some View {
         let style = self.style
         MarkdownReaderScope { proxy in
-            NavigationSplitView(columnVisibility: columns) {
-                MacNavigator(documentURL: document.fileURL) { openFile($0) }
-            } detail: {
-                MacWorkspace(
-                    session: session, style: style, layoutRevision: fonts.revision, undoManager: undoManager,
-                    openLink: openLink)
-            }
+            MacWorkspace(
+                session: session, style: style, layoutRevision: fonts.revision, undoManager: undoManager,
+                openLink: openLink)
             .inspector(isPresented: panes.$outlineVisible) {
                 ReaderOutline(
                     items: session.outline, currentID: session.currentHeadingID, searchable: false, select: session.jump
@@ -43,24 +35,13 @@ struct MacReaderScreen: View {
                 .inspectorColumnWidth(min: 155, ideal: 210, max: 350)
                 .accessibilityIdentifier("mac-outline")
             }
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button("Outline", systemImage: "sidebar.right") { panes.outlineVisible.toggle() }
-                }
-                ToolbarItem(placement: .primaryAction) {
-                    Button(
-                        session.showingSource ? "Reader" : "Source",
-                        systemImage: session.showingSource ? "doc.richtext" : "chevron.left.forwardslash.chevron.right",
-                        action: session.toggleSource
-                    )
-                    .disabled(document.snapshot == nil)
-                }
-            }
             .onAppear { session.connect(to: proxy) }
             .onChange(of: style, initial: true) { _, style in session.style = style }
+            .onChange(of: panes.navigatorVisible, initial: true) { _, visible in setNavigatorVisible(visible) }
+            .onChange(of: session.showingSource) { refreshSourceToolbar() }
+            .onChange(of: document.snapshot != nil) { refreshSourceToolbar() }
         }
         .softTopScrollEdge()
-        .frame(minWidth: 460, minHeight: 320)
     }
 
     private func openFile(_ url: URL, fragment: String? = nil) {
