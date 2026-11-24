@@ -25,6 +25,7 @@ struct MacSourceEditor: NSViewRepresentable {
 
     func makeNSView(context: Context) -> NSScrollView {
         let scrollView = SourceScrollView(controller: controller)
+        scrollView.verticalScroller = MacScroller()
         scrollView.hasVerticalScroller = true
         scrollView.autohidesScrollers = true
         scrollView.contentView.postsBoundsChangedNotifications = true

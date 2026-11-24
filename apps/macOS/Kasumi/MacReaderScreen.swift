@@ -131,6 +131,7 @@ private struct MacReadingPane: View {
             )
             .markdownFindNavigator(isPresented: $session.readerFindPresented)
             .markdownRemoteImages(.http)
+            .markdownScroller(MacScroller.self)
             .onMarkdownLink(openLink)
             .onMarkdownPositionChange { anchor, heading in
                 session.readerMoved(to: anchor, heading: heading)
