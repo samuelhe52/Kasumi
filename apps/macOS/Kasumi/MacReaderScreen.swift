@@ -24,22 +24,25 @@ struct MacReaderScreen: View {
 
     var body: some View {
         let style = self.style
-        MarkdownReaderScope { proxy in
-            MacWorkspace(
-                session: session, style: style, layoutRevision: fonts.revision, undoManager: undoManager,
-                openLink: openLink)
-            .inspector(isPresented: panes.$outlineVisible) {
-                ReaderOutline(
-                    items: session.outline, currentID: session.currentHeadingID, searchable: false, select: session.jump
-                )
-                .inspectorColumnWidth(min: 155, ideal: 210, max: 350)
-                .accessibilityIdentifier("mac-outline")
-            }
-            .onAppear { session.connect(to: proxy) }
-            .onChange(of: style, initial: true) { _, style in session.style = style }
-            .onChange(of: panes.navigatorVisible, initial: true) { _, visible in setNavigatorVisible(visible) }
-            .onChange(of: session.showingSource) { refreshSourceToolbar() }
-            .onChange(of: document.snapshot != nil) { refreshSourceToolbar() }
+        MacWorkspace(
+            reader: MacReadingPane(session: session, style: style, layoutRevision: fonts.revision, openLink: openLink),
+            source: MacSourceEditor(
+                document: document, controller: session.source, style: style, undoManager: undoManager),
+            showingSource: session.showingSource
+        )
+        .inspector(isPresented: panes.$outlineVisible) {
+            ReaderOutline(
+                items: session.outline, currentID: session.currentHeadingID, searchable: false, select: session.jump
+            )
+            .inspectorColumnWidth(min: 155, ideal: 210, max: 350)
+            .accessibilityIdentifier("mac-outline")
+        }
+        .onChange(of: style, initial: true) { _, style in session.style = style }
+        .onChange(of: panes.navigatorVisible, initial: true) { _, visible in setNavigatorVisible(visible) }
+        .onChange(of: session.showingSource) { refreshSourceToolbar() }
+        .onChange(of: document.snapshot != nil) { refreshSourceToolbar() }
+        .onChange(of: document.previewIsCurrent) { _, current in
+            if current { session.previewBecameCurrent() }
         }
         .softTopScrollEdge()
     }
@@ -66,34 +69,75 @@ struct MacReaderScreen: View {
     }
 }
 
-private struct MacWorkspace: View {
-    let session: MacReaderSession
-    let style: RenderStyle
-    let layoutRevision: Int
-    let undoManager: UndoManager?
-    let openLink: (URL) -> Void
+private struct MacWorkspace: NSViewControllerRepresentable {
+    let reader: MacReadingPane
+    let source: MacSourceEditor
+    let showingSource: Bool
 
-    var body: some View {
-        let showingSource = session.showingSource
-        ZStack {
-            MacReadingPane(session: session, style: style, layoutRevision: layoutRevision, openLink: openLink)
-                .opacity(showingSource ? 0 : 1)
-                .allowsHitTesting(!showingSource)
-                .accessibilityHidden(showingSource)
-            if session.hasOpenedSource {
-                MacSourceEditor(
-                    document: session.document, controller: session.source, style: style, undoManager: undoManager
-                )
-                .opacity(showingSource ? 1 : 0)
-                .allowsHitTesting(showingSource)
-                .accessibilityHidden(!showingSource)
-            }
+    func makeNSViewController(context: Context) -> MacWorkspaceController {
+        MacWorkspaceController(reader: reader)
+    }
+
+    func updateNSViewController(_ controller: MacWorkspaceController, context: Context) {
+        controller.update(reader: reader, source: source, showingSource: showingSource)
+    }
+}
+
+private final class MacWorkspaceController: NSViewController {
+    private let reader: NSHostingController<MacReadingPane>
+    private var source: NSHostingController<MacSourcePane>?
+    private var activePane: NSViewController?
+
+    init(reader: MacReadingPane) {
+        self.reader = Self.host(reader)
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError("Use init(reader:) instead") }
+
+    override func loadView() { view = NSView() }
+
+    func update(reader: MacReadingPane, source: MacSourceEditor, showingSource: Bool) {
+        if self.reader.rootView.style != reader.style || self.reader.rootView.layoutRevision != reader.layoutRevision {
+            self.reader.rootView = reader
         }
-        .softTopScrollEdge()
-        .onChange(of: session.document.previewIsCurrent) { _, current in
-            if current { session.previewBecameCurrent() }
+        if let sourceHost = self.source, sourceHost.rootView.editor.style != source.style {
+            sourceHost.rootView = MacSourcePane(editor: source)
+        }
+        if showingSource {
+            let sourceHost = self.source ?? Self.host(MacSourcePane(editor: source))
+            self.source = sourceHost
+            show(sourceHost)
+        } else {
+            show(self.reader)
         }
     }
+
+    private func show(_ pane: NSViewController) {
+        guard activePane !== pane else { return }
+        // Keep both hosts alive while removing the inactive view from the window's event routing.
+        activePane?.view.removeFromSuperview()
+        activePane?.removeFromParent()
+        addChild(pane)
+        pane.view.frame = view.bounds
+        pane.view.autoresizingMask = [.width, .height]
+        view.addSubview(pane.view)
+        activePane = pane
+    }
+
+    private static func host<Content: View>(_ content: Content) -> NSHostingController<Content> {
+        let host = NSHostingController(rootView: content)
+        host.sceneBridgingOptions = []
+        host.sizingOptions = []
+        return host
+    }
+}
+
+private struct MacSourcePane: View {
+    let editor: MacSourceEditor
+
+    var body: some View { editor.softTopScrollEdge() }
 }
 
 private struct MacReadingPane: View {
@@ -103,6 +147,12 @@ private struct MacReadingPane: View {
     let openLink: (URL) -> Void
 
     var body: some View {
+        MarkdownReaderScope { proxy in
+            content.onAppear { session.connect(to: proxy) }
+        }
+    }
+
+    @ViewBuilder private var content: some View {
         let document = session.document
         if let snapshot = document.snapshot {
             MarkdownReader(

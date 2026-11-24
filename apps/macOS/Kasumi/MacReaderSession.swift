@@ -9,7 +9,6 @@ final class MacReaderSession {
     let viewport = ReaderViewport()
     let source = MacSourceEditorController()
     private(set) var showingSource = false
-    private(set) var hasOpenedSource = false
     var readerFindPresented = false
     var outputInProgress = false
     private var requestedReaderHeadingID: String?
@@ -126,7 +125,6 @@ final class MacReaderSession {
             let followFind = readerFindPresented
             readerFindPresented = false
             pendingReaderLine = nil
-            hasOpenedSource = true
             showingSource = true
             source.scroll(to: line, focus: true)
             if followFind { source.presentFindWhenReady() }

@@ -167,3 +167,4 @@ Markdown files open as documents.
 
 - Updated 2026-11-24: Mac icon built with Icon Composer — see [002-native-app-icon.md](002-native-app-icon.md).
 - Updated 2026-11-24: AppKit window split, live sidebar reflow and pane changes; the Panes and goals text was corrected in place — see [003-window-split-and-panes.md](003-window-split-and-panes.md).
+- Updated 2026-11-24: Mode switching detaches the inactive pane from the window — see [004-source-pane-lifecycle.md](004-source-pane-lifecycle.md).
