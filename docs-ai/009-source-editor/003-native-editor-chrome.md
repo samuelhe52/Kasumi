@@ -50,9 +50,9 @@ complex while still leaving UX gaps. A review of the uncommitted work confirmed:
   the native view into another container when `.allowsHitTesting` and
   `.accessibilityHidden` changed. The new parent reported no safe area, so UIKit
   shifted the offset mid-fade and the tiled page briefly showed blank tiles.
-  `ReaderPaneTransition` now sets `isUserInteractionEnabled` and
-  `accessibilityElementsHidden` on the UIKit views instead. Do not reintroduce
-  those SwiftUI modifiers on the pane representables.
+  `ReaderPaneTransition` set interaction and accessibility directly on the UIKit
+  views. [UIKit pane containment](005-pane-containment.md) later replaced that
+  implementation.
 - **Keyboard accessory spacing.** The history capsule sat flush on the
   keyboard. It now has 12 pt of clear space below it. Source text runs under the
   clear accessory to the keyboard's top edge, like under the bottom bar, and a
@@ -64,7 +64,7 @@ complex while still leaving UX gaps. A review of the uncommitted work confirmed:
 - `apps/iOS/Kasumi/SourceEditor.swift`
 - `apps/iOS/Kasumi/ReaderDocument.swift`
 - `apps/iOS/Kasumi/ReadingSurface.swift`
-- `apps/iOS/Kasumi/ReaderPaneTransition.swift`
+- `ReaderPaneTransition`, removed by [005](005-pane-containment.md)
 
 ## Validation
 

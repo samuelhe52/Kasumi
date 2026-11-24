@@ -41,7 +41,7 @@ with the earlier decision to keep the reader primary.
 - `apps/iOS/Kasumi/ReaderScreen.swift`
 - `apps/iOS/Kasumi/SourceEditor.swift`
 - `apps/iOS/Kasumi/ReadingSurface.swift`
-- `apps/iOS/Kasumi/ReaderPaneTransition.swift`
+- `ReaderPaneTransition`, removed by [005](005-pane-containment.md)
 - Verification recipes: [003](003-native-editor-chrome.md), [004](004-markdown-keyboard-bar.md)
 
 ## Validation

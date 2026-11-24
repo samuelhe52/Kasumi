@@ -2,14 +2,17 @@ import Observation
 import SwiftUI
 import UIKit
 
-/// View-local state survives compact Source/Preview switches and size changes.
+/// Commands and position for the editor of one document session.
 @MainActor @Observable
 final class SourceEditorState {
-    @ObservationIgnored var selection = NSRange(location: 0, length: 0)
-    @ObservationIgnored var offset = CGPoint.zero
     @ObservationIgnored weak var textView: SourceTextView?
     @ObservationIgnored weak var undoManager: UndoManager?
-    @ObservationIgnored private var resumeFocus = false
+    @ObservationIgnored var onMove: () -> Void = {}
+    @ObservationIgnored private var lineStarts: [Int]?
+    @ObservationIgnored private var pendingLine: Int?
+    /// The requested line's start while the viewport stays at `top`. A line near
+    /// the end may never reach the top, and follows its text through edits.
+    @ObservationIgnored private var mapped: (character: Int, top: CGFloat)?
     private(set) var canUndo = false
     private(set) var canRedo = false
     var isFocused = false
@@ -33,20 +36,73 @@ final class SourceEditorState {
     }
 
     func dismissKeyboard() { textView?.resignFirstResponder() }
+    func focus() { textView?.becomeFirstResponder() }
 
-    func previewDidChange(isVisible: Bool) {
-        if isVisible {
-            resumeFocus = isFocused
-            dismissKeyboard()
-        } else if resumeFocus {
-            resumeFocus = false
-            textView?.becomeFirstResponder()
-        }
+    /// Where the editor is, or is about to be, as a one-based source line.
+    var currentLine: Int {
+        if let pendingLine { return pendingLine }
+        guard let textView else { return 1 }
+        let character =
+            mapped.flatMap { abs($0.top - textView.top) < 1 ? $0.character : nil } ?? textView.topCharacter
+        return line(containing: character)
     }
 
-    func finishEditing() {
-        resumeFocus = false
-        dismissKeyboard()
+    var hasPendingScroll: Bool { pendingLine != nil }
+
+    /// Moves the viewport and caret to a line once the editor is on screen.
+    func scroll(to line: Int) { pendingLine = line }
+
+    func applyPendingScroll() {
+        guard let line = pendingLine, let textView, textView.window != nil, textView.bounds.height > 0 else { return }
+        pendingLine = nil
+        let starts = lineStarts(in: textView)
+        let character = starts[min(starts.count, max(1, line)) - 1]
+        textView.selectedRange = NSRange(location: character, length: 0)
+        textView.scrollToTop(character: character)
+        mapped = (character, textView.top)
+    }
+
+    private func line(containing character: Int) -> Int {
+        guard let textView else { return 1 }
+        let starts = lineStarts(in: textView)
+        var lower = 0
+        var upper = starts.count
+        while lower < upper {
+            let middle = lower + (upper - lower) / 2
+            if starts[middle] <= character { lower = middle + 1 } else { upper = middle }
+        }
+        return max(1, lower)
+    }
+
+    /// UTF-16 offsets of line starts. CR, LF and CRLF each end a line.
+    private func lineStarts(in textView: UITextView) -> [Int] {
+        if let lineStarts { return lineStarts }
+        var starts = [0]
+        var wasReturn = false
+        for (offset, unit) in textView.text.utf16.enumerated() {
+            if unit == 0x0A, wasReturn {
+                starts[starts.count - 1] = offset + 1
+            } else if unit == 0x0A || unit == 0x0D {
+                starts.append(offset + 1)
+            }
+            wasReturn = unit == 0x0D
+        }
+        lineStarts = starts
+        return starts
+    }
+
+    func textDidLoad() {
+        lineStarts = nil
+        mapped = nil
+    }
+
+    func textDidChange(from old: String, to new: String) {
+        lineStarts = nil
+        guard let mapped else { return }
+        let change = SourceEditor.changedRange(from: old, to: new)
+        guard change.location <= mapped.character else { return }
+        let shifted = mapped.character + new.utf16.count - old.utf16.count
+        self.mapped?.character = max(change.location, shifted)
     }
 }
 
@@ -54,16 +110,13 @@ struct SourceEditor: UIViewRepresentable {
     let document: ReaderDocument
     let state: SourceEditorState
     let paper: Color
-    let isVisible: Bool
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.undoManager) private var undoManager
+    let undoManager: UndoManager?
 
     func makeCoordinator() -> Coordinator { Coordinator(document: document, state: state) }
 
     func makeUIView(context: Context) -> SourceEditorView {
         let container = SourceEditorView()
         container.backgroundColor = UIColor(paper)
-        container.alpha = isVisible ? 1 : 0
         let view = container.textView
         view.font = UIFontMetrics(forTextStyle: .body).scaledFont(
             for: .monospacedSystemFont(ofSize: 16, weight: .regular))
@@ -85,17 +138,15 @@ struct SourceEditor: UIViewRepresentable {
         view.accessibilityLabel = "Markdown source"
         view.accessibilityIdentifier = "source-editor"
         view.text = document.text
-        view.selectedRange = clamped(state.selection, length: (view.text as NSString).length)
-        view.pendingOffset = state.offset
         view.editorState = state
         view.installKeyboardBar()
+        state.textDidLoad()
         state.textView = view
         view.delegate = context.coordinator
         return container
     }
 
     func updateUIView(_ container: SourceEditorView, context: Context) {
-        ReaderPaneTransition.update(container, visible: isVisible, reduceMotion: reduceMotion)
         container.backgroundColor = UIColor(paper)
         let view = container.textView
         view.backgroundColor = UIColor(paper)
@@ -106,12 +157,15 @@ struct SourceEditor: UIViewRepresentable {
         // Undo/redo and external file reloads are the only programmatic updates.
         if view.markedTextRange == nil, !view.text.utf8.elementsEqual(document.text.utf8) {
             let changed = Self.changedRange(from: view.text, to: document.text)
+            let old = view.text ?? ""
             let offset = view.contentOffset
             view.text = document.text
-            // Keep the viewport, then reveal and select what undo/redo changed.
+            state.textDidChange(from: old, to: document.text)
+            // Keep the viewport, then reveal and select what undo/redo changed,
+            // unless the editor is about to open at the reading place.
             view.setContentOffset(offset, animated: false)
             view.selectedRange = changed
-            view.scrollRangeToVisible(changed)
+            if !state.hasPendingScroll { view.scrollRangeToVisible(changed) }
         }
     }
 
@@ -119,7 +173,6 @@ struct SourceEditor: UIViewRepresentable {
         let view = container.textView
         view.resignFirstResponder()
         coordinator.publish(view)
-        coordinator.remember(view)
         if coordinator.state.textView === view { coordinator.state.textView = nil }
         view.delegate = nil
     }
@@ -135,11 +188,6 @@ struct SourceEditor: UIViewRepresentable {
             suffix += 1
         }
         return NSRange(location: prefix, length: b.count - prefix - suffix)
-    }
-
-    private func clamped(_ range: NSRange, length: Int) -> NSRange {
-        let location = min(range.location, length)
-        return NSRange(location: location, length: min(range.length, length - location))
     }
 
     @MainActor
@@ -159,14 +207,10 @@ struct SourceEditor: UIViewRepresentable {
         func publish(_ view: UITextView) {
             // Track visible source, including an IME candidate, so a save never
             // captures older text. updateUIView leaves marked storage untouched.
+            state.textDidChange(from: document.text, to: view.text)
             document.setText(view.text, undoManager: undoManager, breaksTyping: breaksTyping)
             breaksTyping = false
             state.refreshHistory()
-        }
-
-        func remember(_ view: UITextView) {
-            state.selection = view.selectedRange
-            state.offset = view.contentOffset
         }
 
         func textView(
@@ -199,13 +243,12 @@ struct SourceEditor: UIViewRepresentable {
         }
 
         func textViewDidChange(_ textView: UITextView) { publish(textView) }
+        func scrollViewDidScroll(_ scrollView: UIScrollView) { state.onMove() }
         func textViewDidBeginEditing(_ textView: UITextView) { state.isFocused = true }
         func textViewDidEndEditing(_ textView: UITextView) {
             publish(textView)
             state.isFocused = false
         }
-        func textViewDidChangeSelection(_ textView: UITextView) { remember(textView) }
-        func scrollViewDidScroll(_ scrollView: UIScrollView) { state.offset = scrollView.contentOffset }
     }
 }
 
@@ -252,7 +295,6 @@ final class SourceEditorView: UIView {
 /// the document manager, whose registrations also drive DocumentGroup autosave.
 final class SourceTextView: UITextView {
     weak var editorState: SourceEditorState?
-    var pendingOffset: CGPoint?
     private var viewportSize = CGSize.zero
     override var undoManager: UndoManager? { nil }
     override var keyCommands: [UIKeyCommand]? {
@@ -381,16 +423,38 @@ final class SourceTextView: UITextView {
         super.layoutSubviews()
         let resized = viewportSize != bounds.size
         viewportSize = bounds.size
-        if let offset = pendingOffset, bounds.width > 0, bounds.height > 0 {
-            pendingOffset = nil
-            let maximum = max(
-                -adjustedContentInset.top, contentSize.height - bounds.height + adjustedContentInset.bottom)
-            setContentOffset(
-                CGPoint(x: 0, y: min(maximum, max(-adjustedContentInset.top, offset.y))), animated: false)
-        } else if resized && isFirstResponder {
-            scrollRangeToVisible(selectedRange)
-        }
+        if resized && isFirstResponder { scrollRangeToVisible(selectedRange) }
     }
+
+    /// The content position below the top bar.
+    var top: CGFloat { contentOffset.y + adjustedContentInset.top }
+
+    var topCharacter: Int {
+        let y = top - textContainerInset.top
+        guard y > 0, let manager = textLayoutManager,
+            let fragment = manager.textLayoutFragment(for: CGPoint(x: 0, y: y + 0.5))
+        else { return 0 }
+        return manager.offset(from: manager.documentRange.location, to: fragment.rangeInElement.location)
+    }
+
+    func scrollToTop(character: Int) {
+        guard let manager = textLayoutManager,
+            let target = manager.location(manager.documentRange.location, offsetBy: character)
+        else { return }
+        // Estimated heights above the target would put it at the wrong place.
+        if let range = NSTextRange(location: manager.documentRange.location, end: target) {
+            manager.ensureLayout(for: range)
+        }
+        manager.ensureLayout(for: NSTextRange(location: target))
+        layoutIfNeeded()
+        let fragment = manager.textLayoutFragment(for: target)
+        let y =
+            character == 0
+            ? 0 : textContainerInset.top + (fragment?.layoutFragmentFrame.minY ?? manager.usageBoundsForTextContainer.maxY)
+        let maximum = max(0, contentSize.height - bounds.height + adjustedContentInset.bottom + adjustedContentInset.top)
+        setContentOffset(CGPoint(x: 0, y: min(maximum, y) - adjustedContentInset.top), animated: false)
+    }
+
     @objc private func hideKeyboard() { resignFirstResponder() }
     @objc private func undoSource() { editorState?.undo() }
     @objc private func redoSource() { editorState?.redo() }

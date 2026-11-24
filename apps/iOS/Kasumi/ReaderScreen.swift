@@ -3,19 +3,20 @@ import KasumiMarkdownUI
 import SwiftUI
 
 struct ReaderScreen: View {
-    let document: ReaderDocument
+    @State private var session: ReaderSession
+    private var document: ReaderDocument { session.document }
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.undoManager) private var undoManager
     @AppStorage("reader.preset") private var presetID = "serif"
     @AppStorage("reader.theme-pair") private var pairID = "mono"
     @AppStorage("reader.font-size") private var fontSize = ReaderAppearance.defaultFontSize
     @AppStorage("reader.preset-spacing") private var presetSpacing = ReaderPresetSpacing()
-    @State private var viewport = ReaderViewport()
-    @State private var readerWindow = ReaderWindowReference()
+    @State private var window = WindowReference()
     @State private var findPresented = false
     @State private var pendingLink: URL?
     @State private var showLinkConfirmation = false
@@ -27,10 +28,8 @@ struct ReaderScreen: View {
     @State private var showDeleteConfirmation = false
     @State private var handoffID = UUID()
     @State private var windowScene: UIWindowScene?
-    @State private var editingSource = false
-    @State private var hasEditedSource = false
-    @State private var showPreview = false
-    @State private var editorState = SourceEditorState()
+
+    init(document: ReaderDocument) { _session = State(initialValue: ReaderSession(document: document)) }
 
     private var regular: Bool { horizontalSizeClass == .regular }
     private var sourcePreviewPlacement: ToolbarItemPlacement {
@@ -63,13 +62,7 @@ struct ReaderScreen: View {
     }
 
     var body: some View {
-        MarkdownReaderScope { proxy in
-            readerBody(scrollTo: { proxy.scroll(toAnchorID: $0) })
-        }
-    }
-
-    private func readerBody(scrollTo: @escaping (String) -> Void) -> some View {
-        readerChrome(scrollTo: scrollTo)
+        readerChrome
             .background(paper.ignoresSafeArea())
             .background {
                 if #unavailable(iOS 26.0) {
@@ -83,7 +76,7 @@ struct ReaderScreen: View {
                     }
                 }
             }
-            .sheet(isPresented: $showOutline) { outlineSheet(scrollTo: scrollTo) }
+            .sheet(isPresented: $showOutline) { outlineSheet }
             .sheet(isPresented: $showExport) {
                 if let parsed = document.snapshot?.parsed {
                     ReaderExportSheet(document: parsed, title: document.title, style: style)
@@ -109,23 +102,23 @@ struct ReaderScreen: View {
                 Text("No application could open this link.")
             }
             .fontOnboarding()
-            .onChange(of: showPreview) { _, preview in
-                editorState.previewDidChange(isVisible: preview)
+            .onChange(of: document.previewIsCurrent) { _, current in
+                if current { session.previewBecameCurrent() }
             }
-            .onChange(of: scenePhase) { _, phase in if phase != .active { viewport.flush() } }
-            .onChange(of: paper) { _, color in readerWindow.value?.backgroundColor = UIColor(color) }
+            .onChange(of: scenePhase) { _, phase in if phase != .active { session.viewport.flush() } }
+            .onChange(of: paper) { _, color in window.value?.backgroundColor = UIColor(color) }
             // A file handed to the app while this reader shows closes it first.
             .background(
-                WindowReader { window in
-                    readerWindow.value = window
-                    window.backgroundColor = UIColor(paper)
-                    guard let scene = window.windowScene else { return }
+                WindowReader { hostWindow in
+                    window.value = hostWindow
+                    hostWindow.backgroundColor = UIColor(paper)
+                    guard let scene = hostWindow.windowScene else { return }
                     windowScene = scene
                     DocumentBrowser.readerAppeared(handoffID, in: scene) { closeReader() }
                 }
             )
             .onDisappear {
-                viewport.flush()
+                session.viewport.flush()
                 if let windowScene { DocumentBrowser.readerDisappeared(handoffID, in: windowScene) }
             }
     }
@@ -140,9 +133,9 @@ struct ReaderScreen: View {
     }
 
     @ViewBuilder
-    private func readerChrome(scrollTo: @escaping (String) -> Void) -> some View {
+    private var readerChrome: some View {
         if #available(iOS 26.0, *) {
-            readerToolbar(scrollTo: scrollTo).toolbarTitleMenu { documentActions }
+            readerToolbar.toolbarTitleMenu { documentActions }
         } else {
             // On iOS 18 the document host can repeatedly lay out SwiftUI's
             // toolbar during opening and omit the system Back button on reopen.
@@ -153,8 +146,8 @@ struct ReaderScreen: View {
 
     private var legacyReaderBar: some View {
         HStack(spacing: 12) {
-            if editingSource {
-                SourceHistoryControls(state: editorState)
+            if session.editing {
+                SourceHistoryControls(state: session.editor)
                 Spacer()
                 sourcePreviewButton
                 sourceDoneButton
@@ -180,7 +173,7 @@ struct ReaderScreen: View {
         .background(paper)
     }
 
-    private func readerToolbar(scrollTo: @escaping (String) -> Void) -> some View {
+    private var readerToolbar: some View {
         workspace
             .navigationTitle(document.title)
             .navigationBarTitleDisplayMode(.inline)
@@ -193,13 +186,13 @@ struct ReaderScreen: View {
                 // Built only on iPad: even closed, the outline's search field
                 // otherwise lands in the iPhone reader's bar.
                 if regular {
-                    outline(scrollTo: scrollTo)
+                    outline
                         .inspectorColumnWidth(min: 260, ideal: 320, max: 420)
                 }
             }
             // Attach outside the inspector so the DocumentGroup receives the toolbar.
             .toolbar {
-                if editingSource {
+                if session.editing {
                     // Native bar items keep the soft scroll edge; a custom row
                     // under the bar would need its own opaque background.
                     ToolbarItem(placement: sourcePreviewPlacement) {
@@ -209,7 +202,7 @@ struct ReaderScreen: View {
                     // bar hides behind the keyboard; SourceTextView carries the
                     // same pair above it.
                     ToolbarItemGroup(placement: .bottomBar) {
-                        SourceHistoryControls(state: editorState)
+                        SourceHistoryControls(state: session.editor)
                         Spacer()
                     }
                     // Done must never fall into the overflow menu on iPhone.
@@ -236,10 +229,10 @@ struct ReaderScreen: View {
 
     private var sourcePreviewButton: some View {
         Button(
-            showPreview ? "Show Source" : "Show Preview",
-            systemImage: showPreview ? "square.and.pencil" : "eye"
+            session.previewing ? "Show Source" : "Show Preview",
+            systemImage: session.previewing ? "square.and.pencil" : "eye"
         ) {
-            showPreview.toggle()
+            session.togglePreview()
         }
         .labelStyle(.iconOnly)
         .accessibilityIdentifier("source-preview-toggle")
@@ -247,10 +240,7 @@ struct ReaderScreen: View {
 
     private var sourceDoneButton: some View {
         Button("Done") {
-            editorState.finishEditing()
-            withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) {
-                editingSource = false
-            }
+            withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) { session.finishEditing() }
         }
         .accessibilityIdentifier("source-done")
     }
@@ -285,13 +275,9 @@ struct ReaderScreen: View {
             Button("Export", systemImage: "square.and.arrow.up") { showExport = true }
                 .disabled(!document.previewIsCurrent)
                 .accessibilityIdentifier("reader-export")
-            if !editingSource {
+            if !session.editing {
                 Button("Edit", systemImage: "square.and.pencil") {
-                    hasEditedSource = true
-                    showPreview = false
-                    withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) {
-                        editingSource = true
-                    }
+                    withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) { session.edit() }
                 }
                 .disabled(!document.canEdit)
                 .accessibilityIdentifier("reader-edit-source")
@@ -341,24 +327,19 @@ struct ReaderScreen: View {
             }
     }
 
-    /// Both panes stay mounted once editing starts, so the caret, scroll
-    /// positions and find state survive Source/Preview switches.
     private var workspace: some View {
-        let sourceVisible = editingSource && !showPreview
-        let previewVisible = !editingSource || showPreview
-        return ZStack {
-            if hasEditedSource {
-                SourceEditor(document: document, state: editorState, paper: paper, isVisible: sourceVisible)
-                    .ignoresSafeArea(.all, edges: paneEdges)
-            }
-            reader(isActive: previewVisible)
-        }
-        .softTopScrollEdge()
+        ReaderWorkspace(
+            reader: reader,
+            source: SourceEditor(document: document, state: session.editor, paper: paper, undoManager: undoManager),
+            showsSource: session.showingSource, animated: !reduceMotion, paneDidAppear: session.paneDidAppear
+        )
+        // Paint behind the toolbars and keyboard; the panes manage their scroll insets.
+        .ignoresSafeArea(.all, edges: paneEdges)
     }
 
-    private func outlineSheet(scrollTo: @escaping (String) -> Void) -> some View {
+    private var outlineSheet: some View {
         NavigationStack {
-            outline(scrollTo: scrollTo)
+            outline
                 .navigationTitle("Outline")
                 .navigationBarTitleDisplayMode(.inline)
                 .navigationBarBackButtonHidden()
@@ -373,7 +354,13 @@ struct ReaderScreen: View {
         .presentationBackground(paper)
     }
 
-    private func reader(isActive: Bool) -> some View {
+    private var reader: some View {
+        MarkdownReaderScope { proxy in
+            readerContent.onAppear { session.connect(to: proxy) }
+        }
+    }
+
+    private var readerContent: some View {
         Group {
             if let snapshot = document.snapshot {
                 let style = self.style
@@ -382,8 +369,7 @@ struct ReaderScreen: View {
                 } ?? .secondaryLabel
                 MarkdownReader(
                     document: snapshot.parsed, style: style, documentURL: document.fileURL,
-                    initialAnchor: viewport.prepare(fileURL: document.fileURL),
-                    isActive: isActive, layoutRevision: fontStore.revision
+                    initialAnchor: session.viewport.prepare(fileURL: document.fileURL), layoutRevision: fontStore.revision
                 )
                 .markdownFindNavigator(isPresented: $findPresented)
                 .markdownRemoteImages(.http)
@@ -391,26 +377,23 @@ struct ReaderScreen: View {
                     guard let frame = ReaderCodeBlockStyle.copyButtonFrame(in: block) else { return nil }
                     return ReaderCodeCopyButton(block: block, frame: frame, color: codeColor)
                 }
-                .onMarkdownPositionChange { anchor, heading in viewport.moved(anchor: anchor, heading: heading) }
+                .onMarkdownPositionChange { anchor, heading in session.viewport.moved(anchor: anchor, heading: heading) }
                 .onMarkdownLink { url in
                     pendingLink = url
                     showLinkConfirmation = true
                 }
-                // Paint behind the floating find panel as well as the toolbars.
-                .ignoresSafeArea(.all, edges: paneEdges)
             } else {
                 ProgressView("Opening document…").frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
     }
 
-    private func outline(scrollTo: @escaping (String) -> Void) -> some View {
+    private var outline: some View {
         ReaderOutline(
-            items: document.snapshot?.parsed.outline ?? [], currentID: viewport.headingID,
+            items: session.outline, currentID: session.currentHeadingID,
             searchable: !regular
         ) { item in
-            showPreview = true
-            scrollTo(item.id)
+            session.jump(to: item)
             showOutline = false
         }
     }
@@ -422,7 +405,7 @@ struct ReaderScreen: View {
         if usesLegacyToolbar, let windowScene {
             // The iOS 18 document host can retain the reader under the browser
             // without delivering SwiftUI's onDisappear.
-            viewport.flush()
+            session.viewport.flush()
             DocumentBrowser.readerDisappeared(handoffID, in: windowScene)
         }
     }
@@ -432,7 +415,7 @@ struct ReaderScreen: View {
     /// waits for the document's file session to let go.
     private func delete() {
         guard let url = document.fileURL else { return }
-        viewport.forget()
+        session.viewport.forget()
         closeReader()
         Task.detached {
             var coordinationError: NSError?
@@ -464,6 +447,6 @@ private struct SourceHistoryControls: View {
 }
 
 @MainActor
-private final class ReaderWindowReference {
+private final class WindowReference {
     weak var value: UIWindow?
 }

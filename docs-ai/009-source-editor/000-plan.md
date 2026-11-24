@@ -23,11 +23,12 @@ rendered reader as the preview.
   bounded rendering pipeline. Discard stale preview results.
 - Preserve unchanged bytes and the original encoding/BOM after editing. Reject
   unrepresentable saves and keep lossy-decoded files read-only.
-- Retain source selection and scroll position when switching between modes.
+- Carry the reading place across mode switches, and keep the source selection on
+  an unchanged round trip. (Corrected by [009.005](005-pane-containment.md).)
 
 ### Non-goals
 
-Side-by-side source/preview, syntax highlighting, synchronized source/preview
+Side-by-side source/preview, syntax highlighting, continuously synchronized
 scrolling, and incremental parsing/layout are outside this milestone.
 (Formatting commands were also listed
 here until the maintainer added a Markdown keyboard bar; see
@@ -85,3 +86,5 @@ here until the maintainer added a Markdown keyboard bar; see
   [004-markdown-keyboard-bar.md](004-markdown-keyboard-bar.md)
 - Updated 2026-11-18: maintainer removed the iPad side-by-side requirement from
   the milestone; Source/Preview switching remains the editing layout at all widths.
+- Updated 2026-11-25: UIKit child containment manages Source/Preview switching and
+  both panes share one reading place — see [005-pane-containment.md](005-pane-containment.md).
