@@ -40,10 +40,10 @@ final class ReaderDocument: Identifiable {
     private(set) var previewIsCurrent = false
     private(set) var parsePlainTextAsMarkdown = false
     var isEditable: Bool
-    private var legacyFileURL: URL?
+    private var referenceFileURL: URL?
     @ObservationIgnored private let fileURLProvider: (() -> URL?)?
     @ObservationIgnored private let defaultExtension: String
-    @ObservationIgnored private let didEdit: ((WriteSnapshot) -> Void)?
+    @ObservationIgnored var onEdit: ((WriteSnapshot) -> Void)?
     @ObservationIgnored private var source: DocumentSource
     @ObservationIgnored private var sourceRevision = UUID()
     @ObservationIgnored private var previewTask: Task<Void, Never>?
@@ -51,7 +51,7 @@ final class ReaderDocument: Identifiable {
     @ObservationIgnored private var animatedRevision: UUID?
     @ObservationIgnored private var lastTyping: ContinuousClock.Instant?
 
-    var fileURL: URL? { fileURLProvider?() ?? legacyFileURL }
+    var fileURL: URL? { fileURLProvider?() ?? referenceFileURL }
     var title: String { fileURL?.lastPathComponent ?? "Untitled" }
     var canEdit: Bool { isEditable && snapshot != nil && !source.isLossy }
     var isPlainText: Bool {
@@ -65,22 +65,32 @@ final class ReaderDocument: Identifiable {
 
     init(
         source: DocumentSource = DocumentSource(text: ""), defaultExtension: String = "md",
-        isEditable: Bool = true, fileURLProvider: (() -> URL?)? = nil,
-        didEdit: ((WriteSnapshot) -> Void)? = nil
+        isEditable: Bool = true, fileURLProvider: (() -> URL?)? = nil
     ) {
         self.source = source
         self.text = source.text
         self.defaultExtension = defaultExtension
         self.isEditable = isEditable
         self.fileURLProvider = fileURLProvider
-        self.didEdit = didEdit
     }
 
     deinit { previewTask?.cancel() }
 
-    func setLegacyFileURL(_ url: URL?) {
-        guard legacyFileURL != url || (snapshot == nil && previewTask == nil) else { return }
-        legacyFileURL = url
+    func setFileURL(_ url: URL?) {
+        guard referenceFileURL != url || (snapshot == nil && previewTask == nil) else { return }
+        referenceFileURL = url
+        refreshPreview()
+    }
+
+    func reload(source: DocumentSource, fileURL: URL?) {
+        self.source = source
+        text = source.text
+        referenceFileURL = fileURL
+        lastTyping = nil
+        refreshPreview()
+    }
+
+    private func refreshPreview() {
         previewIsCurrent = false
         sourceRevision = UUID()
         schedulePreview(initialDelay: .zero)
@@ -141,7 +151,7 @@ final class ReaderDocument: Identifiable {
         text = value
         previewIsCurrent = false
         sourceRevision = UUID()
-        didEdit?(writeSnapshot())
+        onEdit?(writeSnapshot())
         schedulePreview()
     }
 

@@ -1,0 +1,21 @@
+import Foundation
+
+enum MacFolderListing {
+    private static let extensions: Set<String> = ["md", "markdown", "txt"]
+
+    static func supports(_ url: URL) -> Bool {
+        extensions.contains(url.pathExtension.lowercased())
+    }
+
+    static func files(in folder: URL) -> [URL] {
+        let urls =
+            (try? FileManager.default.contentsOfDirectory(
+                at: folder, includingPropertiesForKeys: [.isRegularFileKey], options: [.skipsHiddenFiles])) ?? []
+        return urls.filter { url in
+            supports(url) && (try? url.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true
+        }
+        .sorted {
+            $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedAscending
+        }
+    }
+}

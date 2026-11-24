@@ -1,0 +1,20 @@
+{
+  "groups": [
+    {
+      "layers": [
+        {
+          "name": "Kasumi artwork",
+          "image-name-specializations": [
+            { "value": "AppIcon.png" },
+            { "appearance": "dark", "value": "AppIcon-Dark.png" },
+            { "appearance": "tinted", "value": "AppIcon-Tinted.png" }
+          ],
+          "glass": false
+        }
+      ],
+      "specular": false,
+      "shadow": { "kind": "none", "opacity": 0 }
+    }
+  ],
+  "supported-platforms": { "squares": ["macOS"] }
+}

@@ -37,7 +37,7 @@ private struct LegacyKasumiApp: App {
 
     var body: some Scene {
         launchScene(store: launchStore)
-        DocumentGroup(newDocument: { LegacyReaderDocument() }) { configuration in
+        DocumentGroup(newDocument: { ReferenceReaderDocument() }) { configuration in
             LegacyReaderScreen(configuration: configuration)
         }
     }

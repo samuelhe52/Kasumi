@@ -4,7 +4,9 @@
 Four soft pills -- three full lines and a short last line -- sit on a dusk
 gradient. A low sun glows from behind the top line, warming its upper edge.
 
-Regenerate the asset catalog PNGs (opaque, no alpha) from the repo root:
+Regenerate the iOS asset catalog and Mac Icon Composer artwork from the repo
+root. Both targets use the same opaque PNGs; the Mac spec adds the system mask
+and appearance treatment but no custom glass or shadows to the artwork.
 
     python3 design/icon/make_icon.py design/icon
     SET=apps/iOS/Kasumi/Assets.xcassets/AppIcon.appiconset
@@ -13,6 +15,7 @@ Regenerate the asset catalog PNGs (opaque, no alpha) from the repo root:
         magick png:- -background black -alpha remove -alpha off -strip \
           PNG24:$SET/${v##*:}.png
     done
+    cp "$SET"/AppIcon{,-Dark,-Tinted}.png apps/macOS/Kasumi/AppIcon.icon/Assets/
 """
 import pathlib, sys
 

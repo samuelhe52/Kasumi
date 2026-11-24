@@ -156,9 +156,14 @@ enum FontStoreError: Error, CustomStringConvertible {
     case mismatch(String)
 
     var description: String {
-        switch self {
-        case .notStarted: "iOS didn't start the download."
-        case .unavailable(let name): "iOS didn't make \(name) available."
+        #if os(macOS)
+            let platform = "macOS"
+        #else
+            let platform = "iOS"
+        #endif
+        return switch self {
+        case .notStarted: "\(platform) didn't start the download."
+        case .unavailable(let name): "\(platform) didn't make \(name) available."
         case .badResponse(let status): "The server answered \(status)."
         case .mismatch(let file): "\(file) didn't match the expected file."
         }
@@ -244,7 +249,13 @@ fileprivate final class LockedBox<Value: AnyObject>: @unchecked Sendable {
 /// Openly licensed font files in Application Support, registered for the process.
 enum OpenFontFiles {
     static let directory: URL = {
-        var url = URL.applicationSupportDirectory.appending(path: "Fonts", directoryHint: .isDirectory)
+        let support = URL.applicationSupportDirectory
+        #if os(macOS)
+            let applicationSupport = support.appending(path: "Kasumi", directoryHint: .isDirectory)
+        #else
+            let applicationSupport = support
+        #endif
+        var url = applicationSupport.appending(path: "Fonts", directoryHint: .isDirectory)
         try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         // The files can be downloaded again, so they stay out of backups.
         var values = URLResourceValues()

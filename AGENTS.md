@@ -16,6 +16,7 @@
 ## Project layout
 
 - New files under `apps/iOS/Kasumi/`, `apps/iOS/ImportExtension/`, and `apps/iOS/Shared/` are picked up without project edits (folder-synchronized groups). `Shared/` compiles into both the app and the "Import into Kasumi" action extension.
+- The Mac app (`KasumiMac` target, product `Kasumi.app`) lives in the same project with sources in `apps/macOS/Kasumi/`. `apps/Common/` holds app code compiled into both the iOS and Mac apps; keep UIKit and AppKit out of it. Both folders are folder-synchronized groups. Use `make run-mac` to build and launch it; no simulator is involved.
 - Tests reach `fixtures/` through the `Tests/KasumiMarkdownTests/fixtures` symlink, which lets them run on the simulator.
 
 ## Simulator and device

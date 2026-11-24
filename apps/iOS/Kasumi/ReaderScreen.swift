@@ -15,6 +15,7 @@ struct ReaderScreen: View {
     @AppStorage("reader.font-size") private var fontSize = ReaderAppearance.defaultFontSize
     @AppStorage("reader.preset-spacing") private var presetSpacing = ReaderPresetSpacing()
     @State private var viewport = ReaderViewport()
+    @State private var readerWindow = ReaderWindowReference()
     @State private var findPresented = false
     @State private var pendingLink: URL?
     @State private var showLinkConfirmation = false
@@ -112,11 +113,11 @@ struct ReaderScreen: View {
                 editorState.previewDidChange(isVisible: preview)
             }
             .onChange(of: scenePhase) { _, phase in if phase != .active { viewport.flush() } }
-            .onChange(of: paper) { _, color in viewport.window?.backgroundColor = UIColor(color) }
+            .onChange(of: paper) { _, color in readerWindow.value?.backgroundColor = UIColor(color) }
             // A file handed to the app while this reader shows closes it first.
             .background(
                 WindowReader { window in
-                    viewport.window = window
+                    readerWindow.value = window
                     window.backgroundColor = UIColor(paper)
                     guard let scene = window.windowScene else { return }
                     windowScene = scene
@@ -460,4 +461,9 @@ private struct SourceHistoryControls: View {
             .disabled(!state.canRedo)
             .accessibilityIdentifier("source-redo")
     }
+}
+
+@MainActor
+private final class ReaderWindowReference {
+    weak var value: UIWindow?
 }

@@ -1,1 +1,1 @@
-../../apps/iOS/Kasumi/SourceFormatting.swift
+../../apps/Common/SourceFormatting.swift

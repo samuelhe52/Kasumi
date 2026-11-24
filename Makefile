@@ -11,6 +11,7 @@ BUNDLE_ID ?= com.samuelhe.Kasumi
 CONFIGURATION ?= Debug
 SWIFT_CONFIGURATION ?= debug
 SIM_APP_PATH = $(DERIVED_DATA)/Build/Products/$(CONFIGURATION)-iphonesimulator/$(APP_NAME).app
+MAC_APP_PATH = $(DERIVED_DATA)/Build/Products/$(CONFIGURATION)/Kasumi.app
 DEVICE_APP_PATH = $(DERIVED_DATA)/Build/Products/$(CONFIGURATION)-iphoneos/$(APP_NAME).app
 # run-device picks a connected device unless DEVICE=<UDID> is given: USB before
 # network, and within the same connection an iPhone before an iPad.
@@ -38,7 +39,7 @@ NATIVE_INPUTS := scripts/build-native rust-toolchain.toml \
 
 .DEFAULT_GOAL := help
 .PHONY: help format native native-local native-release build test test-ios app run-sim run-device launch-sim test-syntax-native syntax-notices render app-check app-check-sim check clean benchmark-typography reflow-lab run-reflow-lab check-reflow-lab check-reader-scrolling check-reflow-scrolling check-fast-reflow-scrolling benchmark-build benchmark-corpus benchmark-self-check benchmark-reader benchmark-reader-full benchmark-reflow-lab
-.PHONY: check-native-consumer
+.PHONY: check-native-consumer app-mac app-check-mac run-mac
 
 help: ## List available targets
 	@awk 'BEGIN { FS = ":.*## " } /^[a-z-]+:.*## / { printf "  %-8s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
@@ -108,6 +109,18 @@ app-check-sim: native ## Compile the iOS app for a generic simulator without lau
 check-native-consumer: native ## Build and run a macOS Xcode and SwiftPM consumer
 	./scripts/check-native-consumer
 
+app-mac: native ## Build the native macOS app
+	xcodebuild -project apps/iOS/Kasumi.xcodeproj -scheme KasumiMac \
+		-configuration $(CONFIGURATION) -destination 'platform=macOS' -derivedDataPath $(DERIVED_DATA) build
+
+app-check-mac: native ## Compile the native macOS app without signing or launching it
+	xcodebuild -project apps/iOS/Kasumi.xcodeproj -scheme KasumiMac \
+		-configuration $(CONFIGURATION) -destination 'platform=macOS' -derivedDataPath $(DERIVED_DATA) CODE_SIGNING_ALLOWED=NO build
+
+run-mac: app-mac ## Build and relaunch the native macOS app
+	@pkill -f "$(abspath $(MAC_APP_PATH))/Contents/MacOS/" && sleep 1; \
+		open -n "$(MAC_APP_PATH)"
+
 app: native ## Build the iOS app for the simulator
 	xcodebuild -project apps/iOS/Kasumi.xcodeproj -scheme Kasumi \
 		-configuration $(CONFIGURATION) \
@@ -140,7 +153,7 @@ launch-sim: ## Install and launch the last built app on the booted simulator, wi
 	[ -n "$$udid" ] || { echo "No booted simulator found. Boot one first (e.g. open -a Simulator)."; exit 1; }; \
 	app_path="$(SIM_APP_PATH)"; \
 	[ -d "$$app_path" ] || { echo "No built simulator app at $$app_path. Run make run-sim first."; exit 1; }; \
-	newer=$$(find apps/iOS/Kasumi packages -name '*.swift' -newer "$$app_path/$(APP_NAME)" 2>/dev/null | head -3); \
+	newer=$$(find apps/iOS/Kasumi apps/iOS/Shared apps/Common Sources packages -name '*.swift' -newer "$$app_path/$(APP_NAME)" 2>/dev/null | head -3); \
 	[ -z "$$newer" ] || echo "Warning: sources are newer than the built app, e.g. $$newer"; \
 	xcrun simctl install "$$udid" "$$app_path" && \
 	xcrun simctl launch --terminate-running-process "$$udid" $(BUNDLE_ID)

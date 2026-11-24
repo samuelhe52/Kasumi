@@ -2,12 +2,10 @@ import CryptoKit
 import Foundation
 import KasumiMarkdown
 import Observation
-import UIKit
 
 @MainActor @Observable
 final class ReaderViewport {
     var headingID: String?
-    @ObservationIgnored weak var window: UIWindow?
     @ObservationIgnored private var path: String?
     @ObservationIgnored private var identity: String?
     @ObservationIgnored private var latestAnchor: ReadingAnchor?

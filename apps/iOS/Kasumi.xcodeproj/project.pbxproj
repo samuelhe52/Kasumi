@@ -10,6 +10,8 @@
 		A10000000000000000000011 /* KasumiMarkdown in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000012 /* KasumiMarkdown */; };
 		A10000000000000000000024 /* KasumiMarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000025 /* KasumiMarkdownUI */; };
 		A10000000000000000000020 /* ImportExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = A10000000000000000000013 /* ImportExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		A20000000000000000000001 /* KasumiMarkdown in Frameworks */ = {isa = PBXBuildFile; productRef = A20000000000000000000002 /* KasumiMarkdown */; };
+		A20000000000000000000003 /* KasumiMarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = A20000000000000000000004 /* KasumiMarkdownUI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -39,6 +41,7 @@
 /* Begin PBXFileReference section */
 		A10000000000000000000001 /* Kasumi.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Kasumi.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A10000000000000000000013 /* ImportExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ImportExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		A20000000000000000000005 /* Kasumi.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Kasumi.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -55,6 +58,18 @@
 		A10000000000000000000015 /* Shared */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Shared;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000026 /* Common */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			name = Common;
+			path = ../Common;
+			sourceTree = "<group>";
+		};
+		A20000000000000000000006 /* Kasumi (macOS) */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			name = "Kasumi (macOS)";
+			path = ../macOS/Kasumi;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -76,6 +91,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A20000000000000000000007 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A20000000000000000000001 /* KasumiMarkdown in Frameworks */,
+				A20000000000000000000003 /* KasumiMarkdownUI in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -85,6 +109,8 @@
 				A10000000000000000000002 /* Kasumi */,
 				A10000000000000000000014 /* ImportExtension */,
 				A10000000000000000000015 /* Shared */,
+				A10000000000000000000026 /* Common */,
+				A20000000000000000000006 /* Kasumi (macOS) */,
 				A10000000000000000000005 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -94,6 +120,7 @@
 			children = (
 				A10000000000000000000001 /* Kasumi.app */,
 				A10000000000000000000013 /* ImportExtension.appex */,
+				A20000000000000000000005 /* Kasumi.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -118,6 +145,7 @@
 			fileSystemSynchronizedGroups = (
 				A10000000000000000000002 /* Kasumi */,
 				A10000000000000000000015 /* Shared */,
+				A10000000000000000000026 /* Common */,
 			);
 			name = Kasumi;
 			packageProductDependencies = (
@@ -151,6 +179,31 @@
 			productReference = A10000000000000000000013 /* ImportExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		A20000000000000000000008 /* KasumiMac */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A20000000000000000000009 /* Build configuration list for PBXNativeTarget "KasumiMac" */;
+			buildPhases = (
+				A2000000000000000000000A /* Sources */,
+				A20000000000000000000007 /* Frameworks */,
+				A2000000000000000000000B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				A20000000000000000000006 /* Kasumi (macOS) */,
+				A10000000000000000000026 /* Common */,
+			);
+			name = KasumiMac;
+			packageProductDependencies = (
+				A20000000000000000000002 /* KasumiMarkdown */,
+				A20000000000000000000004 /* KasumiMarkdownUI */,
+			);
+			productName = Kasumi;
+			productReference = A20000000000000000000005 /* Kasumi.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -180,6 +233,7 @@
 			targets = (
 				A10000000000000000000006 /* Kasumi */,
 				A10000000000000000000019 /* ImportExtension */,
+				A20000000000000000000008 /* KasumiMac */,
 			);
 		};
 /* End PBXProject section */
@@ -199,6 +253,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A2000000000000000000000B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -210,6 +271,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		A10000000000000000000016 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A2000000000000000000000A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -399,6 +467,56 @@
 			};
 			name = Release;
 		};
+		A2000000000000000000000C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 2;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_DEBUG_DYLIB = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ../macOS/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				OTHER_CODE_SIGN_FLAGS = "--options runtime";
+				MARKETING_VERSION = 1.0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.samuelhe.Kasumi;
+				PRODUCT_NAME = Kasumi;
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		A2000000000000000000000D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 2;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_DEBUG_DYLIB = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ../macOS/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				OTHER_CODE_SIGN_FLAGS = "--options runtime";
+				MARKETING_VERSION = 1.0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.samuelhe.Kasumi;
+				PRODUCT_NAME = Kasumi;
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -429,6 +547,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		A20000000000000000000009 /* Build configuration list for PBXNativeTarget "KasumiMac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A2000000000000000000000C /* Debug */,
+				A2000000000000000000000D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
@@ -445,6 +572,16 @@
 			productName = KasumiMarkdown;
 		};
 		A10000000000000000000025 /* KasumiMarkdownUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A10000000000000000000010 /* XCLocalSwiftPackageReference "../.." */;
+			productName = KasumiMarkdownUI;
+		};
+		A20000000000000000000002 /* KasumiMarkdown */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A10000000000000000000010 /* XCLocalSwiftPackageReference "../.." */;
+			productName = KasumiMarkdown;
+		};
+		A20000000000000000000004 /* KasumiMarkdownUI */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = A10000000000000000000010 /* XCLocalSwiftPackageReference "../.." */;
 			productName = KasumiMarkdownUI;
