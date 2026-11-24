@@ -110,6 +110,16 @@ struct ReaderOutline: View {
                 }
             #endif
         }
+        #if os(macOS)
+            .safeAreaInset(edge: .top, spacing: 0) {
+                Text("Outline")
+                    .font(.system(size: 12, weight: .semibold))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, margin)
+                    .padding(.vertical, 8)
+                    .accessibilityAddTraits(.isHeader)
+            }
+        #endif
         .modifier(OutlineSearch(query: $query, enabled: searchable))
     }
 }
