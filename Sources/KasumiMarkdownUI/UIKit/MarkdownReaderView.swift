@@ -194,6 +194,9 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
     }
     private var pendingNavigation: (target: ScrollTarget, animated: Bool)?
     private var pendingReveal: PendingReveal?
+    /// The line navigated to, current while the viewport stays at `top`. A line
+    /// near the end of the document may never reach the top of the viewport.
+    private var navigated: (line: Int, top: CGFloat)?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -402,9 +405,23 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
 
     private var topY: CGFloat { max(0, contentOffset.y + adjustedContentInset.top) }
 
+    private var navigatedLine: Int? { navigated.flatMap { abs($0.top - topY) < 1 ? $0.line : nil } }
+
+    private func sourceLine(of target: ScrollTarget) -> Int? {
+        switch target {
+        case .position: return nil
+        case .sourceLine(let line): return line
+        case .anchor(let id, _):
+            let decoded = id.removingPercentEncoding ?? id
+            return document?.outline.first { $0.id == id || $0.id == decoded }?.sourceLine
+        }
+    }
+
     var topSourceLine: Int? {
         guard installedRevision == revision else { return nil }
-        return rendered?.readerSourceLine(atY: topY)
+        // Offsets round to pixels, so a block at the top can start just below it.
+        return pendingNavigation.flatMap { sourceLine(of: $0.target) } ?? navigatedLine
+            ?? rendered?.readerSourceLine(atY: topY + 1)
     }
 
     private func rebuildIfNeeded() {
@@ -574,6 +591,7 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
         let selectionTableID = page?.selectionTableID
         let hadTextFocus = page?.selectionInput.isFirstResponder == true
         let sameContent = installedRevision == revision
+        let heldLine = sameContent ? navigatedLine : nil
         let tableOffsets = sameContent ? page?.tableOffsets ?? [:] : [:]
         installedRevision = revision
         installedFileURL = fileURL
@@ -614,6 +632,7 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
         updateScrollExtent()
         setTop(anchor.flatMap { next.y(for: $0) } ?? 0, preservingMomentum: true)
         reflowAnchor.didInstall(next, revision: revision, atY: topY)
+        navigated = heldLine.map { ($0, topY) }
         adjusting = false
         if let pendingNavigation {
             navigate(to: pendingNavigation.target, animated: pendingNavigation.animated)
@@ -650,9 +669,10 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
         backgroundColor = UIColor(red: c.red, green: c.green, blue: c.blue, alpha: c.alpha)
     }
 
-    private func setTop(
+    /// Returns the top position after clamping, which an animated scroll reaches later.
+    @discardableResult private func setTop(
         _ y: CGFloat, animated: Bool = false, trackingAnchor: Bool = false, preservingMomentum: Bool = false
-    ) {
+    ) -> CGFloat {
         let minimum = -adjustedContentInset.top
         let maximum = max(minimum, contentSize.height - bounds.height + adjustedContentInset.bottom)
         let offset = min(maximum, max(minimum, y - adjustedContentInset.top))
@@ -674,11 +694,12 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
         if trackingAnchor && !animated {
             reflowAnchor.moved(in: rendered, atY: topY)
         }
+        return max(0, offset + adjustedContentInset.top)
     }
 
     func navigate(to target: ScrollTarget, animated: Bool) {
         guard !finished else { return }
-        guard isActive, installedRevision == revision, let rendered else {
+        guard isActive, window != nil, installedRevision == revision, let rendered else {
             pendingNavigation = (target, animated)
             if case .position(let anchor) = target {
                 reflowAnchor.navigate(to: anchor)
@@ -690,9 +711,10 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
         guard let destination = destination(for: target, in: rendered) else { return }
         let approximate = rendered.needsLayout(in: destination.rect.insetBy(dx: 0, dy: -1))
         adjusting = true
-        setTop(
+        let top = setTop(
             max(0, destination.rect.minY - destination.inset),
             animated: animated && !approximate && !UIAccessibility.isReduceMotionEnabled, trackingAnchor: true)
+        navigated = sourceLine(of: target).map { ($0, top) }
         adjusting = false
         updateImageViewport()
         updateLinkAccessibility()
@@ -959,7 +981,9 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
             guard let rect = rendered.rect(forAnchor: id) else { return nil }
             return (rect, inset, rendered.readingAnchor(forAnchor: id))
         case .sourceLine(let line):
-            guard let y = rendered.readerSourceTop(for: line) else { return nil }
+            guard var y = rendered.readerSourceTop(for: line) else { return nil }
+            // The first block brings the page's top margin with it.
+            if let first = rendered.readerSourceLine(atY: 0), rendered.readerSourceTop(for: first) == y { y = 0 }
             return (CGRect(x: 0, y: y, width: rendered.size.width, height: 1), 0, rendered.readingAnchor(atY: y))
         }
     }
@@ -985,7 +1009,10 @@ private final class ReaderScrollView: UIScrollView, UIScrollViewDelegate {
         self.pendingReveal = nil
         let wasAdjusting = adjusting
         adjusting = true
-        setTop(max(0, rect.minY - inset), trackingAnchor: true)
+        let top = setTop(max(0, rect.minY - inset), trackingAnchor: true)
+        if case .target(let target) = pendingReveal {
+            navigated = sourceLine(of: target).map { ($0, top) }
+        }
         adjusting = wasAdjusting
     }
 }

@@ -153,7 +153,7 @@ import SwiftUI
     }
 
     /// The one-based first source line of the block at the top of the viewport.
-    /// On macOS, a line or outline heading scrolled to without moving since is
+    /// A line or outline heading scrolled to without moving since is
     /// reported instead, so it survives at the end of the document.
     /// Returns nil before layout or for a document with no rendered blocks.
     public var topSourceLine: Int? { connection.view?.topSourceLine }

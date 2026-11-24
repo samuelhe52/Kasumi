@@ -99,6 +99,55 @@ import UIKit
         #expect(model.heading == "restored")
     }
 
+    @Test func navigationWaitsForAReattachedReader() async throws {
+        let host = UIViewController()
+        let window = makeWindow(hosting: host)
+        defer { window.isHidden = true }
+        let reader = MarkdownReaderView(frame: host.view.bounds)
+        host.view.addSubview(reader)
+        let body = (0..<20).map { "Paragraph \($0) in the navigation fixture." }.joined(separator: "\n\n")
+        var heading: String?
+        reader.onPositionChange = { _, id in heading = id }
+        reader.setDocument(MarkdownDocument(markdown: "# Start\n\n\(body)\n\n# Destination\n\n\(body)"))
+        try #require(await eventually { heading == "start" })
+
+        let scroll = try #require(reader.subviews.compactMap { $0 as? UIScrollView }.first)
+        reader.removeFromSuperview()
+        let detachedOffset = scroll.contentOffset
+        reader.scroll(toAnchorID: "destination", animated: false)
+        #expect(scroll.contentOffset == detachedOffset)
+
+        host.view.addSubview(reader)
+        try #require(await eventually { heading == "destination" })
+    }
+
+    @Test func topSourceLineKeepsANavigatedLineUntilTheReaderMoves() async throws {
+        let host = UIViewController()
+        let window = makeWindow(hosting: host)
+        defer { window.isHidden = true }
+        let reader = MarkdownReaderView(frame: host.view.bounds)
+        host.view.addSubview(reader)
+        let count = 60
+        reader.setDocument(
+            MarkdownDocument(markdown: (0..<count).map { "Paragraph \($0)." }.joined(separator: "\n\n")))
+        try #require(await eventually { reader.topSourceLine == 1 })
+
+        // The last paragraph can't reach the top of the viewport.
+        let last = count * 2 - 1
+        reader.scroll(toSourceLine: last, animated: false)
+        try await Task.sleep(nanoseconds: 200_000_000)
+        #expect(reader.topSourceLine == last)
+
+        reader.removeFromSuperview()
+        host.view.addSubview(reader)
+        try await Task.sleep(nanoseconds: 200_000_000)
+        #expect(reader.topSourceLine == last)
+
+        let scroll = try #require(reader.subviews.compactMap { $0 as? UIScrollView }.first)
+        scroll.contentOffset.y -= 200
+        #expect(try #require(reader.topSourceLine) < last)
+    }
+
     private final class RestorationModel: ObservableObject {
         @Published var document = MarkdownDocument(markdown: "# Original\n\nThe first in-memory document.")
         var anchor: ReadingAnchor?
