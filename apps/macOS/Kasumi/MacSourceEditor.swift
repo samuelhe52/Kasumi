@@ -138,7 +138,8 @@ final class MacSourceEditorController: NSObject, NSTextViewDelegate, @MainActor 
             reloadText()
         }
         textView.isEditable = document.canEdit
-        let font = NSFont.monospacedSystemFont(ofSize: style.fontSize ?? 16, weight: .regular)
+        let readingSize = style.fontSize ?? style.preset.defaultFontSize
+        let font = NSFont.monospacedSystemFont(ofSize: max(10, readingSize - 3), weight: .regular)
         let paper = style.theme.document["paper"].map(Self.color) ?? .textBackgroundColor
         let ink = style.theme.document["text"].map(Self.color) ?? .textColor
         if textView.font != font { textView.font = font }
