@@ -23,21 +23,31 @@ import Testing
         #expect(fitted.allSatisfy { $0 < 20 })
     }
 
-    private func drawEdges(offset: CGFloat, contentWidth: CGFloat = 1000) throws -> [UInt8] {
+    @Test func flippedClipLayerCanKeepItsOwnViewportCoordinates() throws {
+        for offset: CGFloat in [0, 120, 680] {
+            #expect(try drawEdges(offset: offset, flippedClip: true) == drawEdges(offset: offset))
+        }
+    }
+
+    private func drawEdges(
+        offset: CGFloat, contentWidth: CGFloat = 1000, flippedClip: Bool = false
+    ) throws -> [UInt8] {
         let root = CALayer()
         root.frame = CGRect(x: 0, y: 0, width: 320, height: 40)
         root.backgroundColor = CGColor(gray: 1, alpha: 1)
         let scroll = CALayer()
         scroll.frame = root.bounds
-        scroll.bounds.origin.x = offset
+        scroll.bounds.origin.x = flippedClip ? 0 : offset
+        scroll.isGeometryFlipped = flippedClip
         let content = CALayer()
         // Cover bounce regions too: this test isolates mask opacity from the
         // blank space naturally exposed by an actual scroll view's bounce.
-        content.frame = CGRect(x: -100, y: 0, width: contentWidth + 200, height: 40)
+        content.frame = CGRect(x: flippedClip ? -100 - offset : -100, y: 0, width: contentWidth + 200, height: 40)
         content.backgroundColor = CGColor(gray: 0, alpha: 1)
         scroll.addSublayer(content)
         let mask = ReaderTableEdgeMask()
-        mask.update(viewport: scroll.bounds, contentWidth: contentWidth)
+        let viewport = CGRect(x: offset, y: 0, width: 320, height: 40)
+        mask.update(viewport: viewport, contentWidth: contentWidth, maskBounds: flippedClip ? scroll.bounds : nil)
         #expect(mask.frame == scroll.bounds)
         scroll.mask = mask
         root.addSublayer(scroll)

@@ -12,7 +12,7 @@ final class ReaderTableEdgeMask: CAGradientLayer {
     override init(layer: Any) { super.init(layer: layer) }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
-    func update(viewport: CGRect, contentWidth: CGFloat) {
+    func update(viewport: CGRect, contentWidth: CGFloat, maskBounds: CGRect? = nil) {
         guard viewport.width > 0 else { return }
         let fade = min(18, viewport.width / 4)
         let left = min(1, max(0, viewport.minX) / fade)
@@ -20,9 +20,9 @@ final class ReaderTableEdgeMask: CAGradientLayer {
         let opaque = CGColor(gray: 0, alpha: 1)
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        // UIScrollView moves bounds.origin with its content offset. Keep the
-        // gradient fixed to the visible viewport, including during a bounce.
-        frame = viewport
+        // Opacity follows the content offset. The viewport's location in the
+        // masked layer may differ when it is a native clip view.
+        frame = maskBounds ?? viewport
         locations = [0, NSNumber(value: fade / viewport.width), NSNumber(value: 1 - fade / viewport.width), 1]
         colors = [CGColor(gray: 0, alpha: 1 - left), opaque, opaque, CGColor(gray: 0, alpha: 1 - right)]
         CATransaction.commit()

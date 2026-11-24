@@ -58,6 +58,7 @@ import KasumiMarkdown
         tableCanvas.table = table
         tableCanvas.frame = CGRect(origin: .zero, size: CGSize(width: table.contentWidth, height: table.frame.height))
         applyOffset(offset)
+        updateEdgeMask()
         installing = false
         tableCanvas.needsDisplay = true
     }
@@ -68,8 +69,25 @@ import KasumiMarkdown
     }
 
     @objc private func horizontalPositionChanged() {
+        updateEdgeMask()
         guard !installing, let table = tableCanvas.table else { return }
         owner?.tableOffsetChanged(contentView.bounds.minX, table: table)
+    }
+
+    private let edgeMask = ReaderTableEdgeMask()
+
+    override func layout() {
+        super.layout()
+        updateEdgeMask()
+    }
+
+    private func updateEdgeMask() {
+        guard let table = tableCanvas.table else { return }
+        contentView.wantsLayer = true
+        guard let layer = contentView.layer else { return }
+        edgeMask.update(viewport: contentView.bounds, contentWidth: table.contentWidth, maskBounds: layer.bounds)
+        // The scroller is a sibling of the clip view.
+        if layer.mask !== edgeMask { layer.mask = edgeMask }
     }
 
     override func scrollWheel(with event: NSEvent) {
