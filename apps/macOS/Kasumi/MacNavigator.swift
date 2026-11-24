@@ -17,7 +17,7 @@ struct MacNavigator: View {
         let currentURL = documentURL?.standardizedFileURL
         let folder = currentURL?.deletingLastPathComponent()
 
-        VStack(spacing: 4) {
+        VStack(spacing: 8) {
             Picker("Navigator", selection: $tab) {
                 Text("Recent").tag(Tab.recent)
                 Text("Workspace").tag(Tab.folder)
@@ -35,22 +35,25 @@ struct MacNavigator: View {
                     ForEach(recent, id: \.self) { row($0, currentURL: currentURL) }
                 case .folder:
                     if let folder {
-                        Section {
-                            if files.isEmpty { emptyRow("No Markdown or text files") }
-                            ForEach(files, id: \.self) { row($0, currentURL: currentURL) }
-                        } header: {
-                            Text(folder.lastPathComponent.isEmpty ? folder.path : folder.lastPathComponent)
-                                .lineLimit(1)
-                                .help(folder.path)
-                        }
+                        Text(folder.lastPathComponent.isEmpty ? folder.path : folder.lastPathComponent)
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .help(folder.path)
+                            .accessibilityAddTraits(.isHeader)
+                            .listRowInsets(EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8))
+                            .listRowSeparator(.hidden)
+                        if files.isEmpty { emptyRow("No Markdown or text files") }
+                        ForEach(files, id: \.self) { row($0, currentURL: currentURL) }
                     } else {
                         emptyRow("Save this document to browse its folder.")
                     }
                 }
             }
             .id(tab)
-            .listStyle(.sidebar)
-            .environment(\.defaultMinListRowHeight, 22)
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .environment(\.defaultMinListRowHeight, 24)
             .softTopScrollEdge()
         }
         .accessibilityIdentifier("mac-navigator")
@@ -95,7 +98,11 @@ struct MacNavigator: View {
         }
         .buttonStyle(.plain)
         .listRowInsets(EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8))
-        .listRowBackground(current ? Color.accentColor.opacity(0.12) : Color.clear)
+        .listRowSeparator(.hidden)
+        .listRowBackground(
+            RoundedRectangle(cornerRadius: 6)
+                .fill(current ? Color.accentColor.opacity(0.20) : .clear)
+                .padding(.horizontal, 4))
         .accessibilityAddTraits(current ? .isSelected : [])
         .help(url.path)
     }
