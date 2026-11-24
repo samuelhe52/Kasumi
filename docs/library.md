@@ -89,6 +89,7 @@ Both platforms have a view named `MarkdownReaderView`. Create one with `Markdown
 | `isActive`, `layoutRevision` | `isActive`, `invalidateLayout()` |
 | `.markdownRemoteImages(_:revision:)` | `setRemoteImages(_:revision:)` |
 | `.markdownCodeBlockControl(id:_:)` | `codeBlockControl` (UIKit) |
+| `.markdownScroller(_:)` | `scrollerClass` (AppKit) |
 
 Enable a Find button only when `canPresentFind` is true. `presentFind()` called while a document is still opening shows the panel as soon as the first screen is laid out.
 

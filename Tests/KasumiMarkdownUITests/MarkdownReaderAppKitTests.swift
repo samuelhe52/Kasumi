@@ -353,6 +353,101 @@ import Testing
         }
     }
 
+    @Test func legacyTableScrollerKeepsItsNativeHitAreaOverTheFullTableViewport() throws {
+        let style = RenderStyle(insets: .zero)
+        let rendered = RenderedDocument(
+            MarkdownDocument(markdown: """
+                | First column | Second column | Third column |
+                |---|---|---|
+                | Longer description | Another description | Final paragraph |
+                """),
+            width: 205, style: style, scrollableTables: true)
+        let table = try #require(rendered.tables.first)
+        try #require(table.isScrollable)
+        let view = ReaderTableScrollView(frame: .zero)
+        let parent = NSView(frame: CGRect(origin: .zero, size: rendered.size))
+        parent.addSubview(view)
+        view.scrollerStyle = .legacy
+        view.install(table, offset: 0)
+        view.tile()
+        #expect(abs(view.contentView.bounds.height - table.frame.height) <= 1)
+        let scroller = try #require(view.horizontalScroller)
+        #expect(type(of: scroller) == NSScroller.self)
+        let knob = scroller.rect(for: .knob)
+        try #require(!knob.isEmpty)
+        let point = scroller.convert(CGPoint(x: knob.midX, y: knob.midY), to: parent)
+        #expect(view.hitTest(point) === scroller)
+        #expect(scroller.accessibilityRole() == .scrollBar)
+    }
+
+    @Test func changingScrollerClassKeepsLayoutAndScrollOffsets() async throws {
+        _ = NSApplication.shared
+        let frame = CGRect(x: 0, y: 0, width: 245, height: 200)
+        let window = NSWindow(contentRect: frame, styleMask: [.titled], backing: .buffered, defer: false)
+        let reader = MarkdownReaderView(frame: frame)
+        reader.style = RenderStyle(insets: .zero)
+        reader.readerPreparesForScrolling = false
+        window.contentView = reader
+        defer { window.contentView = nil }
+
+        let table = """
+            | First column | Second column | Third column |
+            |---|---|---|
+            | Longer description | Another description | Final paragraph |
+            """
+        let paragraphs = Array(repeating: "A paragraph between tables.", count: 25).joined(separator: "\n\n")
+        reader.setDocument(MarkdownDocument(markdown: "# Start\n\n\(table)\n\n\(paragraphs)\n\n\(table)"))
+        try #require(await eventually { reader.rendered?.tables.first?.isScrollable == true })
+        let scrollView = try #require(reader.subviews.first as? NSScrollView)
+        func displayedTables() -> [ReaderTableScrollView] {
+            reader.canvas.subviews.compactMap { $0 as? ReaderTableScrollView }
+        }
+        let existingTable = try #require(displayedTables().first)
+        #expect(displayedTables().count == 1)
+        #expect(scrollView.verticalScroller.map { type(of: $0) == NSScroller.self } == true)
+        reader.scrollReaderViewport(toY: 20)
+        existingTable.applyOffset(24)
+        try #require(await eventually { !reader.readerViewportDiagnostics.isLayingOut })
+
+        let layout = try #require(reader.rendered)
+        let origin = reader.viewport.origin
+        let offset = existingTable.contentView.bounds.minX
+        let offsets = reader.tableOffsets
+        #expect(origin.y > 0)
+        #expect(offset > 0)
+        #expect(offsets.values.contains(offset))
+
+        reader.scrollerClass = HookScroller.self
+        let vertical = try #require(scrollView.verticalScroller as? HookScroller)
+        let horizontal = try #require(existingTable.horizontalScroller as? HookScroller)
+        reader.scrollerClass = HookScroller.self
+        #expect(scrollView.verticalScroller === vertical)
+        #expect(existingTable.horizontalScroller === horizontal)
+        #expect(displayedTables().first === existingTable)
+        #expect(reader.viewport.origin == origin)
+        #expect(existingTable.contentView.bounds.minX == offset)
+        #expect(reader.tableOffsets == offsets)
+        #expect(reader.rendered === layout)
+        #expect(!reader.readerViewportDiagnostics.isLayingOut)
+
+        reader.scrollReaderViewport(toY: reader.canvas.frame.height - frame.height)
+        let firstID = try #require(existingTable.tableCanvas.table?.id)
+        try #require(await eventually {
+            displayedTables().contains { $0.tableCanvas.table?.id != firstID }
+        })
+        let laterTable = try #require(displayedTables().first { $0.tableCanvas.table?.id != firstID })
+        #expect(laterTable.horizontalScroller is HookScroller)
+        reader.scrollerClass = NSScroller.self
+        let nativeVertical = try #require(scrollView.verticalScroller)
+        let nativeHorizontal = try #require(laterTable.horizontalScroller)
+        #expect(type(of: nativeVertical) == NSScroller.self)
+        #expect(type(of: nativeHorizontal) == NSScroller.self)
+    }
+
+    private final class HookScroller: NSScroller {
+        override class var isCompatibleWithOverlayScrollers: Bool { true }
+    }
+
     private func eventually(_ condition: () -> Bool) async -> Bool {
         for _ in 0..<300 {
             if condition() { return true }

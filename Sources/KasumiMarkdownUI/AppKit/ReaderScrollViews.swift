@@ -22,13 +22,13 @@ import KasumiMarkdown
     private var installing = false
     private var usesHorizontalGesture: Bool?
 
-    override init(frame frameRect: NSRect) {
+    init(frame frameRect: NSRect, scrollerClass: NSScroller.Type = NSScroller.self) {
         super.init(frame: frameRect)
+        if scrollerClass != NSScroller.self { horizontalScroller = scrollerClass.init(frame: .zero) }
         hasHorizontalScroller = true
         hasVerticalScroller = false
         autohidesScrollers = true
         drawsBackground = false
-        scrollerStyle = .overlay
         verticalScrollElasticity = .none
         horizontalScrollElasticity = .none
         tableCanvas.host = self
@@ -41,6 +41,16 @@ import KasumiMarkdown
 
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError("Use init() instead") }
+
+    func replaceHorizontalScroller(with type: NSScroller.Type) {
+        let offset = contentView.bounds.minX
+        let wasInstalling = installing
+        installing = true
+        horizontalScroller = type.init(frame: horizontalScroller?.frame ?? .zero)
+        tile()
+        applyOffset(offset)
+        installing = wasInstalling
+    }
 
     func install(_ table: RenderedTable, offset: CGFloat) {
         installing = true
@@ -74,6 +84,13 @@ import KasumiMarkdown
         if event.phase.contains(.cancelled) || event.momentumPhase.contains(.ended) {
             usesHorizontalGesture = nil
         }
+    }
+
+    override func tile() {
+        super.tile()
+        // The table frame comes from the typesetter and includes its bottom
+        // rule. Keep it all in the viewport with the legacy knob above it.
+        if scrollerStyle == .legacy { contentView.frame = bounds }
     }
 }
 

@@ -9,6 +9,11 @@ import os
     public var style = RenderStyle() {
         didSet { if style != oldValue { invalidateLayout() } }
     }
+    /// The scroller class for the reader and its horizontally scrolling tables.
+    /// Defaults to AppKit's standard scroller. AppKit determines overlay support for custom classes.
+    public var scrollerClass: NSScroller.Type = NSScroller.self {
+        didSet { if scrollerClass != oldValue { replaceScrollers() } }
+    }
     /// Pauses background work and closes Find while false. The scroll position is kept.
     public var isActive = true {
         didSet {
@@ -261,6 +266,21 @@ import os
     private var canLayout: Bool { isActive && window != nil }
 
     @objc private func boundsChanged() { viewportChanged() }
+
+    private func replaceScrollers() {
+        let origin = viewport.origin
+        let wasAdjusting = adjusting
+        adjusting = true
+        scrollView.verticalScroller = scrollerClass.init(frame: scrollView.verticalScroller?.frame ?? .zero)
+        scrollView.tile()
+        scrollView.contentView.scroll(to: origin)
+        scrollView.reflectScrolledClipView(scrollView.contentView)
+        for tableView in tableViews.values {
+            tableView.replaceHorizontalScroller(with: scrollerClass)
+        }
+        adjusting = wasAdjusting
+        viewportChanged()
+    }
 
     private func viewportChanged() {
         guard !adjusting else { return }
@@ -806,7 +826,7 @@ import os
             retained.insert(table.id)
             if !refresh, tableViews[table.id] != nil { continue }
             setTableOffset(tableOffsets[table.id] ?? 0, for: table)
-            let view = tableViews[table.id] ?? ReaderTableScrollView(frame: .zero)
+            let view = tableViews[table.id] ?? ReaderTableScrollView(frame: .zero, scrollerClass: scrollerClass)
             if view.superview == nil {
                 view.owner = self
                 tableViews[table.id] = view

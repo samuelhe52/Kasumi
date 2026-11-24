@@ -24,6 +24,8 @@ import SwiftUI
     #if os(iOS)
         private var codeControl: ((RenderedCodeBlock) -> UIControl?)?
         private var codeControlID: AnyHashable?
+    #elseif os(macOS)
+        private var scrollerType: NSScroller.Type?
     #endif
     @Environment(\.markdownReaderConnection) private var connection
 
@@ -98,6 +100,14 @@ import SwiftUI
             reader.codeControlID = id
             return reader
         }
+    #elseif os(macOS)
+        /// Sets the class for the reader's vertical scroller and its table scrollers.
+        /// Pass nil to use AppKit's standard scroller.
+        public func markdownScroller(_ type: NSScroller.Type?) -> Self {
+            var reader = self
+            reader.scrollerType = type
+            return reader
+        }
     #endif
 
     fileprivate func update(_ view: MarkdownReaderView, coordinator: ReaderBridgeCoordinator, animated: Bool) {
@@ -107,6 +117,8 @@ import SwiftUI
         #if os(iOS)
             view.animatesDocumentChanges = animated
             coordinator.updateCodeBlockControl(codeControl, id: codeControlID, view: view)
+        #elseif os(macOS)
+            view.scrollerClass = scrollerType ?? NSScroller.self
         #endif
         view.isActive = isActive
         view.style = style
