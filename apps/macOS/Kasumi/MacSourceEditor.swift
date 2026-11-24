@@ -65,6 +65,11 @@ struct MacSourceEditor: NSViewRepresentable {
 private final class SourceTextView: NSTextView {
     weak var sourceController: MacSourceEditorController?
 
+    /// File drops belong to the window, which opens them as tabs instead of pasting their paths.
+    override var acceptableDragTypes: [NSPasteboard.PasteboardType] {
+        super.acceptableDragTypes.filter { $0 != .fileURL && $0 != NSPasteboard.PasteboardType("NSFilenamesPboardType") }
+    }
+
     override func unmarkText() {
         let wasComposing = hasMarkedText()
         super.unmarkText()

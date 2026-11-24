@@ -13,6 +13,7 @@ final class MacNavigatorSplit: NSSplitViewController, NSToolbarDelegate {
     init(session: MacReaderSession, undoManager: UndoManager?) {
         self.session = session
         super.init(nibName: nil, bundle: nil)
+        splitView = MacDropSplitView()
         splitView.isVertical = true
         splitView.dividerStyle = .thin
 
