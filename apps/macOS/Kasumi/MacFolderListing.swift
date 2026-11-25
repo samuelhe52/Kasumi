@@ -1,7 +1,7 @@
 import Foundation
 
 enum MacFolderListing {
-    private static let extensions: Set<String> = ["md", "markdown", "txt"]
+    private static let extensions: Set<String> = ["md", "markdown", "mdown", "mkd", "txt", "text"]
 
     static func supports(_ url: URL) -> Bool {
         extensions.contains(url.pathExtension.lowercased())

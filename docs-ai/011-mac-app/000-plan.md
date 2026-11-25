@@ -83,7 +83,7 @@ AppKit owns documents and windows; SwiftUI draws their content. Types in
 
 - Navigator: leading native sidebar ([003](003-window-split-and-panes.md)) with compact
   Recent and Workspace tabs: the newest eight documents, and the files in the
-  active file's folder (`.md`, `.markdown`, `.txt`, name order). Clicking opens or
+  active file's folder (`.md`, `.markdown`, `.mdown`, `.mkd`, `.txt`, `.text`, name order). Clicking opens or
   activates the file's tab.
 - Outline: trailing inspector reusing `ReaderOutline` with compact, single-line
   secondary-text headings under a fixed title.
@@ -111,7 +111,7 @@ mode switch.
 
 | Menu | Commands |
 | --- | --- |
-| File | Open ⌘O, Open Recent, Close Tab ⌘W, Save ⌘S, Revert, Show in Finder ⌥⌘R, Copy Path ⌥⇧⌘C, Paste as New Document ⇧⌘V, Export as PDF, Print ⌘P |
+| File | New Window ⌘N, New Tab ⌘T, Open ⌘O, Open Recent, Close Tab ⌘W, Save ⌘S, Revert, Show in Finder ⌥⌘R, Copy Path ⌥⇧⌘C, Paste as New Document ⇧⌘V, Export as PDF, Print ⌘P |
 | Edit ▸ Find | Find ⌘F, Find and Replace ⌥⌘F (source only), Next ⌘G, Previous ⇧⌘G, Use Selection ⌘E, Jump to Selection ⌘J |
 | Format (source) | Bold ⌘B, Italic ⌘I, Link ⌘K, Heading 1–6 ⌥⌘1–⌥⌘6, Code, Quote |
 | View | Navigator ⌃⌘S, Outline ⌥⌘0, Source ⌘/, Actual Size ⌘0, Zoom In ⌘+, Zoom Out ⌘−, Full Screen ⌃⌘F |
@@ -132,7 +132,7 @@ Markdown files open as documents.
 | Keep AppKit's default display, not `display: false` | AppKit's bookkeeping and coalesced opens stay intact. A missed source only picks another tab group; a missed presentation would leave a document without a window. |
 | AppKit menus, not SwiftUI `Commands` | Without `DocumentGroup` a SwiftUI shell supplies no document commands, and focused values in hand-made windows are not a documented contract. |
 | Closed source window uses the frontmost document window, or a new window when there is none | Maintainer choice. |
-| No New Window command and no ⌘N | Maintainer choice. The tab bar's plus button and Paste as New Document create untitled documents. |
+| New Window ⌘N and New Tab ⌘T | Reverses the original maintainer choice of no New Window command and no ⌘N; see [007](007-new-windows-and-file-types.md). |
 | ⌘W closes the tab; ⌘Q quits normally | Maintainer choice. Closing the last tab closes its window and leaves the app running. |
 | Native AppKit target, not Catalyst | Catalyst would use the UIKit reader and drop the existing AppKit reader, its `NSTextFinder` Find and Mac scrolling. |
 | macOS 26 minimum | Maintainer choice, once no macOS 27-only API was needed. |
@@ -170,3 +170,4 @@ Markdown files open as documents.
 - Updated 2026-11-24: Mode switching detaches the inactive pane from the window — see [004-source-pane-lifecycle.md](004-source-pane-lifecycle.md).
 - Updated 2026-11-25: Reflow within the resize layout pass and move the Outline into the native split — see [005-live-resize.md](005-live-resize.md).
 - Updated 2026-11-25: Scroll the panes beneath the header and tint the sidebars — see [006-paper-chrome.md](006-paper-chrome.md).
+- Updated 2026-11-25: New Window and New Tab commands, and one list of file types; the Panes, Keys and decision text was corrected in place — see [007-new-windows-and-file-types.md](007-new-windows-and-file-types.md).
