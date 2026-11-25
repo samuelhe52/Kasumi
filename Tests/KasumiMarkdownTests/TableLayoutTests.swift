@@ -12,6 +12,19 @@ fileprivate func tableFixture() throws -> MarkdownDocument {
 }
 
 @Suite struct TableLayoutTests {
+    @Test func reflowAllocatesCachedColumnsLikeFreshLayoutAtEachWidth() async throws {
+        let document = try tableFixture()
+        let style = RenderStyle(fontSize: 16, widthLimit: nil)
+        let session = DocumentReflowSession(document, style: style, scrollableTables: true)
+        for width: CGFloat in [900, 500, 300, 760, 900] {
+            let warm = await session.render(width: width)
+            let fresh = RenderedDocument(document, width: width, style: style, scrollableTables: true)
+            #expect(warm.tables.map(\.frame) == fresh.tables.map(\.frame))
+            #expect(warm.tables.map(\.contentWidth) == fresh.tables.map(\.contentWidth))
+            #expect(warm.size == fresh.size)
+        }
+    }
+
     @Test(arguments: [false, true], ["booktabs", "grid"])
     func compactTablesCenterWithinTheReadingMeasure(scrollable: Bool, tableStyle: String) throws {
         var style = Typography()

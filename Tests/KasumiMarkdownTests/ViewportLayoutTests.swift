@@ -20,7 +20,7 @@ import Testing
         let session = DocumentReflowSession(document, style: style)
         let original = await session.render(width: 600)
         let text = original.text(in: original.documentRange)
-        for (width, target) in [(CGFloat(320), 0), (800, 40), (400, 79)] {
+        for (width, target) in [(CGFloat(320), 0), (336, 0), (800, 40), (400, 79)] {
             let match = try #require(original.ranges(matching: "Paragraph \(target).").first)
             let reading = try #require(original.position(from: match.lowerBound, offset: 180))
             let anchor = original.readingAnchor(atY: original.caretRect(for: reading).minY + 2)

@@ -14,17 +14,18 @@ public struct RenderedTable: Identifiable, Sendable {
     public var isScrollable: Bool { contentWidth > frame.width + 0.5 }
 }
 
-enum TableColumns {
-    /// Satisfy short columns and prose minima first. Give prose its bounded
-    /// preference before spending remaining measure on natural widths.
-    static func widths(
-        cells: [[NSAttributedString]], count: Int, measure: CGFloat, em: CGFloat,
-        padding: CGFloat, scrollable: Bool, options: ParagraphProfileOptions,
+struct TableColumns {
+    private let minimum: [CGFloat]
+    private let natural: [CGFloat]
+    private let em: CGFloat
+    private let padding: CGFloat
+
+    init(
+        cells: [[NSAttributedString]], count: Int, em: CGFloat, padding: CGFloat, options: ParagraphProfileOptions,
         prepare: (NSAttributedString) -> ParagraphPreparation
-    ) -> [CGFloat] {
+    ) {
         var minimum = Array(repeating: padding * 2 + 1, count: count)
-        var preferred = minimum
-        var unwrapped = minimum
+        var unwrapped = Array(repeating: CGFloat(1), count: count)
         for row in cells {
             for (column, cell) in row.enumerated() where column < count {
                 // Core Text is also the painting path for bidirectional cells.
@@ -60,21 +61,31 @@ enum TableColumns {
                 }
                 // Very long URLs/identifiers can still wrap within a cell.
                 let lower = min(natural, max(9 * em, min(word, 12 * em))) + padding * 2
-                let upper = max(lower, min(natural, max(12 * em, measure * 0.6)) + padding * 2)
                 minimum[column] = max(minimum[column], lower)
-                preferred[column] = max(preferred[column], upper)
-                unwrapped[column] = max(unwrapped[column], natural + padding * 2)
+                unwrapped[column] = max(unwrapped[column], natural)
             }
         }
+        self.minimum = minimum
+        natural = unwrapped
+        self.em = em
+        self.padding = padding
+    }
+
+    /// Satisfy short columns and prose minima first. Give prose its bounded
+    /// preference before spending remaining measure on natural widths.
+    func widths(measure: CGFloat, scrollable: Bool) -> [CGFloat] {
         let lower = minimum.reduce(0, +)
-        let upper = preferred.reduce(0, +)
         if lower > measure {
             return scrollable ? minimum : minimum.map { $0 * measure / lower }
         }
+        let cap = max(12 * em, measure * 0.6)
+        let preferred = zip(minimum, natural).map { max($0, min($1, cap) + padding * 2) }
+        let upper = preferred.reduce(0, +)
         if upper > measure {
             let fraction = (measure - lower) / (upper - lower)
             return zip(minimum, preferred).map { $0 + ($1 - $0) * fraction }
         }
+        let unwrapped = natural.map { $0 + padding * 2 }
         let natural = unwrapped.reduce(0, +)
         guard natural > measure else { return unwrapped }
         let fraction = (measure - upper) / (natural - upper)

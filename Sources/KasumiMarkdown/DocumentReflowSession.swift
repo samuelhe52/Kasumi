@@ -209,14 +209,13 @@ final class ReflowPreparation {
     private var documentParagraphs: [ParagraphSemanticContent] = []
     private var documentSemantic: DocumentSemanticContent?
     private var placeholders: [Key: (runs: [InlineRun], value: NSAttributedString)] = [:]
-    private struct TableWidthRequest: Equatable {
+    private struct TableColumnRequest: Equatable {
         let rows: [[[InlineRun]]]
-        let width: CGFloat
         let em: CGFloat
         let padding: CGFloat
-        let scrollable: Bool
+        let options: ParagraphProfileOptions
     }
-    private var tableWidthCache: [Int: (request: TableWidthRequest, values: [CGFloat])] = [:]
+    private var tableColumnCache: [Int: (request: TableColumnRequest, columns: TableColumns)] = [:]
 
     func placeholder(block: Int, slot: Int, runs: [InlineRun]) -> NSAttributedString {
         let key = Key(block: block, slot: slot)
@@ -232,36 +231,35 @@ final class ReflowPreparation {
         return value
     }
 
-    func cachedTableWidths(
-        block: Int, rows: [[[InlineRun]]], width: CGFloat, em: CGFloat, padding: CGFloat, scrollable: Bool
-    ) -> [CGFloat]? {
-        guard !rows.joined().joined().contains(where: { $0.traits.contains(.image) }) else { return nil }
-        let request = TableWidthRequest(rows: rows, width: width, em: em, padding: padding, scrollable: scrollable)
-        guard let old = tableWidthCache[block], old.request == request else { return nil }
-        return old.values
-    }
-
-    func tableWidths(
-        block: Int, rows: [[[InlineRun]]], width: CGFloat, em: CGFloat, padding: CGFloat, scrollable: Bool,
-        build: () -> [CGFloat]
-    ) -> [CGFloat] {
+    func tableColumns(
+        block: Int, rows: [[[InlineRun]]], em: CGFloat, padding: CGFloat, options: ParagraphProfileOptions,
+        build: () -> TableColumns?
+    ) -> TableColumns? {
         // Image availability/dimensions can change independently of the session.
         guard !rows.joined().joined().contains(where: { $0.traits.contains(.image) }) else { return build() }
-        let request = TableWidthRequest(rows: rows, width: width, em: em, padding: padding, scrollable: scrollable)
-        if let old = tableWidthCache[block], old.request == request { return old.values }
-        let values = build()
-        tableWidthCache[block] = (request, values)
-        return values
+        let request = TableColumnRequest(rows: rows, em: em, padding: padding, options: options)
+        if let old = tableColumnCache[block], old.request == request { return old.columns }
+        guard let columns = build() else { return nil }
+        tableColumnCache[block] = (request, columns)
+        return columns
     }
 
-    private var viewportSelection: (width: CGFloat, paragraphs: Set<Int>)?
+    private var viewportSelection: (width: CGFloat, request: ViewportLayoutRequest, paragraphs: Set<Int>)?
 
-    func selectedParagraphs(width: CGFloat) -> Set<Int> {
-        viewportSelection?.width == width ? viewportSelection!.paragraphs : []
+    func selectedParagraphs(width: CGFloat, request: ViewportLayoutRequest) -> Set<Int> {
+        guard let previous = viewportSelection else { return [] }
+        if previous.width == width { return previous.paragraphs }
+        // Seed nearby resizes from the last measured window. Coverage is still
+        // checked against the new layout, and a jump starts with fresh estimates.
+        guard previous.request.anchor == request.anchor,
+            abs(previous.width - width) <= width * 0.1,
+            abs(previous.request.height - request.height) <= request.height * 0.25
+        else { return [] }
+        return previous.paragraphs
     }
 
-    func rememberSelectedParagraphs(_ paragraphs: Set<Int>, width: CGFloat) {
-        viewportSelection = (width, paragraphs)
+    func rememberSelectedParagraphs(_ paragraphs: Set<Int>, width: CGFloat, request: ViewportLayoutRequest) {
+        viewportSelection = (width, request, paragraphs)
     }
 
     private var heights: [Int: (width: CGFloat, height: CGFloat)] = [:]

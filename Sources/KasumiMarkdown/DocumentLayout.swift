@@ -350,28 +350,27 @@ enum DocumentTypesetter {
                 let cells = block.rows.enumerated().map { row, cells in
                     cells.map { attributed($0, heading: row == 0) }
                 }
-                let widths =
-                    deferBlock
-                    ? (preparation?.cachedTableWidths(
-                        block: blockIndex, rows: block.rows, width: measure, em: style.size,
-                        padding: horizontalPadding, scrollable: scrollableTables)
-                        ?? Array(repeating: measure / CGFloat(columns), count: columns))
-                    : viewport?.tableWidths[blockIndex]
-                        ?? {
-                            func build() -> [CGFloat] {
-                                TableColumns.widths(
-                                    cells: cells, count: columns, measure: measure, em: style.size,
-                                    padding: horizontalPadding, scrollable: scrollableTables,
-                                    options: ParagraphProfileOptions(values: paragraphValues)
-                                ) { cell in
-                                    preparation?.paragraph(cell, fontSize: style.size, verbatim: false)
-                                        ?? ParagraphPreparation(cell, fontSize: style.size, verbatim: false)
-                                }
-                            }
-                            return preparation?.tableWidths(
-                                block: blockIndex, rows: block.rows, width: measure, em: style.size,
-                                padding: horizontalPadding, scrollable: scrollableTables, build: build) ?? build()
-                        }()
+                let widths = viewport?.tableWidths[blockIndex] ?? {
+                    let options = ParagraphProfileOptions(values: paragraphValues)
+                    func build() -> TableColumns? {
+                        guard !deferBlock else { return nil }
+                        return TableColumns(
+                            cells: cells, count: columns, em: style.size, padding: horizontalPadding, options: options
+                        ) { cell in
+                            preparation?.paragraph(cell, fontSize: style.size, verbatim: false)
+                                ?? ParagraphPreparation(cell, fontSize: style.size, verbatim: false)
+                        }
+                    }
+                    let metrics = if let preparation {
+                        preparation.tableColumns(
+                            block: blockIndex, rows: block.rows, em: style.size,
+                            padding: horizontalPadding, options: options, build: build)
+                    } else {
+                        build()
+                    }
+                    return metrics?.widths(measure: measure, scrollable: scrollableTables)
+                        ?? Array(repeating: measure / CGFloat(columns), count: columns)
+                }()
                 if !deferBlock { viewport?.tableWidths[blockIndex] = widths }
                 let tableWidth = widths.reduce(0, +)
                 let tableLeft = left + max(0, (measure - tableWidth) / 2)

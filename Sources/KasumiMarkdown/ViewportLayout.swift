@@ -48,7 +48,7 @@ extension DocumentTypesetter {
         scrollableTables: Bool, preparation: ReflowPreparation, request: ViewportLayoutRequest
     ) -> DocumentLayout {
         let construction = ViewportConstruction()
-        construction.selected = preparation.selectedParagraphs(width: width)
+        construction.selected = preparation.selectedParagraphs(width: width, request: request)
         while true {
             var result = layout(
                 document, width: width, style: style, insets: insets, scrollableTables: scrollableTables,
@@ -69,7 +69,7 @@ extension DocumentTypesetter {
                 selected.insert(i)
             }
             guard !selected.isSubset(of: construction.selected) else {
-                preparation.rememberSelectedParagraphs(selected, width: width)
+                preparation.rememberSelectedParagraphs(selected, width: width, request: request)
                 // Intermediate placement passes need paragraph maps for anchors,
                 // but only the published result needs the complete storage map.
                 let semantic = preparation.semanticContent(paragraphs: result.paragraphs, storage: result.text)
