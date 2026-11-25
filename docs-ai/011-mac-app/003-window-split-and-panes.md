@@ -13,7 +13,8 @@ scrollbars.
   leading safe area changed in one step, so the text never received intermediate
   widths. The window's content is now `MacNavigatorSplit`, an `NSSplitViewController`
   with a native sidebar item and a detail item whose
-  `automaticallyAdjustsSafeAreaInsets` is false.
+  `automaticallyAdjustsSafeAreaInsets` is false. The Outline later became its
+  inspector item ([005](005-live-resize.md)).
 - The toolbar is an AppKit `NSToolbar` with a sidebar tracking separator. SwiftUI's
   bridged toolbar left the sidebar button on the detail side.
 - Rejected: an AppKit split nested in the SwiftUI content. It reflowed live but the

@@ -48,6 +48,8 @@ Appearance and carries the active preset's spacing through export and print.
 Live window-resize reflow was implemented on 2026-11-17 with one background
 layout/viewport-paint pipeline and coalesced pending widths. See
 [004.006](004-ios-reader/006-live-reflow.md) for validation and performance limits.
+The [Mac follow-up](011-mac-app/005-live-resize.md) reflows within the
+resize layout pass when the work fits a time budget.
 [Anchor lifecycle corrections](004-ios-reader/007-reflow-anchor-lifecycle.md)
 refresh paragraph keys after content revisions and track explicit clamped scrolling.
 Mac reproduction confirms that whole-document reflow still stalls on longer
