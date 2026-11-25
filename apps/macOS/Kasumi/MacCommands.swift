@@ -89,7 +89,7 @@ struct MacPanePreferences: DynamicProperty {
 
 @MainActor
 enum MacMenu {
-    static func make(settingsTarget: MacAppDelegate) -> NSMenu {
+    static func make(appDelegate: MacAppDelegate) -> NSMenu {
         let main = NSMenu()
 
         func menu(_ title: String, in parent: NSMenu = main) -> NSMenu {
@@ -120,8 +120,9 @@ enum MacMenu {
 
         let application = menu("Kasumi")
         item("About Kasumi", #selector(NSApplication.orderFrontStandardAboutPanel(_:)), in: application)
+        item("Open Source Licenses", #selector(MacAppDelegate.showLicenses(_:)), in: application).target = appDelegate
         application.addItem(.separator())
-        item("Settings…", #selector(MacAppDelegate.showSettings(_:)), ",", in: application).target = settingsTarget
+        item("Settings…", #selector(MacAppDelegate.showSettings(_:)), ",", in: application).target = appDelegate
         application.addItem(.separator())
         NSApp.servicesMenu = menu("Services", in: application)
         application.addItem(.separator())

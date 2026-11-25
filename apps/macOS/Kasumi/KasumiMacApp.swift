@@ -28,12 +28,13 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate {
     private let documents = MacDocumentController()
     private var tabShortcutMonitor: Any?
     private lazy var settingsScene = NSHostingSceneRepresentation { Settings { MacSettings() } }
+    private lazy var licensesWindow = MacLicensesWindowController()
 
     func applicationWillFinishLaunching(_ notification: Notification) {
         _ = FontStore.shared
         NSWindow.allowsAutomaticWindowTabbing = true
         NSApp.addSceneRepresentation(settingsScene)
-        NSApp.mainMenu = MacMenu.make(settingsTarget: self)
+        NSApp.mainMenu = MacMenu.make(appDelegate: self)
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -69,5 +70,9 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate {
 
     @objc func showSettings(_ sender: Any?) {
         settingsScene.environment.openSettings()
+    }
+
+    @objc func showLicenses(_ sender: Any?) {
+        licensesWindow.showWindow(sender)
     }
 }
