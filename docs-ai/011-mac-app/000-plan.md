@@ -62,13 +62,18 @@ AppKit owns documents and windows; SwiftUI draws their content. Types in
 | `MacDocumentWindowController` | Window, hosting controller, one-time tab placement, menu actions and validation. |
 | SwiftUI | Reader, panes, toolbar and Settings content. |
 
-- The window joins its tab group in the first `showWindow(_:)`, before `super`.
-  AppKit's open, untitled and duplicate routes call it before display, so this is
-  the one point that covers them. Windows that are visible, already grouped or
+- The window joins its tab group before `super.showWindow(_:)`, which can run after
+  the caller's `showWindow(_:)` has returned. A new Reader window first lays out its
+  viewport while unordered ([010](010-first-reader-frame.md)), and a tab switch
+  waits for a Stage Manager slide ([011](011-stage-manager-tab-presentation.md)).
+  A `showWindow(_:)` call during that wait is ignored, because the pending
+  presentation shows the window. AppKit's open, untitled and duplicate routes call
+  the controller before display. Windows that are visible, already grouped or
   showing an old version are never moved. AppKit restores restored groups.
 - An explicit open (navigator or link) targets its source window. Other opens
-  target the frontmost document window at first display, not at request time: a
-  cold launch with several files would otherwise see no window for each request.
+  target the frontmost document window when `showWindow(_:)` is called, or at first
+  display if there was none: a cold launch with several files has no window on
+  screen for the earlier requests.
   If the source has closed, the frontmost window is used, or a new window when there
   is none.
 - Link fragments go to the opened document's session from the open completion.
@@ -172,3 +177,5 @@ Markdown files open as documents.
 - Updated 2026-11-25: Scroll the panes beneath the header and tint the sidebars — see [006-paper-chrome.md](006-paper-chrome.md).
 - Updated 2026-11-25: New Window and New Tab commands, and one list of file types; the Panes, Keys and decision text was corrected in place — see [007-new-windows-and-file-types.md](007-new-windows-and-file-types.md).
 - Updated 2026-11-25: Keep pane preferences shared but defer changes to an unselected tab's split until selection — see [009-selected-tab-panes.md](009-selected-tab-panes.md).
+- Updated 2026-11-25: Prepare a new Reader window before showing it — see [010-first-reader-frame.md](010-first-reader-frame.md).
+- Updated 2026-11-25: Let the Stage Manager window settle before switching native tabs — see [011-stage-manager-tab-presentation.md](011-stage-manager-tab-presentation.md).

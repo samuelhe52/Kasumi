@@ -56,7 +56,7 @@ final class MacDocumentWindowController: NSWindowController, NSMenuItemValidatio
             if let target { window.setFrame(target.frame, display: false) }
             window.contentView?.layoutSubtreeIfNeeded()
         }
-        guard preparesReader else {
+        guard preparesReader || isSlidingIn(outgoingTab(for: target)) else {
             present(sender, places: places, target: target, placement: placement)
             return
         }
@@ -68,6 +68,11 @@ final class MacDocumentWindowController: NSWindowController, NSMenuItemValidatio
             // but let a slow document show its progress indicator.
             if preparesReader {
                 await Self.poll(for: .milliseconds(500)) { self?.readerHasLayout == false }
+            }
+            // Selecting a tab replaces the window Stage Manager is sliding in.
+            await Self.poll(for: .milliseconds(750)) {
+                guard let self else { return false }
+                return self.isSlidingIn(self.outgoingTab(for: target))
             }
             guard let self else { return }
             presentation = nil
@@ -90,6 +95,27 @@ final class MacDocumentWindowController: NSWindowController, NSMenuItemValidatio
     private var canJoinTabGroup: Bool {
         guard let window, let document = document as? MacDocument else { return false }
         return !window.isVisible && (window.tabGroup?.windows.count ?? 0) < 2 && !document.isInViewingMode
+    }
+
+    /// The key window, if showing this window would replace it as the selected tab.
+    private func outgoingTab(for target: NSWindow?) -> NSWindow? {
+        guard let window, let key = NSApp.keyWindow, key !== window else { return nil }
+        return (target?.tabGroup?.selectedWindow ?? target ?? window.tabGroup?.selectedWindow) === key ? key : nil
+    }
+
+    /// Stage Manager scales the window without changing `NSWindow.frame`, and
+    /// posts nothing when it finishes, so compare with the width on screen.
+    private func isSlidingIn(_ window: NSWindow?) -> Bool {
+        guard let window, window.windowNumber > 0 else { return false }
+        // Quartz Window Services encodes window IDs as raw CFArray values.
+        var windowID = UnsafeRawPointer(bitPattern: window.windowNumber)
+        let ids = CFArrayCreate(nil, &windowID, 1, nil)
+        let descriptions = CGWindowListCreateDescriptionFromArray(ids) as? [[String: Any]]
+        guard let bounds = descriptions?.first?[kCGWindowBounds as String] as? NSDictionary,
+            let presented = CGRect(dictionaryRepresentation: bounds)
+        else { return false }
+        // WindowServer rounds its bounds to whole points.
+        return abs(presented.width - window.frame.width) > 2
     }
 
     private func present(_ sender: Any?, places: Bool, target: NSWindow?, placement: Placement) {
