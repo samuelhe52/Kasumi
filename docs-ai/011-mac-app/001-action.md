@@ -50,8 +50,8 @@ Key files: `apps/macOS/Kasumi/MacDocument.swift`,
 Run by Claude on macOS 27.2.1 with the final source: `make test` (306 tests),
 `make app-check-mac` and `make app-check`.
 
-Reported by the Codex session on macOS 27.2.1 with isolated bundle IDs (logs under the
-ignored `build/mac-native-verification/`). Keyboard input was synthesized natively.
+Reported by the Codex session on macOS 27.2.1 with isolated bundle IDs (logs local and
+not retained). Keyboard input was synthesized natively.
 
 - Navigator, Open, Recent, Finder-style, link, symlink, concurrent and closed-source
   opens reached the right group; measured opens in the running app showed no

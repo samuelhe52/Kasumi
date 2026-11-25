@@ -32,9 +32,8 @@ scrollbars.
 
 ## Validation
 
-Reported by the Codex session on macOS 27.2.1 (logs under the ignored
-`build/mac-native-verification/phase5/` and `phase6/`): toolbar, menu, shortcut and
-divider each delivered 12–17 distinct reader widths with the top character unchanged;
+Reported by the Codex session on macOS 27.2.1 (logs local and not
+retained): toolbar, menu, shortcut and divider each delivered 12–17 distinct reader widths with the top character unchanged;
 tab open, reopen, close and restoration still worked. Claude reviewed two of its
 full-resolution window captures. Not run: macOS 26, a physical mouse or keyboard.
 

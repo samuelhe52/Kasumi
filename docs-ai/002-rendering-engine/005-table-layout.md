@@ -84,7 +84,7 @@ Key paths:
   discretionary PDF line hyphens. Subsequent focused run: 23 tests passed.
 - `make app` initially passed. A later rebuild encountered another concurrent
   build's locked Xcode database;
-  `make app DERIVED_DATA=build/TablesDerivedData` passed with the iPhone 18 Pro
+  `make app` with separate derived data passed with the iPhone 18 Pro
   simulator destination and the iPhoneSimulator 27.2 SDK, without booting it.
 - Headless Core Graphics previews at 360 pt (light/dark and both table ends) and
   820 pt (light) were visually inspected. The verbose example stays in readable
@@ -127,7 +127,7 @@ requesting a commit. Device/OS details and individual selection/Find checks were
 not supplied; this is maintainer-reported validation, not an agent simulator run.
 
 Follow-up validation: `make test FILTER='ReaderTableEdgeTests|TableLayoutTests'`
-passed all four tests. `make app DERIVED_DATA=build/TablesDerivedData` passed for
+passed all four tests. `make app` with separate derived data passed for
 the iPhone 18 Pro simulator destination, without booting it. Dark headless table
 previews at the start, middle and end were visually inspected; the temporary
 preview probe was removed. No frozen reference data changed.
