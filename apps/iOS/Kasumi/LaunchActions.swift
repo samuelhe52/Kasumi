@@ -50,7 +50,8 @@ enum ImportFolder: String, CaseIterable {
 
     /// Adds `.md` unless `name` already ends in a Markdown or text extension.
     static func markdownName(_ name: String) -> String {
-        ["md", "markdown", "txt"].contains((name as NSString).pathExtension.lowercased()) ? name : name + ".md"
+        let extensions = ["md", "markdown", "mdown", "mkd", "txt", "text"]
+        return extensions.contains((name as NSString).pathExtension.lowercased()) ? name : name + ".md"
     }
 }
 
