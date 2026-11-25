@@ -8,6 +8,7 @@ struct MacReaderScreen: View {
     let session: MacReaderSession
     let undoManager: UndoManager?
     let setNavigatorVisible: (Bool) -> Void
+    let setOutlineVisible: (Bool) -> Void
     let refreshSourceToolbar: () -> Void
     private var document: ReaderDocument { session.document }
     @Environment(\.colorScheme) private var colorScheme
@@ -30,15 +31,9 @@ struct MacReaderScreen: View {
                 document: document, controller: session.source, style: style, undoManager: undoManager),
             showingSource: session.showingSource
         )
-        .inspector(isPresented: panes.$outlineVisible) {
-            ReaderOutline(
-                items: session.outline, currentID: session.currentHeadingID, searchable: false, select: session.jump
-            )
-            .inspectorColumnWidth(min: 155, ideal: 210, max: 350)
-            .accessibilityIdentifier("mac-outline")
-        }
         .onChange(of: style, initial: true) { _, style in session.style = style }
         .onChange(of: panes.navigatorVisible, initial: true) { _, visible in setNavigatorVisible(visible) }
+        .onChange(of: panes.outlineVisible, initial: true) { _, visible in setOutlineVisible(visible) }
         .onChange(of: session.showingSource) { refreshSourceToolbar() }
         .onChange(of: document.snapshot != nil) { refreshSourceToolbar() }
         .onChange(of: document.previewIsCurrent) { _, current in

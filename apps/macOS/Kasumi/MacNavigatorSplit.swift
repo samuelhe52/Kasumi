@@ -8,6 +8,7 @@ final class MacNavigatorSplit: NSSplitViewController, NSToolbarDelegate {
     private static let source = NSToolbarItem.Identifier("Source")
     private let session: MacReaderSession
     private var navigator: NSSplitViewItem?
+    private var inspector: NSSplitViewItem?
     private weak var sourceItem: NSToolbarItem?
 
     init(session: MacReaderSession, undoManager: UndoManager?) {
@@ -31,13 +32,27 @@ final class MacNavigatorSplit: NSSplitViewController, NSToolbarDelegate {
         let workspace = NSHostingController(
             rootView: MacReaderScreen(
                 session: session, undoManager: undoManager,
-                setNavigatorVisible: { [weak self] in self?.setNavigatorVisible($0) },
+                setNavigatorVisible: { [weak self] in self?.setVisible($0, item: self?.navigator) },
+                setOutlineVisible: { [weak self] in self?.setVisible($0, item: self?.inspector) },
                 refreshSourceToolbar: { [weak self] in self?.refreshSourceToolbar() }))
         workspace.sceneBridgingOptions = []
         workspace.sizingOptions = []
         let detail = NSSplitViewItem(viewController: workspace)
         detail.automaticallyAdjustsSafeAreaInsets = false
         addSplitViewItem(detail)
+
+        let outline = NSHostingController(rootView: MacOutlinePane(session: session))
+        outline.sizingOptions = []
+        outline.view.frame.size.width = 210
+        let inspector = NSSplitViewItem(inspectorWithViewController: outline)
+        inspector.minimumThickness = 155
+        inspector.maximumThickness = 350
+        inspector.preferredThicknessFraction = 0.21
+        inspector.holdingPriority = .defaultHigh
+        inspector.canCollapse = false
+        inspector.isCollapsed = !MacPanePreferences().outlineVisible
+        addSplitViewItem(inspector)
+        self.inspector = inspector
     }
 
     @available(*, unavailable)
@@ -51,7 +66,10 @@ final class MacNavigatorSplit: NSSplitViewController, NSToolbarDelegate {
     }
 
     func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
-        [Self.sidebar, .sidebarTrackingSeparator, .flexibleSpace, Self.outline, Self.source]
+        [
+            Self.sidebar, .sidebarTrackingSeparator, .inspectorTrackingSeparator, .flexibleSpace, Self.outline,
+            Self.source
+        ]
     }
 
     func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
@@ -67,6 +85,8 @@ final class MacNavigatorSplit: NSSplitViewController, NSToolbarDelegate {
             makeToolbarItem(identifier, title: "Sidebar", symbol: "sidebar.left", action: #selector(toggleSidebar(_:)))
         case .sidebarTrackingSeparator:
             NSTrackingSeparatorToolbarItem(identifier: identifier, splitView: splitView, dividerIndex: 0)
+        case .inspectorTrackingSeparator:
+            NSTrackingSeparatorToolbarItem(identifier: identifier, splitView: splitView, dividerIndex: 1)
         case Self.outline:
             makeToolbarItem(identifier, title: "Outline", symbol: "sidebar.right", action: #selector(toggleOutline))
         case Self.source:
@@ -117,13 +137,24 @@ final class MacNavigatorSplit: NSSplitViewController, NSToolbarDelegate {
         return item
     }
 
-    private func setNavigatorVisible(_ visible: Bool) {
-        guard let navigator, navigator.isCollapsed == visible else { return }
+    private func setVisible(_ visible: Bool, item: NSSplitViewItem?) {
+        guard let item, item.isCollapsed == visible else { return }
         if view.window == nil || NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
-            navigator.isCollapsed = !visible
+            item.isCollapsed = !visible
         } else {
-            navigator.animator().isCollapsed = !visible
+            item.animator().isCollapsed = !visible
         }
+    }
+}
+
+private struct MacOutlinePane: View {
+    let session: MacReaderSession
+
+    var body: some View {
+        ReaderOutline(
+            items: session.outline, currentID: session.currentHeadingID, searchable: false, select: session.jump
+        )
+        .accessibilityIdentifier("mac-outline")
     }
 }
 
