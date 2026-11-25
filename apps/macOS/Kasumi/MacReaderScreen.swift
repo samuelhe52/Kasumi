@@ -31,6 +31,8 @@ struct MacReaderScreen: View {
                 document: document, controller: session.source, style: style, undoManager: undoManager),
             showingSource: session.showingSource
         )
+        // The panes scroll beneath the header, so their paper is its background.
+        .ignoresSafeArea(edges: .top)
         .onChange(of: style, initial: true) { _, style in session.style = style }
         .onChange(of: panes.navigatorVisible, initial: true) { _, visible in setNavigatorVisible(visible) }
         .onChange(of: panes.outlineVisible, initial: true) { _, visible in setOutlineVisible(visible) }
@@ -39,7 +41,6 @@ struct MacReaderScreen: View {
         .onChange(of: document.previewIsCurrent) { _, current in
             if current { session.previewBecameCurrent() }
         }
-        .softTopScrollEdge()
     }
 
     private func openFile(_ url: URL, fragment: String? = nil) {
@@ -132,7 +133,7 @@ private final class MacWorkspaceController: NSViewController {
 private struct MacSourcePane: View {
     let editor: MacSourceEditor
 
-    var body: some View { editor.softTopScrollEdge() }
+    var body: some View { editor.ignoresSafeArea(edges: .top) }
 }
 
 private struct MacReadingPane: View {
@@ -162,7 +163,7 @@ private struct MacReadingPane: View {
             .onMarkdownPositionChange { anchor, heading in
                 session.readerMoved(to: anchor, heading: heading)
             }
-            .softTopScrollEdge()
+            .ignoresSafeArea(edges: .top)
         } else {
             ProgressView()
         }

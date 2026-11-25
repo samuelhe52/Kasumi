@@ -20,7 +20,6 @@ struct MacSettings: View {
             Tab("Fonts", systemImage: "textformat") { MacFontSettings() }
         }
         .frame(width: 535, height: 430)
-        .softTopScrollEdge()
     }
 }
 
@@ -44,7 +43,6 @@ private struct MacAppearanceSettings: View {
             }
         }
         .formStyle(.grouped)
-        .softTopScrollEdge()
     }
 }
 
@@ -88,6 +86,5 @@ private struct MacFontSettings: View {
             }
         }
         .formStyle(.grouped)
-        .softTopScrollEdge()
     }
 }

@@ -54,7 +54,6 @@ struct MacNavigator: View {
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
             .environment(\.defaultMinListRowHeight, 24)
-            .softTopScrollEdge()
         }
         .accessibilityIdentifier("mac-navigator")
         .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { _ in

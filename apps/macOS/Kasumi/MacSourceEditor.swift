@@ -326,6 +326,7 @@ final class MacSourceEditorController: NSObject, NSTextViewDelegate, @MainActor 
         let starts = sourceLineStarts(in: textView)
         let clip = scrollView.contentView
         let origin = textView.textContainerOrigin
+        let topInset = clip.contentInsets.top
 
         if let request = pendingLocation {
             pendingLocation = nil
@@ -345,23 +346,23 @@ final class MacSourceEditorController: NSObject, NSTextViewDelegate, @MainActor 
                 textView.window?.makeFirstResponder(textView)
             }
             let y = line == 1 ? 0 : origin.y + fragment.minY
-            let target = CGRect(origin: CGPoint(x: 0, y: y), size: clip.bounds.size)
+            let target = CGRect(origin: CGPoint(x: 0, y: y - topInset), size: clip.bounds.size)
             clip.scroll(to: clip.constrainBoundsRect(target).origin)
             scrollView.reflectScrolledClipView(clip)
-            mappedLocation = (clip.bounds.minY, character, clip.bounds.minY < y - 1)
+            mappedLocation = (clip.bounds.minY, character, clip.bounds.minY + topInset < y - 1)
         }
 
         let y = clip.bounds.minY
         let line: Int
         if let mappedLocation, abs(y - mappedLocation.y) < 0.5 {
             line = Self.line(containing: mappedLocation.character, in: starts)
-        } else if y <= origin.y || textView.textStorage?.length == 0 {
+        } else if y + topInset <= origin.y || textView.textStorage?.length == 0 {
             line = 1
             mappedLocation = nil
         } else {
             mappedLocation = nil
             let character = manager.characterIndex(
-                for: CGPoint(x: container.lineFragmentPadding, y: y - origin.y + 0.5),
+                for: CGPoint(x: container.lineFragmentPadding, y: y + topInset - origin.y + 0.5),
                 in: container, fractionOfDistanceBetweenInsertionPoints: nil)
             line = Self.line(containing: character, in: starts)
         }

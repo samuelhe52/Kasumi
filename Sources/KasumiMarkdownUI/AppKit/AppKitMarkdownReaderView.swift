@@ -273,14 +273,22 @@ import os
         // the stopped state and generation reject any stale completion.
     }
 
-    var viewport: CGRect { scrollView.contentView.bounds }
+    /// What a toolbar or title bar covers while the document continues beneath it.
+    private var topInset: CGFloat { scrollView.contentView.contentInsets.top }
+    /// The part of the document that no toolbar covers.
+    var viewport: CGRect {
+        var bounds = scrollView.contentView.bounds
+        bounds.origin.y += topInset
+        bounds.size.height = max(0, bounds.height - topInset)
+        return bounds
+    }
     var nativeFindBarContainer: any NSTextFinderBarContainer { scrollView }
     private var canLayout: Bool { isActive && window != nil }
 
     @objc private func boundsChanged() { viewportChanged() }
 
     private func replaceScrollers() {
-        let origin = viewport.origin
+        let origin = scrollView.contentView.bounds.origin
         let wasAdjusting = adjusting
         adjusting = true
         scrollView.verticalScroller = scrollerClass.init(frame: scrollView.verticalScroller?.frame ?? .zero)
@@ -562,7 +570,7 @@ import os
         }
         let viewport = self.viewport
         images.update(
-            rendered, in: viewport, overscan: viewport.height * 0.25, tableOffsets: tableOffsets,
+            rendered, in: viewport, overscan: max(topInset, viewport.height * 0.25), tableOffsets: tableOffsets,
             invalidate: { [weak self] in self?.invalidateImage($0) },
             relayout: { [weak self] in self?.restartSession() })
     }
@@ -735,7 +743,7 @@ import os
             NSAnimationContext.runAnimationGroup { context in
                 context.duration = 0.22
                 context.allowsImplicitAnimation = true
-                scrollView.contentView.animator().setBoundsOrigin(CGPoint(x: 0, y: top))
+                scrollView.contentView.animator().setBoundsOrigin(CGPoint(x: 0, y: top - topInset))
             } completionHandler: { [weak self, generation, navigationID] in
                 Task { @MainActor in
                     guard let self, self.navigationID == navigationID else { return }
@@ -816,7 +824,7 @@ import os
     private func stopScrollAnimation() {
         guard animatingScroll else { return }
         animatingScroll = false
-        let origin = viewport.origin
+        let origin = scrollView.contentView.bounds.origin
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0
             context.allowsImplicitAnimation = true
@@ -825,7 +833,7 @@ import os
     }
 
     private func scrollDirectly(top: CGFloat) {
-        scrollView.contentView.scroll(to: CGPoint(x: 0, y: max(0, top)))
+        scrollView.contentView.scroll(to: CGPoint(x: 0, y: max(0, top) - topInset))
         scrollView.reflectScrolledClipView(scrollView.contentView)
     }
 
@@ -967,7 +975,7 @@ import os
     }
 
     func setHighlightsNeedDisplay() {
-        canvas.setNeedsDisplay(viewport)
+        canvas.setNeedsDisplay(scrollView.contentView.bounds)
         for table in tableViews.values { table.tableCanvas.setNeedsDisplay(table.tableCanvas.visibleRect) }
     }
 
