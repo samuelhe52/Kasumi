@@ -169,3 +169,4 @@ Markdown files open as documents.
 - Updated 2026-11-24: AppKit window split, live sidebar reflow and pane changes; the Panes and goals text was corrected in place — see [003-window-split-and-panes.md](003-window-split-and-panes.md).
 - Updated 2026-11-24: Mode switching detaches the inactive pane from the window — see [004-source-pane-lifecycle.md](004-source-pane-lifecycle.md).
 - Updated 2026-11-25: Reflow within the resize layout pass and move the Outline into the native split — see [005-live-resize.md](005-live-resize.md).
+- Updated 2026-11-25: Scroll the panes beneath the header and tint the sidebars — see [006-paper-chrome.md](006-paper-chrome.md).
