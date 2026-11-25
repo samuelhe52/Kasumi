@@ -1,5 +1,4 @@
 import AppKit
-import SwiftUI
 
 enum MacReaderCommand {
     case showInFinder, copyPath, exportPDF, printDocument
@@ -41,10 +40,9 @@ enum MacReaderCommand {
 
     @MainActor
     func validate(_ item: NSMenuItem, for session: MacReaderSession) -> Bool {
-        let panes = MacPanePreferences()
         switch self {
-        case .navigator: item.state = panes.navigatorVisible ? .on : .off
-        case .outline: item.state = panes.outlineVisible ? .on : .off
+        case .navigator: item.state = MacPane.navigator.isVisible ? .on : .off
+        case .outline: item.state = MacPane.outline.isVisible ? .on : .off
         case .source: item.title = session.showingSource ? "Show Reader" : "Show Source"
         default: break
         }
@@ -53,7 +51,6 @@ enum MacReaderCommand {
 
     @MainActor
     func perform(in session: MacReaderSession) {
-        let panes = MacPanePreferences()
         let appearance = MacAppearancePreferences()
         switch self {
         case .showInFinder: session.showInFinder()
@@ -69,8 +66,8 @@ enum MacReaderCommand {
             session.source.apply { SourceFormatting.heading(in: $0, selection: $1, level: level) }
         case .code: session.source.apply(SourceFormatting.code)
         case .quote: session.source.apply(SourceFormatting.quote)
-        case .navigator: panes.navigatorVisible.toggle()
-        case .outline: panes.outlineVisible.toggle()
+        case .navigator: (session.window?.contentViewController as? MacNavigatorSplit)?.toggle(.navigator)
+        case .outline: (session.window?.contentViewController as? MacNavigatorSplit)?.toggle(.outline)
         case .source: session.toggleSource()
         case .actualSize: appearance.fontSize = ReaderAppearance.defaultFontSize
         case .zoom(let delta):
@@ -80,11 +77,6 @@ enum MacReaderCommand {
         case .selectTab(let index): session.selectTab(index)
         }
     }
-}
-
-struct MacPanePreferences: DynamicProperty {
-    @AppStorage("mac.navigator-visible") var navigatorVisible = true
-    @AppStorage("mac.outline-visible") var outlineVisible = true
 }
 
 @MainActor

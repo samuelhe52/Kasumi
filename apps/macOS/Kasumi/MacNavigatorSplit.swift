@@ -2,12 +2,23 @@ import AppKit
 import KasumiMarkdown
 import SwiftUI
 
+enum MacPane: String {
+    case navigator = "mac.navigator-visible"
+    case outline = "mac.outline-visible"
+
+    var isVisible: Bool {
+        get { UserDefaults.standard.object(forKey: rawValue) as? Bool ?? true }
+        nonmutating set { UserDefaults.standard.set(newValue, forKey: rawValue) }
+    }
+}
+
 /// Use a window-level split so AppKit can place window chrome beside the sidebar.
 final class MacNavigatorSplit: NSSplitViewController, NSToolbarDelegate {
     private static let sidebar = NSToolbarItem.Identifier("Sidebar")
     private static let outline = NSToolbarItem.Identifier("Outline")
     private static let source = NSToolbarItem.Identifier("Source")
     private let session: MacReaderSession
+    private var tabSelection: NSKeyValueObservation?
     private var navigator: NSSplitViewItem?
     private var inspector: NSSplitViewItem?
     private weak var sourceItem: NSToolbarItem?
@@ -26,15 +37,13 @@ final class MacNavigatorSplit: NSSplitViewController, NSToolbarDelegate {
         sidebar.maximumThickness = 330
         sidebar.preferredThicknessFraction = 0.2
         sidebar.canCollapse = false
-        sidebar.isCollapsed = !MacPanePreferences().navigatorVisible
+        sidebar.isCollapsed = !MacPane.navigator.isVisible
         addSplitViewItem(sidebar)
         navigator = sidebar
 
         let workspace = NSHostingController(
             rootView: MacReaderScreen(
                 session: session, undoManager: undoManager,
-                setNavigatorVisible: { [weak self] in self?.setVisible($0, item: self?.navigator) },
-                setOutlineVisible: { [weak self] in self?.setVisible($0, item: self?.inspector) },
                 refreshSourceToolbar: { [weak self] in self?.refreshSourceToolbar() }))
         workspace.sceneBridgingOptions = []
         workspace.sizingOptions = []
@@ -51,7 +60,7 @@ final class MacNavigatorSplit: NSSplitViewController, NSToolbarDelegate {
         inspector.preferredThicknessFraction = 0.21
         inspector.holdingPriority = .defaultHigh
         inspector.canCollapse = false
-        inspector.isCollapsed = !MacPanePreferences().outlineVisible
+        inspector.isCollapsed = !MacPane.outline.isVisible
         addSplitViewItem(inspector)
         self.inspector = inspector
     }
@@ -64,6 +73,11 @@ final class MacNavigatorSplit: NSSplitViewController, NSToolbarDelegate {
         toolbar.delegate = self
         toolbar.displayMode = .iconOnly
         window.toolbar = toolbar
+        tabSelection = window.observe(\.tabGroup?.selectedWindow, options: [.new]) { [weak self] window, _ in
+            MainActor.assumeIsolated {
+                if window.tabGroup?.selectedWindow === window { self?.applyPanePreferences(animated: false) }
+            }
+        }
     }
 
     func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
@@ -98,10 +112,10 @@ final class MacNavigatorSplit: NSSplitViewController, NSToolbarDelegate {
     }
 
     override func toggleSidebar(_ sender: Any?) {
-        MacPanePreferences().navigatorVisible.toggle()
+        toggle(.navigator)
     }
 
-    @objc private func toggleOutline() { MacPanePreferences().outlineVisible.toggle() }
+    @objc private func toggleOutline() { toggle(.outline) }
 
     @objc private func toggleSource() { session.toggleSource() }
 
@@ -138,9 +152,25 @@ final class MacNavigatorSplit: NSSplitViewController, NSToolbarDelegate {
         return item
     }
 
-    private func setVisible(_ visible: Bool, item: NSSplitViewItem?) {
+    func toggle(_ pane: MacPane) {
+        pane.isVisible.toggle()
+        // AppKit reports unselected tabs as visible. Leave their split untouched until selection.
+        for window in NSApp.windows {
+            guard let split = window.contentViewController as? MacNavigatorSplit,
+                (window.tabGroup?.selectedWindow ?? window) === window
+            else { continue }
+            split.applyPanePreferences(animated: split === self)
+        }
+    }
+
+    private func applyPanePreferences(animated: Bool) {
+        setVisible(MacPane.navigator.isVisible, item: navigator, animated: animated)
+        setVisible(MacPane.outline.isVisible, item: inspector, animated: animated)
+    }
+
+    private func setVisible(_ visible: Bool, item: NSSplitViewItem?, animated: Bool) {
         guard let item, item.isCollapsed == visible else { return }
-        if view.window == nil || NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
+        if !animated || NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
             item.isCollapsed = !visible
         } else {
             item.animator().isCollapsed = !visible

@@ -7,12 +7,9 @@ import UniformTypeIdentifiers
 struct MacReaderScreen: View {
     let session: MacReaderSession
     let undoManager: UndoManager?
-    let setNavigatorVisible: (Bool) -> Void
-    let setOutlineVisible: (Bool) -> Void
     let refreshSourceToolbar: () -> Void
     private var document: ReaderDocument { session.document }
     @Environment(\.colorScheme) private var colorScheme
-    private var panes = MacPanePreferences()
     private var preferences = MacAppearancePreferences()
     private let fonts = FontStore.shared
 
@@ -34,8 +31,6 @@ struct MacReaderScreen: View {
         // The panes scroll beneath the header, so their paper is its background.
         .ignoresSafeArea(edges: .top)
         .onChange(of: style, initial: true) { _, style in session.style = style }
-        .onChange(of: panes.navigatorVisible, initial: true) { _, visible in setNavigatorVisible(visible) }
-        .onChange(of: panes.outlineVisible, initial: true) { _, visible in setOutlineVisible(visible) }
         .onChange(of: session.showingSource) { refreshSourceToolbar() }
         .onChange(of: document.snapshot != nil) { refreshSourceToolbar() }
         .onChange(of: document.previewIsCurrent) { _, current in

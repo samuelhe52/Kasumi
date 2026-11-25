@@ -171,3 +171,4 @@ Markdown files open as documents.
 - Updated 2026-11-25: Reflow within the resize layout pass and move the Outline into the native split — see [005-live-resize.md](005-live-resize.md).
 - Updated 2026-11-25: Scroll the panes beneath the header and tint the sidebars — see [006-paper-chrome.md](006-paper-chrome.md).
 - Updated 2026-11-25: New Window and New Tab commands, and one list of file types; the Panes, Keys and decision text was corrected in place — see [007-new-windows-and-file-types.md](007-new-windows-and-file-types.md).
+- Updated 2026-11-25: Keep pane preferences shared but defer changes to an unselected tab's split until selection — see [009-selected-tab-panes.md](009-selected-tab-panes.md).
