@@ -49,6 +49,11 @@ struct ReaderReflowState {
         return publish
     }
 
+    /// Frees the running slot without publishing its result.
+    mutating func discard(_ request: Request) {
+        if running == request { running = nil }
+    }
+
     mutating func stop() {
         desired = nil
     }

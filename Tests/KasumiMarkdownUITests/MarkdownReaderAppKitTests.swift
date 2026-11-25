@@ -6,6 +6,67 @@ import Testing
 @testable import KasumiMarkdownUI
 
 @MainActor @Suite(.serialized) struct MarkdownReaderAppKitTests {
+    @Test(arguments: [true, false])
+    func widthChangesReflowInTheSameLayoutPassOrKeepTheCanvasAligned(inTime: Bool) async throws {
+        let (reader, window) = try await reader(
+            markdown: "# A heading\n\nA short paragraph.", size: CGSize(width: 360, height: 300))
+        defer { window.contentView = nil }
+        reader.resizeLayoutBudget = inTime ? .seconds(10) : .zero
+        let initial = try #require(reader.rendered)
+
+        for width: CGFloat in [520, 300] {
+            let before = reader.rendered
+            resize(reader, in: window, to: CGSize(width: width, height: 300))
+            #expect(reader.viewport.width == width)
+            #expect(reader.canvas.frame.width == width)
+            if inTime {
+                #expect(reader.rendered?.size.width == width)
+            } else {
+                #expect(reader.rendered === before)
+                #expect(await eventually { reader.rendered?.size.width == width })
+            }
+        }
+        #expect(await eventually { !reader.readerViewportDiagnostics.isLayingOut })
+        #expect(reader.rendered !== initial)
+    }
+
+    @Test func heightChangesReturnToTheReadingPlace() async throws {
+        let markdown = (0..<40).map { "Paragraph \($0) with some text." }.joined(separator: "\n\n")
+        let (reader, window) = try await reader(markdown: markdown, size: CGSize(width: 360, height: 300))
+        defer { window.contentView = nil }
+        let initial = try #require(reader.rendered)
+        let bottom = initial.size.height - 300
+        reader.scrollReaderViewport(toY: bottom)
+        try #require(await eventually { !reader.readerViewportDiagnostics.isLayingOut })
+        let place = reader.viewport.minY
+
+        resize(reader, in: window, to: CGSize(width: 360, height: 500))
+        #expect(abs(reader.viewport.minY - (initial.size.height - 500)) < 1)
+        resize(reader, in: window, to: CGSize(width: 360, height: 300))
+        #expect(await eventually { abs(reader.viewport.minY - place) < 1 })
+    }
+
+    private func reader(markdown: String, size: CGSize) async throws -> (MarkdownReaderView, NSWindow) {
+        _ = NSApplication.shared
+        let frame = CGRect(origin: .zero, size: size)
+        let reader = MarkdownReaderView(frame: frame)
+        reader.readerPreparesForScrolling = false
+        let window = NSWindow(contentRect: frame, styleMask: [.titled, .resizable], backing: .buffered, defer: false)
+        window.contentView = reader
+        try #require(reader.canvas.enclosingScrollView).scrollerStyle = .overlay
+        reader.setDocument(MarkdownDocument(markdown: markdown))
+        try #require(
+            await eventually {
+                reader.rendered?.size.width == size.width && !reader.readerViewportDiagnostics.isLayingOut
+            })
+        return (reader, window)
+    }
+
+    private func resize(_ reader: MarkdownReaderView, in window: NSWindow, to size: CGSize) {
+        window.setContentSize(size)
+        reader.layoutSubtreeIfNeeded()
+    }
+
     @Test func routesOnlyCurrentDocumentFragmentsInternally() throws {
         let reader = MarkdownReaderView(frame: .zero)
         let file = try #require(URL(string: "file:///tmp/notes.md"))

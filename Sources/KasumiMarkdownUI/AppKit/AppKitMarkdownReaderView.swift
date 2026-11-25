@@ -49,6 +49,10 @@ import os
     private var anchor = ReaderReflowAnchorState()
     private var pendingReveal: Reveal?
     private var layoutTask: Task<Void, Never>?
+    private var layoutJob: ReaderLayoutJob?
+    private var layoutCost = Duration.zero
+    /// The height changed since the anchor last placed the viewport.
+    private var needsReanchor = false
     private var warmup: Task<Void, Never>?
     private var warmupID = UUID()
     private var adjusting = false
@@ -64,6 +68,10 @@ import os
     private var navigating = false
     private var lastPosition: (ReadingAnchor, String?)?
     private var scale: CGFloat { window?.backingScaleFactor ?? 2 }
+    /// Matching the window spares a color conversion each time the bitmap is drawn.
+    private var paintColorSpace: CGColorSpace {
+        window?.colorSpace?.cgColorSpace ?? CGColorSpace(name: CGColorSpace.sRGB)!
+    }
     private var sessionScale: CGFloat = 0
     private var configuration: MarkdownRemoteImages?
     private var resourceRevision = 0
@@ -84,6 +92,8 @@ import os
             if readerPreparesForScrolling { scheduleWarmup() } else { cancelWarmup() }
         }
     }
+    /// How long a resize may hold the main thread so text reflows with its container.
+    var resizeLayoutBudget: Duration = .milliseconds(10)
     package var onReaderLayout: (() -> Void)?
 
     public override init(frame frameRect: NSRect) {
@@ -137,6 +147,7 @@ import os
     public override func layout() {
         super.layout()
         viewportChanged()
+        layoutWithinResizeBudget()
     }
 
     public override func viewDidMoveToWindow() {
@@ -191,6 +202,7 @@ import os
         tableOffsets.removeAll()
         removeTableViews()
         updateCanvasFrame(size: .zero)
+        scrollDirectly(top: 0)
         adjusting = false
         restartSession()
         onFindResultChange?(customFind.result)
@@ -284,14 +296,24 @@ import os
 
     private func viewportChanged() {
         guard !adjusting else { return }
-        let now = viewport
+        var now = viewport
         guard now != previousViewport else { return }
+        if now.size != previousViewport.size {
+            adjusting = true
+            updateCanvasFrame(size: rendered?.size ?? .zero)
+            adjusting = false
+            now = viewport
+        }
         let sizeChanged = now.size != previousViewport.size
+        // The reflow belongs in this view's layout pass, before the new width displays.
+        if now.width != previousViewport.width { needsLayout = true }
+        if now.height != previousViewport.height { needsReanchor = true }
         previousViewport = now
         cancelWarmup()
         if !sizeChanged, !navigating { navigated = nil }
         if !sizeChanged, rendered != nil, pendingReveal == nil {
             anchor.moved(in: rendered, atY: max(0, now.minY))
+            needsReanchor = false
         }
         updateTables()
         canvas.invalidateLinkCursors()
@@ -309,10 +331,8 @@ import os
             cancelWarmup()
             warmupMilliseconds = nil
         }
-        let overscan = viewport.insetBy(dx: 0, dy: -viewport.height * 0.75)
-        if installedGeneration == generation, let rendered, rendered.size.width == viewport.width,
-            installedHeight == viewport.height, pendingReveal == nil,
-            !rendered.needsLayout(in: overscan), let installed = state.installed
+        if installedGeneration == generation, let rendered, rendered.size.width == viewport.width, pendingReveal == nil,
+            let installed = state.installed, placeViewportIfCovered(by: rendered)
         {
             state.request(width: installed.width, generation: generation, anchor: installed.anchor, height: installed.height)
         } else {
@@ -325,42 +345,94 @@ import os
         }
         cancelWarmup()
         layoutTask = Task { [weak self] in
-            while let self, !Task.isCancelled, self.canLayout, let session = self.session, let request = self.state.begin() {
-                let start = ContinuousClock.now
-                let layout = self.signposter.beginInterval("Layout", id: self.signposter.makeSignpostID())
-                let next = await session.render(width: request.width, viewportHeight: request.height, anchor: request.anchor)
-                self.signposter.endInterval("Layout", layout)
+            while let self, !Task.isCancelled, self.canLayout, let job = self.nextLayoutJob() {
+                let request = job.request
+                let output = await job.task.value
+                // A resize took over while this task was suspended.
+                guard self.layoutJob === job else { continue }
+                self.layoutCost = output.cost
+                let next = output.document
                 let rect = self.paintRect(next, width: request.width, height: request.height)
                 guard self.state.accepts(request, coversDesiredViewport: !next.needsLayout(in: rect)) else {
+                    self.layoutJob = nil
                     _ = self.state.complete(request)
                     continue
                 }
-                let scale = self.scale
-                let paint = self.signposter.beginInterval("ViewportPaint", id: self.signposter.makeSignpostID())
-                let preview = await Task.detached(priority: .userInitiated) {
-                    ReaderViewportBitmap.paint(next, rect: rect, scale: scale, excludingScrollableTables: true)
-                }.value
-                self.signposter.endInterval("ViewportPaint", paint)
-                let liveRect = self.paintRect(next, width: request.width, height: request.height)
-                if self.state.complete(request, coversDesiredViewport: !next.needsLayout(in: liveRect)), self.canLayout {
-                    let interval = self.signposter.beginInterval("Install", id: self.signposter.makeSignpostID())
-                    let previousFind = self.install(
-                        next, preview: preview, top: liveRect.isNull ? 0 : liveRect.minY, height: request.height)
-                    self.signposter.endInterval("Install", interval)
-                    self.layoutMilliseconds = Self.milliseconds(since: start)
-                    self.didInstall(previousFind: previousFind)
+                var preview = output.preview
+                if preview?.rect != rect {
+                    // The target moved after the job captured its anchor.
+                    preview = await job.paint(next, rect: rect)
+                    guard self.layoutJob === job else { continue }
                 }
+                self.finish(job, with: next, preview: preview)
             }
             self?.layoutTask = nil
             if self?.state.needsLayout == true { self?.requestLayout() } else { self?.scheduleWarmup() }
         }
     }
 
+    private func nextLayoutJob() -> ReaderLayoutJob? {
+        if let layoutJob { return layoutJob }
+        guard let session, let request = state.begin() else { return nil }
+        let job = ReaderLayoutJob(
+            request, session: session, scale: scale, colorSpace: paintColorSpace, signposter: signposter)
+        layoutJob = job
+        return job
+    }
+
+    private func finish(_ job: ReaderLayoutJob, with next: RenderedDocument, preview: ReaderViewportBitmap?) {
+        let request = job.request
+        layoutJob = nil
+        let rect = paintRect(next, width: request.width, height: request.height)
+        guard state.complete(request, coversDesiredViewport: !next.needsLayout(in: rect)), canLayout else { return }
+        let interval = signposter.beginInterval("Install", id: signposter.makeSignpostID())
+        let previousFind = install(next, preview: preview, top: rect.isNull ? 0 : rect.minY, height: request.height)
+        signposter.endInterval("Install", interval)
+        layoutMilliseconds = Self.milliseconds(since: job.start)
+        didInstall(previousFind: previousFind)
+    }
+
+    /// Waits briefly for a width change to reflow, so text and container change
+    /// together. A slower layout keeps the resize responsive and installs later.
+    private func layoutWithinResizeBudget() {
+        guard canLayout, installedGeneration == generation, rendered != nil, pendingReveal == nil,
+            rendered?.size.width != viewport.width, layoutCost < resizeLayoutBudget
+        else { return }
+        if let layoutJob {
+            guard layoutJob.result != nil else { return }
+            // Its layout is done but superseded before it could be shown.
+            state.discard(layoutJob.request)
+            self.layoutJob = nil
+        }
+        guard let job = nextLayoutJob(), let output = job.wait(for: resizeLayoutBudget) else { return }
+        layoutCost = output.cost
+        finish(job, with: output.document, preview: output.preview)
+    }
+
+    /// Whether the layout covers the viewport and its scroll buffer. A new height
+    /// may have displaced the viewport, so this returns it to the anchored place.
+    private func placeViewportIfCovered(by rendered: RenderedDocument) -> Bool {
+        let viewport = viewport
+        // The anchor names a line, so don't snap a viewport that is still on it.
+        let displaced = needsReanchor && rendered.readingAnchor(atY: max(0, viewport.minY)) != anchor.value
+        let target = displaced ? paintRect(rendered, width: viewport.width, height: viewport.height) : viewport
+        guard !rendered.needsLayout(in: target.insetBy(dx: 0, dy: -viewport.height * 0.75)) else { return false }
+        guard needsReanchor else { return true }
+        needsReanchor = false
+        installedHeight = viewport.height
+        adjusting = true
+        if displaced { scrollDirectly(top: target.isNull ? 0 : target.minY) }
+        retainVisibleDestination(in: rendered)
+        previousViewport = self.viewport
+        updateTables()
+        adjusting = false
+        return true
+    }
+
     private func paintRect(_ next: RenderedDocument, width: CGFloat, height: CGFloat) -> CGRect {
         let semanticTop = anchor.value.flatMap { next.y(for: $0) } ?? 0
         let top = pendingReveal.flatMap { revealGeometry($0.target, in: next)?.top } ?? semanticTop
-        let visible = CGRect(x: 0, y: max(0, min(max(0, next.size.height - height), top)), width: width, height: height)
-        return visible.intersection(CGRect(origin: .zero, size: next.size))
+        return ReaderLayoutJob.visibleRect(of: next, top: top, width: width, height: height)
     }
 
     private func install(
@@ -370,10 +442,12 @@ import os
         find.finder.cancelFindIndicator()
         rendered = next
         // A legacy scroller's gutter is outside the canvas.
-        scrollView.backgroundColor = NSColor(cgColor: next.backgroundColor) ?? .textBackgroundColor
-        scrollView.drawsBackground = true
+        let paper = NSColor(cgColor: next.backgroundColor) ?? .textBackgroundColor
+        if scrollView.backgroundColor != paper { scrollView.backgroundColor = paper }
+        if !scrollView.drawsBackground { scrollView.drawsBackground = true }
         installedGeneration = generation
         installedHeight = height
+        needsReanchor = height != viewport.height
         sectionPositions = outline.compactMap { item in next.readerAnchorY(for: item.id).map { (y: $0, id: item.id) } }
             .sorted { $0.y < $1.y }
         canvas.preview = preview
@@ -423,9 +497,10 @@ import os
     }
 
     private func updateCanvasFrame(size: CGSize) {
-        let height = viewport.height
-        canvas.frame = CGRect(x: 0, y: 0, width: max(viewport.width, size.width), height: max(height, size.height))
-        if size == .zero { scrollDirectly(top: 0) }
+        // Keep the paper backing in step with AppKit while the prior layout is still on screen.
+        let bounds = viewport
+        let frame = CGRect(x: 0, y: 0, width: bounds.width, height: max(bounds.height, size.height))
+        if canvas.frame != frame { canvas.frame = frame }
     }
 
     private func cancelWarmup() {
@@ -455,8 +530,10 @@ import os
                 let height = self.viewport.height
                 let rect = self.paintRect(full, width: width, height: height)
                 let scale = self.scale
+                let space = self.paintColorSpace
                 let preview = await Task.detached(priority: .utility) {
-                    ReaderViewportBitmap.paint(full, rect: rect, scale: scale, excludingScrollableTables: true)
+                    ReaderViewportBitmap.paint(
+                        full, rect: rect, scale: scale, colorSpace: space, excludingScrollableTables: true)
                 }.value
                 try Task.checkCancellation()
                 guard self.canLayout, self.generation == expected, self.layoutTask == nil, !self.state.needsLayout,

@@ -139,7 +139,8 @@ struct ReaderViewportBitmap: Sendable {
     let pixelSize: CGSize
 
     static func paint(
-        _ document: RenderedDocument, rect: CGRect, scale: CGFloat, excludingScrollableTables: Bool
+        _ document: RenderedDocument, rect: CGRect, scale: CGFloat, colorSpace: CGColorSpace,
+        excludingScrollableTables: Bool
     ) -> ReaderViewportBitmap? {
         let width = ceil(rect.width * scale)
         let height = ceil(rect.height * scale)
@@ -147,7 +148,7 @@ struct ReaderViewportBitmap: Sendable {
         return autoreleasepool {
             guard let context = CGContext(
                 data: nil, width: Int(width), height: Int(height), bitsPerComponent: 8, bytesPerRow: 0,
-                space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+                space: colorSpace, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
             else { return nil }
             context.translateBy(x: 0, y: CGFloat(context.height))
             context.scaleBy(x: scale, y: -scale)
