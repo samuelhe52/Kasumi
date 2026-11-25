@@ -51,18 +51,26 @@ private struct MacSpacingSettings: View {
 
     var body: some View {
         let preset = preferences.appearance.preset
-        VStack {
-            Picker("Typography", selection: preferences.$presetID) {
-                ForEach(TypographyPreset.builtin) { Text($0.name).tag($0.id) }
+        let edits = Binding(
+            get: { preferences.presetSpacing[preset] },
+            set: { preferences.presetSpacing[preset] = $0 })
+
+        VStack(spacing: 0) {
+            Form {
+                Picker("Typography", selection: preferences.$presetID) {
+                    ForEach(TypographyPreset.builtin) { Text($0.name).tag($0.id) }
+                }
+                SpacingControls(preset: preset, edits: edits)
             }
-            .padding([.horizontal, .top], 20)
-            SpacingControls(
-                preset: preset,
-                edits: Binding(
-                    get: { preferences.presetSpacing[preset] },
-                    set: { preferences.presetSpacing[preset] = $0 })
-            )
             .formStyle(.grouped)
+
+            Divider()
+            Button("Restore \(preset.name) Defaults") { edits.wrappedValue = nil }
+                .disabled(edits.wrappedValue == nil)
+                .accessibilityIdentifier("preset-restore-defaults")
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
         }
     }
 }

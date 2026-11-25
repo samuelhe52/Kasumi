@@ -4,48 +4,39 @@ import SwiftUI
 struct SpacingControls: View {
     let preset: TypographyPreset
     @Binding var edits: TypographySpacing?
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        let isAtDefaults = edits == nil
-        Form {
-            Section("Spacing") {
-                SpacingSlider(
-                    title: "Line spacing", suffix: "×", id: "preset-line-spacing",
-                    value: setting(\.lineSpacing), range: TypographySpacing.lineSpacingRange)
+        Section("Spacing") {
+            SpacingSlider(
+                title: "Line spacing", suffix: "×", id: "preset-line-spacing",
+                value: setting(\.lineSpacing), range: TypographySpacing.lineSpacingRange)
+            #if os(macOS)
+                paragraphStylePicker
+            #else
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Paragraph style")
-                    Picker("Paragraph style", selection: setting(\.paragraphStyle)) {
-                        Text("Spaced").tag(TypographySpacing.ParagraphStyle.spaced)
-                        Text("Indented").tag(TypographySpacing.ParagraphStyle.indented)
-                    }
-                    .labelsHidden()
-                    .pickerStyle(.segmented)
-                    .accessibilityIdentifier("preset-paragraph-style")
+                    paragraphStylePicker.labelsHidden()
                 }
                 .padding(.vertical, 4)
-            }
-            Section("Heading spacing") {
-                SpacingSlider(
-                    title: "Above", suffix: " em", id: "preset-heading-above",
-                    value: setting(\.headingSpaceBefore), range: TypographySpacing.headingSpaceBeforeRange)
-                SpacingSlider(
-                    title: "Below", suffix: " em", id: "preset-heading-below",
-                    value: setting(\.headingSpaceAfter), range: TypographySpacing.headingSpaceAfterRange)
-            }
-            Section {
-                Button {
-                    edits = nil
-                } label: {
-                    Text("Restore \(preset.name) Defaults")
-                        .foregroundStyle(isAtDefaults ? AnyShapeStyle(.tertiary) : AnyShapeStyle(Color.accentColor))
-                        .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: isAtDefaults)
-                }
-                .disabled(isAtDefaults)
-                .accessibilityIdentifier("preset-restore-defaults")
-            }
+            #endif
         }
-        .softTopScrollEdge()
+        Section("Heading spacing") {
+            SpacingSlider(
+                title: "Above", suffix: " em", id: "preset-heading-above",
+                value: setting(\.headingSpaceBefore), range: TypographySpacing.headingSpaceBeforeRange)
+            SpacingSlider(
+                title: "Below", suffix: " em", id: "preset-heading-below",
+                value: setting(\.headingSpaceAfter), range: TypographySpacing.headingSpaceAfterRange)
+        }
+    }
+
+    private var paragraphStylePicker: some View {
+        Picker("Paragraph style", selection: setting(\.paragraphStyle)) {
+            Text("Spaced").tag(TypographySpacing.ParagraphStyle.spaced)
+            Text("Indented").tag(TypographySpacing.ParagraphStyle.indented)
+        }
+        .pickerStyle(.segmented)
+        .accessibilityIdentifier("preset-paragraph-style")
     }
 
     private func setting<Value>(_ keyPath: WritableKeyPath<TypographySpacing, Value>) -> Binding<Value> {
@@ -68,31 +59,52 @@ private struct SpacingSlider: View {
     private static let stepsPerUnit = 20.0
 
     var body: some View {
-        let measurement = value.formatted(.number.precision(.fractionLength(2))) + suffix
-        VStack(spacing: 4) {
+        #if os(macOS)
             LabeledContent(title) {
-                Text(verbatim: measurement).monospacedDigit()
+                HStack(spacing: 8) {
+                    slider
+                        .labelsHidden()
+                        .frame(width: 160)
+                    Text(verbatim: measurement)
+                        .monospacedDigit()
+                        .frame(minWidth: 52, alignment: .trailing)
+                        .accessibilityHidden(true)
+                }
             }
-            .accessibilityHidden(true)
-            Slider(
-                value: Binding(
-                    get: { value },
-                    set: {
-                        let rounded = snapped($0)
-                        if rounded != value { value = rounded }
-                    }),
-                in: range
-            ) { Text(title) }
-            // A stepped Slider in a Form draws a tick per step on iOS 26+, with no way to hide
-            // them, so the binding snaps instead and VoiceOver gets the step explicitly.
-            .accessibilityAdjustableAction { direction in
-                let delta = (direction == .increment ? 1 : -1) / Self.stepsPerUnit
-                value = snapped(min(max(value + delta, range.lowerBound), range.upperBound))
+        #else
+            VStack(spacing: 4) {
+                LabeledContent(title) {
+                    Text(verbatim: measurement).monospacedDigit()
+                }
+                .accessibilityHidden(true)
+                slider
             }
-            .accessibilityValue(Text(verbatim: measurement))
-            .accessibilityIdentifier(id)
+            .padding(.vertical, 4)
+        #endif
+    }
+
+    private var measurement: String {
+        value.formatted(.number.precision(.fractionLength(2))) + suffix
+    }
+
+    private var slider: some View {
+        Slider(
+            value: Binding(
+                get: { value },
+                set: {
+                    let rounded = snapped($0)
+                    if rounded != value { value = rounded }
+                }),
+            in: range
+        ) { Text(title) }
+        // A stepped Slider in a Form draws a tick per step on iOS 26+, with no way to hide
+        // them, so the binding snaps instead and VoiceOver gets the step explicitly.
+        .accessibilityAdjustableAction { direction in
+            let delta = (direction == .increment ? 1 : -1) / Self.stepsPerUnit
+            value = snapped(min(max(value + delta, range.lowerBound), range.upperBound))
         }
-        .padding(.vertical, 4)
+        .accessibilityValue(Text(verbatim: measurement))
+        .accessibilityIdentifier(id)
     }
 
     private func snapped(_ value: Double) -> Double {

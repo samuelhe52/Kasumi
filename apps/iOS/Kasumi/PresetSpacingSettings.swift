@@ -18,7 +18,13 @@ struct PresetSpacingSettings: View {
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                         .padding(.horizontal, 20)
                         .padding(.vertical, 8)
-                    SpacingControls(preset: preset, edits: $edits)
+                    Form {
+                        SpacingControls(preset: preset, edits: $edits)
+                        Section {
+                            RestoreSpacingDefaults(preset: preset, edits: $edits)
+                        }
+                    }
+                    .softTopScrollEdge()
                 }
             }
             .navigationTitle("Customize \(preset.name)")
@@ -41,6 +47,25 @@ struct PresetSpacingSettings: View {
         style.preset = edits.map(preset.applyingSpacing) ?? preset
         style.insets = .init(top: 14, left: 18, bottom: 10, right: 18)
         return style
+    }
+}
+
+private struct RestoreSpacingDefaults: View {
+    let preset: TypographyPreset
+    @Binding var edits: TypographySpacing?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        let isAtDefaults = edits == nil
+        Button {
+            edits = nil
+        } label: {
+            Text("Restore \(preset.name) Defaults")
+                .foregroundStyle(isAtDefaults ? AnyShapeStyle(.tertiary) : AnyShapeStyle(Color.accentColor))
+                .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: isAtDefaults)
+        }
+        .disabled(isAtDefaults)
+        .accessibilityIdentifier("preset-restore-defaults")
     }
 }
 
