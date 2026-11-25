@@ -7,11 +7,22 @@ struct MacNavigator: View {
         case folder
     }
 
+    private struct FileItem: Identifiable {
+        let url: URL
+        let modified: Date?
+        var id: URL { url }
+
+        init(url: URL) {
+            self.url = url
+            modified = (try? url.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
+        }
+    }
+
     let documentURL: URL?
     let open: (URL) -> Void
     @AppStorage("mac.navigator-tab") private var tab: Tab = .recent
-    @State private var recent: [URL] = []
-    @State private var files: [URL] = []
+    @State private var recent: [FileItem] = []
+    @State private var files: [FileItem] = []
 
     var body: some View {
         let currentURL = documentURL?.standardizedFileURL
@@ -32,7 +43,7 @@ struct MacNavigator: View {
                 switch tab {
                 case .recent:
                     if recent.isEmpty { emptyRow("No recent files") }
-                    ForEach(recent, id: \.self) { row($0, currentURL: currentURL) }
+                    ForEach(recent) { row($0, currentURL: currentURL, showFolder: true) }
                 case .folder:
                     if let folder {
                         Text(folder.lastPathComponent.isEmpty ? folder.path : folder.lastPathComponent)
@@ -44,7 +55,7 @@ struct MacNavigator: View {
                             .listRowInsets(EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8))
                             .listRowSeparator(.hidden)
                         if files.isEmpty { emptyRow("No Markdown or text files") }
-                        ForEach(files, id: \.self) { row($0, currentURL: currentURL) }
+                        ForEach(files) { row($0, currentURL: currentURL, showFolder: false) }
                     } else {
                         emptyRow("Save this document to browse its folder.")
                     }
@@ -56,11 +67,16 @@ struct MacNavigator: View {
             .environment(\.defaultMinListRowHeight, 24)
         }
         .accessibilityIdentifier("mac-navigator")
-        .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { _ in
-            refreshRecents()
+        .task(id: folder) {
+            let keyChanges = NotificationCenter.default.notifications(named: NSWindow.didBecomeKeyNotification)
+                .map { _ in () }
+            await refreshRecents()
+            for await _ in keyChanges {
+                guard !Task.isCancelled else { break }
+                await refreshRecents()
+            }
         }
         .task(id: folder) {
-            refreshRecents()
             files = []
             guard let folder else { return }
             let changes = MacFileEvents.changes(at: folder)
@@ -73,36 +89,65 @@ struct MacNavigator: View {
     }
 
     private func scan(_ folder: URL) async {
-        let files = await Task.detached(priority: .userInitiated) { MacFolderListing.files(in: folder) }.value
+        let files = await Task.detached(priority: .userInitiated) {
+            MacFolderListing.files(in: folder).map(FileItem.init(url:))
+        }.value
         if !Task.isCancelled { self.files = files }
     }
 
-    private func row(_ url: URL, currentURL: URL?) -> some View {
+    private func row(_ item: FileItem, currentURL: URL?, showFolder: Bool) -> some View {
+        let url = item.url
         let current = currentURL == url.standardizedFileURL
         return Button {
             open(url)
         } label: {
-            HStack(spacing: 6) {
+            HStack(spacing: 8) {
                 Image(systemName: "doc.text")
+                    .font(.system(size: 14))
+                    .frame(width: 16)
                     .foregroundStyle(.secondary)
                     .accessibilityHidden(true)
-                Text(url.lastPathComponent)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(url.lastPathComponent)
+                        .font(.system(size: 13))
+                        .truncationMode(.middle)
+                    if showFolder || item.modified != nil {
+                        metadata(for: item, showFolder: showFolder)
+                    }
+                }
+                .lineLimit(1)
             }
-            .font(.system(size: 12))
+            .padding(.vertical, 4)
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .listRowInsets(EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8))
+        .listRowInsets(EdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 10))
         .listRowSeparator(.hidden)
         .listRowBackground(
             RoundedRectangle(cornerRadius: 6)
                 .fill(current ? Color.accentColor.opacity(0.20) : .clear)
-                .padding(.horizontal, 4))
+                .padding(.horizontal, 7)
+        )
         .accessibilityAddTraits(current ? .isSelected : [])
         .help(url.path)
+    }
+
+    private func metadata(for item: FileItem, showFolder: Bool) -> some View {
+        HStack(spacing: 3) {
+            if showFolder {
+                Text(item.url.deletingLastPathComponent().lastPathComponent)
+            }
+            if let modified = item.modified {
+                if showFolder {
+                    Text("·").accessibilityHidden(true)
+                }
+                Text(.currentDate, format: .reference(to: modified, maxFieldCount: 1))
+                    .layoutPriority(1)
+            }
+        }
+        .font(.system(size: 10))
+        .foregroundStyle(.secondary)
     }
 
     private func emptyRow(_ title: LocalizedStringKey) -> some View {
@@ -111,7 +156,9 @@ struct MacNavigator: View {
             .foregroundStyle(.secondary)
     }
 
-    private func refreshRecents() {
-        recent = Array(NSDocumentController.shared.recentDocumentURLs.prefix(8))
+    private func refreshRecents() async {
+        let urls = Array(NSDocumentController.shared.recentDocumentURLs.prefix(8))
+        let items = await Task.detached(priority: .userInitiated) { urls.map(FileItem.init(url:)) }.value
+        if !Task.isCancelled { recent = items }
     }
 }

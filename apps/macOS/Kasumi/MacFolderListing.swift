@@ -10,7 +10,8 @@ enum MacFolderListing {
     static func files(in folder: URL) -> [URL] {
         let urls =
             (try? FileManager.default.contentsOfDirectory(
-                at: folder, includingPropertiesForKeys: [.isRegularFileKey], options: [.skipsHiddenFiles])) ?? []
+                at: folder, includingPropertiesForKeys: [.isRegularFileKey, .contentModificationDateKey],
+                options: [.skipsHiddenFiles])) ?? []
         return urls.filter { url in
             supports(url) && (try? url.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true
         }
