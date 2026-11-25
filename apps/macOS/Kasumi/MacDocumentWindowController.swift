@@ -1,7 +1,14 @@
 import AppKit
 
 final class MacDocumentWindowController: NSWindowController, NSMenuItemValidation {
+    enum Placement {
+        case automatic, separate
+        case tab(NSWindow)
+    }
+
     private var didPlaceWindow = false
+    /// Where the window goes when first shown.
+    var placement = Placement.automatic
 
     init(session: MacReaderSession, undoManager: UndoManager?) {
         let host = MacNavigatorSplit(session: session, undoManager: undoManager)
@@ -32,12 +39,14 @@ final class MacDocumentWindowController: NSWindowController, NSMenuItemValidatio
     }
 
     override func showWindow(_ sender: Any?) {
+        // Don't retain a tab target past the first showing.
+        let placement = self.placement
+        self.placement = .automatic
         if !didPlaceWindow {
             didPlaceWindow = true
             if let window, let document = document as? MacDocument,
                 !window.isVisible, (window.tabGroup?.windows.count ?? 0) < 2, !document.isInViewingMode,
-                let controller = NSDocumentController.shared as? MacDocumentController,
-                let target = controller.destination(for: window, url: document.fileURL)
+                let target = destination(for: window, url: document.fileURL, placement: placement)
             {
                 if let group = target.tabGroup {
                     group.insertWindow(window, at: group.windows.count)
@@ -46,7 +55,23 @@ final class MacDocumentWindowController: NSWindowController, NSMenuItemValidatio
                 }
             }
         }
-        super.showWindow(sender)
+        if case .separate = placement, let window {
+            let tabbingMode = window.tabbingMode
+            window.tabbingMode = .disallowed
+            super.showWindow(sender)
+            window.tabbingMode = tabbingMode
+        } else {
+            super.showWindow(sender)
+        }
+    }
+
+    private func destination(for window: NSWindow, url: URL?, placement: Placement) -> NSWindow? {
+        switch placement {
+        case .separate: nil
+        case .tab(let target): target
+        case .automatic:
+            (NSDocumentController.shared as? MacDocumentController)?.destination(for: window, url: url)
+        }
     }
 
     private var commandSession: MacReaderSession? {
@@ -64,6 +89,9 @@ final class MacDocumentWindowController: NSWindowController, NSMenuItemValidatio
     }
 
     func validateMenuItem(_ item: NSMenuItem) -> Bool {
+        if item.action == #selector(newWindowForTab(_:)) {
+            return commandSession != nil && (document as? MacDocument)?.isInViewingMode == false
+        }
         guard let command = item.representedObject as? MacReaderCommand, let session = commandSession else {
             return false
         }
@@ -71,6 +99,8 @@ final class MacDocumentWindowController: NSWindowController, NSMenuItemValidatio
     }
 
     override func newWindowForTab(_ sender: Any?) {
-        NSDocumentController.shared.newDocument(sender)
+        // A version browser window isn't a place for new documents.
+        guard let window, (document as? MacDocument)?.isInViewingMode == false else { return }
+        (NSDocumentController.shared as? MacDocumentController)?.newDocument(inTabOf: window)
     }
 }

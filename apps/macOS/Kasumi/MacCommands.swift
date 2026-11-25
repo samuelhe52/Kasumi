@@ -134,6 +134,8 @@ enum MacMenu {
         item("Quit Kasumi", #selector(NSApplication.terminate(_:)), "q", in: application)
 
         let file = menu("File")
+        item("New Window", #selector(MacDocumentController.newSeparateWindow(_:)), "n", in: file)
+        item("New Tab", #selector(MacDocumentWindowController.newWindowForTab(_:)), "t", in: file)
         // AppKit inserts Open Recent next to the standard Open action.
         item("Open…", #selector(NSDocumentController.openDocument(_:)), "o", in: file)
         file.addItem(.separator())

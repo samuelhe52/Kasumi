@@ -22,6 +22,33 @@ final class MacDocumentController: NSDocumentController {
         super.openDocument(withContentsOf: resolvedURL, display: displayDocument, completionHandler: completionHandler)
     }
 
+    @objc func newSeparateWindow(_ sender: Any?) {
+        createDocument(placement: .separate)
+    }
+
+    /// Handles New Tab when no document window is in the responder chain.
+    @objc func newWindowForTab(_ sender: Any?) {
+        createDocument(placement: .separate)
+    }
+
+    func newDocument(inTabOf window: NSWindow) {
+        createDocument(placement: .tab(window))
+    }
+
+    private func createDocument(placement: MacDocumentWindowController.Placement) {
+        do {
+            guard let document = try openUntitledDocumentAndDisplay(false) as? MacDocument else { return }
+            document.opensInSourceMode = true
+            document.makeWindowControllers()
+            for case let controller as MacDocumentWindowController in document.windowControllers {
+                controller.placement = placement
+            }
+            document.showWindows()
+        } catch {
+            NSApp.presentError(error)
+        }
+    }
+
     @objc func pasteAsNewDocument(_ sender: Any?) {
         guard let text = NSPasteboard.general.string(forType: .string), !text.isEmpty else { return }
         do {

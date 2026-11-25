@@ -20,6 +20,7 @@ final class MacDocument: NSDocument {
     private let contents = Mutex(Contents())
     private var watchTask: Task<Void, Never>?
     private(set) var session: MacReaderSession?
+    var opensInSourceMode = false
 
     nonisolated override class var autosavesInPlace: Bool { true }
 
@@ -147,7 +148,7 @@ final class MacDocument: NSDocument {
         let model = ReaderDocument(
             source: source, defaultExtension: plainText ? "txt" : "md", isEditable: !isLocked && !isInViewingMode)
         model.onEdit = { [weak self] snapshot in self?.sourceEdited(snapshot) }
-        let session = MacReaderSession(document: model)
+        let session = MacReaderSession(document: model, showingSource: opensInSourceMode)
         self.session = session
         model.setFileURL(fileURL)
         addWindowController(MacDocumentWindowController(session: session, undoManager: undoManager))

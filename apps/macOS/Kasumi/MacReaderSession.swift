@@ -8,7 +8,7 @@ final class MacReaderSession {
     let document: ReaderDocument
     let viewport = ReaderViewport()
     let source = MacSourceEditorController()
-    private(set) var showingSource = false
+    private(set) var showingSource: Bool
     var readerFindPresented = false
     var outputInProgress = false
     private var requestedReaderHeadingID: String?
@@ -23,7 +23,11 @@ final class MacReaderSession {
     @ObservationIgnored private var readerIsReady = false
     @ObservationIgnored var style = RenderStyle()
 
-    init(document: ReaderDocument) { self.document = document }
+    init(document: ReaderDocument, showingSource: Bool = false) {
+        self.document = document
+        self.showingSource = showingSource
+        if showingSource { source.scroll(to: 1, focus: true) }
+    }
 
     func attach(_ window: NSWindow) {
         self.window = window
