@@ -1,4 +1,5 @@
 import AppKit
+import KasumiMarkdown
 import SwiftUI
 
 /// Use a window-level split so AppKit can place window chrome beside the sidebar.
@@ -155,6 +156,7 @@ private struct MacOutlinePane: View {
             items: session.outline, currentID: session.currentHeadingID, searchable: false, select: session.jump
         )
         .accessibilityIdentifier("mac-outline")
+        .modifier(MacPaperWash())
     }
 }
 
@@ -165,5 +167,25 @@ private struct MacNavigatorPane: View {
         MacNavigator(documentURL: session.document.fileURL) { url in
             (NSDocumentController.shared as? MacDocumentController)?.open(url, from: session.window, fragment: nil)
         }
+        .modifier(MacPaperWash())
+    }
+}
+
+/// Tints a side pane toward the page, leaving the system material visible so it still reads as chrome.
+private struct MacPaperWash: ViewModifier {
+    @Environment(\.colorScheme) private var colorScheme
+    private var preferences = MacAppearancePreferences()
+
+    func body(content: Content) -> some View {
+        let paper = preferences.appearance.theme(dark: colorScheme == .dark).document["paper"]
+        content
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background {
+                (paper.map { Color(.sRGB, red: $0.red, green: $0.green, blue: $0.blue, opacity: $0.alpha * 0.5) }
+                    ?? .clear)
+                    .ignoresSafeArea()
+                    // The page shows a new theme only after its layout, so ease toward it.
+                    .animation(.easeInOut(duration: 0.2), value: paper)
+            }
     }
 }
