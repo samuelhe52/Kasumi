@@ -7,6 +7,8 @@ final class MacDocumentWindowController: NSWindowController, NSMenuItemValidatio
     }
 
     private var didPlaceWindow = false
+    private var readerHasLayout = false
+    private var presentation: Task<Void, Never>?
     /// Where the window goes when first shown.
     var placement = Placement.automatic
 
@@ -39,15 +41,66 @@ final class MacDocumentWindowController: NSWindowController, NSMenuItemValidatio
     }
 
     override func showWindow(_ sender: Any?) {
+        guard presentation == nil else { return }
         // Don't retain a tab target past the first showing.
         let placement = self.placement
         self.placement = .automatic
-        if !didPlaceWindow {
-            didPlaceWindow = true
-            if let window, let document = document as? MacDocument,
-                !window.isVisible, (window.tabGroup?.windows.count ?? 0) < 2, !document.isInViewingMode,
-                let target = destination(for: window, url: document.fileURL, placement: placement)
-            {
+        let places = !didPlaceWindow && canJoinTabGroup
+        didPlaceWindow = true
+        // Look the target up now, while an open request still knows its source.
+        let target = places ? destination(for: placement) : nil
+        let preparesReader =
+            places && !readerHasLayout && (document as? MacDocument)?.session?.showingSource == false
+        if preparesReader, let window {
+            // A reader can lay out in an attached but unordered window.
+            if let target { window.setFrame(target.frame, display: false) }
+            window.contentView?.layoutSubtreeIfNeeded()
+        }
+        guard preparesReader else {
+            present(sender, places: places, target: target, placement: placement)
+            return
+        }
+
+        var separate = false
+        if case .separate = placement { separate = true }
+        presentation = Task { @MainActor [weak self, weak target] in
+            // Keep the current tab on screen until the new one has a viewport,
+            // but let a slow document show its progress indicator.
+            if preparesReader {
+                await Self.poll(for: .milliseconds(500)) { self?.readerHasLayout == false }
+            }
+            guard let self else { return }
+            presentation = nil
+            guard (document as? MacDocument)?.session != nil else { return }
+            present(sender, places: places, target: target, placement: separate ? .separate : .automatic)
+        }
+    }
+
+    func readerDidLayOut() {
+        readerHasLayout = true
+    }
+
+    private static func poll(for limit: Duration, while condition: @MainActor () -> Bool) async {
+        let deadline = ContinuousClock.now + limit
+        while ContinuousClock.now < deadline, condition() {
+            try? await Task.sleep(for: .milliseconds(16))
+        }
+    }
+
+    private var canJoinTabGroup: Bool {
+        guard let window, let document = document as? MacDocument else { return false }
+        return !window.isVisible && (window.tabGroup?.windows.count ?? 0) < 2 && !document.isInViewingMode
+    }
+
+    private func present(_ sender: Any?, places: Bool, target: NSWindow?, placement: Placement) {
+        if places, canJoinTabGroup, let window {
+            // An earlier target may have closed. Files opened together at launch
+            // had none, because no window was on screen yet.
+            let usable = target.flatMap { target -> NSWindow? in
+                let selected = target.tabGroup?.selectedWindow ?? target
+                return selected.isVisible && !selected.isMiniaturized ? selected : nil
+            }
+            if let target = usable ?? destination(for: placement) {
                 if let group = target.tabGroup {
                     group.insertWindow(window, at: group.windows.count)
                 } else {
@@ -65,12 +118,14 @@ final class MacDocumentWindowController: NSWindowController, NSMenuItemValidatio
         }
     }
 
-    private func destination(for window: NSWindow, url: URL?, placement: Placement) -> NSWindow? {
-        switch placement {
+    private func destination(for placement: Placement) -> NSWindow? {
+        guard let window else { return nil }
+        return switch placement {
         case .separate: nil
         case .tab(let target): target
         case .automatic:
-            (NSDocumentController.shared as? MacDocumentController)?.destination(for: window, url: url)
+            (NSDocumentController.shared as? MacDocumentController)?
+                .destination(for: window, url: (document as? MacDocument)?.fileURL)
         }
     }
 

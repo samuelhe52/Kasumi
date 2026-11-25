@@ -1,6 +1,6 @@
 import AppKit
 import KasumiMarkdown
-import KasumiMarkdownUI
+@_spi(KasumiApp) import KasumiMarkdownUI
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -154,6 +154,9 @@ private struct MacReadingPane: View {
             .markdownFindNavigator(isPresented: $session.readerFindPresented)
             .markdownRemoteImages(.http)
             .markdownScroller(MacScroller.self)
+            .onMarkdownFirstLayout { [weak session] in
+                (session?.window?.windowController as? MacDocumentWindowController)?.readerDidLayOut()
+            }
             .onMarkdownLink(openLink)
             .onMarkdownPositionChange { anchor, heading in
                 session.readerMoved(to: anchor, heading: heading)

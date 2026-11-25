@@ -26,6 +26,7 @@ import SwiftUI
         private var codeControlID: AnyHashable?
     #elseif os(macOS)
         private var scrollerType: NSScroller.Type?
+        fileprivate var firstLayout: (() -> Void)?
     #endif
     @Environment(\.markdownReaderConnection) private var connection
 
@@ -106,6 +107,13 @@ import SwiftUI
         public func markdownScroller(_ type: NSScroller.Type?) -> Self {
             var reader = self
             reader.scrollerType = type
+            return reader
+        }
+
+        /// Called once after the native view installs its first viewport, including for empty documents.
+        @_spi(KasumiApp) public func onMarkdownFirstLayout(_ action: @escaping () -> Void) -> Self {
+            var reader = self
+            reader.firstLayout = action
             return reader
         }
     #endif
@@ -254,6 +262,14 @@ extension EnvironmentValues {
         reader.attachCallbacks(to: self)
         guard self.view !== view else { return }
         self.view = view
+        #if os(macOS)
+            if let firstLayout = reader.firstLayout {
+                view.onReaderLayout = { [weak view] in
+                    view?.onReaderLayout = nil
+                    firstLayout()
+                }
+            }
+        #endif
         view.onOpenLink = { [weak self] url in self?.openLink?(url) }
         view.onPositionChange = { [weak self] anchor, heading in
             guard let self, self.positionChange != nil else { return }
