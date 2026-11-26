@@ -20,6 +20,7 @@ final class MacDocument: NSDocument {
     private let contents = Mutex(Contents())
     private var watchTask: Task<Void, Never>?
     private(set) var session: MacReaderSession?
+    private var initialTitle: String?
     var opensInSourceMode = false
 
     nonisolated override class var autosavesInPlace: Bool { true }
@@ -74,6 +75,10 @@ final class MacDocument: NSDocument {
 
     func setInitialText(_ text: String) {
         contents.withLock { $0.latest = .init(source: DocumentSource(text: text), text: text) }
+        if let heading = ImportDocumentNaming.leadingHeadingTitle(in: text) {
+            initialTitle = heading
+            displayName = heading
+        }
     }
 
     override func updateChangeCount(_ change: ChangeType) {
@@ -145,8 +150,13 @@ final class MacDocument: NSDocument {
         let plainText =
             fileType.flatMap(UTType.init)?.conforms(to: .plainText) == true
             && fileType != UTType.kasumiMarkdown.identifier
+        let defaultExtension = plainText ? "txt" : "md"
+        // Shaped like a saved file's title, so export strips this extension
+        // rather than part of a dotted heading such as "Release 1.2".
+        let untitledTitle = initialTitle.map { "\($0).\(defaultExtension)" } ?? "Untitled"
         let model = ReaderDocument(
-            source: source, defaultExtension: plainText ? "txt" : "md", isEditable: !isLocked && !isInViewingMode)
+            source: source, defaultExtension: defaultExtension, untitledTitle: untitledTitle,
+            isEditable: !isLocked && !isInViewingMode)
         model.onEdit = { [weak self] snapshot in self?.sourceEdited(snapshot) }
         let session = MacReaderSession(document: model, showingSource: opensInSourceMode)
         self.session = session

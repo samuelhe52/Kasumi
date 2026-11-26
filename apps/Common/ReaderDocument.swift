@@ -43,6 +43,7 @@ final class ReaderDocument: Identifiable {
     private var referenceFileURL: URL?
     @ObservationIgnored private let fileURLProvider: (() -> URL?)?
     @ObservationIgnored private let defaultExtension: String
+    @ObservationIgnored private let untitledTitle: String
     @ObservationIgnored var onEdit: ((WriteSnapshot) -> Void)?
     @ObservationIgnored private var source: DocumentSource
     @ObservationIgnored private var sourceRevision = UUID()
@@ -52,7 +53,7 @@ final class ReaderDocument: Identifiable {
     @ObservationIgnored private var lastTyping: ContinuousClock.Instant?
 
     var fileURL: URL? { fileURLProvider?() ?? referenceFileURL }
-    var title: String { fileURL?.lastPathComponent ?? "Untitled" }
+    var title: String { fileURL?.lastPathComponent ?? untitledTitle }
     var canEdit: Bool { isEditable && snapshot != nil && !source.isLossy }
     var isPlainText: Bool {
         fileExtension == "txt" || fileExtension == "text"
@@ -65,11 +66,12 @@ final class ReaderDocument: Identifiable {
 
     init(
         source: DocumentSource = DocumentSource(text: ""), defaultExtension: String = "md",
-        isEditable: Bool = true, fileURLProvider: (() -> URL?)? = nil
+        untitledTitle: String = "Untitled", isEditable: Bool = true, fileURLProvider: (() -> URL?)? = nil
     ) {
         self.source = source
         self.text = source.text
         self.defaultExtension = defaultExtension
+        self.untitledTitle = untitledTitle
         self.isEditable = isEditable
         self.fileURLProvider = fileURLProvider
     }

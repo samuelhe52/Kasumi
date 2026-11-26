@@ -35,23 +35,17 @@ enum ImportFolder: String, CaseIterable {
         return target
     }
 
-    static func pastedName(at date: Date = .now) -> String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "yyyy-MM-dd HH.mm.ss"
-        return "Pasted Text \(formatter.string(from: date)).md"
+    static func pastedName(for text: String, at date: Date = .now) -> String {
+        ImportDocumentNaming.pastedName(for: text, at: date)
     }
 
-    static func downloadName(for url: URL) -> String {
-        var name = url.lastPathComponent
-        if name.isEmpty || name == "/" { name = url.host() ?? "Download" }
-        return markdownName(name)
+    static func downloadName(for url: URL, data: Data) -> String {
+        ImportDocumentNaming.downloadName(for: url, data: data)
     }
 
     /// Adds `.md` unless `name` already ends in a Markdown or text extension.
     static func markdownName(_ name: String) -> String {
-        let extensions = ["md", "markdown", "mdown", "mkd", "txt", "text"]
-        return extensions.contains((name as NSString).pathExtension.lowercased()) ? name : name + ".md"
+        ImportDocumentNaming.markdownName(name)
     }
 }
 
@@ -100,7 +94,7 @@ final class LaunchStore {
             return pasteFailed(String(localized: "The clipboard contains no text to paste."))
         }
         do {
-            let url = try ImportFolder.pasted.save(Data(text.utf8), as: ImportFolder.pastedName())
+            let url = try ImportFolder.pasted.save(Data(text.utf8), as: ImportFolder.pastedName(for: text))
             Task { await open(url) }
         } catch {
             pasteFailed(error.localizedDescription)
@@ -110,7 +104,7 @@ final class LaunchStore {
 
     /// Saves a fetched document and opens it once the URL sheet has gone.
     func saveDownload(_ data: Data, from url: URL) throws {
-        pendingOpen = try ImportFolder.downloaded.save(data, as: ImportFolder.downloadName(for: url))
+        pendingOpen = try ImportFolder.downloaded.save(data, as: ImportFolder.downloadName(for: url, data: data))
         showURLImport = false
     }
     func urlImportDismissed() {
