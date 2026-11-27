@@ -456,12 +456,36 @@ public final class RenderedDocument: @unchecked Sendable {
         return (semanticText as NSString).substring(with: selected)
     }
 
+    /// The rendered font and baseline origin where a laid-out text range starts,
+    /// for drawing the system Look Up highlight over it. Nil for diagram and
+    /// estimated text.
+    package func textStyle(at range: TextRange) -> (font: CTFont, baseline: CGPoint)? {
+        guard let semantic = checked(range), semantic.length > 0,
+            let rendered = layout.textMap.renderedRange(for: semantic)
+        else { return nil }
+        return layoutLock.withLock {
+            guard let line = lines.first(where: { NSLocationInRange(rendered.location, $0.range) }),
+                layout.diagrams[line.paragraph] == nil
+            else { return nil }
+            let item = layout.paragraphs[line.paragraph]
+            let local = rendered.location - item.textOffset
+            guard local < item.paragraph.attributed.length,
+                let value = item.paragraph.attributed.attribute(.font, at: local, effectiveRange: nil),
+                CFGetTypeID(value as CFTypeRef) == CTFontGetTypeID()
+            else { return nil }
+            let x = line.origin.x + line.shaped.offset(forStringIndex: local)
+            return ((value as! CTFont), CGPoint(x: x, y: line.origin.y))
+        }
+    }
+
     public func wordRange(at position: TextPosition) -> TextRange? {
         guard position.owner == owner else { return nil }
         let text = semanticText as NSString
         guard text.length > 0 else { return nil }
         let index = min(max(0, position.offset), text.length - 1)
         var found: NSRange?
+        // Words never cross a paragraph break; scanning only this paragraph
+        // keeps lookups late in long documents fast.
         text.enumerateSubstrings(
             in: text.paragraphRange(for: NSRange(location: index, length: 0)),
             options: [.byWords, .substringNotRequired]

@@ -93,6 +93,8 @@ Both platforms have a view named `MarkdownReaderView`. Create one with `Markdown
 
 Enable a Find button only when `canPresentFind` is true. `presentFind()` called while a document is still opening shows the panel as soon as the first screen is laid out.
 
+On macOS, use your configured **Look up & data detectors** trackpad gesture over a word to show its definition, including in horizontally scrolling tables.
+
 ### Reader images
 
 The reader shows local and embedded images. It doesn't load HTTP(S) images unless you opt in. `.markdownRemoteImages(.http)` (or `setRemoteImages(.http)`) downloads them with the library's size-limited downloader. To serve images from your own cache or an authenticated loader, write a provider:

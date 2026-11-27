@@ -129,6 +129,14 @@ import KasumiMarkdown
     override func mouseDown(with event: NSEvent) { host?.owner?.canvas.mouseDown(with: event) }
     override func mouseDragged(with event: NSEvent) { host?.owner?.canvas.mouseDragged(with: event) }
     override func mouseUp(with event: NSEvent) { host?.owner?.canvas.mouseUp(with: event) }
+    override func quickLook(with event: NSEvent) {
+        if let canvas = host?.owner?.canvas { canvas.quickLook(with: event) }
+        else { super.quickLook(with: event) }
+    }
+    override func pressureChange(with event: NSEvent) {
+        if let canvas = host?.owner?.canvas { canvas.pressureChange(with: event) }
+        else { super.pressureChange(with: event) }
+    }
 }
 
 /// A prepainted viewport image. Background prepaint hands only this immutable

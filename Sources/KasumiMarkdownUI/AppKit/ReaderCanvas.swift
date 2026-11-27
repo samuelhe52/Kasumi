@@ -114,6 +114,57 @@ import KasumiMarkdown
         return owner.rendered?.link(at: owner.semanticPoint(point))
     }
 
+    override func quickLook(with event: NSEvent) {
+        if !showLookup(at: documentPoint(event)) { super.quickLook(with: event) }
+    }
+
+    override func pressureChange(with event: NSEvent) {
+        // The global Look Up setting is 1 for Force Click, not three-finger tap or off.
+        if event.stage == 2, drag?.moved == false,
+            UserDefaults.standard.integer(forKey: "com.apple.trackpad.forceClick") == 1,
+            showLookup(at: documentPoint(event))
+        { return }
+        super.pressureChange(with: event)
+    }
+
+    private func showLookup(at point: CGPoint) -> Bool {
+        guard let target = lookupTarget(at: point) else { return false }
+        // A force click can follow mouseDown. Don't open the link on mouseUp.
+        endDrag()
+        showDefinition(for: target.text, at: target.baseline)
+        return true
+    }
+
+    /// The word under `point` in its rendered font, with its visible baseline
+    /// origin and selection rect in canvas coordinates.
+    func lookupTarget(at point: CGPoint) -> (text: NSAttributedString, baseline: CGPoint, rect: CGRect)? {
+        guard let owner, owner.isActive, owner.viewport.contains(point), let rendered = owner.rendered else { return nil }
+        let semantic = owner.semanticPoint(point)
+        let position = rendered.position(closestTo: semantic)
+        func target(at position: KasumiMarkdown.TextPosition)
+            -> (text: NSAttributedString, baseline: CGPoint, rect: CGRect)?
+        {
+            guard let word = rendered.wordRange(at: position),
+                let rect = rendered.selectionRects(for: word).lazy.map({ owner.visibleSelectionRect($0) })
+                    .first(where: { $0.contains(point) })
+            else { return nil }
+            let string = rendered.text(in: word)
+            guard let style = rendered.textStyle(at: word) else {
+                let font = NSFont.systemFont(ofSize: NSFont.systemFontSize)
+                return (
+                    NSAttributedString(string: string, attributes: [.font: font]),
+                    CGPoint(x: rect.minX, y: rect.maxY + font.descender), rect)
+            }
+            // Layout coordinates are shifted by the horizontal table scroll offset.
+            let baseline = CGPoint(x: style.baseline.x - (semantic.x - point.x), y: style.baseline.y)
+            return (NSAttributedString(string: string, attributes: [.font: style.font as NSFont]), baseline, rect)
+        }
+        if let hit = target(at: position) { return hit }
+        // The closest caret may be just after the last glyph of the word.
+        guard let previous = rendered.position(from: position, offset: -1) else { return nil }
+        return target(at: previous)
+    }
+
     override func mouseDown(with event: NSEvent) {
         guard let owner, owner.isActive, let rendered = owner.rendered else { return }
         window?.makeFirstResponder(self)

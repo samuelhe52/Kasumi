@@ -46,6 +46,43 @@ import Testing
         #expect(await eventually { abs(reader.viewport.minY - place) < 1 })
     }
 
+    @Test func dictionaryLookupHitsWordsAndFollowsHorizontalTableScrolling() async throws {
+        let (reader, window) = try await reader(
+            markdown: """
+                # Heading
+
+                Alpha beta gamma
+
+                | First column | Second column | Third column |
+                | --- | --- | --- |
+                | Longer description | Dictionary entry | Another long description |
+                """, size: CGSize(width: 360, height: 300))
+        defer { window.contentView = nil }
+        let canvas = reader.canvas
+        let beta = try #require(canvas.rects(for: canvas.semanticString.range(of: "beta")).first)
+        let body = try #require(canvas.lookupTarget(at: CGPoint(x: beta.maxX - 0.5, y: beta.midY)))
+        #expect(body.text.string == "beta")
+        #expect(abs(body.baseline.x - beta.minX) < 0.01)
+        #expect(body.baseline.y > beta.minY && body.baseline.y < beta.maxY)
+        #expect(canvas.lookupTarget(at: CGPoint(x: beta.maxX + 0.5, y: beta.midY)) == nil)
+        let headingRect = try #require(canvas.rects(for: canvas.semanticString.range(of: "Heading")).first)
+        let heading = try #require(canvas.lookupTarget(at: CGPoint(x: headingRect.midX, y: headingRect.midY)))
+        let headingFont = try #require(heading.text.attribute(.font, at: 0, effectiveRange: nil) as? NSFont)
+        let bodyFont = try #require(body.text.attribute(.font, at: 0, effectiveRange: nil) as? NSFont)
+        #expect(headingFont.pointSize > bodyFont.pointSize)
+
+        let table = try #require(canvas.subviews.compactMap { $0 as? ReaderTableScrollView }.first)
+        let word = canvas.semanticString.range(of: "Dictionary")
+        let before = try #require(canvas.rects(for: word).first)
+        table.applyOffset(24)
+        let offset = table.contentView.bounds.minX
+        #expect(offset > 0)
+        let hit = try #require(canvas.lookupTarget(at: CGPoint(x: before.minX - offset + 3, y: before.midY)))
+        #expect(hit.text.string == "Dictionary")
+        #expect(abs(hit.rect.minX - (before.minX - offset)) < 0.01)
+        #expect(abs(hit.baseline.x - hit.rect.minX) < 0.01)
+    }
+
     private func reader(markdown: String, size: CGSize) async throws -> (MarkdownReaderView, NSWindow) {
         _ = NSApplication.shared
         let frame = CGRect(origin: .zero, size: size)
