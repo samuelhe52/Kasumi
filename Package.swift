@@ -4,7 +4,9 @@ import PackageDescription
 // A checkout opts into its own Rust builds with `make native-local`.
 // Release automation replaces this block with immutable URLs and checksums.
 // BEGIN RELEASE NATIVE BINARIES
-let releasedNative: [String: (url: String, checksum: String)] = [:]
+let releasedNative: [String: (url: String, checksum: String)] = [
+    "KasumiNative": (url: "https://github.com/samuelhe52/Kasumi/releases/download/0.3.0/kasumi_native.xcframework.zip", checksum: "ddc86eb91f12f944e61d13d554b6f6c37039f0607e05aad6d22c72f27ecb0a82"),
+]
 // END RELEASE NATIVE BINARIES
 let native = ".build/native"
 // Local mode changes this checkout-only switch for a tagged release.
