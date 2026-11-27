@@ -39,7 +39,7 @@ NATIVE_INPUTS := scripts/build-native rust-toolchain.toml \
 
 .DEFAULT_GOAL := help
 .PHONY: help format native native-local native-release build test test-ios app run-sim run-device launch-sim test-syntax-native syntax-notices render app-check app-check-sim check clean benchmark-typography reflow-lab run-reflow-lab check-reflow-lab check-reader-scrolling check-reflow-scrolling check-fast-reflow-scrolling benchmark-build benchmark-corpus benchmark-self-check benchmark-reader benchmark-reader-full benchmark-reflow-lab
-.PHONY: check-native-consumer app-mac app-check-mac run-mac
+.PHONY: check-native-consumer app-mac app-check-mac mac-dmg run-mac
 
 help: ## List available targets
 	@awk 'BEGIN { FS = ":.*## " } /^[a-z-]+:.*## / { printf "  %-8s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
@@ -116,6 +116,9 @@ app-mac: native ## Build the native macOS app
 app-check-mac: native ## Compile the native macOS app without signing or launching it
 	xcodebuild -project apps/iOS/Kasumi.xcodeproj -scheme KasumiMac \
 		-configuration $(CONFIGURATION) -destination 'platform=macOS' -derivedDataPath $(DERIVED_DATA) CODE_SIGNING_ALLOWED=NO build
+
+mac-dmg: ## Build a Developer ID signed, notarized Kasumi for Mac DMG (NOTARY_PROFILE required)
+	@scripts/build-mac-dmg
 
 run-mac: app-mac ## Build and relaunch the native macOS app
 	@pkill -f "$(abspath $(MAC_APP_PATH))/Contents/MacOS/" && sleep 1; \
