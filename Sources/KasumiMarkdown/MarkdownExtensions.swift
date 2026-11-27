@@ -377,6 +377,26 @@ struct MarkdownExtensions {
         scripts = scriptTokens
     }
 
+    /// Replace math placeholders with their TeX source, leaving every other character literal.
+    func expandingMath(_ text: String) -> String {
+        guard !math.isEmpty, text.contains(mathPrefix) else { return text }
+        var result = ""
+        var remaining = text[...]
+        while let start = remaining.range(of: mathPrefix) {
+            result += remaining[..<start.lowerBound]
+            if let end = remaining[start.upperBound...].firstIndex(of: "\u{E001}"),
+                let source = math[String(remaining[start.lowerBound...end])]
+            {
+                result += source.text
+                remaining = remaining[remaining.index(after: end)...]
+            } else {
+                result += remaining[start]
+                remaining = remaining[start.upperBound...]
+            }
+        }
+        return result + remaining
+    }
+
     func textRuns(_ text: String, traits: Set<InlineRun.Trait>, destination: String?) -> [InlineRun] {
         // Ordinary prose needs neither the marker regex nor two generic UTF-8
         // walks. Check both ASCII '=' and the private-use marker's leading byte

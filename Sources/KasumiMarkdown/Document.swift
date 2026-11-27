@@ -23,12 +23,23 @@ struct InlineRun: Equatable, Sendable {
 
 struct DocumentBlock: Identifiable, Sendable {
     enum Kind: String, Sendable { case paragraph, heading, quote, code, rule, table, image, math, diagram }
+
+    struct Container: Sendable {
+        enum Kind: Sendable { case quote, list, item(marker: String, sourceIndent: Int) }
+        let parent: Int?
+        let kind: Kind
+        /// Index of the first block parsed inside this container, or of the next block if it has none.
+        let firstBlock: Int
+    }
+
     let id: Int
     var kind: Kind
     var runs: [InlineRun]
     var alignment: ParagraphAlignment?
     var level: Int = 0
     var prefix = ""
+    /// Index of the innermost container in ParsedDocument.containers.
+    var containerID: Int? = nil
     var language: String?
     var syntaxTokens: [CodeSyntax.Token] = []
     var codeSource: String?
@@ -43,11 +54,16 @@ struct DocumentBlock: Identifiable, Sendable {
 
 struct ParsedDocument: Sendable {
     var blocks: [DocumentBlock]
+    let containers: [DocumentBlock.Container]
     /// Directory against which relative resources in this document resolve.
     var baseURL: URL? = nil
     let languageAnalysis: DocumentLanguageAnalysis
-    init(blocks: [DocumentBlock], baseURL: URL? = nil, declaredLanguage: String? = nil) {
+    init(
+        blocks: [DocumentBlock], containers: [DocumentBlock.Container] = [], baseURL: URL? = nil,
+        declaredLanguage: String? = nil
+    ) {
         self.blocks = blocks
+        self.containers = containers
         self.baseURL = baseURL
         languageAnalysis = DocumentLanguageAnalysis.analyze(blocks, declaredLanguage: declaredLanguage)
     }
@@ -68,13 +84,77 @@ enum DocumentParser {
         let ast = Markdown.Document(parsing: extensions.markdown)
         var blocks: [DocumentBlock] = []
         var htmlContext = HTMLFragment.Context()
+        var containers: [DocumentBlock.Container] = []
+        var containerID: Int?
+        func withContainer(_ kind: DocumentBlock.Container.Kind, _ body: () -> Void) {
+            let parent = containerID
+            containerID = containers.count
+            containers.append(.init(parent: parent, kind: kind, firstBlock: blocks.count))
+            body()
+            containerID = parent
+        }
+
+        // The exported number (or checkbox) isn't necessarily the source list
+        // marker. Read its actual width and padding for multiline math only.
+        let bytes = extensions.markdown.utf8
+        var itemLine = 1
+        var itemLineStart = bytes.startIndex
+        func sourceIndent(for item: ListItem) -> Int {
+            guard hasDisplayMath, let start = item.range?.lowerBound else { return 0 }
+            while itemLine < start.line {
+                guard let newline = bytes[itemLineStart...].firstIndex(where: { $0 == 10 || $0 == 13 }) else { return 0 }
+                itemLineStart = bytes.index(after: newline)
+                if bytes[newline] == 13, itemLineStart < bytes.endIndex, bytes[itemLineStart] == 10 {
+                    bytes.formIndex(after: &itemLineStart)
+                }
+                itemLine += 1
+            }
+            guard let marker = bytes.index(itemLineStart, offsetBy: start.column - 1, limitedBy: bytes.endIndex),
+                marker < bytes.endIndex
+            else { return 0 }
+            // Count the item's own leading indent, not the surrounding quote
+            // or ancestor list padding already accounted for in the path.
+            var column = 0
+            var parentColumn = 0
+            var afterQuoteMarker = false
+            for byte in bytes[itemLineStart..<marker] {
+                column += byte == 9 ? 4 - column % 4 : 1
+                if afterQuoteMarker, byte == 32 || byte == 9 { parentColumn += 1 }
+                afterQuoteMarker = byte == 62
+                if afterQuoteMarker { parentColumn = column }
+            }
+            var parent = containerID
+            while let id = parent {
+                if case .quote = containers[id].kind { break }
+                if case .item(_, let indent) = containers[id].kind { parentColumn += indent }
+                parent = containers[id].parent
+            }
+            let leadingIndent = max(0, column - parentColumn)
+            let digits = bytes[marker...].prefix(while: { (48...57).contains($0) })
+            guard digits.endIndex < bytes.endIndex else { return 0 }
+            let markerWidth = digits.count + 1
+            var index = bytes.index(after: digits.endIndex)
+            var padding = 0
+            while index < bytes.endIndex, padding < 5 {
+                if bytes[index] == 32 {
+                    padding += 1
+                } else if bytes[index] == 9 {
+                    padding += 4 - (column + markerWidth + padding) % 4
+                } else {
+                    break
+                }
+                bytes.formIndex(after: &index)
+            }
+            let hasContent = index < bytes.endIndex && bytes[index] != 10 && bytes[index] != 13
+            return leadingIndent + markerWidth + ((1...4).contains(padding) && hasContent ? padding : 1)
+        }
         func append(
             _ node: any Markup, kind: DocumentBlock.Kind, runs: [InlineRun], level: Int = 0, prefix: String = "",
             language: String? = nil, alignment: ParagraphAlignment? = nil
         ) {
             var block = DocumentBlock(
                 id: blocks.count, kind: kind, runs: runs, alignment: alignment, level: level, prefix: prefix,
-                language: language)
+                containerID: containerID, language: language)
             if let r = node.range {
                 block.sourceLines = r.lowerBound.line...r.upperBound.line
                 block.footnoteLabel = extensions.definitionLabelsByLine[r.lowerBound.line]
@@ -140,24 +220,32 @@ enum DocumentParser {
                     + table.body.rows.map { $0.cells.map { inline($0, extensions: extensions, keepLineBreaks: true) } }
                 blocks[blocks.count - 1].alignments = table.columnAlignments.map { String(describing: $0) }
             case is BlockQuote:
-                for child in node.children {
-                    walk(child, quoteDepth: quoteDepth + 1, listDepth: listDepth, prefix: prefix)
+                withContainer(.quote) {
+                    for child in node.children {
+                        walk(child, quoteDepth: quoteDepth + 1, listDepth: listDepth, prefix: prefix)
+                    }
                 }
             case let list as OrderedList:
-                for (index, item) in list.children.enumerated() {
-                    walk(
-                        item, quoteDepth: quoteDepth, listDepth: listDepth + 1,
-                        prefix: "\(list.startIndex + UInt(index)).")
+                withContainer(.list) {
+                    for (index, item) in list.children.enumerated() {
+                        walk(
+                            item, quoteDepth: quoteDepth, listDepth: listDepth + 1,
+                            prefix: "\(list.startIndex + UInt(index)).")
+                    }
                 }
             case is UnorderedList:
-                for child in node.children {
-                    walk(child, quoteDepth: quoteDepth, listDepth: listDepth + 1, prefix: "•")
+                withContainer(.list) {
+                    for child in node.children {
+                        walk(child, quoteDepth: quoteDepth, listDepth: listDepth + 1, prefix: "•")
+                    }
                 }
             case let item as ListItem:
                 var marker = prefix
                 if let check = item.checkbox { marker = check == .checked ? "☑" : "☐" }
-                for (index, child) in item.children.enumerated() {
-                    walk(child, quoteDepth: quoteDepth, listDepth: listDepth, prefix: index == 0 ? marker : "")
+                withContainer(.item(marker: marker, sourceIndent: sourceIndent(for: item))) {
+                    for (index, child) in item.children.enumerated() {
+                        walk(child, quoteDepth: quoteDepth, listDepth: listDepth, prefix: index == 0 ? marker : "")
+                    }
                 }
             case let html as HTMLBlock:
                 for part in HTMLFragment.blocks(html.rawHTML, context: &htmlContext) {
@@ -177,7 +265,8 @@ enum DocumentParser {
         }
         walk(ast)
         extensions.resolveFootnotes(in: &blocks)
-        return ParsedDocument(blocks: blocks, baseURL: baseURL, declaredLanguage: frontMatter.language)
+        return ParsedDocument(
+            blocks: blocks, containers: containers, baseURL: baseURL, declaredLanguage: frontMatter.language)
     }
 
     private static func inlineChildren(
@@ -232,7 +321,8 @@ enum DocumentParser {
                 node, traits: traits.union([.link]), destination: link.destination, extensions: extensions,
                 keepLineBreaks: keepLineBreaks)
         case let image as Markdown.Image:
-            var run = InlineRun(image.plainText, traits: traits.union([.image]), destination: destination)
+            var run = InlineRun(
+                extensions.expandingMath(image.plainText), traits: traits.union([.image]), destination: destination)
             run.imageSource = image.source
             return [run]
         case is SoftBreak: return [InlineRun(keepLineBreaks ? "\n" : " ", traits: traits, destination: destination)]
