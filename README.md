@@ -19,6 +19,8 @@ Kasumi sets every page with its own typesetting engine: no web view, no `UITextV
 
 Join the public beta on TestFlight: https://testflight.apple.com/join/yTy2vaSb
 
+An experimental Mac app is available for download: [Kasumi for Mac 1.0.2](https://github.com/samuelhe52/Kasumi/releases/tag/mac-v1.0.2).
+
 ## Screenshots
 
 <table>
