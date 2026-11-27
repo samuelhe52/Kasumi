@@ -27,7 +27,7 @@
 ## UI
 
 - On iOS, always use the `.soft` style for toolbar edge effects. In UIKit, set `UIScrollView.topEdgeEffect.style = .soft`. In SwiftUI, use `.scrollEdgeEffectStyle(.soft, for: .top)`. Apply this everywhere a toolbar appears. The Mac app keeps the system default style.
-- Sheets are dismissed by an X button (`Button(..., systemImage: "xmark")`) in the leading toolbar slot (`ToolbarItem(placement: .cancellationAction)`). Do not add a Done button.
+- On iOS, sheets are dismissed by an X button (`Button(..., systemImage: "xmark")`) in the leading toolbar slot (`ToolbarItem(placement: .cancellationAction)`). Do not add a Done button. Mac sheets end with a Cancel button and a default action button at the bottom trailing edge.
 
 ## Reference materials
 

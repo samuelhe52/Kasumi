@@ -116,7 +116,8 @@ mode switch.
 
 | Menu | Commands |
 | --- | --- |
-| File | New Window ⌘N, New Tab ⌘T, Open ⌘O, Open Recent, Close Tab ⌘W, Save ⌘S, Revert, Show in Finder ⌥⌘R, Copy Path ⌥⇧⌘C, Paste as New Document ⇧⌘V, Export as PDF, Print ⌘P |
+| File | New Window ⌘N, New Tab ⌘T, Open ⌘O, Open Recent, Close Tab ⌘W, Save ⌘S, Revert, Show in Finder ⌥⌘R, Copy Path ⌥⇧⌘C, Paste as New Document ⇧⌘V, Export…, Print ⌘P |
+| Edit ▸ Copy Document As (own section after Select All) | Plain Text, Markdown |
 | Edit ▸ Find | Find ⌘F, Find and Replace ⌥⌘F (source only), Next ⌘G, Previous ⇧⌘G, Use Selection ⌘E, Jump to Selection ⌘J |
 | Format (source) | Bold ⌘B, Italic ⌘I, Link ⌘K, Heading 1–6 ⌥⌘1–⌥⌘6, Code, Quote |
 | View | Navigator ⌃⌘S, Outline ⌥⌘0, Source ⌘/, Actual Size ⌘0, Zoom In ⌘+, Zoom Out ⌘−, Full Screen ⌃⌘F |
@@ -179,3 +180,4 @@ Markdown files open as documents.
 - Updated 2026-11-25: Keep pane preferences shared but defer changes to an unselected tab's split until selection — see [009-selected-tab-panes.md](009-selected-tab-panes.md).
 - Updated 2026-11-25: Prepare a new Reader window before showing it — see [010-first-reader-frame.md](010-first-reader-frame.md).
 - Updated 2026-11-25: Let the Stage Manager window settle before switching native tabs — see [011-stage-manager-tab-presentation.md](011-stage-manager-tab-presentation.md).
+- Updated 2026-11-27: add Copy Document As and a native Export sheet in the menu bar — see [Mac export and copy](../008-reader-export/003-mac-export-and-copy.md).

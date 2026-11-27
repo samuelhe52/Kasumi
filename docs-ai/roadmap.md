@@ -40,6 +40,9 @@ or is reordered; record the work itself in a numbered entry.
    notarization and distribution remain. See
    [validation limits](011-mac-app/001-action.md#open-questions).
 
+   [Mac Export and Copy Document As](008-reader-export/003-mac-export-and-copy.md) are
+   menu-only. Mac and iOS share PDF, long PNG, and long JPG options.
+
 ## Non-blocking Reader 1 follow-ups
 
 [Preset spacing](004-ios-reader/008-preset-spacing.md) adds live editing in

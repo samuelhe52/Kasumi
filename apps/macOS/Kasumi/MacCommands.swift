@@ -1,7 +1,8 @@
 import AppKit
 
 enum MacReaderCommand {
-    case showInFinder, copyPath, exportPDF, printDocument
+    case showInFinder, copyPath, export, printDocument
+    case copyAsPlainText, copyAsMarkdown
     case find(NSTextFinder.Action)
     case jumpToSelection
     case bold, italic, link
@@ -18,8 +19,10 @@ enum MacReaderCommand {
         switch self {
         case .showInFinder, .copyPath:
             return session.document.fileURL != nil
-        case .exportPDF, .printDocument:
-            return session.document.previewIsCurrent && !session.outputInProgress
+        case .copyAsPlainText, .copyAsMarkdown:
+            return session.document.snapshot != nil
+        case .export, .printDocument:
+            return session.canExport
         case .find(.showReplaceInterface), .bold, .italic, .link, .heading, .code, .quote:
             return canFormat
         case .find, .jumpToSelection, .source, .actualSize:
@@ -55,8 +58,10 @@ enum MacReaderCommand {
         switch self {
         case .showInFinder: session.showInFinder()
         case .copyPath: session.copyPath()
-        case .exportPDF: session.outputPDF(printing: false)
-        case .printDocument: session.outputPDF(printing: true)
+        case .copyAsPlainText: session.copyAsPlainText()
+        case .copyAsMarkdown: session.copyAsMarkdown()
+        case .export: session.showExport()
+        case .printDocument: session.printDocument()
         case .find(let action): session.performFind(action)
         case .jumpToSelection: session.jumpToSelection()
         case .bold: session.source.apply(SourceFormatting.bold)
@@ -149,7 +154,7 @@ enum MacMenu {
             "Paste as New Document", #selector(MacDocumentController.pasteAsNewDocument(_:)), "v",
             modifiers: [.command, .shift], in: file)
         file.addItem(.separator())
-        reader("Export as PDF…", .exportPDF, in: file)
+        reader("Export…", .export, in: file)
         reader("Print…", .printDocument, "p", in: file)
 
         let edit = menu("Edit")
@@ -160,6 +165,11 @@ enum MacMenu {
         item("Copy", #selector(NSText.copy(_:)), "c", in: edit)
         item("Paste", #selector(NSText.paste(_:)), "v", in: edit)
         item("Select All", #selector(NSText.selectAll(_:)), "a", in: edit)
+        edit.addItem(.separator())
+
+        let copyAs = menu("Copy Document As", in: edit)
+        reader("Plain Text", .copyAsPlainText, in: copyAs)
+        reader("Markdown", .copyAsMarkdown, in: copyAs)
         edit.addItem(.separator())
 
         let find = menu("Find", in: edit)

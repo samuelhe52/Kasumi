@@ -3,71 +3,6 @@ import Observation
 import SwiftUI
 import UIKit
 
-fileprivate enum ReaderExportFormat: String, CaseIterable, Identifiable, Sendable {
-    case pdf, png, jpg
-    var id: Self { self }
-    var label: LocalizedStringResource {
-        switch self {
-        case .pdf: "PDF"
-        case .png: "Long PNG"
-        case .jpg: "Long JPG"
-        }
-    }
-    var footer: LocalizedStringResource {
-        switch self {
-        case .pdf: "Uses the current theme and fonts."
-        case .png, .jpg:
-            "Exports the full document in the current reading style. For very long documents, lower the width or resolution, or choose PDF."
-        }
-    }
-}
-
-fileprivate enum PaperPreset: String, CaseIterable, Identifiable, Sendable {
-    case a3, a4, a5, letter, legal, tabloid
-    var id: Self { self }
-    var label: String {
-        switch self {
-        case .a3: "A3"
-        case .a4: "A4"
-        case .a5: "A5"
-        case .letter: "US Letter"
-        case .legal: "US Legal"
-        case .tabloid: "US Tabloid"
-        }
-    }
-    var size: CGSize {
-        switch self {
-        case .a3: CGSize(width: 841.89, height: 1190.551)
-        case .a4: CGSize(width: 595.276, height: 841.89)
-        case .a5: CGSize(width: 419.528, height: 595.276)
-        case .letter: CGSize(width: 612, height: 792)
-        case .legal: CGSize(width: 612, height: 1008)
-        case .tabloid: CGSize(width: 792, height: 1224)
-        }
-    }
-}
-
-fileprivate enum MarginPreset: String, CaseIterable, Identifiable, Sendable {
-    case narrow, moderate, normal, wide
-    var id: Self { self }
-    var label: LocalizedStringResource {
-        switch self {
-        case .narrow: "Narrow (0.25 in)"
-        case .moderate: "Moderate (0.5 in)"
-        case .normal: "Normal (1 in)"
-        case .wide: "Wide (1.5 in)"
-        }
-    }
-    var points: CGFloat {
-        switch self {
-        case .narrow: 18
-        case .moderate: 36
-        case .normal: 72
-        case .wide: 108
-        }
-    }
-}
-
 fileprivate struct ExportedFile: Identifiable {
     let id = UUID()
     let url: URL
@@ -87,9 +22,8 @@ fileprivate final class ReaderExportJob {
     @ObservationIgnored private var identity = UUID()
 
     func start(
-        document: MarkdownDocument, title: String, style: RenderStyle, format: ReaderExportFormat,
-        width: Double, scale: Double, quality: Double, paper: PaperPreset, margins: MarginPreset,
-        fontSize: Double, pageNumbers: Bool, printOutput: Bool
+        document: MarkdownDocument, title: String, style: RenderStyle, options: ReaderExportOptions,
+        printOutput: Bool
     ) {
         guard !busy, sharedFile == nil, printFile == nil else { return }
         clearFile()
@@ -100,41 +34,11 @@ fileprivate final class ReaderExportJob {
         error = nil
         let folder = FileManager.default.temporaryDirectory.appendingPathComponent("KasumiExport-" + id.uuidString)
         directory = folder
-        // URL construction prevents a source title from becoming a path.
-        let stem = (title as NSString).deletingPathExtension
-        let filename = (stem.isEmpty ? "Untitled" : stem).replacingOccurrences(of: "/", with: "-")
-        let url = folder.appendingPathComponent(filename).appendingPathExtension(format.rawValue)
-        var preparedStyle = style
-        preparedStyle.fontSize = fontSize
-        preparedStyle.codeBlockStyle = ReaderCodeBlockStyle.exporting(fontSize: fontSize)
-        let exportStyle = preparedStyle
+        let url = folder.appendingPathComponent(options.format.filename(for: title))
         let task = Task.detached(priority: .userInitiated) {
             try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
             do {
-                try Task.checkCancellation()
-                _ = await DocumentExport.preloadImages(document)
-                try Task.checkCancellation()
-                try autoreleasepool {
-                    if format == .pdf {
-                        var options = PDFExportOptions()
-                        options.title = title
-                        options.pageNumbers = pageNumbers
-                        options.paperSize = paper.size
-                        options.margins = .init(
-                            top: margins.points, left: margins.points, bottom: margins.points, right: margins.points)
-                        options.fontSize = fontSize
-                        try DocumentExport.writePDF(
-                            document, style: exportStyle, options: options, to: url)
-                    } else {
-                        var options = ImageExportOptions()
-                        options.format = format == .jpg ? .jpeg : .png
-                        options.scale = scale
-                        options.jpegQuality = quality
-                        try DocumentExport.writeImage(
-                            document, style: exportStyle, width: width, options: options, to: url)
-                    }
-                }
-                try Task.checkCancellation()
+                try await options.write(document, title: title, style: style, to: url)
                 return url
             } catch {
                 try? FileManager.default.removeItem(at: folder)
@@ -196,73 +100,69 @@ struct ReaderExportSheet: View {
     let title: String
     let style: RenderStyle
     @Environment(\.dismiss) private var dismiss
-    @State private var format = ReaderExportFormat.pdf
-    @State private var width = 600.0
-    @State private var scale = 2.0
-    @State private var quality = 0.9
-    @State private var paper = PaperPreset.a4
-    @State private var margins = MarginPreset.normal
-    @State private var pdfFontSize: Double
-    @State private var imageFontSize: Double
-    @State private var pageNumbers = true
+    @State private var options: ReaderExportOptions
     @State private var job = ReaderExportJob()
 
     init(document: MarkdownDocument, title: String, style: RenderStyle) {
         self.document = document
         self.title = title
         self.style = style
-        _pdfFontSize = State(initialValue: Double(style.preset.printFontSize))
-        _imageFontSize = State(initialValue: Double(style.fontSize ?? style.preset.defaultFontSize))
+        _options = State(initialValue: ReaderExportOptions(style: style))
     }
 
     var body: some View {
         NavigationStack {
             Form {
                 Section {
-                    Picker("Format", selection: $format.animation()) {
+                    Picker("Format", selection: $options.format.animation()) {
                         ForEach(ReaderExportFormat.allCases) { format in
                             Text(format.label).tag(format)
                         }
                     }
                     .accessibilityIdentifier("export-format")
-                    if format == .pdf {
-                        Picker("Paper Size", selection: $paper) {
+                    if options.format == .pdf {
+                        Picker("Paper Size", selection: $options.paper) {
                             ForEach(PaperPreset.allCases) { preset in
                                 Text(verbatim: preset.label).tag(preset)
                             }
                         }
-                        Picker("Margins", selection: $margins) {
+                        Picker("Margins", selection: $options.margins) {
                             ForEach(MarginPreset.allCases) { preset in
                                 Text(preset.label).tag(preset)
                             }
                         }
-                        Toggle("Page Numbers", isOn: $pageNumbers)
+                        Toggle("Page Numbers", isOn: $options.pageNumbers)
                     } else {
-                        Stepper(value: $width, in: 320...1600, step: 40) {
-                            Text("Layout Width: \(Int(width)) pt")
+                        Stepper(value: $options.width, in: ReaderExportOptions.widthRange, step: ReaderExportOptions.widthStep) {
+                            Text("Layout Width: \(Int(options.width)) pt")
                         }
                         .accessibilityIdentifier("export-width")
-                        Picker("Resolution", selection: $scale) {
-                            Text("1×").tag(1.0)
-                            Text("2×").tag(2.0)
-                            Text("3×").tag(3.0)
-                        }
-                        if format == .jpg {
-                            LabeledContent("JPG Quality") {
-                                Text(quality, format: .percent.precision(.fractionLength(0)))
+                        Picker("Resolution", selection: $options.scale) {
+                            ForEach(ReaderExportOptions.scales, id: \.self) { scale in
+                                Text("\(Int(scale))×").tag(scale)
                             }
-                            Slider(value: $quality, in: 0.6...1, step: 0.05) { Text("JPG Quality") }
+                        }
+                        if options.format == .jpg {
+                            LabeledContent("JPG Quality") {
+                                Text(options.quality, format: .percent.precision(.fractionLength(0)))
+                            }
+                            Slider(value: $options.quality, in: ReaderExportOptions.qualityRange, step: ReaderExportOptions.qualityStep) {
+                                Text("JPG Quality")
+                            }
                         }
                     }
-                    Stepper(value: format == .pdf ? $pdfFontSize : $imageFontSize, in: 6...36, step: 1) {
-                        Text("Font Size: \(format == .pdf ? pdfFontSize : imageFontSize, specifier: "%.0f") pt")
+                    Stepper(
+                        value: options.format == .pdf ? $options.pdfFontSize : $options.imageFontSize,
+                        in: ReaderExportOptions.fontSizeRange, step: 1
+                    ) {
+                        Text("Font Size: \(options.fontSize, specifier: "%.0f") pt")
                             .contentTransition(.numericText())
-                            .animation(.default, value: format == .pdf ? pdfFontSize : imageFontSize)
+                            .animation(.default, value: options.fontSize)
                     }
                     .accessibilityIdentifier("export-font-size")
                 } footer: {
                     // One Text keeps the footer's identity so a format change cross-fades it.
-                    Text(format.footer).contentTransition(.opacity)
+                    Text(options.format.footer).contentTransition(.opacity)
                 }
                 .disabled(locked)
                 .opacity(locked ? 0.4 : 1)
@@ -271,7 +171,7 @@ struct ReaderExportSheet: View {
                         .disabled(locked)
                         .opacity(locked ? 0.4 : 1)
                         .accessibilityIdentifier("export-share")
-                    if format == .pdf {
+                    if options.format == .pdf {
                         Button("Print", systemImage: "printer") { start(printOutput: true) }
                             .disabled(locked)
                             .opacity(locked ? 0.4 : 1)
@@ -318,10 +218,7 @@ struct ReaderExportSheet: View {
 
     private func start(printOutput: Bool) {
         job.start(
-            document: document, title: title, style: style, format: format,
-            width: width, scale: scale, quality: quality, paper: paper, margins: margins,
-            fontSize: format == .pdf ? pdfFontSize : imageFontSize,
-            pageNumbers: pageNumbers, printOutput: printOutput)
+            document: document, title: title, style: style, options: options, printOutput: printOutput)
     }
 }
 

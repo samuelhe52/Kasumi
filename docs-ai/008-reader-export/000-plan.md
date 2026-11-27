@@ -58,3 +58,4 @@ unverified and must be reported as such.
 
 - Updated 2026-11-16: implemented; simulator checks were curtailed by the maintainer-requested reboot. See [action and validation limits](001-action.md).
 - Updated 2026-11-17: added paper, margin and font-size choices and scaled export captions. See [export options](002-export-options.md).
+- Updated 2026-11-27: shared visual export options, native Mac Export, and semantic plain-text copy — see [Mac export and copy](003-mac-export-and-copy.md).

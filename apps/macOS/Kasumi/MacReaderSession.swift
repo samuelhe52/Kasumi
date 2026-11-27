@@ -5,6 +5,9 @@ import SwiftUI
 
 @MainActor @Observable
 final class MacReaderSession {
+    // Copy requests from any reader window share the same pasteboard.
+    private static var copyRequest = 0
+
     let document: ReaderDocument
     let viewport = ReaderViewport()
     let source = MacSourceEditorController()
@@ -177,8 +180,41 @@ final class MacReaderSession {
     }
 
     func copyPath() {
+        Self.copyRequest += 1
         guard let url = document.fileURL else { return }
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(url.path, forType: .string)
+        Self.copyToPasteboard(url.path)
+    }
+
+    func copyAsMarkdown() {
+        Self.copyRequest += 1
+        Self.copyToPasteboard(source.pendingText ?? document.text)
+    }
+
+    func copyAsPlainText() {
+        Self.copyRequest += 1
+        let request = Self.copyRequest
+        let changeCount = NSPasteboard.general.changeCount
+        let pending = source.pendingText
+        let text = pending ?? document.text
+        if document.isPlainText && !document.parsePlainTextAsMarkdown {
+            Self.copyToPasteboard(text)
+        } else if pending == nil, document.previewIsCurrent, let snapshot = document.snapshot {
+            Self.copyToPasteboard(DocumentExport.plainText(snapshot.parsed))
+        } else {
+            let worker = Task.detached(priority: .userInitiated) {
+                DocumentExport.plainText(MarkdownDocument(markdown: text))
+            }
+            Task {
+                let plainText = await worker.value
+                guard Self.copyRequest == request, NSPasteboard.general.changeCount == changeCount else { return }
+                Self.copyToPasteboard(plainText)
+            }
+        }
+    }
+
+    private static func copyToPasteboard(_ text: String) {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
     }
 }
