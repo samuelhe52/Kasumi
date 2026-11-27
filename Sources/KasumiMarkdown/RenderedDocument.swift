@@ -463,7 +463,8 @@ public final class RenderedDocument: @unchecked Sendable {
         let index = min(max(0, position.offset), text.length - 1)
         var found: NSRange?
         text.enumerateSubstrings(
-            in: NSRange(location: 0, length: text.length), options: [.byWords, .substringNotRequired]
+            in: text.paragraphRange(for: NSRange(location: index, length: 0)),
+            options: [.byWords, .substringNotRequired]
         ) { _, range, _, stop in
             if NSLocationInRange(index, range) {
                 found = range

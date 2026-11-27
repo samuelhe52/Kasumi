@@ -108,6 +108,11 @@ fileprivate func facadeBitmap(size: CGSize, draw: (CGContext) -> Void) throws ->
         let bold = try #require(rendered.ranges(matching: "bold").first)
         let word = try #require(rendered.wordRange(at: bold.lowerBound))
         #expect(rendered.text(in: word) == "bold")
+        // The word search is scoped to the paragraph around the position.
+        let next = try #require(rendered.ranges(matching: "Next").first)
+        #expect(rendered.wordRange(at: next.lowerBound).map(rendered.text(in:)) == "Next")
+        let last = try #require(rendered.ranges(matching: "line").first)
+        #expect(rendered.wordRange(at: last.lowerBound).map(rendered.text(in:)) == "line")
         let other = RenderedDocument(MarkdownDocument(markdown: "Other"), width: 260, style: .init())
         #expect(other.text(in: cjkMath).isEmpty)
     }
