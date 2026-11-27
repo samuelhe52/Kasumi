@@ -56,7 +56,7 @@ KasumiMarkdown requires Swift 6.2 or later and supports macOS 13+ and iOS 15+.
 Add KasumiMarkdown to your `Package.swift` dependencies:
 
 ```swift
-.package(url: "https://github.com/samuelhe52/Kasumi.git", from: "0.2.0")
+.package(url: "https://github.com/samuelhe52/Kasumi.git", from: "0.3.0")
 ```
 
 Add the optional [`KasumiMarkdownUI` product](docs/library.md#embedding-a-native-reader) for a scrollable UIKit, AppKit, or SwiftUI reader.
